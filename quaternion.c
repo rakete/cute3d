@@ -1,0 +1,116 @@
+#include "stdio.h"
+
+#include "quaternion.h"
+
+void rotation_quat(const Vec axis, const float angle, Quat quat) {
+    Vec normed_axis;
+    float norm = sqrt( axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2] );
+    normed_axis[0] = axis[0] / norm;
+    normed_axis[1] = axis[1] / norm;
+    normed_axis[2] = axis[2] / norm;
+    normed_axis[3] = 1.0;
+    
+    quat[0] = normed_axis[0] * sin(angle/2);
+    quat[1] = normed_axis[1] * sin(angle/2);
+    quat[2] = normed_axis[2] * sin(angle/2);
+    quat[3] = cos(angle/2);
+}
+
+void quat_rotate(const Quat quat, const Vec vec, Vec result) {
+    Vec normed_vec;
+    float norm = sqrt( vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2] );
+    normed_vec[0] = vec[0] / norm;
+    normed_vec[1] = vec[1] / norm;
+    normed_vec[2] = vec[2] / norm;
+    normed_vec[3] = 1.0;
+
+    Quat product;
+    quat_product(quat, normed_vec, product);
+
+    Quat conj;
+    quat_conjugate(quat, conj);
+        
+    quat_product(product, conj, result);
+}
+
+void quat_product(const Quat qa, const Quat qb, Quat result) {
+    float x1,y1,z1,w1,x2,y2,z2,w2;
+    x1 = qa[0];  y1 = qa[1];  z1 = qa[2];  w1 = qa[3];
+    x2 = qb[0];  y2 = qb[1];  z2 = qb[2];  w2 = qb[3];
+  
+    float qw = w1*w2 - x1*x2 - y1*y2 - z1*z2;
+    float qx = w1*x2 + x1*w2 + y1*z2 - z1*y2;
+    float qy = w1*y2 - x1*z2 + y1*w2 + z1*x2;
+    float qz = w1*z2 + x1*y2 - y1*x2 + z1*w2;
+  
+    result[0] = qx;
+    result[1] = qy;
+    result[2] = qz;
+    result[3] = qw;
+}
+
+void quat_dot(const Quat qa, const Quat qb, float* result) {
+    float x1,y1,z1,w1,x2,y2,z2,w2;
+    x1 = qa[0];  y1 = qa[1];  z1 = qa[2];  w1 = qa[3];
+    x2 = qb[0];  y2 = qb[1];  z2 = qb[2];  w2 = qb[3];
+
+    *result = w1*w2 + x1*x2 + y1*y2 + z1*z2;
+}
+
+float qdot(const Quat qa, const Quat qb) {
+    float dot;
+    quat_dot(qa,qb,&dot);
+    return dot;
+}
+
+void quat_conjugate(const Quat quat, Quat result) {
+    result[0] = -quat[0];
+    result[1] = -quat[1];
+    result[2] = -quat[2];
+    result[3] = quat[3];
+}
+
+void quat_invert(const Quat quat, Quat result) {
+    Quat conj;
+    quat_conjugate(quat, conj);
+    
+    result[0] = conj[0] * (1 / qdot( quat, conj ) );
+    result[1] = conj[1] * (1 / qdot( quat, conj ) );
+    result[2] = conj[2] * (1 / qdot( quat, conj ) );
+    result[3] = conj[3] * (1 / qdot( quat, conj ) );
+}
+
+void quat_magnitude(const Quat quat, float* result) {
+  *result = sqrt( qdot(quat, quat) );
+}
+
+float qmagnitude(const Quat quat) {
+    float magnitude;
+    quat_magnitude(quat, &magnitude);
+    return magnitude;
+}
+
+void quat_matrix(const Quat quat, Matrix m) {
+    float x,y,z,w;
+    w = quat[3]; x = quat[0]; y = quat[1]; z = quat[2];
+
+    float xx = x*x;
+    float xy = x*y;
+    float xz = x*z;
+
+    float yy = y*y;
+    float yz = y*z;
+
+    float zz = z*z;
+
+    float wx = w*x;
+    float wy = w*y;
+    float wz = w*z;
+    float ww = w*w;
+
+    m[0] = ww + xx - yy - zz; m[4] = 2*(xy + wz);       m[8]  =  2*(xz - wy);       m[12] = 0;
+    m[1] = 2*(xy - wz);       m[5] = ww - xx + yy - zz; m[9]  =  2*(yz + wx);       m[13] = 0;
+    m[2] = 2*(xz + wy);       m[6] = 2*(yz - wx);       m[10] =  ww - xx - yy + zz; m[14] = 0;
+    m[3] = 0;                 m[7] = 0;                 m[11] =  0;                 m[15] = ww + xx + yy + zz;
+}
+
