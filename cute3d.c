@@ -3,8 +3,11 @@
 #include "stdlib.h"
 #include "time.h"
 
+#include "math_types.h"
 #include "debug.h"
 #include "render.h"
+#include "solid.h"
+#include "font.h"
 
 #include "allegro5/allegro.h"
 
@@ -20,6 +23,7 @@ int main(int argc, char** argv) {
     }
 
     al_install_keyboard();
+    al_set_new_display_option(ALLEGRO_DEPTH_SIZE, 24, ALLEGRO_REQUIRE);
     al_set_new_display_flags(ALLEGRO_OPENGL);
     display = al_create_display(800, 600);
     if (!display) {
@@ -30,47 +34,155 @@ int main(int argc, char** argv) {
     al_register_event_source(queue, al_get_keyboard_event_source());
     al_register_event_source(queue, al_get_display_event_source(display));
 
-    float vertices1[9] = { -0.7, 0.5, 0.0,
-                          -0.1, -0.5, 0.0,
-                          -1.3, -0.5, 0.0 };
+    glViewport(0,0,800,600);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
+    
+    float vertices1[9] = { -0.7, 0.0, 0.5,
+                           -0.1, 0.0, -0.5,
+                           -1.3, 0.0, -0.5 };
     float vertices2[9] = { 0.7, 0.5, 0.0,
                           0.1, -0.5, 0.0,
                           1.3, -0.5, 0.0 };
-    short colors[12] = { 255, 0, 0, 255,
-                         255, 0, 0, 255,
-                         255, 0, 0, 255 };
+    float colors[12] = { 1.0, 0, 0, 1.0,
+                         1.0, 0, 0, 1.0,
+                         1.0, 0, 0, 1.0 };
     
     init_geometry();
-    struct vbo vbo;
-    vbo_create(3, 3, &vbo);
+    struct Vbo vbo;
+    vbo_create(3, &vbo);
     vbo_add_buffer(&vbo, vertex_array, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, color_array, 4, GL_SHORT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, color_array, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, normal_array, 3, GL_FLOAT, GL_STATIC_DRAW);
 
-    struct mesh triangle_mesh;
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, &triangle_mesh);
+    struct Mesh triangle_mesh;
+    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &triangle_mesh);
     
     mesh_append(&triangle_mesh, vertex_array, vertices1, 3);
     mesh_append(&triangle_mesh, color_array, colors, 3);
+    mesh_triangle(&triangle_mesh, 0, 1, 2);
 
     dump_mesh(&triangle_mesh, stdout);
 
-    mesh_triangle(&triangle_mesh, 0, 1, 2);
-
     init_shader();
-    struct shader default_shader;
-    shader_create(&default_shader);
+    struct Shader default_shader;
+    shader_create(&default_shader, "flat.vertex", "flat.fragment");
     shader_attribute(&default_shader, vertex_array, "vertex");
     shader_attribute(&default_shader, color_array, "color");
+    shader_attribute(&default_shader, normal_array, "normal");
 
-    struct camera default_camera;
-    camera_perspective(&default_camera, 45.0f, 1.33333f, 0.0f, 100.0f);
+    struct Camera default_camera;
+    camera_perspective(&default_camera, 45.0f, 1.33333f, 0.2f, 100.0f);
 
-    Vec translation = { 0.0, -1.0, -1.0 };
+    /* Quat rotation; */
+    /* rotation_quat((float[]){ 1.0, 0.0, 0.0, 1.0 }, 90 * PI/180, rotation); */
+    /* quat_product(default_camera.pivot.orientation, rotation, default_camera.pivot.orientation); */
+    
+    Vec translation = { 0.0, 0.0, 0.1 };
     vector_add3f(default_camera.pivot.position, translation, default_camera.pivot.position);
     Vec origin = { 0.0, 0.0, 0.0, 1.0 };
     pivot_lookat(&default_camera.pivot, origin);
+   
+    struct Tetrahedron tetrahedron;
+    solid_tetrahedron(&tetrahedron);
+    solid_colors((struct Solid*)&tetrahedron, (float[4]){ 0, 1.0, 0, 1.0 });
+    solid_normals((struct Solid*)&tetrahedron);
 
-    glViewport(0,0,800,600);
+    struct Mesh tetrahedron_mesh;
+    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &tetrahedron_mesh);
+    mesh_append(&tetrahedron_mesh, vertex_array, tetrahedron.vertices, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size);
+    mesh_append(&tetrahedron_mesh, color_array, tetrahedron.colors, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size);
+    mesh_append(&tetrahedron_mesh, normal_array, tetrahedron.normals, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size);
+    mesh_faces(&tetrahedron_mesh, tetrahedron.elements, tetrahedron.solid.faces.num);
+
+    dump_mesh(&tetrahedron_mesh, stdout);
+
+    struct Cube cube;
+    solid_cube(&cube);
+    solid_colors((struct Solid*)&cube, (float[4]){ 0.8, 0.5, 0.0, 1.0 });
+    solid_normals((struct Solid*)&cube);
+
+    struct Mesh cube_mesh;
+    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
+    mesh_append(&cube_mesh, vertex_array, cube.vertices, cube.solid.faces.num * cube.solid.faces.size);
+    mesh_append(&cube_mesh, color_array, cube.colors, cube.solid.faces.num * cube.solid.faces.size);
+    mesh_append(&cube_mesh, normal_array, cube.normals, cube.solid.faces.num * cube.solid.faces.size);
+    mesh_faces(&cube_mesh, cube.elements, cube.solid.faces.num);
+
+    dump_mesh(&cube_mesh, stdout);
+
+    struct Sphere32 sphere;
+    solid_sphere32(&sphere);
+    solid_colors((struct Solid*)&sphere, (float[4]){ 0.4, 0.7, 1.0, 1.0 });
+    solid_normals((struct Solid*)&sphere);
+
+    struct Mesh sphere_mesh;
+    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere_mesh);
+    mesh_append(&sphere_mesh, vertex_array, sphere.vertices, sphere.solid.faces.num * sphere.solid.faces.size);
+    mesh_append(&sphere_mesh, color_array, sphere.colors, sphere.solid.faces.num * sphere.solid.faces.size);
+    mesh_append(&sphere_mesh, normal_array, sphere.normals, sphere.solid.faces.num * sphere.solid.faces.size);
+    mesh_faces(&sphere_mesh, sphere.elements, sphere.solid.faces.num);
+
+    dump_mesh(&sphere_mesh, stdout);
+
+    SymbolTable symbols;
+    symbols['A'] = char_A();
+    symbols['B'] = char_B();
+    symbols['C'] = char_C();
+    symbols['D'] = char_D();
+    symbols['E'] = char_E();
+    symbols['F'] = char_F();
+    symbols['G'] = char_G();
+    symbols['H'] = char_H();
+    symbols['I'] = char_I();
+    symbols['J'] = char_J();
+    symbols['K'] = char_K();
+    symbols['L'] = char_L();
+    symbols['M'] = char_M();
+    symbols['N'] = char_N();
+    symbols['O'] = char_O();
+    symbols['P'] = char_P();
+    symbols['Q'] = char_Q();
+    symbols['R'] = char_R();
+    symbols['S'] = char_S();
+    symbols['T'] = char_T();
+    symbols['U'] = char_U();
+    symbols['V'] = char_V();
+    symbols['W'] = char_W();
+    symbols['X'] = char_X();
+    symbols['Y'] = char_Y();
+    symbols['Z'] = char_Z();
+    
+    symbols['a'] = char_a();
+    symbols['b'] = char_b();
+    symbols['c'] = char_c();
+    symbols['d'] = char_d();
+    symbols['e'] = char_e();
+    symbols['f'] = char_f();
+    symbols['g'] = char_g();
+    symbols['h'] = char_h();
+    symbols['i'] = char_i();
+    symbols['j'] = char_j();
+    symbols['k'] = char_k();
+    symbols['l'] = char_l();
+    symbols['m'] = char_m();
+    symbols['n'] = char_n();
+    symbols['o'] = char_o();
+    symbols['p'] = char_p();
+    symbols['q'] = char_q();
+    symbols['r'] = char_r();
+    symbols['s'] = char_s();
+    symbols['t'] = char_t();
+    symbols['u'] = char_u();
+    symbols['v'] = char_v();
+    symbols['w'] = char_w();
+    symbols['x'] = char_x();
+    symbols['y'] = char_y();
+    symbols['z'] = char_z();
+
+    struct Font font;
+    font_create(&font, "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz", symbols);
 
     while (true) {
         /* Check for ESC key or close button event and quit in either case. */
@@ -88,22 +200,72 @@ int main(int argc, char** argv) {
             }
         }
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearDepth(1.0f);
+        glClearColor(.0f, .0f, .0f, 1.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
         Matrix projection_grid;
         Matrix view_grid;
         camera_matrices(&default_camera, projection_grid, view_grid);
 
-        Matrix model_grid;
-        matrix_identity(model_grid);
-        Vec scaling = { 4.0, 4.0, 1.0, 1.0 };
-        matrix_scale(model_grid, scaling, model_grid);
+        Matrix model_grid[2];
+        matrix_identity(model_grid[0]);
+        matrix_identity(model_grid[1]);
+        Vec scaling1 = { 8.0, 8.0, 1.0, 1.0 };
+        matrix_scale(model_grid[0], scaling1, model_grid[0]);
+        Vec scaling2 = { 2.0, 2.0, 1.0, 1.0 };
+        matrix_scale(model_grid[1], scaling2, model_grid[1]);
+
+        Matrix identity;
+        matrix_identity(identity);
+
+        Vec light_direction = { 0.2, 0.5, 1.0 };
+        shader_uniform(&default_shader, "light_direction", "3f", light_direction);
         
-        debug_grid(projection_grid, view_grid, model_grid, 6);
+        debug_grid(projection_grid, view_grid, model_grid, 2, 16, (float[4]){.4, .4, .4, 1});
+        //render_mesh(&triangle_mesh, &default_shader, &default_camera, identity);
 
-        render_mesh(&triangle_mesh, &default_shader, &default_camera, NULL);
+        /* Matrix tet_left; */
+        /* matrix_identity(tet_left); */
+        /* matrix_translate(tet_left, (Vec){ 1.0, -1.0, 0.0, 1.0 }, tet_left); */
+        /* render_mesh(&tetrahedron_mesh, &default_shader, &default_camera, tet_left); */
+        /* debug_normals_array(projection_grid, */
+        /*                     view_grid, */
+        /*                     tet_left, */
+        /*                     tetrahedron.vertices, */
+        /*                     tetrahedron.normals, */
+        /*                     tetrahedron.solid.faces.num * tetrahedron.solid.faces.size, */
+        /*                     (float[4]){0.0,1.0,1.0,1.0}); */
+        
+        /* Matrix cube_right; */
+        /* matrix_identity(cube_right); */
+        /* matrix_translate(cube_right, (Vec){ -1.0, 0.5, 0.0, 1.0 }, cube_right); */
+        /* render_mesh(&cube_mesh, &default_shader, &default_camera, cube_right); */
+        /* debug_normals_array(projection_grid, */
+        /*                     view_grid, */
+        /*                     cube_right, */
+        /*                     cube.vertices, */
+        /*                     cube.normals, */
+        /*                     cube.solid.faces.num * cube.solid.faces.size, */
+        /*                     (float[4]){1.0,0.0,1.0,1.0}); */
 
+        /* Matrix sphere_right; */
+        /* matrix_identity(sphere_right); */
+        /* matrix_translate(sphere_right, (Vec){ -1.0, 0.5, 0.0, 1.0 }, sphere_right); */
+        /* render_mesh(&sphere_mesh, &default_shader, &default_camera, sphere_right); */
+        /* debug_normals_array(projection_grid, */
+        /*                     view_grid, */
+        /*                     sphere_right, */
+        /*                     sphere.vertices, */
+        /*                     sphere.normals, */
+        /*                     sphere.solid.faces.num * sphere.solid.faces.size, */
+        /*                     (float[4]){1.0,0.0,1.0,1.0}); */
+
+        Matrix font_matrix;
+        matrix_identity(font_matrix);
+        debug_texture_quad(projection_grid, view_grid, font_matrix, font.texture.id);
+
+        
         al_flip_display();
     }
 
