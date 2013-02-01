@@ -1,0 +1,8 @@
+#version 130
+
+smooth in vec4 frag_color;
+smooth in float intensity;
+
+void main() {
+    gl_FragColor = (vec4(0.2,0.2,0.2,1.0)+intensity) * frag_color;
+}
