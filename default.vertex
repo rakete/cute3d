@@ -26,6 +26,6 @@ mat4 perspective = mat4(vec4(1.0/tan(45.0), 0               , 0, 0),
                         vec4(0            , 0               , 0, 1));
 
 void main() {
-    gl_Position = projection_matrix * model_matrix * view_matrix * vec4(vertex,1.0);
+    gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex,1.0);
     frag_color = color;
 }
