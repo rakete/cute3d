@@ -36,7 +36,7 @@ enum element {
     quad_element
 };
 
-struct vbo {
+struct Vbo {
     struct {
         GLuint id;
         GLenum usage;
@@ -53,29 +53,27 @@ struct vbo {
     uint32_t alloc; // how much should be allocated per once we grow bigger then size
 };
 
-void vbo_create(uint32_t size_n,
-                uint32_t alloc_n,
-                struct vbo* p);
+void vbo_create(uint32_t alloc_n, struct Vbo* p);
 
-void dump_vbo(struct vbo* vbo, FILE* f);
+void dump_vbo(struct Vbo* vbo, FILE* f);
 
-void vbo_add_buffer(struct vbo* vbo,
+void vbo_add_buffer(struct Vbo* vbo,
                     int i,
                     uint32_t component_n,
                     GLenum component_t,
                     GLenum usage);
 
-uint32_t vbo_alloc(struct vbo* vbo, uint32_t n);
+uint32_t vbo_alloc(struct Vbo* vbo, uint32_t n);
 
-uint32_t vbo_free_elements(struct vbo* vbo);
-uint32_t vbo_free_bytes(struct vbo* vbo, int i);
+uint32_t vbo_free_elements(struct Vbo* vbo);
+uint32_t vbo_free_bytes(struct Vbo* vbo, int i);
 
-void vbo_bind(struct vbo* vbo, int i, GLenum bind_type);
+void vbo_bind(struct Vbo* vbo, int i, GLenum bind_type);
 
-void vbo_fill_value(struct vbo* vbo, int i, uint32_t offset_n, uint32_t size_n, float value);
+void vbo_fill_value(struct Vbo* vbo, int i, uint32_t offset_n, uint32_t size_n, float value);
 
-struct mesh {
-    struct vbo* vbo;
+struct Mesh {
+    struct Vbo* vbo;
 
     uint32_t offset; // offset in vbo buffers
     uint32_t size; // space used by mesh in vbo
@@ -83,40 +81,47 @@ struct mesh {
     struct {
         uint32_t used;
     } buffer[NUM_BUFFERS];
-    
+
     struct {
         GLenum primitive;
+        uint32_t size;
+    } faces;
+
+    struct {
         GLenum type;
-        uint32_t num;
         uint32_t bytes;
-    } indices;
+    } index;
 
     struct {
         GLuint buffer; // indices buffer
         uint32_t size; // size of the buffer
         uint32_t used; // space already used
         uint32_t alloc; // how much to allocate additionally if we need to resize
+        GLenum usage;
     } elements;
 
     uint32_t garbage;
 };
 
-void mesh_create(struct vbo* vbo, GLenum primitive_type, GLenum indices_type, struct mesh* p);
+void mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct Mesh* p);
 
-void dump_mesh(struct mesh* mesh, FILE* f);
+void dump_mesh(struct Mesh* mesh, FILE* f);
 
-void mesh_patches(struct mesh* mesh, uint32_t patches_size);
+void mesh_patches(struct Mesh* mesh, uint32_t patches_size);
 
-uint32_t mesh_alloc(struct mesh* mesh, uint32_t n);
+uint32_t mesh_alloc(struct Mesh* mesh, uint32_t n);
 
-uint32_t mesh_free_bytes(struct mesh* mesh, int i);
-uint32_t mesh_free_elements(struct mesh* mesh, int i);
+uint32_t mesh_free_bytes(struct Mesh* mesh, int i);
+uint32_t mesh_free_elements(struct Mesh* mesh, int i);
 
-void mesh_append(struct mesh* mesh, int i, void* data, uint32_t n);
+void mesh_append(struct Mesh* mesh, int i, void* data, uint32_t n);
+void mesh_append_generic(struct Mesh* mesh, int i, void* data, uint32_t n, uint32_t components_num, GLenum components_type);
 
-void mesh_triangle(struct mesh* mesh, GLuint a, GLuint b, GLuint c);
+void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c);
+void mesh_triangle_strip(struct Mesh* mesh, GLuint a);
+void mesh_faces(struct Mesh* mesh, void* data, uint32_t n);
 
-struct mesh* mesh_clone(struct mesh* mesh);
+struct Mesh* mesh_clone(struct Mesh* mesh);
 
 /* void mesh_quad(struct mesh* mesh, GLuint a, GLuint b, GLuint c, GLuint d); */
 

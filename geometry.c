@@ -42,6 +42,9 @@ GLsizei buffer_resize(GLuint* buffer, GLsizei old_bytes, GLsizei new_bytes) {
 
         *buffer = new_buffer;
 
+        glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+        glBindBuffer(GL_COPY_READ_BUFFER, 0);
+
         return new_bytes;
     }
 
@@ -73,7 +76,7 @@ GLsizei sizeof_primitive(GLenum primitive) {
     return 0;
 }
 
-void vbo_create(uint32_t capacity_n, uint32_t alloc_n, struct vbo* p) {
+void vbo_create(uint32_t alloc_n, struct Vbo* p) {
     for( int i = 0; i < NUM_BUFFERS; i++ ) {
         p->buffer[i].id = 0;
         p->buffer[i].usage = GL_STATIC_DRAW;
@@ -83,18 +86,18 @@ void vbo_create(uint32_t capacity_n, uint32_t alloc_n, struct vbo* p) {
         p->components[i].bytes = 0;
     }
 
-    p->capacity = capacity_n;
+    p->capacity = 0;
     p->reserved = 0;
     p->alloc = alloc_n;
 }
 
-void dump_vbo(struct vbo* vbo, FILE* f) {
+void dump_vbo(struct Vbo* vbo, FILE* f) {
     fprintf(f, "vbo->capacity: %d\n", vbo->capacity);
     fprintf(f, "vbo->reserved: %d\n", vbo->reserved);
     fprintf(f, "vbo->alloc: %d\n", vbo->alloc);
 }
 
-void vbo_add_buffer(struct vbo* vbo,
+void vbo_add_buffer(struct Vbo* vbo,
                     int i,
                     uint32_t component_n,
                     GLenum component_t,
@@ -112,10 +115,11 @@ void vbo_add_buffer(struct vbo* vbo,
         uint32_t nbytes = vbo->capacity * component_n * sizeof_type(component_t);
         glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
         glBufferData(GL_ARRAY_BUFFER, nbytes, NULL, usage);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
 
-uint32_t vbo_alloc(struct vbo* vbo, uint32_t n) {
+uint32_t vbo_alloc(struct Vbo* vbo, uint32_t n) {
     if( vbo ) {
         int resized_bytes = 1;
         uint32_t alloc = vbo->alloc;
@@ -144,7 +148,7 @@ uint32_t vbo_alloc(struct vbo* vbo, uint32_t n) {
     return 0;
 }
 
-uint32_t vbo_free_elements(struct vbo* vbo) {
+uint32_t vbo_free_elements(struct Vbo* vbo) {
     uint32_t freespace = 0;
     if( vbo ) {
         freespace = vbo->capacity - vbo->reserved;
@@ -152,7 +156,7 @@ uint32_t vbo_free_elements(struct vbo* vbo) {
     return freespace;
 }
 
-uint32_t vbo_free_bytes(struct vbo* vbo, int i) {
+uint32_t vbo_free_bytes(struct Vbo* vbo, int i) {
     uint32_t freespace = 0;
     if( vbo && vbo->buffer[i].id ) {
         freespace = vbo_free_elements(vbo) * vbo->components[i].num * vbo->components[i].bytes;
@@ -160,13 +164,13 @@ uint32_t vbo_free_bytes(struct vbo* vbo, int i) {
     return 0;
 }
 
-void vbo_bind(struct vbo* vbo, int i, GLenum bind_type) {
+void vbo_bind(struct Vbo* vbo, int i, GLenum bind_type) {
     if( vbo && i < NUM_BUFFERS && vbo->buffer[i].id ) {
         glBindBuffer(bind_type, vbo->buffer[i].id);
     }
 }
 
-void vbo_fill_value(struct vbo* vbo, int i, uint32_t offset_n, uint32_t size_n, float value) {
+void vbo_fill_value(struct Vbo* vbo, int i, uint32_t offset_n, uint32_t size_n, float value) {
     if( vbo && vbo->buffer[i].id && offset_n < vbo->capacity && size_n <= vbo->capacity ) {
         void* array = malloc( sizeof_type(vbo->components[i].type) * size_n );
         uint32_t array_offset = offset_n * vbo->components[i].num;
@@ -201,7 +205,7 @@ void vbo_fill_value(struct vbo* vbo, int i, uint32_t offset_n, uint32_t size_n, 
     }
 }
 
-void mesh_create(struct vbo* vbo, GLenum primitive_type, GLenum indices_type, struct mesh* p) {
+void mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct Mesh* p) {
     if( vbo ) {
         p->vbo = vbo;
 
@@ -212,21 +216,29 @@ void mesh_create(struct vbo* vbo, GLenum primitive_type, GLenum indices_type, st
             p->buffer[i].used = 0;
         }
 
-        p->indices.primitive = primitive_type;
-        p->indices.num = sizeof_primitive(primitive_type);
-        p->indices.type = indices_type;
-        p->indices.bytes = sizeof_type(indices_type);
-    
+        p->faces.primitive = primitive_type;
+        p->faces.size = sizeof_primitive(primitive_type);
+        
+        p->index.type = index_type;
+        p->index.bytes = sizeof_type(index_type);
+        
         p->elements.buffer = 0;
         p->elements.size = 0;
         p->elements.used = 0;
         p->elements.alloc = vbo->alloc;
+        p->elements.usage = usage;
+
+        glGenBuffers(1, &p->elements.buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, p->elements.buffer);
+        uint32_t nbytes = p->faces.size * p->index.bytes;
+        glBufferData(GL_ARRAY_BUFFER, nbytes, NULL, usage);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         p->garbage = 0;
     }
 }
 
-void dump_mesh(struct mesh* mesh, FILE* f) {
+void dump_mesh(struct Mesh* mesh, FILE* f) {
     dump_vbo(mesh->vbo, f);
 
     fprintf(f, "\n");
@@ -235,12 +247,12 @@ void dump_mesh(struct mesh* mesh, FILE* f) {
     fprintf(f, "mesh->size: %d\n", mesh->size);
 }
 
-void mesh_patches(struct mesh* mesh, uint32_t patches_size) {
-    mesh->indices.primitive = GL_PATCHES;
-    mesh->indices.num = patches_size;
+void mesh_patches(struct Mesh* mesh, uint32_t patches_size) {
+    mesh->faces.primitive = GL_PATCHES;
+    mesh->faces.size = patches_size;
 }
 
-uint32_t mesh_alloc(struct mesh* mesh, uint32_t n) {
+uint32_t mesh_alloc(struct Mesh* mesh, uint32_t n) {
     if( mesh && mesh->offset + mesh->size == mesh->vbo->reserved ) {
         if( vbo_free_elements(mesh->vbo) < n ) {
             vbo_alloc(mesh->vbo, n);
@@ -257,59 +269,125 @@ uint32_t mesh_alloc(struct mesh* mesh, uint32_t n) {
     return 0;
 }
 
-uint32_t mesh_free_elements(struct mesh* mesh, int i) {
+uint32_t mesh_free_elements(struct Mesh* mesh, int i) {
     return( mesh->size - mesh->buffer[i].used );
 }
 
-uint32_t mesh_free_bytes(struct mesh* mesh, int i) {
+uint32_t mesh_free_bytes(struct Mesh* mesh, int i) {
 }
 
-void mesh_append(struct mesh* mesh, int i, void* data, uint32_t n) {
+void mesh_append(struct Mesh* mesh, int i, void* data, uint32_t n) {
+    mesh_append_generic(mesh, i, data, n, mesh->vbo->components[i].num, mesh->vbo->components[i].type);
+}
+
+void mesh_append_generic(struct Mesh* mesh, int i, void* data, uint32_t n, uint32_t components_num, GLenum components_type) {
     if( mesh && mesh->vbo->buffer[i].id ) {
-        uint32_t append_bytes = n * mesh->vbo->components[i].num * mesh->vbo->components[i].bytes;
+        // only these depend on given size params => generic data append
+        uint32_t attrib_size = components_num * sizeof_type(components_type);
+        uint32_t append_bytes = n * attrib_size;
+
+        // stuff that relies on vbo size values
+        uint32_t size_bytes = mesh->size * mesh->vbo->components[i].num * mesh->vbo->components[i].bytes;
+        uint32_t used_bytes = mesh->buffer[i].used * mesh->vbo->components[i].num * mesh->vbo->components[i].bytes;
         uint32_t offset_bytes = (mesh->offset + mesh->buffer[i].used) * mesh->vbo->components[i].num * mesh->vbo->components[i].bytes;
 
-        if( mesh_free_elements(mesh,i) >= n ) {
+        if( used_bytes + append_bytes <= size_bytes ) {
             glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
             glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
 
             mesh->buffer[i].used += n;
-        } else if( mesh->offset + mesh->size == mesh->vbo->reserved ) {
+        } else if( mesh->offset + mesh->size == mesh->vbo->reserved &&
+                   mesh->vbo->components[i].num == components_num &&
+                   mesh->vbo->components[i].type == components_type )
+        {
+            // this does not work genericly, so we just not allocate anything at
+            // if num and type do not fit the stored values in vbo
             mesh_alloc(mesh,n);
 
             glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
             glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
 
             mesh->buffer[i].used += n;
         }
     }
 }
 
-void mesh_triangle(struct mesh* mesh, GLuint a, GLuint b, GLuint c) {
-    GLuint data[3] =  { a, b, c };
+void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c) {
+    if( mesh && mesh->elements.buffer ) {
+        void* data = malloc(3 * mesh->index.bytes);
 
-    uint32_t newsize = mesh->size + 3;
-    uint32_t size_bytes = mesh->size * mesh->indices.num * sizeof_type(mesh->indices.type);
-    uint32_t append_bytes = 3 * sizeof_type(mesh->indices.type);
-
-    if( (mesh->elements.used + 3) > mesh->elements.size ) {
-        uint32_t resized_bytes = buffer_resize(&mesh->elements.buffer, size_bytes, size_bytes + append_bytes);
-        if( resized_bytes > 0 ) {
-            mesh->elements.size += newsize;
+        if( mesh->index.type == GL_UNSIGNED_INT ) {
+            ((GLuint*)data)[0] = a;
+            ((GLuint*)data)[1] = b;
+            ((GLuint*)data)[2] = c;
+        } else if( mesh->index.type == GL_UNSIGNED_SHORT ) {
+            ((GLushort*)data)[0] = (GLushort)a;
+            ((GLushort*)data)[1] = (GLushort)b;
+            ((GLushort*)data)[2] = (GLushort)c;
         }
-    }
 
-    if( mesh->elements.size >= newsize ) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->elements.buffer);
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, mesh->elements.used, append_bytes, data);
+        uint32_t triangle_bytes = mesh->faces.size * mesh->index.bytes;
+        uint32_t size_bytes = mesh->size * triangle_bytes;
+
+        if( mesh->elements.used + 1 > mesh->elements.size ) {
+            uint32_t alloc_bytes = mesh->elements.alloc * triangle_bytes;
+            uint32_t resized_bytes = buffer_resize(&mesh->elements.buffer, size_bytes, size_bytes + alloc_bytes);
+            if( resized_bytes > 0 ) {
+                mesh->elements.size += mesh->elements.alloc;
+            }
+        }
+
+        uint32_t offset_bytes = mesh->elements.used * triangle_bytes;
+        if( mesh->elements.used + 1 <= mesh->elements.size ) {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->elements.buffer);
+            glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset_bytes, triangle_bytes, data);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+            mesh->elements.used += 1;
+        }
+
+        free(data);
     }
 }
 
-struct mesh* mesh_clone(struct mesh* mesh) {
-    /* struct mesh* clone; */
+void mesh_faces(struct Mesh* mesh, void* data, uint32_t n) {
+    if( mesh && mesh->elements.buffer ) {
+        uint32_t triangle_bytes = mesh->faces.size * mesh->index.bytes;
+        uint32_t size_bytes = mesh->size * triangle_bytes;
+
+        if( mesh->elements.used + n > mesh->elements.size ) {
+            uint32_t alloc = 0;
+            while( alloc < n ) {
+                alloc += mesh->elements.alloc;
+            }
+            
+            uint32_t alloc_bytes = alloc * triangle_bytes;
+            
+            uint32_t resized_bytes = buffer_resize(&mesh->elements.buffer, size_bytes, size_bytes + alloc_bytes);
+            if( resized_bytes > 0 ) {
+                mesh->elements.size += alloc;
+            }
+        }
+            
+        uint32_t append_bytes = n * triangle_bytes;
+        uint32_t offset_bytes = mesh->elements.used * triangle_bytes;
+        if( mesh->elements.used + n <= mesh->elements.size ) {
+            glBindBuffer(GL_ARRAY_BUFFER, mesh->elements.buffer);
+            glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+            mesh->elements.used += n;
+        }
+    }    
+}
+
+struct Mesh* mesh_clone(struct Mesh* mesh) {
+    /* struct Mesh* clone; */
 
     /* if( mesh && mesh->vbo->meshes_num < NUM_MESHES ) { */
-    /*     clone = malloc( sizeof(struct mesh) ); */
+    /*     clone = malloc( sizeof(struct Mesh) ); */
 
     /*     clone->vbo = mesh->vbo; */
     /*     if( mesh->size > vbo_free_elements(mesh->vbo) ) { */
@@ -355,16 +433,16 @@ struct mesh* mesh_clone(struct mesh* mesh) {
     /* return clone; */
 }
 
-/* void mesh_quad(struct mesh* mesh, GLuint a, GLuint b, GLuint c, GLuint d) { */
+/* void mesh_quad(struct Mesh* mesh, GLuint a, GLuint b, GLuint c, GLuint d) { */
 /* } */
 
-/* void mesh_destroy(struct mesh* mesh) { */
+/* void mesh_destroy(struct Mesh* mesh) { */
 /* } */
 
-/* struct mesh* mesh_union(struct mesh* a, struct mesh* b) { */
+/* struct Mesh* mesh_union(struct Mesh* a, struct Mesh* b) { */
 /* } */
 
-/* struct mesh* mesh_copy(struct mesh* mesh, struct vbo* to_vbo, uint32_t to_offset) { */
+/* struct Mesh* mesh_copy(struct Mesh* mesh, struct vbo* to_vbo, uint32_t to_offset) { */
 /* } */
 
 /* int main(int argc, char *argv[]) { */
@@ -379,7 +457,7 @@ struct mesh* mesh_clone(struct mesh* mesh) {
 /*                          255, 0, 0, 255, */
 /*                          255, 0, 0, 255 }; */
 
-/*     struct mesh* triangle_mesh = mesh_create(vbo, 3); */
+/*     struct Mesh* triangle_mesh = mesh_create(vbo, 3); */
 /*     mesh_append(triangle_mesh, vertex_array, vertices, 9); */
 /*     mesh_append(triangle_mesh, color_array, colors, 12); */
 /*     mesh_triangle(triangle_mesh, 0, 1, 2); */
@@ -387,7 +465,7 @@ struct mesh* mesh_clone(struct mesh* mesh) {
 /*     float more_vertices[3] = { -1.5, 1.0, 0.0 }; */
 /*     short more_colors[4] = { 255, 0, 0, 255 }; */
 
-/*     struct mesh* quad_mesh = triangle_mesh; */
+/*     struct Mesh* quad_mesh = triangle_mesh; */
 /*     if( ! mesh_freespace(triangle_mesh) ) { */
 /*         quad_mesh = mesh_clone(triangle_mesh); */
 /*     } */
