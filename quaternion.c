@@ -2,7 +2,21 @@
 
 #include "quaternion.h"
 
-void rotation_quat(const Vec axis, const float angle, Quat quat) {
+void quat_identity(Quat quat) {
+    quat[0] = 0.0;
+    quat[1] = 0.0;
+    quat[2] = 0.0;
+    quat[3] = 1.0;
+}
+
+short rotation_quat(const Vec axis, const float angle, Quat quat) {
+    if( ( axis[0] == 0.0 && axis[1] == 0.0 && axis[2] == 0.0 ) ||
+        angle == 0.0 )
+    {
+        quat_identity(quat);
+        return 0;
+    }
+    
     Vec normed_axis;
     float norm = sqrt( axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2] );
     normed_axis[0] = axis[0] / norm;
@@ -14,6 +28,8 @@ void rotation_quat(const Vec axis, const float angle, Quat quat) {
     quat[1] = normed_axis[1] * sin(angle/2);
     quat[2] = normed_axis[2] * sin(angle/2);
     quat[3] = cos(angle/2);
+
+    return 1;
 }
 
 void quat_rotate(const Quat quat, const Vec vec, Vec result) {
@@ -73,11 +89,16 @@ void quat_conjugate(const Quat quat, Quat result) {
 void quat_invert(const Quat quat, Quat result) {
     Quat conj;
     quat_conjugate(quat, conj);
+
+    /* result[0] = conj[0] * (1 / qdot( quat, conj ) ); */
+    /* result[1] = conj[1] * (1 / qdot( quat, conj ) ); */
+    /* result[2] = conj[2] * (1 / qdot( quat, conj ) ); */
+    /* result[3] = conj[3] * (1 / qdot( quat, conj ) ); */
     
-    result[0] = conj[0] * (1 / qdot( quat, conj ) );
-    result[1] = conj[1] * (1 / qdot( quat, conj ) );
-    result[2] = conj[2] * (1 / qdot( quat, conj ) );
-    result[3] = conj[3] * (1 / qdot( quat, conj ) );
+    result[0] = conj[0] / pow(qmagnitude(quat), 2.0);
+    result[1] = conj[1] / pow(qmagnitude(quat), 2.0);
+    result[2] = conj[2] / pow(qmagnitude(quat), 2.0);
+    result[3] = conj[3] / pow(qmagnitude(quat), 2.0);
 }
 
 void quat_magnitude(const Quat quat, float* result) {
@@ -90,7 +111,7 @@ float qmagnitude(const Quat quat) {
     return magnitude;
 }
 
-void quat_matrix(const Quat quat, Matrix m) {
+void quat_matrix(const Quat quat, const Matrix m, Matrix result) {
     float x,y,z,w;
     w = quat[3]; x = quat[0]; y = quat[1]; z = quat[2];
 
@@ -108,9 +129,17 @@ void quat_matrix(const Quat quat, Matrix m) {
     float wz = w*z;
     float ww = w*w;
 
-    m[0] = ww + xx - yy - zz; m[4] = 2*(xy + wz);       m[8]  =  2*(xz - wy);       m[12] = 0;
-    m[1] = 2*(xy - wz);       m[5] = ww - xx + yy - zz; m[9]  =  2*(yz + wx);       m[13] = 0;
-    m[2] = 2*(xz + wy);       m[6] = 2*(yz - wx);       m[10] =  ww - xx - yy + zz; m[14] = 0;
-    m[3] = 0;                 m[7] = 0;                 m[11] =  0;                 m[15] = ww + xx + yy + zz;
+    Matrix n;
+    n[0] = ww + xx - yy - zz; n[4] = 2*(xy + wz);       n[8]  =  2*(xz - wy);       n[12] = 0;
+    n[1] = 2*(xy - wz);       n[5] = ww - xx + yy - zz; n[9]  =  2*(yz + wx);       n[13] = 0;
+    n[2] = 2*(xz + wy);       n[6] = 2*(yz - wx);       n[10] =  ww - xx - yy + zz; n[14] = 0;
+    n[3] = 0;                 n[7] = 0;                 n[11] =  0;                 n[15] = ww + xx + yy + zz;
+
+    /* printf("%f %f %f %f\n", n[0], n[4], n[8], n[12]); */
+    /* printf("%f %f %f %f\n", n[1], n[5], n[9], n[13]); */
+    /* printf("%f %f %f %f\n", n[2], n[6], n[10], n[14]); */
+    /* printf("%f %f %f %f\n", n[3], n[7], n[11], n[15]); */
+    
+    matrix_multiply(m,n,result);
 }
 

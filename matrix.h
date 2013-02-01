@@ -24,11 +24,19 @@ float vdot(const Vec v, const Vec w);
 void vector_cross(const Vec v, const Vec w, Vec r);
 float* vcross(const Vec v, Vec w);
 
-void vector_norm(const Vec v, float* r);
-float vnorm(const Vec v);
+void vector_length(const Vec v, float* r);
+float vlength(const Vec v);
+
+void vector_normalize(const Vec v, Vec r);
+float* vnormalize(Vec v);
 
 void vector_angle(const Vec v, const Vec w, float* r);
 float vangle(const Vec v, const Vec w);
+
+void vector_isnull(const Vec v, short* r);
+short vnullp(const Vec v);
+
+void vector_perpendicular(const Vec v, Vec r);
 
 // matrix creation
 void matrix_perspective(float fovy, float aspect, float zNear, float zFar, Matrix m);

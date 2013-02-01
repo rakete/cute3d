@@ -32,7 +32,7 @@ void vector_invert(const Vec v, Vec r) {
 }
 
 void vector_dot(const Vec v, const Vec w, float* r) {
-    *r = v[0]*w[0] + v[1]*w[1] + v[2]*w[2] + v[3]*w[3];
+    *r = v[0]*w[0] + v[1]*w[1] + v[2]*w[2];
 }
 
 float vdot(const Vec v, const Vec w) {
@@ -52,24 +52,60 @@ float* vcross(const Vec v, Vec w) {
     return w;
 }
 
-void vector_norm(const Vec v, float* r) {
+void vector_length(const Vec v, float* r) {
     *r = sqrt( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
 }
 
-float vnorm(const Vec v) {
+float vlength(const Vec v) {
     float r;
-    vector_norm(v,&r);
+    vector_length(v,&r);
     return r;
 }
 
+void vector_normalize(const Vec v, Vec r) {
+    float norm = vlength(v);
+    r[0] = v[0] / norm;
+    r[1] = v[1] / norm;
+    r[2] = v[2] / norm;
+    r[3] = 1.0;
+}
+
+float* vnormalize(Vec v) {
+    vector_normalize(v,v);
+    return v;
+}
+
 void vector_angle(const Vec v, const Vec w, float* r) {
-    *r = acos(vdot(v,w) / (vnorm(v) * vnorm(w)));
+    *r = acos(vdot(v,w) / (vlength(v) * vlength(w)));
 }
 
 float vangle(const Vec v, const Vec w) {
     float r;
     vector_angle(v,w,&r);
     return r;
+}
+
+void vector_isnull(const Vec v, short* r) {
+    if( v[0] == 0.0 &&
+        v[1] == 0.0 &&
+        v[2] == 0.0 )
+    {
+        *r = 1;
+    }
+    r = 0;
+}
+
+short vnullp(const Vec v) {
+    short r;
+    vector_isnull(v,&r);
+    return r;
+}
+
+void vector_perpendicular(const Vec v, Vec r) {
+    r[0] = -v[2];
+    r[1] = -v[1];
+    r[2] = -v[0];
+    r[3] = v[3];
 }
 
 void matrix_perspective(float fov, float aspect, float zNear, float zFar, Matrix r) {
@@ -268,7 +304,7 @@ void matrix_translate(const Matrix m, const Vec v, Matrix r) {
 
 void matrix_rotate(const Matrix m, const Quat q, Matrix r) {
     Matrix n;
-    quat_matrix(q,n);
+    quat_matrix(q,n,n);
 
     matrix_multiply(m,n,r);
 }

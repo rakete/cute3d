@@ -50,6 +50,7 @@ void pivot_lookat(struct Pivot* pivot, Vec target) {
     // vektor wo er hingucken soll
     Vec target_direction;
     vector_subtract(target, pivot->position, target_direction);
+    vector_normalize(target_direction, target_direction);
     /* printf("target_direction[0]: %f\n", target_direction[0]); */
     /* printf("target_direction[1]: %f\n", target_direction[1]); */
     /* printf("target_direction[2]: %f\n", target_direction[2]); */
@@ -57,6 +58,9 @@ void pivot_lookat(struct Pivot* pivot, Vec target) {
     // achse = cross product
     Vec rotation_axis;
     vector_cross(target_direction, looking_direction, rotation_axis);
+    if( vnullp(rotation_axis) ) {
+        vector_perpendicular(target_direction, rotation_axis);
+    }
     /* printf("rotation_axis[0]: %f\n", rotation_axis[0]); */
     /* printf("rotation_axis[1]: %f\n", rotation_axis[1]); */
     /* printf("rotation_axis[2]: %f\n", rotation_axis[2]); */
@@ -72,8 +76,8 @@ void pivot_lookat(struct Pivot* pivot, Vec target) {
     rotation_quat(rotation_axis, rotation_angle, rotation);
     /* printf("rotation[0]: %f\n", rotation[0]); */
     /* printf("rotation[1]: %f\n", rotation[1]); */
-    /* printf("rotation[2]: %f\n", rotation[2]);     */
-    /* printf("rotation[3]: %f\n", rotation[3]);     */
+    /* printf("rotation[2]: %f\n", rotation[2]); */
+    /* printf("rotation[3]: %f\n", rotation[3]); */
 
     if( ! isnan(rotation[0]) &&
         ! isnan(rotation[1]) &&
@@ -82,9 +86,9 @@ void pivot_lookat(struct Pivot* pivot, Vec target) {
     {
         // neue orientation
         quat_product(pivot->orientation, rotation, pivot->orientation);
-        /* printf("pivot->orientation[0]: %f\n", pivot->orientation[0]); */
-        /* printf("pivot->orientation[1]: %f\n", pivot->orientation[1]); */
-        /* printf("pivot->orientation[2]: %f\n", pivot->orientation[2]); */
-        /* printf("pivot->orientation[3]: %f\n", pivot->orientation[3]); */
+    /*     printf("pivot->orientation[0]: %f\n", pivot->orientation[0]); */
+    /*     printf("pivot->orientation[1]: %f\n", pivot->orientation[1]); */
+    /*     printf("pivot->orientation[2]: %f\n", pivot->orientation[2]); */
+    /*     printf("pivot->orientation[3]: %f\n", pivot->orientation[3]); */
     }
 }

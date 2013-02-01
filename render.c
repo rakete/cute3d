@@ -1,6 +1,6 @@
 #include "render.h"
 
-void camera_perspective(struct camera* camera, float fov, float aspect, float zNear, float zFar) {
+void camera_perspective(struct Camera* camera, float fov, float aspect, float zNear, float zFar) {
     pivot_create(&camera->pivot);
 
     camera->type = perspective;
@@ -16,7 +16,7 @@ void camera_perspective(struct camera* camera, float fov, float aspect, float zN
     camera->zFar = zFar;
 }
 
-void camera_matrices(struct camera* camera, Matrix projection_matrix, Matrix view_matrix) {
+void camera_matrices(struct Camera* camera, Matrix projection_matrix, Matrix view_matrix) {
     if( camera ) {
         matrix_identity(projection_matrix);
         if( camera->type == perspective ) {
@@ -26,16 +26,18 @@ void camera_matrices(struct camera* camera, Matrix projection_matrix, Matrix vie
         }
 
         matrix_identity(view_matrix);
-        Quat inv_quat;
-        quat_invert(camera->pivot.orientation, inv_quat);
-        quat_matrix(inv_quat, view_matrix);
+
         Vec inv_position;
         vector_invert(camera->pivot.position, inv_position);
         matrix_translate(view_matrix, inv_position, view_matrix);
+
+        Quat inv_quat;
+        quat_invert(camera->pivot.orientation, inv_quat);
+        quat_matrix(inv_quat, view_matrix, view_matrix);
     }
 }
 
-void render_mesh(struct mesh* mesh, struct shader* shader, struct camera* camera, Matrix model_matrix) {
+void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera, Matrix model_matrix) {
     glUseProgram(shader->program);
     
     Matrix projection_matrix;
@@ -87,14 +89,14 @@ void render_mesh(struct mesh* mesh, struct shader* shader, struct camera* camera
             uint32_t c_num = mesh->vbo->components[array_id].num;
             uint32_t c_type = mesh->vbo->components[array_id].type;
             uint32_t c_bytes = mesh->vbo->components[array_id].bytes;
-            uint32_t offset = mesh->offset * c_num;
+            uint32_t offset = mesh->offset * c_num * c_bytes;
         
             glVertexAttribPointer(loc, c_num, c_type, GL_FALSE, 0, (void*)(intptr_t)offset);
         }
     }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->elements.buffer);
-    glDrawElements(mesh->indices.primitive, mesh->indices.num, mesh->indices.type, 0);
+    glDrawElements(mesh->faces.primitive, mesh->elements.used * mesh->faces.size, mesh->index.type, 0);
 
     for( int array_id = 0; array_id < NUM_BUFFERS; array_id++ ) {
         glDisableVertexAttribArray(array_id);
