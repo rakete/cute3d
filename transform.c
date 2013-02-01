@@ -1,6 +1,6 @@
 #include "transform.h"
 
-void pivot_create(struct pivot* pivot) {
+void pivot_create(struct Pivot* pivot) {
     pivot->position[0] = 0.0;
     pivot->position[1] = 0.0;
     pivot->position[2] = 0.0;
@@ -23,7 +23,7 @@ void pivot_create(struct pivot* pivot) {
     pivot->left[2] = 0.0;
 }
 
-void pivot_lookat(struct pivot* pivot, Vec target) {
+void pivot_lookat(struct Pivot* pivot, Vec target) {
     /* printf("target[0]: %f\n", target[0]); */
     /* printf("target[1]: %f\n", target[1]); */
     /* printf("target[2]: %f\n", target[2]); */

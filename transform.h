@@ -4,7 +4,7 @@
 #include "math_types.h"
 #include "matrix.h"
 
-struct pivot {
+struct Pivot {
     Vec position;
     Quat orientation;
 
@@ -13,8 +13,8 @@ struct pivot {
     Vec left;
 };
 
-void pivot_create(struct pivot* pivot);
+void pivot_create(struct Pivot* pivot);
 
-void pivot_lookat(struct pivot* pivot, Vec target);
+void pivot_lookat(struct Pivot* pivot, Vec target);
 
 #endif

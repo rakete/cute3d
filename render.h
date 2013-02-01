@@ -17,8 +17,8 @@ enum projection_type {
     orthogonal
 };
 
-struct camera {
-    struct pivot pivot;
+struct Camera {
+    struct Pivot pivot;
 
     enum projection_type type;
         
@@ -33,10 +33,24 @@ struct camera {
     float zFar;
 };
 
-void camera_perspective(struct camera* camera, float fov, float aspect, float zNear, float zFar);
+void camera_perspective(struct Camera* camera, float fov, float aspect, float zNear, float zFar);
 
-void camera_matrices(struct camera* camera, Matrix projection_matrix, Matrix view_matrix);
+void camera_matrices(struct Camera* camera, Matrix projection_matrix, Matrix view_matrix);
 
-void render_mesh(struct mesh* mesh, struct shader* shader, struct camera* camera, Matrix model_matrix);
+void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera, Matrix model_matrix);
+
+struct Sprite {
+    struct {
+        GLsizei size;
+        GLuint id;
+    } texture;
+    
+    int x;
+    int y;
+    int w;
+    int h;
+};
+
+void render_sprite(struct Sprite* sprite, struct Shader* shader, struct Camera* camera, Matrix model_matrix);
 
 #endif
