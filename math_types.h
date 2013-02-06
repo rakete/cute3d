@@ -19,5 +19,7 @@ typedef float Matrix4i[16];
 
 typedef float Quat[4];
 
+typedef float Color[4];
+
 
 #endif
