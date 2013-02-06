@@ -6,7 +6,6 @@
 #include "GL/glew.h"
 #include "GL/gl.h"
 
-#include "io.h"
 #include "debug.h"
 
 #ifndef SHADER_UNIFORMS
@@ -39,10 +38,6 @@ struct Shader {
 };
 
 int init_shader();
-
-GLuint compile_shader_file(GLenum type, const char* filename);
-GLuint compile_shader_text(GLenum type, const char* source);
-GLuint link_program(GLuint vertex_shader, GLuint fragment_shader);
 
 struct Shader* shader_create(struct Shader* p, const char* vertex_file, const char* fragment_file);
 void shader_attribute(struct Shader* shader, int array_id, char* name);

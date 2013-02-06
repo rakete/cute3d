@@ -13,58 +13,17 @@ int init_shader() {
     return ret;
 }
 
-GLuint compile_shader_file(GLenum type, const char* filename) {
-    GLint length;
-    GLchar* source = read_file(filename, &length);
-
-    if(!source) return 0;
-
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, (const GLchar**)&source, &length);
-    free(source);
-    glCompileShader(shader);
-
-    GLint shader_ok;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_ok);
-    if ( ! shader_ok ) {
-        fprintf(stderr, "Failed to compile %s:\n", filename);
-        show_info_log(shader, glGetShaderiv, glGetShaderInfoLog);
-        glDeleteShader(shader);
-        return 0;
-    }
-    
-    return shader;
-}
-
-GLuint link_program(GLuint vertex_shader, GLuint fragment_shader) {
-    GLuint program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
-
-    GLint program_ok;
-    glGetProgramiv(program, GL_LINK_STATUS, &program_ok);
-    if (!program_ok) {
-        fprintf(stderr, "Failed to link shader program:\n");
-        show_info_log(program, glGetProgramiv, glGetProgramInfoLog);
-        glDeleteProgram(program);
-        return 0;
-    }
-
-    return program;
-}
-
 struct Shader* shader_create(struct Shader* p, const char* vertex_file, const char* fragment_file) {
     if( vertex_file && fragment_file ) {
-        p->vertex_shader = compile_shader_file(GL_VERTEX_SHADER, vertex_file);
-        p->fragment_shader = compile_shader_file(GL_FRAGMENT_SHADER, fragment_file);
+        p->vertex_shader = debug_compile_file(GL_VERTEX_SHADER, vertex_file);
+        p->fragment_shader = debug_compile_file(GL_FRAGMENT_SHADER, fragment_file);
     } else {
-        p->vertex_shader = compile_shader_file(GL_VERTEX_SHADER, "default.vertex");
-        p->fragment_shader = compile_shader_file(GL_FRAGMENT_SHADER, "default.fragment");
+        p->vertex_shader = debug_compile_file(GL_VERTEX_SHADER, "default.vertex");
+        p->fragment_shader = debug_compile_file(GL_FRAGMENT_SHADER, "default.fragment");
     }
 
     if( p->vertex_shader > 0 && p->fragment_shader > 0 ) {
-        p->program = link_program(p->vertex_shader, p->fragment_shader);
+        p->program = debug_link_program(p->vertex_shader, p->fragment_shader);
     } else {
         p->program = 0;
     }
