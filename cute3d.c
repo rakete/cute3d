@@ -7,7 +7,7 @@
 #include "debug.h"
 #include "render.h"
 #include "solid.h"
-#include "font.h"
+#include "text.h"
 
 #include "allegro5/allegro.h"
 
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
     /* rotation_quat((float[]){ 1.0, 0.0, 0.0, 1.0 }, 90 * PI/180, rotation); */
     /* quat_product(default_camera.pivot.orientation, rotation, default_camera.pivot.orientation); */
     
-    Vec translation = { 0.0, 0.0, 0.1 };
+    Vec translation = { 0.0, 2.0, 2.0 };
     vector_add3f(default_camera.pivot.position, translation, default_camera.pivot.position);
     Vec origin = { 0.0, 0.0, 0.0, 1.0 };
     pivot_lookat(&default_camera.pivot, origin);
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
 
     dump_mesh(&sphere_mesh, stdout);
 
-    SymbolTable symbols;
+    struct Character symbols[256];
     symbols['A'] = char_A();
     symbols['B'] = char_B();
     symbols['C'] = char_C();
@@ -181,8 +181,7 @@ int main(int argc, char** argv) {
     symbols['y'] = char_y();
     symbols['z'] = char_z();
 
-    struct Font font;
-    font_create(&font, "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz", symbols);
+    struct Font* font = font_allocate_ascii("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz", symbols);
 
     while (true) {
         /* Check for ESC key or close button event and quit in either case. */
@@ -204,9 +203,9 @@ int main(int argc, char** argv) {
         glClearColor(.0f, .0f, .0f, 1.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-        Matrix projection_grid;
-        Matrix view_grid;
-        camera_matrices(&default_camera, projection_grid, view_grid);
+        Matrix projection_mat;
+        Matrix view_mat;
+        camera_matrices(&default_camera, projection_mat, view_mat);
 
         Matrix model_grid[2];
         matrix_identity(model_grid[0]);
@@ -222,53 +221,62 @@ int main(int argc, char** argv) {
         Vec light_direction = { 0.2, 0.5, 1.0 };
         shader_uniform(&default_shader, "light_direction", "3f", light_direction);
         
-        debug_grid(projection_grid, view_grid, model_grid, 2, 16, (float[4]){.4, .4, .4, 1});
+        debug_grid(2, 16, (float[4]){.4, .4, .4, 1}, projection_mat, view_mat, model_grid);
         //render_mesh(&triangle_mesh, &default_shader, &default_camera, identity);
 
         /* Matrix tet_left; */
         /* matrix_identity(tet_left); */
-        /* matrix_translate(tet_left, (Vec){ 1.0, -1.0, 0.0, 1.0 }, tet_left); */
+        /* matrix_translate(tet_left, (Color){ 1.0, -1.0, 0.0, 1.0 }, tet_left); */
         /* render_mesh(&tetrahedron_mesh, &default_shader, &default_camera, tet_left); */
-        /* debug_normals_array(projection_grid, */
-        /*                     view_grid, */
-        /*                     tet_left, */
-        /*                     tetrahedron.vertices, */
+        /* debug_normals_array(tetrahedron.vertices, */
         /*                     tetrahedron.normals, */
         /*                     tetrahedron.solid.faces.num * tetrahedron.solid.faces.size, */
-        /*                     (float[4]){0.0,1.0,1.0,1.0}); */
+        /*                     (Color){ 0.0, 1.0, 1.0, 1.0 }, */
+        /*                     projection_mat, */
+        /*                     view_mat, */
+        /*                     tet_left); */
         
         /* Matrix cube_right; */
         /* matrix_identity(cube_right); */
-        /* matrix_translate(cube_right, (Vec){ -1.0, 0.5, 0.0, 1.0 }, cube_right); */
+        /* matrix_translate(cube_right, (Color){ -1.0, 0.5, 0.0, 1.0 }, cube_right); */
         /* render_mesh(&cube_mesh, &default_shader, &default_camera, cube_right); */
-        /* debug_normals_array(projection_grid, */
-        /*                     view_grid, */
-        /*                     cube_right, */
-        /*                     cube.vertices, */
+        /* debug_normals_array(cube.vertices, */
         /*                     cube.normals, */
         /*                     cube.solid.faces.num * cube.solid.faces.size, */
-        /*                     (float[4]){1.0,0.0,1.0,1.0}); */
-
-        /* Matrix sphere_right; */
-        /* matrix_identity(sphere_right); */
-        /* matrix_translate(sphere_right, (Vec){ -1.0, 0.5, 0.0, 1.0 }, sphere_right); */
-        /* render_mesh(&sphere_mesh, &default_shader, &default_camera, sphere_right); */
-        /* debug_normals_array(projection_grid, */
-        /*                     view_grid, */
-        /*                     sphere_right, */
-        /*                     sphere.vertices, */
-        /*                     sphere.normals, */
-        /*                     sphere.solid.faces.num * sphere.solid.faces.size, */
-        /*                     (float[4]){1.0,0.0,1.0,1.0}); */
+        /*                     (Color){ 1.0,0.0,1.0,1.0 }, */
+        /*                     projection_mat, */
+        /*                     view_mat, */
+        /*                     cube_right); */
 
         Matrix font_matrix;
         matrix_identity(font_matrix);
-        debug_texture_quad(projection_grid, view_grid, font_matrix, font.texture.id);
+        //debug_texture_quad(font->texture.id, projection_mat, view_mat, font_matrix);
 
-        
+        text_render(L"Y", font, projection_mat, view_mat, font_matrix);
+
         al_flip_display();
+
+        /* const wchar_t str[] = L"foobar"; */
+        /* const char ascii[] = "foobar"; */
+        /* int array[256]; */
+        /* for( int i = 0; i < 256; i++ ) { */
+        /*     array[i] = i; */
+        /* } */
+        /* char buffer[32]; */
+        /* int ret; */
+        /* ret = wcstombs ( buffer, str, sizeof(buffer) ); */
+        /* if (ret == 32) buffer[31]='\0'; */
+        
+        /* printf("strlen: %lu\n", strlen(buffer)); */
+        /* if (ret) { */
+        /*     for( int i = 0; i < strlen(buffer); i++ ) { */
+        /*         printf("%d == %d\n", array[buffer[i]], array[ascii[i]]); */
+        /*     } */
+        /* } */
+
     }
 
 done:
+    font_delete(font);
     return 0;
 }
