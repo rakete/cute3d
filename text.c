@@ -249,47 +249,36 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
         free(texture);
 
         const char* vertex_source =
-            "#version 130\n"
-            "#extension GL_ARB_uniform_buffer_object:require\n"
-            "\n"
-            "uniform mat4 projection_matrix;\n"
-            "uniform mat4 model_matrix;\n"
-            "uniform mat4 view_matrix;\n"
-            "\n"
-            "in vec3 vertex;\n"
-            "in vec2 texcoord;\n"
-            "uniform vec3 normal;\n"
-            "uniform vec4 color;\n"
-            "\n"
-            "out vec4 frag_color;\n"
-            "out vec2 frag_texcoord;\n"
-            "\n"
-            "void main() {\n"
-            "    gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex,1.0);\n"
-            "    frag_color = color;\n"
-            "    frag_texcoord = texcoord;\n"
-            "}\0";
+            GLSL( uniform mat4 projection_matrix;
+                  uniform mat4 model_matrix;
+                  uniform mat4 view_matrix;
+                  in vec3 vertex;
+                  in vec2 texcoord;
+                  uniform vec3 normal;
+                  uniform vec4 color;
+                  out vec4 frag_color;
+                  out vec2 frag_texcoord;
+                  void main() {
+                      gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex,1.0);
+                      frag_color = color;
+                      frag_texcoord = texcoord;
+                  });
 
         const char* fragment_source =
-            "#version 130\n"
-            "\n"
-            "uniform sampler2D diffuse;\n"
-            "\n"
-            "uniform ivec2 offset;\n"
-            "uniform ivec2 glyph;\n"
-            "\n"
-            "in vec4 frag_color;\n"
-            "in vec2 frag_texcoord;\n"
-            "\n"
-            "void main() {\n"
-            "    vec2 dim = textureSize(diffuse,0);\n"
-            "    float x = (1.0/dim.x) * (float(offset.x) + frag_texcoord.x * float(glyph.x));\n"
-            "    float y = (1.0/dim.y) * (float(offset.y) + frag_texcoord.y * float(glyph.y));\n"
-            "    gl_FragColor = texture(diffuse, vec2(x,y));\n"
-            "    if( gl_FragColor.a < 0.05 ) {\n"
-            "        discard;\n"
-            "    }\n"
-            "}\0";
+            GLSL( uniform sampler2D diffuse;
+                  uniform ivec2 offset;
+                  uniform ivec2 glyph;
+                  in vec4 frag_color;
+                  in vec2 frag_texcoord;
+                  void main() {
+                      vec2 dim = textureSize(diffuse,0);
+                      float x = (1.0/dim.x) * (float(offset.x) + frag_texcoord.x * float(glyph.x));
+                      float y = (1.0/dim.y) * (float(offset.y) + frag_texcoord.y * float(glyph.y));
+                      gl_FragColor = texture(diffuse, vec2(x,y));
+                      if( gl_FragColor.a < 0.05 ) {
+                          discard;
+                      }
+                  });
 
 
         if( ! font->shader.program ) {
