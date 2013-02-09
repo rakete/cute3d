@@ -12,28 +12,39 @@
 #include "shader.h"
 #include "geometry.h"
 
-enum projection_type {
+enum Projection {
     perspective = 0,
-    orthogonal
+    orthographic,
+    orthographic_zoom,
+    pixelperfect,
+    NUM_PROJECTION
 };
 
 struct Camera {
     struct Pivot pivot;
 
-    enum projection_type type;
-        
-    float left;
-    float right;
-    float top;
-    float bottom;
+    enum Projection type;
 
-    float fov;
-    float aspect;
-    float zNear;
-    float zFar;
+    struct {
+        int width;
+        int height;
+    } screen;
+
+    struct {
+        float left;
+        float right;
+        float top;
+        float bottom;
+        
+        float zNear;
+        float zFar;
+    } frustum;
 };
 
-void camera_perspective(struct Camera* camera, float fov, float aspect, float zNear, float zFar);
+void camera_create(struct Camera* camera, int width, int height);
+
+void camera_frustum(struct Camera* camera, float left, float right, float top, float bottom, float zNear, float zFar);
+void camera_projection(struct Camera* camera, enum Projection type);
 
 void camera_matrices(struct Camera* camera, Matrix projection_matrix, Matrix view_matrix);
 

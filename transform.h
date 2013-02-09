@@ -7,6 +7,9 @@
 struct Pivot {
     Vec position;
     Quat orientation;
+    
+    float zoom;
+    float eye_distance;
 
     Vec forward;
     Vec up;

@@ -4,7 +4,12 @@ void vector_add(const Vec v, const Vec w, Vec r) {
     r[0] = v[0] + w[0];
     r[1] = v[1] + w[1];
     r[2] = v[2] + w[2];
-    r[3] = v[3] + w[3];
+    float w3 = v[3] + w[3];
+    if( w3 > 1.0f) {
+        r[3] = 1.0f;
+    } else {
+        r[3] = w3;
+    }
 }
 
 void vector_add3f(const Vec v, const Vec3f w, Vec r) {
@@ -108,14 +113,25 @@ void vector_perpendicular(const Vec v, Vec r) {
     r[3] = v[3];
 }
 
-void matrix_perspective(float fov, float aspect, float zNear, float zFar, Matrix r) {
+void matrix_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Matrix m) {
     Matrix n;
-    n[0] = 1.0/tan(fov); n[4] = 0.0f;            n[8] = 0.0f;                       n[12] = 0.0f;
-    n[1] = 0.0f;         n[5] = aspect/tan(fov); n[9] = 0.0f;                       n[13] = 0.0f;
-    n[2] = 0.0f;         n[6] = 0.0f;            n[10] = (zFar+zNear)/(zFar-zNear); n[14] = -2.0*zFar*zNear/(zFar-zNear);
-    n[3] = 0.0f;         n[7] = 0.0f;            n[11] = 1.0f;                      n[15] = 1.0f;
+    // songho.ca my hero
+    n[0] = (2.0*zNear)/(right-left);  n[4] = 0.0f;                      n[8] = (right+left)/(right-left);   n[12] = 0.0f;
+    n[1] = 0.0f;                      n[5] = (2.0*zNear)/(top-bottom);  n[9] = (top+bottom)/(top-bottom);   n[13] = 0.0f;
+    n[2] = 0.0f;                      n[6] = 0.0f;                      n[10] = -(zFar+zNear)/(zFar-zNear); n[14] = -2.0*zFar*zNear/(zFar-zNear);
+    n[3] = 0.0f;                      n[7] = 0.0f;                      n[11] = -1.0f;                      n[15] = 0.0f;
 
-    matrix_multiply(r,n,r);
+    matrix_multiply(m,n,m);
+}
+
+void matrix_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Matrix m) {
+    Matrix n;
+    n[0] = 2.0/(right-left); n[4] = 0.0f;             n[8] = 0.0f;               n[12] = -(right+left)/(right-left);
+    n[1] = 0.0f;             n[5] = 2.0/(top-bottom); n[9] = 0.0f;               n[13] = -(top+bottom)/(top-bottom);
+    n[2] = 0.0f;             n[6] = 0.0f;             n[10] = -2.0/(zFar-zNear); n[14] = -(zFar+zNear)/(zFar-zNear);
+    n[3] = 0.0f;             n[7] = 0.0f;             n[11] = 0.0f;              n[15] = 1.0f;
+
+    matrix_multiply(m,n,m);
 }
 
 void matrix_identity(Matrix m) {
@@ -294,7 +310,7 @@ void matrix_multiply_vec(const Matrix m, const Vec v, Vec r) {
 
 void matrix_translate(const Matrix m, const Vec v, Matrix r) {
     Matrix n;
-    n[0] = 1.0f;  n[4] = 0.0f; n[8]  = 0.0f; n[12] = v[0];
+    n[0] = 1.0f; n[4] = 0.0f;  n[8]  = 0.0f; n[12] = v[0];
     n[1] = 0.0f; n[5] = 1.0f;  n[9]  = 0.0f; n[13] = v[1];
     n[2] = 0.0f; n[6] = 0.0f;  n[10] = 1.0f; n[14] = v[2];
     n[3] = 0.0f; n[7] = 0.0f;  n[11] = 0.0f; n[15] = 1.0f;

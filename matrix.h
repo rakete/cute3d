@@ -39,8 +39,8 @@ short vnullp(const Vec v);
 void vector_perpendicular(const Vec v, Vec r);
 
 // matrix creation
-void matrix_perspective(float fovy, float aspect, float zNear, float zFar, Matrix m);
-//void matrix_orthogonal(...)
+void matrix_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Matrix m);
+void matrix_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Matrix m);
 
 void matrix_identity(Matrix m);
 void matrix_invert(const Matrix m, Matrix r, double* det);
