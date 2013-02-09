@@ -67,7 +67,7 @@ int font_registry(enum FontOp op, int id, struct Font** font) {
     switch( op ) {
         case NewFont: {
             if( id < 0 && font ) {
-                free( registry[0] );
+                font_delete( registry[0] );
                 registry[0] = *font;
                 return 0;
             }
@@ -87,7 +87,7 @@ int font_registry(enum FontOp op, int id, struct Font** font) {
         }
         case FindFont: {
             if( reserved_slots[id] ) {
-                font = &registry[id];
+                *font = registry[id];
                 return id;
             }
             font = &registry[0];
@@ -95,9 +95,15 @@ int font_registry(enum FontOp op, int id, struct Font** font) {
             break;
         }
         case DeleteFont: {
-            if( reserved_slots[id] && id > 0 ) {
+            if( id < -1 ) {
+                for( int i = 0; i < NUM_FONTS; i++ ) {
+                    reserved_slots[i] = 0;
+                    font_delete( registry[i] );
+                    return 0;
+                }
+            } else if( reserved_slots[id] && id > 0 ) {
                 reserved_slots[id] = 0;
-                free(registry[id]);
+                font_delete(registry[id]);
                 return id;
             }
             return -1;
@@ -109,7 +115,8 @@ int font_registry(enum FontOp op, int id, struct Font** font) {
 struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols) {
     struct Font* font = calloc( 1, sizeof(struct Font) );
     font->heap.size = 256;
-    font->heap.glyphs = malloc( 256 * sizeof(struct Glyph) );
+    font->heap.glyphs = calloc( 256, sizeof(struct Glyph) );
+    font->heap.alphabet = calloc( 256, sizeof(short) );
     font->encoding.unicode = 0;
     font->encoding.size = sizeof(char);
     font->kerning = 0.0;
@@ -181,12 +188,14 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
                 texture[(gy*power2+gx)*4+0] = 1.0 * c.pixels[gy*c.w+gx];
                 texture[(gy*power2+gx)*4+1] = 1.0 * c.pixels[gy*c.w+gx];
                 texture[(gy*power2+gx)*4+2] = 1.0 * c.pixels[gy*c.w+gx];
-                texture[(gy*power2+gx)*4+3] = 1.0;
+                texture[(gy*power2+gx)*4+3] = 1.0 * c.pixels[gy*c.w+gx];
             }
         }
     
         for( int i = 0; i < n; i++ ) {
             char c = alphabet[i];
+            font->heap.alphabet[c] = 1;
+            
             struct Glyph* glyph = &font->heap.glyphs[c];
 
             int offset_x = row_offsets[i];
@@ -208,7 +217,7 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
                     texture[(ty*power2+tx)*4+0] = 1.0 * pixel;
                     texture[(ty*power2+tx)*4+1] = 1.0 * pixel;
                     texture[(ty*power2+tx)*4+2] = 1.0 * pixel;
-                    texture[(ty*power2+tx)*4+3] = 1.0;
+                    texture[(ty*power2+tx)*4+3] = 1.0 * pixel;
                 }
             }
         }
@@ -227,6 +236,9 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
         glBindTexture(GL_TEXTURE_2D, font->texture.id);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
         font->texture.min_filter = GL_NEAREST;
         font->texture.mag_filter = GL_NEAREST;
@@ -274,6 +286,9 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
             "    float x = (1.0/dim.x) * (float(offset.x) + frag_texcoord.x * float(glyph.x));\n"
             "    float y = (1.0/dim.y) * (float(offset.y) + frag_texcoord.y * float(glyph.y));\n"
             "    gl_FragColor = texture(diffuse, vec2(x,y));\n"
+            "    if( gl_FragColor.a < 0.05 ) {\n"
+            "        discard;\n"
+            "    }\n"
             "}\0";
 
 
@@ -395,14 +410,13 @@ void text_render(const wchar_t* text, const struct Font* font, const Matrix proj
 
         GLint diffuse_loc = glGetUniformLocation(font->shader.program, "diffuse");
 
-        printf("color_loc: %d\n", color_loc);
-        printf("normal_loc: %d\n", normal_loc);
-        printf("projection_loc: %d\n", projection_loc);
-        printf("view_loc: %d\n", view_loc);
-        printf("diffuse_loc: %d\n", diffuse_loc);
+        /* printf("color_loc: %d\n", color_loc); */
+        /* printf("normal_loc: %d\n", normal_loc); */
+        /* printf("projection_loc: %d\n", projection_loc); */
+        /* printf("view_loc: %d\n", view_loc); */
+        /* printf("diffuse_loc: %d\n", diffuse_loc); */
 
         if( diffuse_loc > -1 ) {
-            printf("blubb\n");
             glUniform1i(diffuse_loc, 0);
 
             glActiveTexture(GL_TEXTURE0 + 0);
@@ -411,11 +425,10 @@ void text_render(const wchar_t* text, const struct Font* font, const Matrix proj
             GLint glyph_loc = glGetUniformLocation(font->shader.program, "glyph");
             GLint offset_loc = glGetUniformLocation(font->shader.program, "offset");
             GLint model_loc = glGetUniformLocation(font->shader.program, "model_matrix");
-            if( 1 || glyph_loc > -1 ) {
-                printf("glyph_loc: %d\n", glyph_loc);
-                printf("offset_loc: %d\n", offset_loc);
-                printf("model_loc: %d\n", model_loc);
-
+            if( glyph_loc > -1 ) {
+                /* printf("glyph_loc: %d\n", glyph_loc); */
+                /* printf("offset_loc: %d\n", offset_loc); */
+                /* printf("model_loc: %d\n", model_loc); */
 
                 int length = wcslen(text);
                 char ascii[length + 1];
@@ -423,25 +436,34 @@ void text_render(const wchar_t* text, const struct Font* font, const Matrix proj
                 if( size >= length ) {
                     ascii[length] = '\0';
                 }
-                
+
+                Matrix offset_matrix;
+                matrix_identity(offset_matrix);
                 for( int i = 0; i < length; i++ ) {
+
+                    struct Glyph* glyph = NULL;
                     if( font->encoding.unicode ) {
                         wchar_t c = text[i];
-                        printf("bar c: %c\n", c);
-                        printf("%d %d %d %d\n", font->heap.glyphs[c].w, font->heap.glyphs[c].h, font->heap.glyphs[c].x, font->heap.glyphs[c].y);
-                        glUniform2i(glyph_loc, font->heap.glyphs[c].w, font->heap.glyphs[c].h);
-                        glUniform2i(offset_loc, font->heap.glyphs[c].x, font->heap.glyphs[c].y);
+                        if( font->heap.alphabet[c] ) {
+                            glyph = &font->heap.glyphs[c];
+                        }
                     } else {
                         char c = ascii[i];
-                        printf("foo c: %c\n", c);
-                        printf("%d %d %d %d\n", font->heap.glyphs[c].w, font->heap.glyphs[c].h, font->heap.glyphs[c].x, font->heap.glyphs[c].y);
-                        glUniform2i(glyph_loc, font->heap.glyphs[c].w, font->heap.glyphs[c].h);
-                        glUniform2i(offset_loc, font->heap.glyphs[c].x, font->heap.glyphs[c].y);
+                        if( font->heap.alphabet[c] ) {
+                            glyph = &font->heap.glyphs[c];
+                        }
                     }
 
-                    glUniformMatrix4fv(model_loc, 1, GL_FALSE, model_matrix);
+                    matrix_translate(offset_matrix, (Vec){ 1.5, 0.0, 0.0, 1.0 }, offset_matrix);
+                    Matrix glyph_matrix;
+                    matrix_multiply(model_matrix, offset_matrix, glyph_matrix);
 
-                    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                    if( glyph ) {
+                        glUniformMatrix4fv(model_loc, 1, GL_FALSE, glyph_matrix);
+                        glUniform2i(glyph_loc, glyph->w, glyph->h);
+                        glUniform2i(offset_loc, glyph->x, glyph->y);
+                        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                    }
                 }
             }
         }

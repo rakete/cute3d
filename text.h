@@ -27,6 +27,7 @@ struct Glyph {
 struct Font {
     struct {
         struct Glyph* glyphs;
+        short* alphabet;
         size_t size;
     } heap;
 
@@ -48,7 +49,7 @@ struct Font {
     struct {
         GLuint program;
     } shader;
-    
+
     float kerning;
     float size;
     Color color;
