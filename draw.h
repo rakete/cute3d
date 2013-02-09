@@ -11,7 +11,7 @@
 #include "math_types.h"
 #include "matrix.h"
 #include "quaternion.h"
-#include "debug.h"
+#include "glsl.h"
 
 void draw_grid(int instances,
                 int steps,

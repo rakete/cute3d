@@ -6,7 +6,7 @@
 #include "GL/glew.h"
 #include "GL/gl.h"
 
-#include "debug.h"
+#include "glsl.h"
 
 #ifndef SHADER_UNIFORMS
 #define SHADER_UNIFORMS 32

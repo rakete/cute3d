@@ -15,15 +15,15 @@ int init_shader() {
 
 struct Shader* shader_create(struct Shader* p, const char* vertex_file, const char* fragment_file) {
     if( vertex_file && fragment_file ) {
-        p->vertex_shader = debug_compile_file(GL_VERTEX_SHADER, vertex_file);
-        p->fragment_shader = debug_compile_file(GL_FRAGMENT_SHADER, fragment_file);
+        p->vertex_shader = compile_file(GL_VERTEX_SHADER, vertex_file);
+        p->fragment_shader = compile_file(GL_FRAGMENT_SHADER, fragment_file);
     } else {
-        p->vertex_shader = debug_compile_file(GL_VERTEX_SHADER, "default.vertex");
-        p->fragment_shader = debug_compile_file(GL_FRAGMENT_SHADER, "default.fragment");
+        p->vertex_shader = compile_file(GL_VERTEX_SHADER, "default.vertex");
+        p->fragment_shader = compile_file(GL_FRAGMENT_SHADER, "default.fragment");
     }
 
     if( p->vertex_shader > 0 && p->fragment_shader > 0 ) {
-        p->program = debug_link_program(p->vertex_shader, p->fragment_shader);
+        p->program = link_program(p->vertex_shader, p->fragment_shader);
     } else {
         p->program = 0;
     }

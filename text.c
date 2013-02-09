@@ -282,7 +282,7 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
 
 
         if( ! font->shader.program ) {
-            font->shader.program = debug_make_program(vertex_source, fragment_source);
+            font->shader.program = make_program(vertex_source, fragment_source);
         }
 
         return font;
