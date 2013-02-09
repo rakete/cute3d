@@ -119,8 +119,9 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
     font->heap.alphabet = calloc( 256, sizeof(short) );
     font->encoding.unicode = 0;
     font->encoding.size = sizeof(char);
-    font->kerning = 0.0;
-    font->size = 0.1;
+    font->kerning = 0.2;
+    font->linespacing = 0.2;
+    font->size = 0.33;
     font->color[0] = 1.0;
     font->color[1] = 1.0;
     font->color[2] = 1.0;
@@ -314,14 +315,14 @@ void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter) 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-static void upload_buffer(void* data, GLsizei bytes, GLuint* id, GLenum usage) {
-}
+/* static void upload_buffer(void* data, GLsizei bytes, GLuint* id, GLenum usage) { */
+/* } */
 
-static void attach_attrib(const char* location_name, GLuint program, int components, GLenum type) {
-    GLint position = glGetAttribLocation(program, location_name);
-    glEnableVertexAttribArray(position);
-    glVertexAttribPointer(position, components, type, GL_FALSE, 0, 0);
-}
+/* static void attach_attrib(const char* location_name, GLuint program, int components, GLenum type) { */
+/*     GLint position = glGetAttribLocation(program, location_name); */
+/*     glEnableVertexAttribArray(position); */
+/*     glVertexAttribPointer(position, components, type, GL_FALSE, 0, 0); */
+/* } */
 
 void text_render(const wchar_t* text, const struct Font* font, const Matrix projection_matrix, const Matrix view_matrix, const Matrix model_matrix) {
 
@@ -331,12 +332,12 @@ void text_render(const wchar_t* text, const struct Font* font, const Matrix proj
     static GLuint elements_id = 0;
 
     GLfloat vertices[6*3] =
-        { -1.0, 1.0, 0.0,
-          1.0, 1.0, 0.0,
-          1.0, -1.0, 0.0,
-          1.0, -1.0, 0.0,
-          -1.0, -1.0, 0.0,
-          -1.0, 1.0, 0.0 };
+        { -0.5, 0.5, 0.0,
+          0.5, 0.5, 0.0,
+          0.5, -0.5, 0.0,
+          0.5, -0.5, 0.0,
+          -0.5, -0.5, 0.0,
+          -0.5, 0.5, 0.0 };
     GLfloat texcoords[6*2] =
         { 0.0, 1.0,
           1.0, 1.0,
@@ -426,26 +427,45 @@ void text_render(const wchar_t* text, const struct Font* font, const Matrix proj
                     ascii[length] = '\0';
                 }
 
-                Matrix offset_matrix;
-                matrix_identity(offset_matrix);
+                Matrix column_matrix;
+                matrix_identity(column_matrix);
+                Matrix row_matrix;
+                matrix_identity(row_matrix);
+                
+                float s = font->size;
+                matrix_scale(row_matrix, (Vec){ s, s, s, 1.0 }, row_matrix);
                 for( int i = 0; i < length; i++ ) {
 
                     struct Glyph* glyph = NULL;
+                    short newline = 0;
                     if( font->encoding.unicode ) {
                         wchar_t c = text[i];
                         if( font->heap.alphabet[c] ) {
                             glyph = &font->heap.glyphs[c];
+                        } else if( c == '\n' ) {
+                            newline = 1;
                         }
                     } else {
                         char c = ascii[i];
                         if( font->heap.alphabet[c] ) {
                             glyph = &font->heap.glyphs[c];
+                        } else if( c == '\n' ) {
+                            newline = 1;
                         }
                     }
 
-                    matrix_translate(offset_matrix, (Vec){ 1.5, 0.0, 0.0, 1.0 }, offset_matrix);
+                    if( ! newline ) {
+                        float x = 1.0 - font->kerning;
+                        matrix_translate(column_matrix, (Vec){ x, 0.0, 0.0, 1.0 }, column_matrix);
+                    } else {
+                        float y = 1.0*s + font->linespacing*s;
+                        matrix_translate(row_matrix, (Vec){ 0.0, y, 0.0, 1.0 }, row_matrix);
+                        matrix_identity(column_matrix);
+                    }
+                    
                     Matrix glyph_matrix;
-                    matrix_multiply(model_matrix, offset_matrix, glyph_matrix);
+                    matrix_multiply(model_matrix, column_matrix, glyph_matrix);
+                    matrix_multiply(glyph_matrix, row_matrix, glyph_matrix);                    
 
                     if( glyph ) {
                         glUniformMatrix4fv(model_loc, 1, GL_FALSE, glyph_matrix);

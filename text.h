@@ -51,6 +51,7 @@ struct Font {
     } shader;
 
     float kerning;
+    float linespacing;
     float size;
     Color color;
 };

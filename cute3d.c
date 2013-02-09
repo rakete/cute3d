@@ -4,10 +4,11 @@
 #include "time.h"
 
 #include "math_types.h"
-#include "debug.h"
+#include "glsl.h"
 #include "render.h"
 #include "solid.h"
 #include "text.h"
+#include "draw.h"
 
 #include "allegro5/allegro.h"
 
@@ -73,15 +74,19 @@ int main(int argc, char** argv) {
     shader_attribute(&default_shader, normal_array, "normal");
 
     struct Camera default_camera;
-    camera_perspective(&default_camera, 45.0f, 1.33333f, 0.2f, 100.0f);
+    camera_create(&default_camera, 800, 600);
+    //camera_projection(&default_camera, perspective);
+    camera_projection(&default_camera, orthographic_zoom);
+    printf("camera->projection: %d\n", default_camera.type);
+    camera_frustum(&default_camera, -0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f);
 
     /* Quat rotation; */
     /* rotation_quat((float[]){ 1.0, 0.0, 0.0, 1.0 }, 90 * PI/180, rotation); */
     /* quat_product(default_camera.pivot.orientation, rotation, default_camera.pivot.orientation); */
     
-    Vec translation = { 0.0, 2.0, 2.0 };
+    Vec translation = { -0.6, -3.5, -8.0 };
     vector_add3f(default_camera.pivot.position, translation, default_camera.pivot.position);
-    Vec origin = { 0.0, 0.0, 0.0, 1.0 };
+    Vec origin = { -0.6, -0.5, 0.0, 1.0 };
     pivot_lookat(&default_camera.pivot, origin);
    
     struct Tetrahedron tetrahedron;
@@ -181,7 +186,8 @@ int main(int argc, char** argv) {
     symbols['y'] = char_y();
     symbols['z'] = char_z();
 
-    struct Font* font = font_allocate_ascii("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz", symbols);
+    struct Font* foo = font_allocate_ascii("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz", symbols);
+    int font_id = font_registry(NewFont, 0, &foo);
 
     while (true) {
         /* Check for ESC key or close button event and quit in either case. */
@@ -221,14 +227,14 @@ int main(int argc, char** argv) {
         Vec light_direction = { 0.2, 0.5, 1.0 };
         shader_uniform(&default_shader, "light_direction", "3f", light_direction);
         
-        debug_grid(2, 16, (float[4]){.4, .4, .4, 1}, projection_mat, view_mat, model_grid);
+        //draw_grid(2, 16, (float[4]){.4, .4, .4, 1}, projection_mat, view_mat, model_grid);
         //render_mesh(&triangle_mesh, &default_shader, &default_camera, identity);
 
         /* Matrix tet_left; */
         /* matrix_identity(tet_left); */
         /* matrix_translate(tet_left, (Color){ 1.0, -1.0, 0.0, 1.0 }, tet_left); */
         /* render_mesh(&tetrahedron_mesh, &default_shader, &default_camera, tet_left); */
-        /* debug_normals_array(tetrahedron.vertices, */
+        /* draw_normals_array(tetrahedron.vertices, */
         /*                     tetrahedron.normals, */
         /*                     tetrahedron.solid.faces.num * tetrahedron.solid.faces.size, */
         /*                     (Color){ 0.0, 1.0, 1.0, 1.0 }, */
@@ -236,47 +242,30 @@ int main(int argc, char** argv) {
         /*                     view_mat, */
         /*                     tet_left); */
         
-        /* Matrix cube_right; */
-        /* matrix_identity(cube_right); */
-        /* matrix_translate(cube_right, (Color){ -1.0, 0.5, 0.0, 1.0 }, cube_right); */
-        /* render_mesh(&cube_mesh, &default_shader, &default_camera, cube_right); */
-        /* debug_normals_array(cube.vertices, */
-        /*                     cube.normals, */
-        /*                     cube.solid.faces.num * cube.solid.faces.size, */
-        /*                     (Color){ 1.0,0.0,1.0,1.0 }, */
-        /*                     projection_mat, */
-        /*                     view_mat, */
-        /*                     cube_right); */
+        Matrix cube_right;
+        matrix_identity(cube_right);
+        matrix_translate(cube_right, (Vec){ -1.2, 0.5, 0.0, 1.0 }, cube_right);
+        render_mesh(&cube_mesh, &default_shader, &default_camera, cube_right);
+        draw_normals_array(cube.vertices,
+                            cube.normals,
+                            cube.solid.faces.num * cube.solid.faces.size,
+                            (Color){ 1.0,0.0,1.0,1.0 },
+                            projection_mat,
+                            view_mat,
+                            cube_right);
 
         Matrix font_matrix;
         matrix_identity(font_matrix);
-        //debug_texture_quad(font->texture.id, projection_mat, view_mat, font_matrix);
-
-        text_render(L"Y", font, projection_mat, view_mat, font_matrix);
+        
+        struct Font* font;
+        if( font_registry(FindFont, font_id, &font) ) {
+            text_render(L"CUTE says\n   Hello World", font, projection_mat, view_mat, font_matrix);
+        }
 
         al_flip_display();
-
-        /* const wchar_t str[] = L"foobar"; */
-        /* const char ascii[] = "foobar"; */
-        /* int array[256]; */
-        /* for( int i = 0; i < 256; i++ ) { */
-        /*     array[i] = i; */
-        /* } */
-        /* char buffer[32]; */
-        /* int ret; */
-        /* ret = wcstombs ( buffer, str, sizeof(buffer) ); */
-        /* if (ret == 32) buffer[31]='\0'; */
-        
-        /* printf("strlen: %lu\n", strlen(buffer)); */
-        /* if (ret) { */
-        /*     for( int i = 0; i < strlen(buffer); i++ ) { */
-        /*         printf("%d == %d\n", array[buffer[i]], array[ascii[i]]); */
-        /*     } */
-        /* } */
-
     }
 
 done:
-    font_delete(font);
+    font_registry(DeleteFont, -1, NULL);
     return 0;
 }
