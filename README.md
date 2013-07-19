@@ -1,1 +1,1 @@
-![cute3d screenshot](http://imgur.com/ozu0MJ9)
+![cute3d screenshot](/screenshots/cute3d_2013-02-09.png)
