@@ -1,3 +1,19 @@
+/* cute3d, a simplistic opengl based engine written in C */
+/* Copyright (C) 2013 Andreas Raster */
+
+/* This program is free software: you can redistribute it and/or modify */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or */
+/* (at your option) any later version. */
+
+/* This program is distributed in the hope that it will be useful, */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the */
+/* GNU General Public License for more details. */
+
+/* You should have received a copy of the GNU General Public License */
+/* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
 #include "stdint.h"
 #include "stdlib.h"
 #include "stdio.h"
@@ -7,12 +23,12 @@
 #include "GL/glew.h"
 #include "GL/gl.h"
 
-#ifndef NUM_BUFFERS
-#define NUM_BUFFERS 3
-#endif
-
 #ifndef NUM_MESHES
 #define NUM_MESHES 1024
+#endif
+
+#ifndef NUM_PHASES
+#define NUM_PHASES 3
 #endif
 
 int init_geometry();
@@ -26,31 +42,43 @@ GLsizei sizeof_primitive(GLenum primitive);
 enum buffer_array_type {
     vertex_array = 0,
     normal_array,
-    color_array
+    color_array,
+    texcoord_array,
+    NUM_BUFFERS
 };
 
-enum element {
-    vertex_element = 1,
-    line_element,
-    triangle_element,
-    quad_element
-};
-
+// meshes are made up of primitives, like triangles, quads, lines, points
+// a primitive is made up of elements, those could be vertices, normals, texcoords
+// each element itself is just a bunch of numbers, like three floats for a vertex, or two ints for a texcoord
+//
+// vbos are buffers that contain the components
+// for example a vertex array might contain floats of which three at a time make up a single vertex
+// there are several different types of arrays that are all managed in struct Vbo
+//
+// now the elements are just logical units, the buffers that contain the components also
+// contain the elements, and just like the components make up elements, the elements make up
+// primitives
 struct Vbo {
     struct {
         GLuint id;
         GLenum usage;
-    } buffer[NUM_BUFFERS];
+        int phase;
+        int dirty;
+    } buffer[NUM_BUFFERS*NUM_PHASES];
 
     struct {
-        uint32_t num; // the number of components per element
-        GLenum type; // the gl type of the individual components
-        uint32_t bytes; // size of a single component
+        uint32_t size; // the number of components per element (eg a vertex3 element has three components)
+        GLenum type; // the gl type of the individual components (probably GL_float)
+        uint32_t bytes; // size of a single component (sizeof GL_float)
     } components[NUM_BUFFERS];
 
     uint32_t capacity; // size of the whole buffer
     uint32_t reserved; // actual used space by meshes
     uint32_t alloc; // how much should be allocated per once we grow bigger then size
+
+    struct {
+        GLuint id;
+    } _internal_buffer[];
 };
 
 void vbo_create(uint32_t alloc_n, struct Vbo* p);
@@ -72,28 +100,37 @@ void vbo_bind(struct Vbo* vbo, int i, GLenum bind_type);
 
 void vbo_fill_value(struct Vbo* vbo, int i, uint32_t offset_n, uint32_t size_n, float value);
 
+// meshes are made up of primitives
+// to construct those primitives a fixed number of elements is combined together, a triangle for
+// example might be made up of three vertices, normals, texcoords
+// since these come from the arrays that are stored in vbos, there is an additional type of buffer
+// called the element array buffer that contains not components, but indices into the vbos
 struct Mesh {
     struct Vbo* vbo;
 
     uint32_t offset; // offset in vbo buffers
     uint32_t size; // space used by mesh in vbo
 
+    // information about how many elements are used by this mesh per buffer
     struct {
         uint32_t used;
     } buffer[NUM_BUFFERS];
 
+    // information about which primitive type this mesh is made up of
     struct {
-        GLenum primitive;
-        uint32_t size;
+        GLenum primitive; // something like GL_TRIANGLES
+        uint32_t size; // how many elements per primitive
     } faces;
 
+    // information about the index type used in the element buffer
     struct {
-        GLenum type;
-        uint32_t bytes;
+        GLenum type; // something GL_UNSIGNED_INT
+        uint32_t bytes; // sizeof type
     } index;
 
+    // this is the buffer that contains the actual indices making up the primitives
     struct {
-        GLuint buffer; // indices buffer
+        GLuint id; // indices buffer
         uint32_t size; // size of the buffer
         uint32_t used; // space already used
         uint32_t alloc; // how much to allocate additionally if we need to resize
@@ -115,7 +152,7 @@ uint32_t mesh_free_bytes(struct Mesh* mesh, int i);
 uint32_t mesh_free_elements(struct Mesh* mesh, int i);
 
 void mesh_append(struct Mesh* mesh, int i, void* data, uint32_t n);
-void mesh_append_generic(struct Mesh* mesh, int i, void* data, uint32_t n, uint32_t components_num, GLenum components_type);
+void mesh_append_generic(struct Mesh* mesh, int i, void* data, uint32_t n, uint32_t components_size, GLenum components_type);
 
 void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c);
 void mesh_triangle_strip(struct Mesh* mesh, GLuint a);
@@ -152,6 +189,8 @@ struct Mesh* mesh_clone(struct Mesh* mesh);
 //   creates a triangle/quad element
 // destroy:
 // union:
+
+// OUTDATED (?) STUFF BELOW
 
 // a buffer has a SIZE
 // space in a buffer is RESERVED for meshes

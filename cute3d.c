@@ -1,3 +1,19 @@
+/* cute3d, a simplistic opengl based engine written in C */
+/* Copyright (C) 2013 Andreas Raster */
+
+/* This program is free software: you can redistribute it and/or modify */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or */
+/* (at your option) any later version. */
+
+/* This program is distributed in the hope that it will be useful, */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the */
+/* GNU General Public License for more details. */
+
+/* You should have received a copy of the GNU General Public License */
+/* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
 #include "stdio.h"
 #include "math.h"
 #include "stdlib.h"
@@ -68,7 +84,7 @@ int main(int argc, char** argv) {
 
     init_shader();
     struct Shader default_shader;
-    shader_create(&default_shader, "flat.vertex", "flat.fragment");
+    shader_create(&default_shader, "shader/flat.vertex", "shader/flat.fragment");
     shader_attribute(&default_shader, vertex_array, "vertex");
     shader_attribute(&default_shader, color_array, "color");
     shader_attribute(&default_shader, normal_array, "normal");
@@ -259,7 +275,7 @@ int main(int argc, char** argv) {
         
         struct Font* font;
         if( font_registry(FindFont, font_id, &font) ) {
-            text_render(L"CUTE says\n   Hello World", font, projection_mat, view_mat, font_matrix);
+            text_put(L"CUTE says\n   Hello World", font, projection_mat, view_mat, font_matrix);
         }
 
         al_flip_display();

@@ -1,3 +1,19 @@
+/* cute3d, a simplistic opengl based engine written in C */
+/* Copyright (C) 2013 Andreas Raster */
+
+/* This program is free software: you can redistribute it and/or modify */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or */
+/* (at your option) any later version. */
+
+/* This program is distributed in the hope that it will be useful, */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the */
+/* GNU General Public License for more details. */
+
+/* You should have received a copy of the GNU General Public License */
+/* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
 #include "render.h"
 
 void camera_create(struct Camera* camera, int width, int height) {
@@ -90,7 +106,7 @@ void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera
 
     
     GLint model_loc = glGetUniformLocation(shader->program, "model_matrix");
-    short free_model_matrix = 0;
+    bool free_model_matrix = 0;
     if( ! model_matrix ) {
         model_matrix = malloc(sizeof(Matrix));
         matrix_identity(model_matrix);
@@ -115,7 +131,7 @@ void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera
             
             vbo_bind(mesh->vbo, array_id, GL_ARRAY_BUFFER);
         
-            uint32_t c_num = mesh->vbo->components[array_id].num;
+            uint32_t c_num = mesh->vbo->components[array_id].size;
             uint32_t c_type = mesh->vbo->components[array_id].type;
             uint32_t c_bytes = mesh->vbo->components[array_id].bytes;
             uint32_t offset = mesh->offset * c_num * c_bytes;
@@ -124,7 +140,7 @@ void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera
         }
     }
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->elements.buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->elements.id);
     glDrawElements(mesh->faces.primitive, mesh->elements.used * mesh->faces.size, mesh->index.type, 0);
 
     for( int array_id = 0; array_id < NUM_BUFFERS; array_id++ ) {

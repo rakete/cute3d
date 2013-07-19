@@ -1,3 +1,19 @@
+/* cute3d, a simplistic opengl based engine written in C */
+/* Copyright (C) 2013 Andreas Raster */
+
+/* This program is free software: you can redistribute it and/or modify */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or */
+/* (at your option) any later version. */
+
+/* This program is distributed in the hope that it will be useful, */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the */
+/* GNU General Public License for more details. */
+
+/* You should have received a copy of the GNU General Public License */
+/* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
 #include "stdio.h"
 
 #include "quaternion.h"
@@ -9,7 +25,7 @@ void quat_identity(Quat quat) {
     quat[3] = 1.0;
 }
 
-short rotation_quat(const Vec axis, const float angle, Quat quat) {
+bool rotation_quat(const Vec axis, const float angle, Quat quat) {
     if( ( axis[0] == 0.0 && axis[1] == 0.0 && axis[2] == 0.0 ) ||
         angle == 0.0 )
     {

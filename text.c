@@ -1,8 +1,24 @@
+/* cute3d, a simplistic opengl based engine written in C */
+/* Copyright (C) 2013 Andreas Raster */
+
+/* This program is free software: you can redistribute it and/or modify */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or */
+/* (at your option) any later version. */
+
+/* This program is distributed in the hope that it will be useful, */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the */
+/* GNU General Public License for more details. */
+
+/* You should have received a copy of the GNU General Public License */
+/* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
 #include "text.h"
 
-int font_registry(enum FontOp op, int id, struct Font** font) {
+int font_registry(enum FontReg op, int id, struct Font** font) {
     static struct Font* registry[NUM_FONTS];
-    static short reserved_slots[NUM_FONTS] = {0};
+    static bool reserved_slots[NUM_FONTS] = {0};
 
     if( ! reserved_slots[0] ) {
         struct Character symbols[256];
@@ -116,7 +132,7 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
     struct Font* font = calloc( 1, sizeof(struct Font) );
     font->heap.size = 256;
     font->heap.glyphs = calloc( 256, sizeof(struct Glyph) );
-    font->heap.alphabet = calloc( 256, sizeof(short) );
+    font->heap.alphabet = calloc( 256, sizeof(bool) );
     font->encoding.unicode = 0;
     font->encoding.size = sizeof(char);
     font->kerning = 0.2;
@@ -315,16 +331,7 @@ void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter) 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-/* static void upload_buffer(void* data, GLsizei bytes, GLuint* id, GLenum usage) { */
-/* } */
-
-/* static void attach_attrib(const char* location_name, GLuint program, int components, GLenum type) { */
-/*     GLint position = glGetAttribLocation(program, location_name); */
-/*     glEnableVertexAttribArray(position); */
-/*     glVertexAttribPointer(position, components, type, GL_FALSE, 0, 0); */
-/* } */
-
-void text_render(const wchar_t* text, const struct Font* font, const Matrix projection_matrix, const Matrix view_matrix, const Matrix model_matrix) {
+void text_put(const wchar_t* text, const struct Font* font, const Matrix projection_matrix, const Matrix view_matrix, const Matrix model_matrix) {
 
     static GLuint quad = 0;
     static GLuint vertices_id = 0;
@@ -437,7 +444,7 @@ void text_render(const wchar_t* text, const struct Font* font, const Matrix proj
                 for( int i = 0; i < length; i++ ) {
 
                     struct Glyph* glyph = NULL;
-                    short newline = 0;
+                    bool newline = 0;
                     if( font->encoding.unicode ) {
                         wchar_t c = text[i];
                         if( font->heap.alphabet[c] ) {
@@ -481,6 +488,6 @@ void text_render(const wchar_t* text, const struct Font* font, const Matrix proj
     }
 }
 
-void text_screen(const wchar_t* text, const struct Font* font, const Matrix projection_matrix, const Matrix view_matrix, int x, int y) {
+void text_putscreen(const wchar_t* text, const struct Font* font, const Matrix projection_matrix, const Matrix view_matrix, int x, int y) {
 }
 

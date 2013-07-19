@@ -1,3 +1,19 @@
+/* cute3d, a simplistic opengl based engine written in C */
+/* Copyright (C) 2013 Andreas Raster */
+
+/* This program is free software: you can redistribute it and/or modify */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or */
+/* (at your option) any later version. */
+
+/* This program is distributed in the hope that it will be useful, */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the */
+/* GNU General Public License for more details. */
+
+/* You should have received a copy of the GNU General Public License */
+/* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
 #include "shader.h"
 
 int init_shader() {
@@ -18,8 +34,8 @@ struct Shader* shader_create(struct Shader* p, const char* vertex_file, const ch
         p->vertex_shader = compile_file(GL_VERTEX_SHADER, vertex_file);
         p->fragment_shader = compile_file(GL_FRAGMENT_SHADER, fragment_file);
     } else {
-        p->vertex_shader = compile_file(GL_VERTEX_SHADER, "default.vertex");
-        p->fragment_shader = compile_file(GL_FRAGMENT_SHADER, "default.fragment");
+        p->vertex_shader = compile_file(GL_VERTEX_SHADER, "shader/default.vertex");
+        p->fragment_shader = compile_file(GL_FRAGMENT_SHADER, "shader/default.fragment");
     }
 
     if( p->vertex_shader > 0 && p->fragment_shader > 0 ) {
