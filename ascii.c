@@ -143,9 +143,9 @@ struct Character char_E() {
 struct Character char_e() {
     static bool pixels[5*6] = {
         0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0,
         0, 1, 1, 1, 0,
-        0, 1, 0, 1, 0,
-        0, 1, 1, 0, 0,
+        0, 1, 0, 0, 0,
         0, 0, 1, 1, 0,
         0, 0, 0, 0, 0,
     };
@@ -673,29 +673,29 @@ struct Character char_x() {
 }
 
 struct Character char_Y() {
-    static bool pixels[7*7] = {
-        0, 0, 0, 0, 0, 0, 0,
-        0, 1, 0, 0, 0, 1, 0,
-        0, 0, 1, 0, 1, 0, 0,
-        0, 0, 0, 1, 0, 0, 0,
-        0, 0, 0, 1, 0, 0, 0,
-        0, 0, 0, 1, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0
+    static bool pixels[6*7] = {
+        0, 0, 0, 0, 0, 0,
+        0, 1, 0, 0, 1, 0,
+        0, 1, 0, 0, 1, 0,
+        0, 0, 1, 1, 1, 0,
+        0, 0, 0, 0, 1, 0,
+        0, 0, 1, 1, 0, 0,
+        0, 0, 0, 0, 0, 0,
     };
-    struct Character r = { .w = 7, .h = 7, .pixels = pixels };
+    struct Character r = { .w = 6, .h = 7, .pixels = pixels };
     return r;
 }
 
 struct Character char_y() {
-    static bool pixels[7*6] = {
-        0, 0, 0, 0, 0, 0, 0,
-        0, 1, 0, 0, 0, 1, 0,
-        0, 0, 1, 0, 1, 0, 0,
-        0, 0, 0, 1, 0, 0, 0,
-        0, 0, 1, 0, 0, 0, 0,
-        0, 1, 0, 0, 0, 0, 0
+    static bool pixels[6*6] = {
+        0, 0, 0, 0, 0, 0,
+        0, 1, 0, 0, 1, 0,
+        0, 1, 0, 0, 1, 0,
+        0, 0, 1, 1, 1, 0,
+        0, 0, 0, 0, 1, 0,
+        0, 0, 1, 1, 0, 0
     };
-    struct Character r = { .w = 7, .h = 6, .pixels = pixels };
+    struct Character r = { .w = 6, .h = 6, .pixels = pixels };
     return r;
 }
 
