@@ -47,6 +47,11 @@ enum buffer_array_type {
     NUM_BUFFERS
 };
 
+enum scheduling {
+    many_buffer = 0,
+    big_buffer
+};
+
 // meshes are made up of primitives, like triangles, quads, lines, points
 // a primitive is made up of elements, those could be vertices, normals, texcoords
 // each element itself is just a bunch of numbers, like three floats for a vertex, or two ints for a texcoord
@@ -59,26 +64,30 @@ enum buffer_array_type {
 // contain the elements, and just like the components make up elements, the elements make up
 // primitives
 struct Vbo {
-    struct {
+    struct Buffer {
         GLuint id;
         GLenum usage;
-        int phase;
-        int dirty;
-    } buffer[NUM_BUFFERS*NUM_PHASES];
+    } _internal_buffer[NUM_PHASES][NUM_BUFFERS];
+    struct Buffer* buffer;
 
-    struct {
+    struct Components {
         uint32_t size; // the number of components per element (eg a vertex3 element has three components)
         GLenum type; // the gl type of the individual components (probably GL_float)
         uint32_t bytes; // size of a single component (sizeof GL_float)
-    } components[NUM_BUFFERS];
+    } _internal_components[NUM_PHASES][NUM_BUFFERS];
+    struct Components* components;
 
     uint32_t capacity; // size of the whole buffer
     uint32_t reserved; // actual used space by meshes
     uint32_t alloc; // how much should be allocated per once we grow bigger then size
-
+    
     struct {
-        GLuint id;
-    } _internal_buffer[];
+        uint32_t phase;
+        uint32_t dirty[NUM_PHASES];
+        GLsync fence[NUM_PHASES];
+        enum scheduling type;
+        uint32_t offset;
+    } scheduler;
 };
 
 void vbo_create(uint32_t alloc_n, struct Vbo* p);
@@ -100,6 +109,9 @@ void vbo_bind(struct Vbo* vbo, int i, GLenum bind_type);
 
 void vbo_fill_value(struct Vbo* vbo, int i, uint32_t offset_n, uint32_t size_n, float value);
 
+void vbo_wait(struct Vbo* vbo);
+void vbo_sync(struct Vbo* vbo);
+
 // meshes are made up of primitives
 // to construct those primitives a fixed number of elements is combined together, a triangle for
 // example might be made up of three vertices, normals, texcoords
@@ -112,9 +124,7 @@ struct Mesh {
     uint32_t size; // space used by mesh in vbo
 
     // information about how many elements are used by this mesh per buffer
-    struct {
-        uint32_t used;
-    } buffer[NUM_BUFFERS];
+    uint32_t uses[NUM_BUFFERS];
 
     // information about which primitive type this mesh is made up of
     struct {
@@ -129,13 +139,18 @@ struct Mesh {
     } index;
 
     // this is the buffer that contains the actual indices making up the primitives
-    struct {
+    struct ElementsBuffer {
         GLuint id; // indices buffer
+        GLenum usage;
+    } _internal_buffer[NUM_PHASES];
+    struct ElementsBuffer* buffer;
+
+    struct Elements {
         uint32_t size; // size of the buffer
         uint32_t used; // space already used
         uint32_t alloc; // how much to allocate additionally if we need to resize
-        GLenum usage;
-    } elements;
+    } _internal_elements[NUM_PHASES];
+    struct Elements* elements;
 
     uint32_t garbage;
 };
