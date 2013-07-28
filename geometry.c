@@ -46,22 +46,25 @@ GLsizei buffer_resize(GLuint* buffer, GLsizei old_bytes, GLsizei new_bytes) {
     GLuint old_buffer = *buffer;
 
     if( new_bytes > old_bytes ) {
-        glBindBuffer(GL_COPY_READ_BUFFER, old_buffer);
+        
+        if( old_bytes > 0 ) { 
+            glBindBuffer(GL_COPY_READ_BUFFER, old_buffer);
  
-        glGenBuffers(1, &new_buffer);
-        glBindBuffer(GL_COPY_WRITE_BUFFER, new_buffer);
-        glBufferData(GL_COPY_WRITE_BUFFER, new_bytes, NULL, GL_STATIC_COPY);
+            glGenBuffers(1, &new_buffer);
+            glBindBuffer(GL_COPY_WRITE_BUFFER, new_buffer);
+            glBufferData(GL_COPY_WRITE_BUFFER, new_bytes, NULL, GL_STATIC_COPY);
 
-        glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, old_bytes);
+            glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, old_bytes);
 
-        glDeleteBuffers(1, &old_buffer);
+            glDeleteBuffers(1, &old_buffer);
 
-        *buffer = new_buffer;
+            *buffer = new_buffer;
 
-        glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-        glBindBuffer(GL_COPY_READ_BUFFER, 0);
+            glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+            glBindBuffer(GL_COPY_READ_BUFFER, 0);
+        }
 
-        return new_bytes;
+        return new_bytes - old_bytes;
     }
 
     return 0;
@@ -150,7 +153,6 @@ uint32_t vbo_alloc(struct Vbo* vbo, uint32_t n) {
                 uint32_t old_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
 
                 resized_bytes = buffer_resize(&vbo->buffer[i].id, old_bytes, new_bytes);
-
             }
         }
         
