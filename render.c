@@ -141,7 +141,7 @@ void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera
     }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->buffer->id);
-    glDrawElements(mesh->faces.primitive, mesh->elements->used * mesh->faces.size, mesh->index.type, 0);
+    glDrawElements(mesh->faces.primitive, mesh->elements->used, mesh->index.type, 0);
 
     for( int array_id = 0; array_id < NUM_BUFFERS; array_id++ ) {
         glDisableVertexAttribArray(array_id);
