@@ -105,19 +105,19 @@ int main(int argc, char** argv) {
     Vec origin = { -0.6, -0.5, 0.0, 1.0 };
     pivot_lookat(&default_camera.pivot, origin);
    
-    struct Tetrahedron tetrahedron;
-    solid_tetrahedron(&tetrahedron);
-    solid_colors((struct Solid*)&tetrahedron, (float[4]){ 0, 1.0, 0, 1.0 });
-    solid_normals((struct Solid*)&tetrahedron);
+    /* struct Tetrahedron tetrahedron; */
+    /* solid_tetrahedron(&tetrahedron); */
+    /* solid_colors((struct Solid*)&tetrahedron, (float[4]){ 0, 1.0, 0, 1.0 }); */
+    /* solid_normals((struct Solid*)&tetrahedron); */
 
-    struct Mesh tetrahedron_mesh;
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &tetrahedron_mesh);
-    mesh_append(&tetrahedron_mesh, vertex_array, tetrahedron.vertices, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size);
-    mesh_append(&tetrahedron_mesh, color_array, tetrahedron.colors, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size);
-    mesh_append(&tetrahedron_mesh, normal_array, tetrahedron.normals, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size);
-    mesh_faces(&tetrahedron_mesh, tetrahedron.elements, tetrahedron.solid.faces.num);
+    /* struct Mesh tetrahedron_mesh; */
+    /* mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &tetrahedron_mesh); */
+    /* mesh_append(&tetrahedron_mesh, vertex_array, tetrahedron.vertices, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size); */
+    /* mesh_append(&tetrahedron_mesh, color_array, tetrahedron.colors, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size); */
+    /* mesh_append(&tetrahedron_mesh, normal_array, tetrahedron.normals, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size); */
+    /* mesh_faces(&tetrahedron_mesh, tetrahedron.elements, tetrahedron.solid.faces.num); */
 
-    dump_mesh(&tetrahedron_mesh, stdout);
+    /* dump_mesh(&tetrahedron_mesh, stdout); */
 
     struct Cube cube;
     solid_cube(&cube);
@@ -129,23 +129,23 @@ int main(int argc, char** argv) {
     mesh_append(&cube_mesh, vertex_array, cube.vertices, cube.solid.faces.num * cube.solid.faces.size);
     mesh_append(&cube_mesh, color_array, cube.colors, cube.solid.faces.num * cube.solid.faces.size);
     mesh_append(&cube_mesh, normal_array, cube.normals, cube.solid.faces.num * cube.solid.faces.size);
-    mesh_faces(&cube_mesh, cube.elements, cube.solid.faces.num);
+    mesh_faces(&cube_mesh, cube.elements, cube.solid.faces.num * cube.solid.faces.size);
 
-    dump_mesh(&cube_mesh, stdout);
+    /* dump_mesh(&cube_mesh, stdout); */
 
-    struct Sphere32 sphere;
-    solid_sphere32(&sphere);
-    solid_colors((struct Solid*)&sphere, (float[4]){ 0.4, 0.7, 1.0, 1.0 });
-    solid_normals((struct Solid*)&sphere);
+    /* struct Sphere32 sphere; */
+    /* solid_sphere32(&sphere); */
+    /* solid_colors((struct Solid*)&sphere, (float[4]){ 0.4, 0.7, 1.0, 1.0 }); */
+    /* solid_normals((struct Solid*)&sphere); */
 
-    struct Mesh sphere_mesh;
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere_mesh);
-    mesh_append(&sphere_mesh, vertex_array, sphere.vertices, sphere.solid.faces.num * sphere.solid.faces.size);
-    mesh_append(&sphere_mesh, color_array, sphere.colors, sphere.solid.faces.num * sphere.solid.faces.size);
-    mesh_append(&sphere_mesh, normal_array, sphere.normals, sphere.solid.faces.num * sphere.solid.faces.size);
-    mesh_faces(&sphere_mesh, sphere.elements, sphere.solid.faces.num);
+    /* struct Mesh sphere_mesh; */
+    /* mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere_mesh); */
+    /* mesh_append(&sphere_mesh, vertex_array, sphere.vertices, sphere.solid.faces.num * sphere.solid.faces.size); */
+    /* mesh_append(&sphere_mesh, color_array, sphere.colors, sphere.solid.faces.num * sphere.solid.faces.size); */
+    /* mesh_append(&sphere_mesh, normal_array, sphere.normals, sphere.solid.faces.num * sphere.solid.faces.size); */
+    /* mesh_faces(&sphere_mesh, sphere.elements, sphere.solid.faces.num); */
 
-    dump_mesh(&sphere_mesh, stdout);
+    /* dump_mesh(&sphere_mesh, stdout); */
 
     struct Character symbols[256];
     symbols['A'] = char_A();
@@ -292,7 +292,7 @@ int main(int argc, char** argv) {
         }
         frames_done++;
 
-        printf("%f\n", fps);
+        //printf("%f\n", fps);
     }
 
 done:

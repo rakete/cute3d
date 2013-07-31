@@ -375,18 +375,18 @@ void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c) {
             printf("ERROR: this mesh->index.type not implemented in mesh_triangle\n");
         }
 
-        uint32_t triangle_bytes = mesh->faces.size * mesh->index.bytes;
-        uint32_t size_bytes = mesh->elements->size * triangle_bytes;
+        uint32_t size_bytes = mesh->elements->size * mesh->index.bytes;
 
         if( mesh->elements->used + 1 > mesh->elements->size ) {
-            uint32_t alloc_bytes = mesh->elements->alloc * triangle_bytes;
+            uint32_t alloc_bytes = mesh->elements->alloc * mesh->index.bytes;
             uint32_t resized_bytes = buffer_resize(&mesh->buffer->id, size_bytes, size_bytes + alloc_bytes);
             if( resized_bytes == alloc_bytes ) {
                 mesh->elements->size += mesh->elements->alloc;
             }
         }
 
-        uint32_t offset_bytes = mesh->elements->used * triangle_bytes;
+        uint32_t triangle_bytes = mesh->faces.size * mesh->index.bytes;
+        uint32_t offset_bytes = mesh->elements->used * mesh->index.bytes;
         if( mesh->elements->used + 1 <= mesh->elements->size ) {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->buffer->id);
             glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset_bytes, triangle_bytes, data);
@@ -401,8 +401,7 @@ void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c) {
 
 void mesh_faces(struct Mesh* mesh, void* data, uint32_t n) {
     if( mesh && mesh->buffer->id ) {
-        uint32_t triangle_bytes = mesh->faces.size * mesh->index.bytes;
-        uint32_t size_bytes = mesh->elements->size * triangle_bytes;
+        uint32_t size_bytes = mesh->elements->size * mesh->index.bytes;
 
         if( mesh->elements->used + n > mesh->elements->size ) {
             uint32_t alloc = 0;
@@ -410,7 +409,7 @@ void mesh_faces(struct Mesh* mesh, void* data, uint32_t n) {
                 alloc += mesh->elements->alloc;
             }
             
-            uint32_t alloc_bytes = alloc * triangle_bytes;
+            uint32_t alloc_bytes = alloc * mesh->index.bytes;
             
             uint32_t resized_bytes = buffer_resize(&mesh->buffer->id, size_bytes, size_bytes + alloc_bytes);
             if( resized_bytes > 0 ) {
@@ -418,8 +417,8 @@ void mesh_faces(struct Mesh* mesh, void* data, uint32_t n) {
             }
         }
             
-        uint32_t append_bytes = n * triangle_bytes;
-        uint32_t offset_bytes = mesh->elements->used * triangle_bytes;
+        uint32_t append_bytes = n * mesh->index.bytes;
+        uint32_t offset_bytes = mesh->elements->used * mesh->index.bytes;
         if( mesh->elements->used + n <= mesh->elements->size ) {
             glBindBuffer(GL_ARRAY_BUFFER, mesh->buffer->id);
             glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
