@@ -12,3 +12,6 @@ cute3d: geometry.c cute3d.c io.c matrix.c transform.c glsl.c quaternion.c shader
 	gcc -g -std=c99 -fPIC draw.c -c -o draw.o -lGL -lGLEW
 	gcc -g -std=c99 -fPIC text.c -c -o text.o -lGL -lGLEW
 	gcc -g -std=c99 -fPIC cute3d.c -o cute3d draw.o text.o ascii.o solid.o render.o geometry.o shader.o transform.o matrix.o quaternion.o glsl.o io.o -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
+
+grid: grid.c
+	gcc -g -std=c99 -fPIC grid.c -o grid
