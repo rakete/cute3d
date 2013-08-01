@@ -314,13 +314,6 @@ uint32_t mesh_alloc(struct Mesh* mesh, uint32_t n) {
     return 0;
 }
 
-uint32_t mesh_free_elements(struct Mesh* mesh, int i) {
-    return( mesh->size - mesh->uses[i] );
-}
-
-uint32_t mesh_free_bytes(struct Mesh* mesh, int i) {
-}
-
 void mesh_append(struct Mesh* mesh, int i, void* data, uint32_t n) {
     mesh_append_generic(mesh, i, data, n, mesh->vbo->components[i].size, mesh->vbo->components[i].type);
 }
@@ -357,6 +350,48 @@ void mesh_append_generic(struct Mesh* mesh, int i, void* data, uint32_t n, uint3
             mesh->uses[i] += n;
         }
     }
+}
+
+void* mesh_map(struct Mesh* mesh, int i, GLbitfield access) {
+    if( mesh && mesh->vbo->buffer[i].id ) {
+        uint32_t offset_bytes = mesh->offset * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
+        uint32_t length_bytes = mesh->size * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
+        
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
+        void* pointer = glMapBufferRange(GL_ARRAY_BUFFER, offset_bytes, length_bytes, access);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        return pointer;
+    }
+
+    return NULL;
+}
+
+GLboolean mesh_unmap(struct Mesh* mesh, int i) {
+    if( mesh && mesh->vbo->buffer[i].id ) {
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
+        GLboolean result = glUnmapBuffer(GL_ARRAY_BUFFER);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        return result;
+    }
+    
+    return 0;
+}
+
+void* mesh_map_elements(struct Mesh* mesh, GLbitfield access) {
+    if( mesh && mesh->vbo->buffer[i].id ) {
+        uint32_t offset_bytes = mesh->offset * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
+        uint32_t length_bytes = mesh->size * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
+        
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
+        void* pointer = glMapBufferRange(GL_ARRAY_BUFFER, offset_bytes, length_bytes, access);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        return pointer;
+    }
+
+    return NULL;
 }
 
 void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c) {
@@ -428,98 +463,3 @@ void mesh_faces(struct Mesh* mesh, void* data, uint32_t n) {
         }
     }
 }
-
-struct Mesh* mesh_clone(struct Mesh* mesh) {
-    /* struct Mesh* clone; */
-
-    /* if( mesh && mesh->vbo->meshes_num < NUM_MESHES ) { */
-    /*     clone = malloc( sizeof(struct Mesh) ); */
-
-    /*     clone->vbo = mesh->vbo; */
-    /*     if( mesh->size > vbo_free_elements(mesh->vbo) ) { */
-    /*         // resize buffer */
-    /*         // copy data */
-    /*     } else { */
-    /*         for( int i = 0; i < NUM_BUFFERS; i++ ) { */
-    /*             if( mesh->vbo->active[i] ) { */
-    /*                 vbo_bind(mesh->vbo, i, GL_COPY_READ_BUFFER); */
-    /*                 vbo_bind(mesh->vbo, i, GL_COPY_WRITE_BUFFER); */
-    /*                 uint32_t offset_bytes = mesh->offset * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes; */
-    /*                 uint32_t used_bytes = mesh->used * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes; */
-    /*                 uint32_t reserved_bytes = mesh->vbo->reserved * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes; */
-    /*                 glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, offset_bytes, reserved_bytes, used_bytes); */
-    /*             } */
-    /*         } */
-    /*     } */
-        
-    /*     clone->offset = mesh->offset; */
-    /*     clone->size = mesh->size; */
-    /*     clone->used = mesh->used; */
-
-    /*     clone->indices.primitive = mesh->indices.primitive; */
-    /*     clone->indices.num = mesh->indices.num; */
-    /*     clone->indices.type = mesh->indices.type; */
-    /*     clone->indices.bytes = mesh->indices.bytes; */
-
-    /*     glBindBuffer(GL_COPY_READ_BUFFER, mesh->elements.id); */
-
-    /*     glGenBuffers(1, &clone->elements.id); */
-    /*     glBindBuffer(GL_COPY_WRITE_BUFFER, clone->elements.id); */
-    /*     glBufferData(GL_COPY_WRITE_BUFFER, mesh->elements.size, NULL, GL_STATIC_COPY); */
-
-    /*     glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, mesh->elements.size); */
-
-    /*     clone->elements.size = mesh->elements.size; */
-    /*     clone->elements.used = mesh->elements.used; */
-    /*     clone->elements.alloc = mesh->elements.alloc; */
-
-    /*     clone->garbage = 0; */
-    /* } */
-
-    /* return clone; */
-}
-
-/* void mesh_quad(struct Mesh* mesh, GLuint a, GLuint b, GLuint c, GLuint d) { */
-/* } */
-
-/* void mesh_destroy(struct Mesh* mesh) { */
-/* } */
-
-/* struct Mesh* mesh_union(struct Mesh* a, struct Mesh* b) { */
-/* } */
-
-/* struct Mesh* mesh_copy(struct Mesh* mesh, struct vbo* to_vbo, uint32_t to_offset) { */
-/* } */
-
-/* int main(int argc, char *argv[]) { */
-/*     struct vbo* vbo = vbo_create(); */
-/*     vbo_add_buffer(vbo, vertex_array, 3, GL_FLOAT, 3*3*sizeof(float), 3*3*sizeof(float), GL_STATIC_DRAW); */
-/*     vbo_add_buffer(vbo, color_array, 4, GL_SHORT, 3*4*sizeof(short), 3*4*sizeof(short), GL_STATIC_DRAW); */
-    
-/*     float vertices[24] = { 0.0, 1.0, 0.0, */
-/*                            1.0, -1.0, 0.0, */
-/*                            -1.0, -1.0, 0.0 }; */
-/*     short colors[32] = { 255, 0, 0, 255, */
-/*                          255, 0, 0, 255, */
-/*                          255, 0, 0, 255 }; */
-
-/*     struct Mesh* triangle_mesh = mesh_create(vbo, 3); */
-/*     mesh_append(triangle_mesh, vertex_array, vertices, 9); */
-/*     mesh_append(triangle_mesh, color_array, colors, 12); */
-/*     mesh_triangle(triangle_mesh, 0, 1, 2); */
-
-/*     float more_vertices[3] = { -1.5, 1.0, 0.0 }; */
-/*     short more_colors[4] = { 255, 0, 0, 255 }; */
-
-/*     struct Mesh* quad_mesh = triangle_mesh; */
-/*     if( ! mesh_freespace(triangle_mesh) ) { */
-/*         quad_mesh = mesh_clone(triangle_mesh); */
-/*     } */
-/*     mesh_append(quad_mesh, vertex_array, more_vertices, 3); */
-/*     mesh_append(quad_mesh, color_array, more_colors, 4); */
-/*     mesh_triangle(quad_mesh, 3, 0, 2); */
-    
-/*     return 0; */
-/* } */
-
-

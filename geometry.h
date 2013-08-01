@@ -109,6 +109,9 @@ void vbo_bind(struct Vbo* vbo, int i, GLenum bind_type);
 
 void vbo_fill_value(struct Vbo* vbo, int i, uint32_t offset_n, uint32_t size_n, float value);
 
+void* vbo_map(struct Vbo* vbo, int i, uint32_t offset, uint32_t length, GLbitfield access);
+GLboolean vbo_unmap(struct Vbo* vbo, int i);
+
 void vbo_wait(struct Vbo* vbo);
 void vbo_sync(struct Vbo* vbo);
 
@@ -155,6 +158,26 @@ struct Mesh {
     uint32_t garbage;
 };
 
+struct MeshBytes {
+    uint32_t offset;
+    uint32_t size;
+
+    uint32_t uses[NUM_BUFFERS];
+
+    struct {
+        uint32_t size; // how many elements per primitive
+    } faces;
+
+    struct ElementsBytes {
+        uint32_t size; // size of the buffer
+        uint32_t used; // space already used
+        uint32_t alloc; // how much to allocate additionally if we need to resize
+    } _internal_elementsbytes[NUM_PHASES];
+    struct ElementsBytes* elements;
+};
+
+struct MeshBytes mesh_bytes();
+
 void mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct Mesh* p);
 
 void dump_mesh(struct Mesh* mesh, FILE* f);
@@ -163,11 +186,11 @@ void mesh_patches(struct Mesh* mesh, uint32_t patches_size);
 
 uint32_t mesh_alloc(struct Mesh* mesh, uint32_t n);
 
-uint32_t mesh_free_bytes(struct Mesh* mesh, int i);
-uint32_t mesh_free_elements(struct Mesh* mesh, int i);
-
 void mesh_append(struct Mesh* mesh, int i, void* data, uint32_t n);
 void mesh_append_generic(struct Mesh* mesh, int i, void* data, uint32_t n, uint32_t components_size, GLenum components_type);
+
+void* mesh_map(struct Mesh* mesh, uint32_t offset, uint32_t length, GLbitfield access);
+GLboolean mesh_unmap(struct Mesh* mesh);
 
 void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c);
 void mesh_triangle_strip(struct Mesh* mesh, GLuint a);
