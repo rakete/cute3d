@@ -260,21 +260,16 @@ void mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLen
         p->index.bytes = sizeof_type(index_type);
 
         for( int i = 0; i < NUM_PHASES; i++ ) {
-            p->_internal_buffer[i].id = 0;
-            p->_internal_buffer[i].usage = usage;
+            p->index._internal_buffer[i].id = 0;
+            p->index._internal_buffer[i].usage = usage;
+            p->index._internal_buffer[i].size = 0;
+            p->index._internal_buffer[i].used = 0;
+            p->index._internal_buffer[i].alloc = vbo->alloc;
         }
-        p->buffer = &p->_internal_buffer[0];
+        p->index.buffer = &p->index._internal_buffer[0];
 
-        for( int i = 0; i < NUM_PHASES; i++ ) {
-            p->_internal_elements[i].size = 0;
-            p->_internal_elements[i].used = 0;
-            p->_internal_elements[i].alloc = vbo->alloc;
-        }
-        p->elements = &p->_internal_elements[0];
-
-
-        glGenBuffers(1, &p->buffer->id);
-        glBindBuffer(GL_ARRAY_BUFFER, p->buffer->id);
+        glGenBuffers(1, &p->index.buffer->id);
+        glBindBuffer(GL_ARRAY_BUFFER, p->index.buffer->id);
         uint32_t nbytes = p->faces.size * p->index.bytes;
         glBufferData(GL_ARRAY_BUFFER, nbytes, NULL, usage);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -352,12 +347,15 @@ void mesh_append_generic(struct Mesh* mesh, int i, void* data, uint32_t n, uint3
     }
 }
 
-void* mesh_map(struct Mesh* mesh, int i, GLbitfield access) {
-    if( mesh && mesh->vbo->buffer[i].id ) {
-        uint32_t offset_bytes = mesh->offset * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
-        uint32_t length_bytes = mesh->size * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
+void* mesh_map(struct Mesh* mesh, uint32_t offset, uint32_t length, GLbitfield access) {
+    if( mesh && mesh->index.buffer->id && offset < mesh->index.buffer->size ) {
+        uint32_t offset_bytes = offset * mesh->index.bytes;
+        uint32_t length_bytes = length * mesh->index.bytes;
+        if( length <= offset || length > mesh->index.buffer->size ) {
+            length_bytes = mesh->index.buffer->size * mesh->index.bytes;
+        }
         
-        glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->index.buffer->id);
         void* pointer = glMapBufferRange(GL_ARRAY_BUFFER, offset_bytes, length_bytes, access);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -367,9 +365,9 @@ void* mesh_map(struct Mesh* mesh, int i, GLbitfield access) {
     return NULL;
 }
 
-GLboolean mesh_unmap(struct Mesh* mesh, int i) {
-    if( mesh && mesh->vbo->buffer[i].id ) {
-        glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
+GLboolean mesh_unmap(struct Mesh* mesh) {
+    if( mesh && mesh->index.buffer->id ) {
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->index.buffer->id);
         GLboolean result = glUnmapBuffer(GL_ARRAY_BUFFER);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -379,23 +377,8 @@ GLboolean mesh_unmap(struct Mesh* mesh, int i) {
     return 0;
 }
 
-void* mesh_map_elements(struct Mesh* mesh, GLbitfield access) {
-    if( mesh && mesh->vbo->buffer[i].id ) {
-        uint32_t offset_bytes = mesh->offset * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
-        uint32_t length_bytes = mesh->size * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
-        
-        glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
-        void* pointer = glMapBufferRange(GL_ARRAY_BUFFER, offset_bytes, length_bytes, access);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        return pointer;
-    }
-
-    return NULL;
-}
-
 void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c) {
-    if( mesh && mesh->buffer->id ) {
+    if( mesh && mesh->index.buffer->id ) {
         void* data = malloc(3 * mesh->index.bytes);
 
         if( mesh->index.type == GL_UNSIGNED_INT ) {
@@ -410,24 +393,24 @@ void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c) {
             printf("ERROR: this mesh->index.type not implemented in mesh_triangle\n");
         }
 
-        uint32_t size_bytes = mesh->elements->size * mesh->index.bytes;
+        uint32_t size_bytes = mesh->index.buffer->size * mesh->index.bytes;
 
-        if( mesh->elements->used + 1 > mesh->elements->size ) {
-            uint32_t alloc_bytes = mesh->elements->alloc * mesh->index.bytes;
-            uint32_t resized_bytes = buffer_resize(&mesh->buffer->id, size_bytes, size_bytes + alloc_bytes);
+        if( mesh->index.buffer->used + 1 > mesh->index.buffer->size ) {
+            uint32_t alloc_bytes = mesh->index.buffer->alloc * mesh->index.bytes;
+            uint32_t resized_bytes = buffer_resize(&mesh->index.buffer->id, size_bytes, size_bytes + alloc_bytes);
             if( resized_bytes == alloc_bytes ) {
-                mesh->elements->size += mesh->elements->alloc;
+                mesh->index.buffer->size += mesh->index.buffer->alloc;
             }
         }
 
         uint32_t triangle_bytes = mesh->faces.size * mesh->index.bytes;
-        uint32_t offset_bytes = mesh->elements->used * mesh->index.bytes;
-        if( mesh->elements->used + 1 <= mesh->elements->size ) {
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->buffer->id);
+        uint32_t offset_bytes = mesh->index.buffer->used * mesh->index.bytes;
+        if( mesh->index.buffer->used + 1 <= mesh->index.buffer->size ) {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->index.buffer->id);
             glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset_bytes, triangle_bytes, data);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-            mesh->elements->used += 1;
+            mesh->index.buffer->used += 1;
         }
 
         free(data);
@@ -435,31 +418,31 @@ void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c) {
 }
 
 void mesh_faces(struct Mesh* mesh, void* data, uint32_t n) {
-    if( mesh && mesh->buffer->id ) {
-        uint32_t size_bytes = mesh->elements->size * mesh->index.bytes;
+    if( mesh && mesh->index.buffer->id ) {
+        uint32_t size_bytes = mesh->index.buffer->size * mesh->index.bytes;
 
-        if( mesh->elements->used + n > mesh->elements->size ) {
+        if( mesh->index.buffer->used + n > mesh->index.buffer->size ) {
             uint32_t alloc = 0;
             while( alloc < n ) {
-                alloc += mesh->elements->alloc;
+                alloc += mesh->index.buffer->alloc;
             }
             
             uint32_t alloc_bytes = alloc * mesh->index.bytes;
             
-            uint32_t resized_bytes = buffer_resize(&mesh->buffer->id, size_bytes, size_bytes + alloc_bytes);
+            uint32_t resized_bytes = buffer_resize(&mesh->index.buffer->id, size_bytes, size_bytes + alloc_bytes);
             if( resized_bytes > 0 ) {
-                mesh->elements->size += alloc;
+                mesh->index.buffer->size += alloc;
             }
         }
             
         uint32_t append_bytes = n * mesh->index.bytes;
-        uint32_t offset_bytes = mesh->elements->used * mesh->index.bytes;
-        if( mesh->elements->used + n <= mesh->elements->size ) {
-            glBindBuffer(GL_ARRAY_BUFFER, mesh->buffer->id);
+        uint32_t offset_bytes = mesh->index.buffer->used * mesh->index.bytes;
+        if( mesh->index.buffer->used + n <= mesh->index.buffer->size ) {
+            glBindBuffer(GL_ARRAY_BUFFER, mesh->index.buffer->id);
             glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-            mesh->elements->used += n;
+            mesh->index.buffer->used += n;
         }
     }
 }

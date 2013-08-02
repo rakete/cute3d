@@ -139,21 +139,17 @@ struct Mesh {
     struct {
         GLenum type; // something GL_UNSIGNED_INT
         uint32_t bytes; // sizeof type
+        
+        // this is the buffer that contains the actual indices making up the primitives
+        struct IndexBuffer {
+            GLuint id; // index buffer
+            GLenum usage;
+            uint32_t size; // size of the buffer
+            uint32_t used; // space already used
+            uint32_t alloc; // how much to allocate additionally if we need to resize
+        } _internal_buffer[NUM_PHASES];
+        struct IndexBuffer* buffer;
     } index;
-
-    // this is the buffer that contains the actual indices making up the primitives
-    struct ElementsBuffer {
-        GLuint id; // indices buffer
-        GLenum usage;
-    } _internal_buffer[NUM_PHASES];
-    struct ElementsBuffer* buffer;
-
-    struct Elements {
-        uint32_t size; // size of the buffer
-        uint32_t used; // space already used
-        uint32_t alloc; // how much to allocate additionally if we need to resize
-    } _internal_elements[NUM_PHASES];
-    struct Elements* elements;
 
     uint32_t garbage;
 };
