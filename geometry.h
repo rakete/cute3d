@@ -25,10 +25,6 @@
 #include "GL/glew.h"
 #include "GL/gl.h"
 
-#ifndef NUM_MESHES
-#define NUM_MESHES 1024
-#endif
-
 #ifndef NUM_PHASES
 #define NUM_PHASES 3
 #endif
