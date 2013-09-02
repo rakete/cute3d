@@ -16,7 +16,7 @@
 
 #include "io.h"
 
-char* read_file(const char* filename, uint32_t* length) {
+char* read_file(const char* filename, uint64_t* length) {
     FILE* file = fopen(filename, "rb");
 
     if( ! file ) {

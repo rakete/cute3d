@@ -131,10 +131,10 @@ void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera
             
             vbo_bind(mesh->vbo, array_id, GL_ARRAY_BUFFER);
         
-            uint32_t c_num = mesh->vbo->components[array_id].size;
-            uint32_t c_type = mesh->vbo->components[array_id].type;
-            uint32_t c_bytes = mesh->vbo->components[array_id].bytes;
-            uint32_t offset = mesh->offset * c_num * c_bytes;
+            uint64_t c_num = mesh->vbo->components[array_id].size;
+            uint64_t c_type = mesh->vbo->components[array_id].type;
+            uint64_t c_bytes = mesh->vbo->components[array_id].bytes;
+            uint64_t offset = mesh->offset * c_num * c_bytes;
         
             glVertexAttribPointer(loc, c_num, c_type, GL_FALSE, 0, (void*)(intptr_t)offset);
         }

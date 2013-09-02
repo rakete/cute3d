@@ -56,7 +56,7 @@ void solid_normals(struct Solid* solid) {
 
 void solid_colors(struct Solid* solid, float color[4]) {
     if( solid->vertices && solid->elements ) {
-        uint32_t n = solid->faces.num * solid->faces.size;
+        uint64_t n = solid->faces.num * solid->faces.size;
         for( int i = 0; i < n; i++ ) {
             solid->colors[i*4+0] = color[0];
             solid->colors[i*4+1] = color[1];

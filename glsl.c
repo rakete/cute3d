@@ -48,7 +48,7 @@ GLuint compile_source(GLenum type, const char* source, uint32_t length) {
 }
 
 GLuint compile_file(GLenum type, const char* filename) {
-    uint32_t length;
+    uint64_t length;
     GLchar* source = read_file(filename, &length);
 
     if(!source) return 0;
@@ -80,10 +80,10 @@ GLuint link_program(GLuint vertex_shader, GLuint fragment_shader) {
 }
 
 GLuint make_program(const char *vertex_source, const char* fragment_source) {
-    uint32_t length_vertex = strlen(vertex_source);
-    uint32_t length_fragment = strlen(fragment_source);
-    printf("length_vertex: %d\n", length_vertex);
-    printf("length_fragment: %d\n", length_fragment);
+    uint64_t length_vertex = strlen(vertex_source);
+    uint64_t length_fragment = strlen(fragment_source);
+    printf("length_vertex: %lu\n", length_vertex);
+    printf("length_fragment: %lu\n", length_fragment);
     GLuint vertex = compile_source(GL_VERTEX_SHADER, vertex_source, length_vertex);
     GLuint fragment = compile_source(GL_FRAGMENT_SHADER, fragment_source, length_fragment);
 

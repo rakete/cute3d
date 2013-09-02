@@ -43,7 +43,7 @@
 struct Shader {
     GLuint vertex_shader, fragment_shader, program;
 
-    uint32_t active_uniforms;
+    uint64_t active_uniforms;
     struct {
         char name[256];
     } uniform[SHADER_UNIFORMS];
