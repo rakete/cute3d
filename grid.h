@@ -63,6 +63,8 @@ struct Grid {
         uint64_t num;
     } chunk;
 
+    uint64_t top;
+
     GLuint geometry_shader;
 
     union TreeNode* root;
@@ -115,10 +117,10 @@ struct GridBox {
     uint64_t level;
     
     struct {
-        uint64_t w;
-        uint64_t h;
-        uint64_t d;
-    } dimensions;
+        uint64_t width;
+        uint64_t height;
+        uint64_t depth;
+    } dimension;
     
     struct {
         uint64_t x;
@@ -127,7 +129,8 @@ struct GridBox {
     } position;
 };
 
-uint64_t grid_index(struct Grid* grid, struct GridBox* box, uint64_t x, uint64_t y, uint64_t z);
+uint64_t grid_xyz(struct Grid* grid, struct GridBox* box, uint64_t x, uint64_t y, uint64_t z);
+uint64_t grid_index(struct Grid* grid, struct GridBox* box, uint64_t box_index, uint64_t cube_index);
 
 struct GridSize {
     uint64_t box;

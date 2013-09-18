@@ -52,11 +52,24 @@
 // (1+1) + (1+1) * 3 = 8
 
 uint64_t grid_index(struct Grid* grid, struct GridBox* box, uint64_t x, uint64_t y, uint64_t z) {
-    return (box.position.x + x) + (box.position.y + y) * grid->size.x + (box.position.z + z) * grid->size.x * grid->size.y;
+    return (box->position.x + x) + (box->position.y + y) * grid->size.x + (box->position.z + z) * grid->size.x * grid->size.y;
 }
 
 struct GridSize grid_size(struct Grid* grid, struct GridBox* box) {
-    return( (struct GridSize){ .box = 0, .cubes = 0 } );
+    uint64_t boxsize = box->dimension.width * box->dimension.height * box->dimension.depth;
+
+    uint64_t x = grid->size.x;
+    uint64_t y = grid->size.y;
+    uint64_t z = grid->size.z;
+    uint64_t cubesize = x * y * z;
+    for( int i = grid->top; i > box->level; i-- ) {
+        if( x > 1 ) x /= 2;
+        if( y > 1 ) y /= 2;
+        if( z > 1 ) z /= 2;
+        cubesize = x * y * z;
+    }
+
+    return( (struct GridSize){ .box = boxsize, .cubes = cubesize } );
 }
 
 void grid_create(uint64_t x, uint64_t y, uint64_t z,
@@ -78,6 +91,14 @@ void grid_create(uint64_t x, uint64_t y, uint64_t z,
         grid->chunk.num = 0;
 
         grid->geometry_shader = 0;
+
+        grid->top = 0;
+        while( x > 1 || y > 1 || z > 1 ) {
+            x /= 2;
+            y /= 2;
+            z /= 2;
+            grid->top++;
+        }
     }
 }
 
@@ -169,18 +190,22 @@ int main(int argc, char *argv[]) {
     struct Grid grid;
     struct Chunk* chunks;
     grid_create(128, 128, 128, 1.0, 1.0, 1.0, 8, 16, &grid, &chunks);
+    printf("grid.top: %lu\n", grid.top);
 
     struct GridBox box = {
-        .level = 1,
-        .dimensions = { .w = 2, .h = 1, .d = 2 },
-        .position = { .x = 0, .y = 0, .z = 0 },
+        .level = grid.top - 1,
+        .dimension = { .width = 2, .height = 1, .depth = 2 },
+        .position = { .x = 0, .y = 1, .z = 0 },
     };
+    printf("box.level: %lu\n", box.level);
 
-    grid_set(&grid, &box);
     struct GridSize gridsize = grid_size(&grid, &box);
-    for( uint64_t i = 0; i < gridsize.box; i++ ) {
+    printf("gridsize.box: %lu\n", gridsize.box);
+    printf("gridsize.cubes: %lu\n", gridsize.cubes);
+
+    for( uint64_t b = 0; b < gridsize.box; b++ ) {
         for( uint64_t c = 0; c < gridsize.cubes; c++ ) {
-            grid_cube(&grid, &box, i, c)->bits = 1;
+            grid_index(&grid, &box, b, c);
         }
     }
 
