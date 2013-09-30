@@ -51,8 +51,10 @@
 // (1+0) + (1+1) * 3 = 7
 // (1+1) + (1+1) * 3 = 8
 
-uint64_t grid_index(struct Grid* grid, struct GridBox* box, uint64_t x, uint64_t y, uint64_t z) {
-    return (box->position.x + x) + (box->position.y + y) * grid->size.x + (box->position.z + z) * grid->size.x * grid->size.y;
+uint64_t grid_xyz(struct Grid* grid, struct GridBox* box, uint64_t x, uint64_t y, uint64_t z) {
+}
+
+uint64_t grid_index(struct Grid* grid, struct GridBox* box, uint64_t index) {
 }
 
 struct GridSize grid_size(struct Grid* grid, struct GridBox* box) {
@@ -90,8 +92,6 @@ void grid_create(uint64_t x, uint64_t y, uint64_t z,
         grid->chunk.size = chunk_size;
         grid->chunk.num = 0;
 
-        grid->geometry_shader = 0;
-
         grid->top = 0;
         while( x > 1 || y > 1 || z > 1 ) {
             x /= 2;
@@ -102,10 +102,7 @@ void grid_create(uint64_t x, uint64_t y, uint64_t z,
     }
 }
 
-void grid_set(struct Grid* grid, struct GridBox* box) {
-}
-
-struct Cube* grid_cube(struct Grid* grid, struct GridBox* box, uint64_t index, uint64_t cubeindex) {
+void grid_set(struct Grid* grid, struct GridBox* box, Cube cube) {
 }
 
 void grid_clear(struct Grid* grid, struct GridBox* box) {
@@ -199,14 +196,15 @@ int main(int argc, char *argv[]) {
     };
     printf("box.level: %lu\n", box.level);
 
+    grid_set(&grid, &box, 1);
+
     struct GridSize gridsize = grid_size(&grid, &box);
     printf("gridsize.box: %lu\n", gridsize.box);
     printf("gridsize.cubes: %lu\n", gridsize.cubes);
 
     for( uint64_t b = 0; b < gridsize.box; b++ ) {
-        for( uint64_t c = 0; c < gridsize.cubes; c++ ) {
-            grid_index(&grid, &box, b, c);
-        }
+        uint64_t i = grid_index(&grid, &box, b);
+        //struct Cube cube = grid.cubes[i];
     }
 
     return 0;
