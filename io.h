@@ -24,6 +24,6 @@
 
 #define ENGINE_ROOT "/home/rakete/interactive/cute3d/"
 
-char* read_file(const char* filename, uint64_t* length);
+char* read_file(const char* filename, int32_t* length);
 
 #endif

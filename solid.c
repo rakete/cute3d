@@ -38,6 +38,7 @@ void solid_normals(struct Solid* solid) {
 
             Vec normal;
             vector_cross(u,v,normal);
+            vector_normalize(normal,normal);
 
             solid->normals[a*3+0] = normal[0];
             solid->normals[a*3+1] = normal[1];
@@ -56,7 +57,7 @@ void solid_normals(struct Solid* solid) {
 
 void solid_colors(struct Solid* solid, float color[4]) {
     if( solid->vertices && solid->elements ) {
-        uint64_t n = solid->faces.num * solid->faces.size;
+        uint32_t n = solid->faces.num * solid->faces.size;
         for( int i = 0; i < n; i++ ) {
             solid->colors[i*4+0] = color[0];
             solid->colors[i*4+1] = color[1];
@@ -122,7 +123,7 @@ void solid_tetrahedron(struct Tetrahedron* tet) {
     }
 }
 
-void solid_cube(struct Cube* cube) {
+void solid_hexahedron(struct Cube* cube) {
     cube->solid.faces.num = 12;
     cube->solid.faces.size = 3;
 
@@ -227,6 +228,16 @@ void solid_cube(struct Cube* cube) {
 
         cube->elements[i*6+5] = i*6+5;
     }
+}
+
+void solid_cube(struct Cube* cube) {
+    cube->solid.faces.num = 12;
+    cube->solid.faces.size = 3;
+
+    cube->solid.vertices = cube->vertices;
+    cube->solid.elements = cube->elements;
+    cube->solid.colors = cube->colors;
+    cube->solid.normals = cube->normals;
 }
 
 void solid_sphere16(struct Sphere16* sphere) {

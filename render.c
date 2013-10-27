@@ -103,7 +103,6 @@ void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera
     if( view_loc > -1 ) {
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
     }
-
     
     GLint model_loc = glGetUniformLocation(shader->program, "model_matrix");
     bool free_model_matrix = 0;
@@ -120,23 +119,25 @@ void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera
     if( free_model_matrix ) {
         free(model_matrix);
     }
-    
+
+    GLint loc[NUM_BUFFERS];
     for( int array_id = 0; array_id < NUM_BUFFERS; array_id++ ) {
-        GLint loc = glGetAttribLocation(shader->program, shader->attribute[array_id].name);
+        loc[array_id] = glGetAttribLocation(shader->program, shader->attribute[array_id].name);
         /* if( strlen(shader->attribute[array_id].name) > 0 ) { */
         /*     printf("%s: %d\n", shader->attribute[array_id].name, loc); */
         /* } */
-        if( mesh->vbo->buffer[array_id].id && loc > -1 ) {
-            glEnableVertexAttribArray(loc);
+        if( mesh->vbo->buffer[array_id].id && loc[array_id] > -1 ) {
+            glEnableVertexAttribArray(loc[array_id]);
             
-            vbo_bind(mesh->vbo, array_id, GL_ARRAY_BUFFER);
+            glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[array_id].id);
+            
+            GLint c_num = mesh->vbo->components[array_id].size;
+            GLint c_type = mesh->vbo->components[array_id].type;
+            GLsizei c_bytes = mesh->vbo->components[array_id].bytes;
+            GLsizei offset = mesh->offset * c_num * c_bytes;
+            //printf("%lu %lu %lu %lu\n", c_num, mesh->offset, c_bytes, offset);
         
-            uint64_t c_num = mesh->vbo->components[array_id].size;
-            uint64_t c_type = mesh->vbo->components[array_id].type;
-            uint64_t c_bytes = mesh->vbo->components[array_id].bytes;
-            uint64_t offset = mesh->offset * c_num * c_bytes;
-        
-            glVertexAttribPointer(loc, c_num, c_type, GL_FALSE, 0, (void*)(intptr_t)offset);
+            glVertexAttribPointer(loc[array_id], c_num, c_type, GL_FALSE, 0, (void*)(intptr_t)offset);
         }
     }
 
@@ -144,7 +145,9 @@ void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera
     glDrawElements(mesh->faces.primitive, mesh->index.buffer->used, mesh->index.type, 0);
 
     for( int array_id = 0; array_id < NUM_BUFFERS; array_id++ ) {
-        glDisableVertexAttribArray(array_id);
+        if( loc[array_id] > -1 ) { 
+            glDisableVertexAttribArray(loc[array_id]);
+        }
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);

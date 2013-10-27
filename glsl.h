@@ -35,7 +35,7 @@ void debug_info_log( GLuint object,
 
 #define GLSL( source ) "#version 130\n#extension GL_ARB_uniform_buffer_object:require\n" #source "\0"
 
-GLuint compile_source(GLenum type, const char* source, uint32_t length);
+GLuint compile_source(GLenum type, const char* source, GLsizei length);
 GLuint compile_file(GLenum type, const char* filename);
 GLuint link_program(GLuint vertex_shader, GLuint fragment_shader);
 GLuint make_program(const char *vertex_source, const char* fragment_source);

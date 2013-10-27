@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     
     init_geometry();
     struct Vbo vbo;
-    vbo_create(3, &vbo);
+    vbo_create(&vbo);
     vbo_add_buffer(&vbo, vertex_array, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, color_array, 4, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, normal_array, 3, GL_FLOAT, GL_STATIC_DRAW);
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     /* dump_mesh(&tetrahedron_mesh, stdout); */
 
     struct Cube cube;
-    solid_cube(&cube);
+    solid_hexahedron(&cube);
     solid_colors((struct Solid*)&cube, (float[4]){ 0.8, 0.5, 0.0, 1.0 });
     solid_normals((struct Solid*)&cube);
 
@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
     mesh_append(&cube_mesh, normal_array, cube.normals, cube.solid.faces.num * cube.solid.faces.size);
     mesh_faces(&cube_mesh, cube.elements, cube.solid.faces.num * cube.solid.faces.size);
 
-    /* dump_mesh(&cube_mesh, stdout); */
+    dump_mesh(&cube_mesh, stdout);
 
     /* struct Sphere32 sphere; */
     /* solid_sphere32(&sphere); */
