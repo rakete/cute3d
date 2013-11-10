@@ -21,9 +21,13 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stdint.h"
+#include "limits.h"
+
 
 #define ENGINE_ROOT "/home/rakete/interactive/cute3d/"
 
 char* read_file(const char* filename, int32_t* length);
+
+size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char flag, unsigned char** output);
 
 #endif
