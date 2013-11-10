@@ -1,11 +1,4 @@
 #include "grid.h"
-#include "render.h"
-#include "math_types.h"
-
-#include "allegro5/allegro.h"
-
-#include "GL/glut.h"
-
 
 // x:3 y:3 z:3 = 27 cubes
 // 
@@ -51,16 +44,9 @@
 // (1+0) + (1+1) * 3 = 7
 // (1+1) + (1+1) * 3 = 8
 
-struct GridIndex grid_xyz(struct Grid* grid, struct GridPages* pages, struct GridBox* box, uint64_t x, uint64_t y, uint64_t z) {
+struct GridIndex* grid_xyz(struct Grid* grid, struct GridPages* pages, struct GridBox* box, struct GridIndex* index, uint64_t x, uint64_t y, uint64_t z) {
     if( NULL == box ) {
-        box = &(struct GridBox){};
-        box->size.x = grid->size.x;
-        box->size.y = grid->size.y;
-        box->size.z = grid->size.z;
-        box->position.x = 0;
-        box->position.y = 0;
-        box->position.z = 0;
-        box->level = 0;
+        box = &box_create(0, 0, 0, grid->size.x, grid->size.y, grid->size.z, 0);
     }
 
     uint64_t level = box->level;
@@ -69,14 +55,15 @@ struct GridIndex grid_xyz(struct Grid* grid, struct GridPages* pages, struct Gri
     if( y >= box->size.y ) y = box->size.y - 1;
     if( z >= box->size.z ) z = box->size.z - 1;
 
-    if( pages->size.x > 0 && pages->size.y > 0 && pages->size.z > 0 ) {
-        uint64_t num_pages_x = grid->size.x / pages->size.x;
-        uint64_t num_pages_y = grid->size.y / pages->size.y;
-        uint64_t num_pages_z = grid->size.z / pages->size.z;
+    if( index && pages->size.x > 0 && pages->size.y > 0 && pages->size.z > 0 ) {
+        uint64_t num_pages_x = grid->size.x / pages->num.x;
+        uint64_t num_pages_y = grid->size.y / pages->num.y;
+        uint64_t num_pages_z = grid->size.z / pages->num.z;
 
-        uint64_t levelsize_x = grid_size(NULL, pages, box->level).x;
-        uint64_t levelsize_y = grid_size(NULL, pages, box->level).y;
-        uint64_t levelsize_z = grid_size(NULL, pages, box->level).z;    
+        struct GridSize size;
+        uint64_t levelsize_x = grid_size(NULL, pages, &size, box->level)->x;
+        uint64_t levelsize_y = grid_size(NULL, pages, &size, box->level)->y;
+        uint64_t levelsize_z = grid_size(NULL, pages, &size, box->level)->z;    
 
         uint64_t page_x = (box->position.x + x) / levelsize_x;
         uint64_t page_y = (box->position.y + y) / levelsize_y;
@@ -89,44 +76,69 @@ struct GridIndex grid_xyz(struct Grid* grid, struct GridPages* pages, struct Gri
         uint64_t page = page_z * num_pages_x * num_pages_y + page_y * num_pages_x + page_x;
         uint64_t cell = cell_z * levelsize_x * levelsize_y + cell_y * levelsize_x + cell_x;
 
-        return (struct GridIndex){ .page = page, .level = level, .cell = cell };
+        index->page = page;
+        index->level = level;
+        index->cell = cell;
+        return index;
+    } else {
+        return NULL;
     }
-
-    return (struct GridIndex){ .page = 0, .level = 0, .cell = 0 };
 }
 
-struct GridIndex grid_index(struct Grid* grid, struct GridPages* pages, struct GridBox* box, uint64_t index) {
+struct GridIndex* grid_index(struct Grid* grid, struct GridPages* pages, struct GridBox* box, struct GridIndex* index, uint64_t i) {
     if( NULL == box ) {
-        box = &(struct GridBox){};
-        box->size.x = grid->size.x;
-        box->size.y = grid->size.y;
-        box->size.z = grid->size.z;
-        box->position.x = 0;
-        box->position.y = 0;
-        box->position.z = 0;
-        box->level = 0;
+        box = &box_create(0, 0, 0, grid->size.x, grid->size.y, grid->size.z, 0);
     }
 
-    uint64_t z = box->position.z + index / (box->size.x * box->size.y);
-    uint64_t y = box->position.y + index % (box->size.x * box->size.y) / box->size.x;
-    uint64_t x = box->position.x + index % (box->size.x * box->size.y) % box->size.x;
-    printf("%lu | %lu %lu %lu | %lu %lu %lu\n", index, box->size.x, box->size.y, box->size.z, x, y, z);
+    uint64_t z = i / (box->size.x * box->size.y);
+    uint64_t y = i % (box->size.x * box->size.y) / box->size.x;
+    uint64_t x = i % (box->size.x * box->size.y) % box->size.x;
+    //printf("%lu | %lu %lu %lu | %lu %lu %lu\n", i, box->size.x, box->size.y, box->size.z, x, y, z);
 
-    return grid_xyz(grid,pages,box,x,y,z);
+    return grid_xyz(grid,pages,box,index,x,y,z);
 }
 
-struct GridSize grid_size(struct Grid* grid, struct GridPages* pages, uint64_t level) {
-    struct GridSize size = { 0, 0, 0, 0 };
-    if( grid && pages && level <= pages->top ) {
-        size.x = grid->size.x > 1 ? grid->size.x / (1 << level) : 1;
-        size.y = grid->size.y > 1 ? grid->size.y / (1 << level) : 1;
-        size.z = grid->size.z > 1 ? grid->size.z / (1 << level) : 1;
-        size.array = size.x * size.y * size.z;
-    } else if( pages && level <= pages->top ) {
-        size.x = pages->size.x > 1 ? pages->size.x / (1 << level) : 1;
-        size.y = pages->size.y > 1 ? pages->size.y / (1 << level) : 1;
-        size.z = pages->size.z > 1 ? pages->size.z / (1 << level) : 1;
-        size.array = size.x * size.y * size.z;
+struct GridBox* grid_levelup(struct Grid* grid, struct GridPages* pages, struct GridBox* box) {
+    if( box && box->level < pages->top ) {
+        box->level++;
+        
+        box->size.x /= 2;
+        box->size.y /= 2;
+        box->size.z /= 2;
+        
+        box->position.x /= 2;
+        box->position.y /= 2;
+        box->position.z /= 2;
+    }
+    return box;
+}
+
+struct GridBox* grid_leveldown(struct Grid* grid, struct GridPages* pages, struct GridBox* box) {
+    if( box && box->level > 0 ) {
+        box->level--;
+        
+        box->size.x *= 2;
+        box->size.y *= 2;
+        box->size.z *= 2;
+        
+        box->position.x *= 2;
+        box->position.y *= 2;
+        box->position.z *= 2;
+    }
+    return box;
+}
+
+struct GridSize* grid_size(struct Grid* grid, struct GridPages* pages, struct GridSize* size, uint64_t level) {
+    if( grid && pages && size && level <= pages->top ) {
+        size->x = grid->size.x > 1 ? grid->size.x / (1 << level) : 1;
+        size->y = grid->size.y > 1 ? grid->size.y / (1 << level) : 1;
+        size->z = grid->size.z > 1 ? grid->size.z / (1 << level) : 1;
+        size->array = size->x * size->y * size->z;
+    } else if( pages && size && level <= pages->top ) {
+        size->x = pages->num.x > 1 ? pages->num.x / (1 << level) : 1;
+        size->y = pages->num.y > 1 ? pages->num.y / (1 << level) : 1;
+        size->z = pages->num.z > 1 ? pages->num.z / (1 << level) : 1;
+        size->array = size->x * size->y * size->z;
     }
 
     return size;
@@ -148,12 +160,17 @@ void grid_pages(struct Grid* grid, uint64_t x, uint64_t y, uint64_t z, struct Gr
         grid->size.y % y == 0 &&
         grid->size.z % z == 0 )
     {
-        pages->size.x = grid->size.x / x;
-        pages->size.y = grid->size.y / y;
-        pages->size.z = grid->size.z / z;
+        pages->num.x = grid->size.x / x;
+        pages->num.y = grid->size.y / y;
+        pages->num.z = grid->size.z / z;
+
+        pages->size.x = x;
+        pages->size.y = y;
+        pages->size.z = z;
 
         pages->top = 0;
-        while( grid_size(NULL, pages, pages->top).array > 1 ) {
+        struct GridSize size;
+        while( grid_size(NULL, pages, &size, pages->top)->array > 1 ) {
             pages->top++;
         }
 
@@ -183,17 +200,19 @@ void grid_dump(struct Grid grid, struct GridPages pages) {
     }
 
     if( pages.top > 0 ) {
+        struct GridSize size;
         for( uint64_t l = 0; l < pages.top+1; l++ ) {
-            printf("levelsize_x@%lu: %lu\n", l, grid_size(NULL, &pages, l).x);
-            printf("levelsize_y@%lu: %lu\n", l, grid_size(NULL, &pages, l).y);
-            printf("levelsize_z@%lu: %lu\n", l, grid_size(NULL, &pages, l).z);
+            printf("levelsize_x@%lu: %lu\n", l, grid_size(NULL, &pages, &size, l)->x);
+            printf("levelsize_y@%lu: %lu\n", l, grid_size(NULL, &pages, &size, l)->y);
+            printf("levelsize_z@%lu: %lu\n", l, grid_size(NULL, &pages, &size, l)->z);
         }
     }
 }
 
 void grid_alloc(struct GridPages* pages, uint64_t page, uint64_t level) {
+    struct GridSize size;
     if( pages && pages->array ) {
-        pages->array[page][level] = (Cell*)calloc(grid_size(NULL, pages, level).array, sizeof(Cell));
+        pages->array[page][level] = (Cell*)calloc(grid_size(NULL, pages, &size, level)->array, sizeof(Cell));
     }
 }
 
@@ -203,142 +222,163 @@ void grid_free(struct GridPages* pages, uint64_t page, uint64_t level) {
     }
 }
 
-void grid_set(struct Grid* grid, struct GridPages* pages, struct GridBox* box, Cell cell) {
+void grid_clear(struct Grid* grid, struct GridPages* pages, struct GridBox* box) {
     if( NULL == box ) {
-        box = &(struct GridBox){};
-        box->size.x = grid->size.x;
-        box->size.y = grid->size.y;
-        box->size.z = grid->size.z;
-        box->position.x = 0;
-        box->position.y = 0;
-        box->position.z = 0;
-        box->level = 0;
+        box = &box_create(0, 0, 0, grid->size.x, grid->size.y, grid->size.z, 0);
     }
 
     if( grid && pages ) {
-        uint64_t array_size = grid_size(grid, pages, box->level).array;
+        uint64_t array_size = box->size.x * box->size.y * box->size.z;
+        struct GridIndex index;
         for( int i = 0; i < array_size; i++ ) {
-            struct GridIndex index = grid_index(grid, pages, box, i);
-            pages->array[index.page][index.level][index.cell] = cell;
+            grid_index(grid, pages, box, &index, i);
+            pages->array[index.page][index.level][index.cell] = 0;
         }
     }
 }
 
-void grid_clear(struct Grid* grid, struct GridPages* pages, struct GridBox* box) {
-}
-
-int init_allegro() {
-    return al_init();
-}
-
-void allegro_display( ALLEGRO_DISPLAY** display, int width, int height ) {
-    al_set_new_display_option(ALLEGRO_DEPTH_SIZE, 24, ALLEGRO_REQUIRE);
-    al_set_new_display_flags(ALLEGRO_OPENGL);
-    (*display) = al_create_display(width, height);
-
-    glViewport(0,0,width,height);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_DEPTH_TEST);
-}
-
-void allegro_events( ALLEGRO_EVENT_QUEUE** queue, ALLEGRO_DISPLAY* display ) {
-    al_install_keyboard();
-    al_install_mouse();
-
-    (*queue) = al_create_event_queue();
-    al_register_event_source((*queue), al_get_keyboard_event_source());
-    al_register_event_source((*queue), al_get_mouse_event_source());
-    al_register_event_source((*queue), al_get_display_event_source(display));
-}
-
-void default_render(Vec camera_translation, struct Mesh* mesh) {
-    init_shader();
-    struct Shader default_shader;
-    shader_create(&default_shader, "shader/flat.vertex", "shader/flat.fragment");
-    shader_attribute(&default_shader, vertex_array, "vertex");
-    shader_attribute(&default_shader, color_array, "color");
-    shader_attribute(&default_shader, normal_array, "normal");
-
-    struct Camera default_camera;
-    camera_create(&default_camera, 800, 600);
-    camera_projection(&default_camera, perspective);
-    //camera_projection(&default_camera, orthographic_zoom);
-    camera_frustum(&default_camera, -0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f);
-
-    //Vec translation = { -0.6, -3.5, -8.0 };
-    vector_add3f(default_camera.pivot.position, camera_translation, default_camera.pivot.position);
-    Vec origin = { 0.0, 0.0, 0.0, 1.0 };
-    pivot_lookat(&default_camera.pivot, origin);
-
-    Matrix mesh_transform;
-    matrix_identity(mesh_transform);
-    render_mesh(mesh, &default_shader, &default_camera, mesh_transform);
-}
-
-int main(int argc, char *argv[]) {
-    if( ! init_allegro() ) {
-        return 1;
+void grid_set1(struct Grid* grid, struct GridPages* pages, struct GridBox* box, Cell cell) {
+    if( NULL == box ) {
+        box = &box_create(0, 0, 0, grid->size.x, grid->size.y, grid->size.z, 0);
     }
 
-    printf("display\n");
-    ALLEGRO_DISPLAY* display;
-    allegro_display(&display,800,600);
-
-    printf("events\n");
-    ALLEGRO_EVENT_QUEUE* events;
-    allegro_events(&events, display);
-
-    if( ! init_geometry() ) {
-        return 1;
-    }
-
-    printf("vbo\n");
-    struct Vbo vbo;
-    vbo_create(&vbo);
-    vbo_add_buffer(&vbo, vertex_array, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, normal_array, 3, GL_FLOAT, GL_STATIC_DRAW);
-
-    struct Grid grid;
-    grid_create(4,4,1,&grid);
-
-    struct GridPages pages;
-    grid_pages(&grid,2,2,1,&pages);
-
-    grid_dump(grid,pages);
-
-    for( uint64_t z = 0; z < grid.size.z; z++ ) {
-        for( uint64_t y = 0; y < grid.size.y; y++ ) {
-            for( uint64_t x = 0; x < grid.size.x; x++ ) {
-                struct GridIndex index = grid_xyz(&grid, &pages, NULL, x, y, z);
-                printf("x:%lu y:%lu z:%lu page:%lu cell:%lu\n", x, y, z, index.page, index.cell);
+    if( grid && pages ) {
+        uint64_t array_size = box->size.x * box->size.y * box->size.z;
+        struct GridIndex index;
+        for( int i = 0; i < array_size; i++ ) {
+            grid_index(grid, pages, box, &index, i);
+            //printf("%d %lu %lu %lu\n", i, index.page, index.level, index.cell);
+            if( pages->array[index.page][index.level] ) {
+                pages->array[index.page][index.level][index.cell] = cell;
             }
         }
     }
+}
 
-    printf("-----------\n");
-    
-    struct GridBox box;
-    box.position.x = 1;
-    box.position.y = 1;
-    box.position.z = 0;
-    box.size.x = 2;
-    box.size.y = 2;
-    box.size.z = 1;
-    box.level = 0;
-    for( uint64_t z = 0; z < box.size.z; z++ ) {
-        for( uint64_t y = 0; y < box.size.y; y++ ) {
-            for( uint64_t x = 0; x < box.size.x; x++ ) {
-                struct GridIndex index = grid_xyz(&grid, &pages, &box, x, y, z);
-                printf("x:%lu y:%lu z:%lu page:%lu cell:%lu\n", x, y, z, index.page, index.cell);
+
+void grid_setN(struct Grid* grid, struct GridPages* pages, struct GridBox* box, Cell* cells, uint64_t n) {
+    if( NULL == box ) {
+        box = &box_create(0, 0, 0, grid->size.x, grid->size.y, grid->size.z, 0);
+    }
+
+    if( grid && pages && cells && n ) {
+        uint64_t array_size = box->size.x * box->size.y * box->size.z;
+        uint64_t cell_i = 0;
+        struct GridIndex index;
+        for( int i = 0; i < array_size; i++ ) {
+            if( cell_i == n ) {
+                cell_i = 0;
+            }
+            grid_index(grid, pages, box, &index, i);
+            if( pages->array[index.page][index.level] ) {
+                pages->array[index.page][index.level][index.cell] = cells[cell_i];
+            }
+            cell_i++;
+        }
+    }
+}
+
+void grid_and1(struct Grid* grid, struct GridPages* pages, struct GridBox* box, Cell cell) {
+    if( NULL == box ) {
+        box = &box_create(0, 0, 0, grid->size.x, grid->size.y, grid->size.z, 0);
+    }
+
+    if( grid && pages ) {
+        uint64_t array_size = box->size.x * box->size.y * box->size.z;
+        struct GridIndex index;
+        for( int i = 0; i < array_size; i++ ) {
+            grid_index(grid, pages, box, &index, i);
+            if( pages->array[index.page][index.level] ) {
+                pages->array[index.page][index.level][index.cell] &= cell;
             }
         }
     }
+}
 
-    uint64_t array_size = grid_size(&grid, &pages, 0).array;
-    for( int i = 0; i < array_size; i++ ) {
-        grid_index(&grid, &pages, NULL, i);
+void grid_andN(struct Grid* grid, struct GridPages* pages, struct GridBox* box, Cell* cells, uint64_t n) {
+    if( NULL == box ) {
+        box = &box_create(0, 0, 0, grid->size.x, grid->size.y, grid->size.z, 0);
     }
-    
-    return 0;
+
+    if( grid && pages && cells && n ) {
+        uint64_t array_size = box->size.x * box->size.y * box->size.z;
+        uint64_t cell_i = 0;
+        struct GridIndex index;
+        for( int i = 0; i < array_size; i++ ) {
+            if( cell_i == n ) {
+                cell_i = 0;
+            }
+            grid_index(grid, pages, box, &index, i);
+            if( pages->array[index.page][index.level] ) {
+                pages->array[index.page][index.level][index.cell] &= cells[cell_i];
+            }
+            cell_i++;
+        }
+    }
+}
+
+void grid_or1(struct Grid* grid, struct GridPages* pages, struct GridBox* box, Cell cell) {
+    if( NULL == box ) {
+        box = &box_create(0, 0, 0, grid->size.x, grid->size.y, grid->size.z, 0);
+    }
+
+    if( grid && pages ) {
+        uint64_t array_size = box->size.x * box->size.y * box->size.z;
+        struct GridIndex index;
+        for( int i = 0; i < array_size; i++ ) {
+            grid_index(grid, pages, box, &index, i);
+            if( pages->array[index.page][index.level] ) {
+                pages->array[index.page][index.level][index.cell] |= cell;
+            }
+        }
+    }
+}
+
+void grid_orN(struct Grid* grid, struct GridPages* pages, struct GridBox* box, Cell* cells, uint64_t n) {
+    if( NULL == box ) {
+        box = &box_create(0, 0, 0, grid->size.x, grid->size.y, grid->size.z, 0);
+    }
+
+    if( grid && pages && cells && n ) {
+        uint64_t array_size = box->size.x * box->size.y * box->size.z;
+        uint64_t cell_i = 0;
+        struct GridIndex index;
+        for( int i = 0; i < array_size; i++ ) {
+            if( cell_i == n ) {
+                cell_i = 0;
+            }
+            grid_index(grid, pages, box, &index, i);
+            if( pages->array[index.page][index.level] ) {
+                pages->array[index.page][index.level][index.cell] |= cells[cell_i];
+            }
+            cell_i++;
+        }
+    }
+}
+
+void grid_shift(struct Grid* grid, struct GridPages* pages, struct GridBox* box, int shift) {
+    if( NULL == box ) {
+        box = &box_create(0, 0, 0, grid->size.x, grid->size.y, grid->size.z, 0);
+    }
+
+    if( grid && pages && shift ) {
+        uint64_t array_size = box->size.x * box->size.y * box->size.z;
+        struct GridIndex index;
+        for( int i = 0; i < array_size; i++ ) {
+            grid_index(grid, pages, box, &index, i);
+            if( pages->array[index.page][index.level] ) {
+                if( shift < 0 ) {
+                    pages->array[index.page][index.level][index.cell] << abs(shift);
+                } else {
+                    pages->array[index.page][index.level][index.cell] >> shift;
+                }
+            }
+        }
+    }
+}
+
+void grid_pagein(struct Grid* grid, struct GridPages* pages, uint64_t page, uint64_t level, char** in) {
+}
+
+void grid_pageout(struct Grid* grid, struct GridPages* pages, uint64_t page, uint64_t level, char** out) {
 }
