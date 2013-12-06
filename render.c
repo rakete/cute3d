@@ -141,8 +141,8 @@ void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera
         }
     }
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->index.buffer->id);
-    glDrawElements(mesh->faces.primitive, mesh->index.buffer->used, mesh->index.type, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.buffer->id);
+    glDrawElements(mesh->primitives.type, mesh->primitives.buffer->used, mesh->index.type, 0);
 
     for( int array_id = 0; array_id < NUM_BUFFERS; array_id++ ) {
         if( loc[array_id] > -1 ) { 
