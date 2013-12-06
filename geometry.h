@@ -124,16 +124,16 @@ struct Mesh {
     // information about how many elements are used by this mesh per buffer
     GLint uses[NUM_BUFFERS];
 
-    // information about which primitive type this mesh is made up of
-    struct {
-        GLenum primitive; // something like GL_TRIANGLES
-        GLint size; // how many elements per primitive
-    } faces;
-
-    // information about the index type used in the element buffer
+    // information about the index type used in the primitives buffer
     struct {
         GLenum type; // something GL_UNSIGNED_INT
         GLsizei bytes; // sizeof type
+    } index;
+
+    // the primitives (like triangles)
+    struct {
+        GLenum type; // something like GL_TRIANGLES
+        GLint size; // how many elements per primitive
         
         // this is the buffer that contains the actual indices making up the primitives
         struct IndexBuffer {
@@ -143,7 +143,7 @@ struct Mesh {
             GLint used; // space already used
         } _internal_buffer[NUM_PHASES];
         struct IndexBuffer* buffer;
-    } index;
+    } primitives;
 
     int32_t garbage;
 };
@@ -152,17 +152,21 @@ void mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLen
 
 void dump_mesh(struct Mesh* mesh, FILE* f);
 
-GLint mesh_vbo_alloc(struct Mesh* mesh, GLint n);
-GLint mesh_index_alloc(struct Mesh* mesh, GLint n);
+GLint mesh_alloc(struct Mesh* mesh, GLint n);
+GLint mesh_alloc_vbo(struct Mesh* mesh, GLint n);
+GLint mesh_alloc_primitives(struct Mesh* mesh, GLint n);
 
 void mesh_append(struct Mesh* mesh, int i, void* data, GLint n);
 void mesh_append_generic(struct Mesh* mesh, int i, void* data, GLint n, GLint components_size, GLenum components_type);
+
+void mesh_clear_vbo(struct Mesh* mesh);
+void mesh_clear_primitives(struct Mesh* mesh);
 
 void* mesh_map(struct Mesh* mesh, GLint offset, GLint length, GLbitfield access);
 GLboolean mesh_unmap(struct Mesh* mesh);
 
 void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c);
-void mesh_faces(struct Mesh* mesh, void* data, GLint n);
+void mesh_primitives(struct Mesh* mesh, void* data, GLint n);
 
 struct Mesh* mesh_clone(struct Mesh* mesh);
 
@@ -189,7 +193,7 @@ struct Mesh* mesh_clone(struct Mesh* mesh);
 // freespace:
 //   return number of bytes that is left in the buffer after the mesh, this can
 //   be used to test if more geometry can be appended to a mesh
-// clone:
+// duplicate:
 //  copies mesh geometry to end of buffer and returns pointer to new mesh that can
 //  be used to append more geometry
 // retain:
