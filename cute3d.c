@@ -126,10 +126,10 @@ int main(int argc, char** argv) {
 
     struct Mesh cube_mesh;
     mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
-    mesh_append(&cube_mesh, vertex_array, cube.vertices, cube.solid.faces.num * cube.solid.faces.size);
-    mesh_append(&cube_mesh, color_array, cube.colors, cube.solid.faces.num * cube.solid.faces.size);
-    mesh_append(&cube_mesh, normal_array, cube.normals, cube.solid.faces.num * cube.solid.faces.size);
-    mesh_faces(&cube_mesh, cube.elements, cube.solid.faces.num * cube.solid.faces.size);
+    mesh_append(&cube_mesh, vertex_array, cube.vertices, cube.solid.size);
+    mesh_append(&cube_mesh, color_array, cube.colors, cube.solid.size);
+    mesh_append(&cube_mesh, normal_array, cube.normals, cube.solid.size);
+    mesh_primitives(&cube_mesh, cube.triangles, cube.solid.size);
 
     dump_mesh(&cube_mesh, stdout);
 
@@ -267,12 +267,12 @@ int main(int argc, char** argv) {
         matrix_translate(cube_right, (Vec){ -1.2, 0.5, 0.0, 1.0 }, cube_right);
         render_mesh(&cube_mesh, &default_shader, &default_camera, cube_right);
         draw_normals_array(cube.vertices,
-                            cube.normals,
-                            cube.solid.faces.num * cube.solid.faces.size,
-                            (Color){ 1.0,0.0,1.0,1.0 },
-                            projection_mat,
-                            view_mat,
-                            cube_right);
+                           cube.normals,
+                           cube.solid.size,
+                           (Color){ 1.0,0.0,1.0,1.0 },
+                           projection_mat,
+                           view_mat,
+                           cube_right);
 
         Matrix font_matrix;
         matrix_identity(font_matrix);

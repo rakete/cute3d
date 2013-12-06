@@ -17,12 +17,12 @@
 #include "solid.h"
 
 void solid_normals(struct Solid* solid) {
-    if( solid->vertices && solid->elements ) {
-        int faces = solid->faces.num;
-        for( int i = 0; i < faces; i++ ) {
-            int a = solid->elements[i*3+0];
-            int b = solid->elements[i*3+1];
-            int c = solid->elements[i*3+2];
+    if( solid->vertices && solid->triangles ) {
+        int size = solid->size/3;
+        for( int i = 0; i < size; i++ ) {
+            int a = solid->triangles[i*3+0];
+            int b = solid->triangles[i*3+1];
+            int c = solid->triangles[i*3+2];
 
             Vec u;
             u[0] = solid->vertices[a*3+0] - solid->vertices[b*3+0];
@@ -56,8 +56,8 @@ void solid_normals(struct Solid* solid) {
 }
 
 void solid_colors(struct Solid* solid, float color[4]) {
-    if( solid->vertices && solid->elements ) {
-        uint32_t n = solid->faces.num * solid->faces.size;
+    if( solid->vertices && solid->triangles ) {
+        uint32_t n = solid->size;
         for( int i = 0; i < n; i++ ) {
             solid->colors[i*4+0] = color[0];
             solid->colors[i*4+1] = color[1];
@@ -68,11 +68,10 @@ void solid_colors(struct Solid* solid, float color[4]) {
 }
 
 void solid_tetrahedron(struct Tetrahedron* tet) {
-    tet->solid.faces.num = 4;
-    tet->solid.faces.size = 3;
+    tet->solid.size = 4*3;
 
     tet->solid.vertices = tet->vertices;
-    tet->solid.elements = tet->elements;
+    tet->solid.triangles = tet->triangles;
     tet->solid.colors = tet->colors;
     tet->solid.normals = tet->normals;
     
@@ -107,28 +106,27 @@ void solid_tetrahedron(struct Tetrahedron* tet) {
         tet->vertices[i*9+1] = points[a*3+1];
         tet->vertices[i*9+2] = points[a*3+2];
 
-        tet->elements[i*3+0] = i*3+0;
+        tet->triangles[i*3+0] = i*3+0;
 
         tet->vertices[i*9+3] = points[b*3+0];
         tet->vertices[i*9+4] = points[b*3+1];
         tet->vertices[i*9+5] = points[b*3+2];
 
-        tet->elements[i*3+1] = i*3+1;
+        tet->triangles[i*3+1] = i*3+1;
         
         tet->vertices[i*9+6] = points[c*3+0];
         tet->vertices[i*9+7] = points[c*3+1];
         tet->vertices[i*9+8] = points[c*3+2];
 
-        tet->elements[i*3+2] = i*3+2;
+        tet->triangles[i*3+2] = i*3+2;
     }
 }
 
 void solid_hexahedron(struct Cube* cube) {
-    cube->solid.faces.num = 12;
-    cube->solid.faces.size = 3;
+    cube->solid.size = 12*3;
 
     cube->solid.vertices = cube->vertices;
-    cube->solid.elements = cube->elements;
+    cube->solid.triangles = cube->triangles;
     cube->solid.colors = cube->colors;
     cube->solid.normals = cube->normals;
 
@@ -155,6 +153,7 @@ void solid_hexahedron(struct Cube* cube) {
 
     // 1 2 3
     // 0 1 3
+    
     // 6 5 4
     // 7 6 4
     
@@ -195,57 +194,89 @@ void solid_hexahedron(struct Cube* cube) {
         cube->vertices[i*18+1] = points[a*3+1];
         cube->vertices[i*18+2] = points[a*3+2];
 
-        cube->elements[i*6+0] = i*6+0;
+        cube->triangles[i*6+0] = i*6+0;
 
         cube->vertices[i*18+3] = points[b*3+0];
         cube->vertices[i*18+4] = points[b*3+1];
         cube->vertices[i*18+5] = points[b*3+2];
 
-        cube->elements[i*6+1] = i*6+1;
+        cube->triangles[i*6+1] = i*6+1;
         
         cube->vertices[i*18+6] = points[c*3+0];
         cube->vertices[i*18+7] = points[c*3+1];
         cube->vertices[i*18+8] = points[c*3+2];
 
-        cube->elements[i*6+2] = i*6+2;
+        cube->triangles[i*6+2] = i*6+2;
 
         // triangle 2
         cube->vertices[i*18+9]  = points[d*3+0];
         cube->vertices[i*18+10] = points[d*3+1];
         cube->vertices[i*18+11] = points[d*3+2];
 
-        cube->elements[i*6+3] = i*6+3;
+        cube->triangles[i*6+3] = i*6+3;
 
         cube->vertices[i*18+12] = points[e*3+0];
         cube->vertices[i*18+13] = points[e*3+1];
         cube->vertices[i*18+14] = points[e*3+2];
 
-        cube->elements[i*6+4] = i*6+4;
+        cube->triangles[i*6+4] = i*6+4;
         
         cube->vertices[i*18+15] = points[f*3+0];
         cube->vertices[i*18+16] = points[f*3+1];
         cube->vertices[i*18+17] = points[f*3+2];
 
-        cube->elements[i*6+5] = i*6+5;
+        cube->triangles[i*6+5] = i*6+5;
     }
 }
 
 void solid_cube(struct Cube* cube) {
-    cube->solid.faces.num = 12;
-    cube->solid.faces.size = 3;
+    cube->solid.size = 12*3;
+
+    solid_hexahedron(cube);
 
     cube->solid.vertices = cube->vertices;
-    cube->solid.elements = cube->elements;
+    cube->solid.triangles = cube->triangles;
     cube->solid.colors = cube->colors;
     cube->solid.normals = cube->normals;
+
+    Quat q;
+    rotation_quat((Vec){0.0,0.0,1.0,1.0}, PI/4, q);
+    for( int i = 0; i < 108; i+=3 ) {
+        quat_rotate3f(q, cube->vertices+i, cube->vertices+i);
+    }
+
+    // IGNORE THESE, I LEFT THEM IN BECAUSE I LIKE THEM, BUT THEY ARE WRONG
+    //           3--------4
+    //          /|       /|
+    //         / |      / |
+    //        7--+-----8  |
+    //        |  1-----+--2
+    //        | /      | /
+    // +y     |/       |/
+    // |  -z  5--------6
+    // | /
+    // |/__ +x
+    //
+    //              e
+    //           3--------4
+    //          /|       /|
+    //         / |    a / |
+    //        7--+-----8  | b
+    //      d |  1-----+--2
+    //        | /  c   | /
+    // +y     |/       |/
+    // |  -z  5--------6
+    // | /        f
+    // |/__ +x
+    //
+
 }
 
 void solid_sphere16(struct Sphere16* sphere) {
-    sphere->solid.faces.num = 16*6*2+16*2;
-    sphere->solid.faces.size = 3;
+    sphere->solid.size = (16*6*2+16*2)*3;
 
     sphere->solid.vertices = sphere->vertices;
-    sphere->solid.elements = sphere->elements;
+    sphere->solid.triangles = sphere->triangles;
     sphere->solid.colors = sphere->colors;
     sphere->solid.normals = sphere->normals;
 
@@ -368,28 +399,27 @@ void solid_sphere16(struct Sphere16* sphere) {
         sphere->vertices[i*9+1] = points[a*3+1];
         sphere->vertices[i*9+2] = points[a*3+2];
 
-        sphere->elements[i*3+0] = i*3+0;
+        sphere->triangles[i*3+0] = i*3+0;
 
         sphere->vertices[i*9+3] = points[b*3+0];
         sphere->vertices[i*9+4] = points[b*3+1];
         sphere->vertices[i*9+5] = points[b*3+2];
 
-        sphere->elements[i*3+1] = i*3+1;
+        sphere->triangles[i*3+1] = i*3+1;
         
         sphere->vertices[i*9+6] = points[c*3+0];
         sphere->vertices[i*9+7] = points[c*3+1];
         sphere->vertices[i*9+8] = points[c*3+2];
 
-        sphere->elements[i*3+2] = i*3+2;        
+        sphere->triangles[i*3+2] = i*3+2;        
     }
 }
 
 void solid_sphere32(struct Sphere32* sphere) {
-    sphere->solid.faces.num = 32*14*2+32*2;
-    sphere->solid.faces.size = 3;
+    sphere->solid.size = (32*14*2+32*2)*3;
 
     sphere->solid.vertices = sphere->vertices;
-    sphere->solid.elements = sphere->elements;
+    sphere->solid.triangles = sphere->triangles;
     sphere->solid.colors = sphere->colors;
     sphere->solid.normals = sphere->normals;
 
@@ -451,18 +481,18 @@ void solid_sphere32(struct Sphere32* sphere) {
         sphere->vertices[i*9+1] = points[a*3+1];
         sphere->vertices[i*9+2] = points[a*3+2];
 
-        sphere->elements[i*3+0] = i*3+0;
+        sphere->triangles[i*3+0] = i*3+0;
 
         sphere->vertices[i*9+3] = points[b*3+0];
         sphere->vertices[i*9+4] = points[b*3+1];
         sphere->vertices[i*9+5] = points[b*3+2];
 
-        sphere->elements[i*3+1] = i*3+1;
+        sphere->triangles[i*3+1] = i*3+1;
         
         sphere->vertices[i*9+6] = points[c*3+0];
         sphere->vertices[i*9+7] = points[c*3+1];
         sphere->vertices[i*9+8] = points[c*3+2];
 
-        sphere->elements[i*3+2] = i*3+2;        
+        sphere->triangles[i*3+2] = i*3+2;        
     }
 }
