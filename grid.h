@@ -53,22 +53,29 @@ struct GridBox {
         uint64_t z;
     } size;
 
-    uint64_t level;
+    int level;
 };
 
-#define box_create(_px, _py, _pz, _sx, _sy, _sz, _level)                 \
+#define box_create1(_px, _py, _pz, _level)               \
+    (struct GridBox){ .position = { .x = _px, .y = _py, .z = _pz }, .size = { .x = 1, .y = 1, .z = 1 }, .level = _level };
+#define box_createN(_px, _py, _pz, _sx, _sy, _sz, _level)               \
     (struct GridBox){ .position = { .x = _px, .y = _py, .z = _pz }, .size = { .x = _sx, .y = _sy, .z = _sz }, .level = _level };
 
-struct GridIndex {
-    uint64_t page;
-    uint64_t level;
-    uint64_t cell;
-};
-struct GridIndex* grid_xyz(struct Grid* grid, struct GridPages* pages, struct GridBox* box, struct GridIndex* index, uint64_t x, uint64_t y, uint64_t z);
-struct GridIndex* grid_index(struct Grid* grid, struct GridPages* pages, struct GridBox* box, struct GridIndex* index, uint64_t i);
+struct GridBox* grid_levelbox(struct Grid* grid, struct GridPages* pages, int level, struct GridBox* box);
+
+struct GridBox* grid_pagebox_xyz(struct Grid* grid, struct GridPages* pages, uint64_t x, uint64_t y, uint64_t z, int level, struct GridBox* box);
+struct GridBox* grid_pagebox(struct Grid* grid, struct GridPages* pages, uint64_t page, int level, struct GridBox* box);
 
 struct GridBox* grid_levelup(struct Grid* grid, struct GridPages* pages, struct GridBox* box);
 struct GridBox* grid_leveldown(struct Grid* grid, struct GridPages* pages, struct GridBox* box);
+
+struct GridIndex {
+    uint64_t page;
+    int level;
+    uint64_t cell;
+};
+struct GridIndex* grid_index_xyz(struct Grid* grid, struct GridPages* pages, struct GridBox* box, uint64_t x, uint64_t y, uint64_t z, struct GridIndex* index);
+struct GridIndex* grid_index(struct Grid* grid, struct GridPages* pages, struct GridBox* box, uint64_t i, struct GridIndex* index);
 
 struct GridSize {
     uint64_t x;
@@ -76,7 +83,8 @@ struct GridSize {
     uint64_t z;
     uint64_t array;
 };
-struct GridSize* grid_size(struct Grid* grid, struct GridPages* pages, struct GridSize* size, uint64_t level);
+struct GridSize* grid_levelsize(struct Grid* grid, struct GridPages* pages, int level, struct GridSize* size);
+struct GridSize* grid_pagesize(struct GridPages* pages, int level, struct GridSize* size);
 
 void grid_create(uint64_t x, uint64_t y, uint64_t z,
                  struct Grid* grid);
@@ -84,8 +92,8 @@ void grid_pages(struct Grid* grid, uint64_t x, uint64_t y, uint64_t z,
                 struct GridPages* pages);
 void grid_dump(struct Grid grid, struct GridPages pages);
 
-void grid_alloc(struct GridPages* pages, uint64_t page, uint64_t level);
-void grid_free(struct GridPages* pages, uint64_t page, uint64_t level);
+void grid_alloc(struct GridPages* pages, uint64_t page, int level);
+void grid_free(struct GridPages* pages, uint64_t page, int level);
 
 void grid_clear(struct Grid* grid, struct GridPages* pages, struct GridBox* box);
 
@@ -100,7 +108,7 @@ void grid_orN(struct Grid* grid, struct GridPages* pages, struct GridBox* box, C
 
 void grid_shift(struct Grid* grid, struct GridPages* pages, struct GridBox* box, int shift);
 
-void grid_pagein(struct Grid* grid, struct GridPages* pages, uint64_t page, uint64_t level, char** in);
-void grid_pageout(struct Grid* grid, struct GridPages* pages, uint64_t page, uint64_t level, char** out);
+void grid_pagein(struct Grid* grid, struct GridPages* pages, uint64_t page, int level, char** in);
+void grid_pageout(struct Grid* grid, struct GridPages* pages, uint64_t page, int level, char** out);
 
 #endif
