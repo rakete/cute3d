@@ -27,6 +27,7 @@
 // vector
 void vector_add(const Vec v, const Vec w, Vec r);
 void vector_add3f(const Vec v, const Vec3f w, Vec r);
+void vector3f_add3f(const Vec3f v, const Vec3f w, Vec3f r);
 
 void vector_subtract(const Vec v, const Vec w, Vec r);
 
@@ -66,6 +67,7 @@ void matrix_multiply(const Matrix m, const Matrix n, Matrix r);
 float* mmul(const Matrix m, Matrix n);
 
 void matrix_multiply_vec(const Matrix m, const Vec v, Vec r);
+float* mmul_vec(const Matrix m, Vec v);
 
 void matrix_translate(const Matrix m, const Vec v, Matrix r);
 void matrix_rotate(const Matrix m, const Quat q, Matrix r);

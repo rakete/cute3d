@@ -21,7 +21,7 @@ void vector_add(const Vec v, const Vec w, Vec r) {
     r[1] = v[1] + w[1];
     r[2] = v[2] + w[2];
     float w3 = v[3] + w[3];
-    if( w3 > 1.0f) {
+    if( w3 > 1.0f ) {
         r[3] = 1.0f;
     } else {
         r[3] = w3;
@@ -32,14 +32,25 @@ void vector_add3f(const Vec v, const Vec3f w, Vec r) {
     r[0] = v[0] + w[0];
     r[1] = v[1] + w[1];
     r[2] = v[2] + w[2];
-    r[3] = 1.0;
+    r[3] = v[3];
+}
+
+void vector3f_add3f(const Vec3f v, const Vec3f w, Vec3f r) {
+    r[0] = v[0] + w[0];
+    r[1] = v[1] + w[1];
+    r[2] = v[2] + w[2];
 }
 
 void vector_subtract(const Vec v, const Vec w, Vec r) {
     r[0] = v[0] - w[0];
     r[1] = v[1] - w[1];
     r[2] = v[2] - w[2];
-    r[3] = v[3] - w[3];
+    float w3 = v[3] - w[3];
+    if( w3 < 0.0f ) {
+        r[3] = 0.0f;
+    } else {
+        r[3] = w3;
+    }
 }
 
 void vector_multiply(const Vec v, const Vec w, Matrix m) {
@@ -322,6 +333,11 @@ void matrix_multiply_vec(const Matrix m, const Vec v, Vec r) {
     r[1] = m[4]*v[0] + m[5]*v[1] + m[6]*v[2] + m[7]*v[3];
     r[2] = m[8]*v[0] + m[9]*v[1] + m[10]*v[2] + m[11]*v[3];
     r[3] = m[12]*v[0] + m[13]*v[1] + m[14]*v[2] + m[15]*v[3];
+}
+
+float* mmul_vec(const Matrix m, Vec v) {
+    matrix_multiply_vec(m,v,v);
+    return v;
 }
 
 void matrix_translate(const Matrix m, const Vec v, Matrix r) {
