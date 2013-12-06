@@ -3,6 +3,9 @@
 smooth in vec4 frag_color;
 smooth in float intensity;
 
+uniform vec4 ambiance;
+
 void main() {
-    gl_FragColor = (vec4(0.2,0.2,0.2,1.0)+intensity) * frag_color;
+    vec4 c = (ambiance+(intensity/4)) * frag_color;
+    gl_FragColor = ambiance + (c/sqrt(dot(c,c))) + frag_color*intensity/2;
 }
