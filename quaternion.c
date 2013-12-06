@@ -65,6 +65,15 @@ void quat_rotate(const Quat quat, const Vec vec, Vec result) {
     quat_product(product, conj, result);
 }
 
+void quat_rotate3f(const Quat quat, const Vec3f vec, Vec3f result) {
+    Vec result4f;
+    quat_rotate(quat,vec,result4f);
+    
+    result[0] = result4f[0];
+    result[1] = result4f[1];
+    result[2] = result4f[2];
+}
+
 void quat_product(const Quat qa, const Quat qb, Quat result) {
     float x1,y1,z1,w1,x2,y2,z2,w2;
     x1 = qa[0];  y1 = qa[1];  z1 = qa[2];  w1 = qa[3];

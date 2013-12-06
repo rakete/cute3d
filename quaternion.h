@@ -27,6 +27,8 @@ void quat_identity(Quat quat);
 bool rotation_quat(const Vec axis, const float angle, Quat quat);
 
 void quat_rotate(const Quat quat, const Vec vec, Vec result);
+void quat_rotate3f(const Quat quat, const Vec3f vec, Vec3f result);
+
 void quat_product(const Quat qa, const Quat qb, Quat result);
 
 void quat_dot(const Quat qa, const Quat qb, float* result);
