@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     for( uint64_t z = 0; z < grid.size.z; z++ ) {
         for( uint64_t y = 0; y < grid.size.y; y++ ) {
             for( uint64_t x = 0; x < grid.size.x; x++ ) {
-                grid_xyz(&grid, &pages, NULL, &index, x, y, z);
+                grid_index_xyz(&grid, &pages, NULL, x, y, z, &index);
                 printf("x:%lu y:%lu z:%lu page:%lu cell:%lu\n", x, y, z, index.page, index.cell);
             }
         }
@@ -56,16 +56,16 @@ int main(int argc, char *argv[]) {
     for( uint64_t z = 0; z < box.size.z; z++ ) {
         for( uint64_t y = 0; y < box.size.y; y++ ) {
             for( uint64_t x = 0; x < box.size.x; x++ ) {
-                grid_xyz(&grid, &pages, &box, &index, x, y, z);
+                grid_index_xyz(&grid, &pages, &box, x, y, z, &index);
                 printf("x:%lu y:%lu z:%lu page:%lu cell:%lu\n", x, y, z, index.page, index.cell);
             }
         }
     }
 
     struct GridSize size;
-    uint64_t array_size = grid_size(&grid, &pages, &size, 0)->array;
+    uint64_t array_size = grid_levelsize(&grid, &pages, 0, &size)->array;
     for( int i = 0; i < array_size; i++ ) {
-        grid_index(&grid, &pages, NULL, &index, i);
+        grid_index(&grid, &pages, NULL, i, &index);
     }
 
     uint64_t x = UINT64_MAX;
@@ -80,6 +80,9 @@ int main(int argc, char *argv[]) {
     grid_set1(&grid, &pages, &box, 42);
 
     printf("lala\n");
+
+    grid_pagebox(&grid, &pages, 3, 0, &box);
+    printf("%lu %lu %lu %lu %lu %lu %d\n", box.position.x, box.position.y, box.position.z, box.size.x, box.size.y, box.size.z, box.level);
     
     /* grid_pageout(&grid, &pages, 0, NULL); */
     /* printf("\n"); */

@@ -19,11 +19,14 @@ cute3d: *.c
 clean:
 	rm *.o
 
-grid: tests/grid-test.c cute3d
-	gcc -g -std=c99 -fPIC -I. tests/grid-test.c -o grid *.o -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
+grid: tests/test-grid.c cute3d
+	gcc -g -std=c99 -fPIC -I. tests/test-grid.c -o grid *.o -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
 
-io: tests/io-test.c cute3d
-	gcc -g -std=c99 -fPIC -I. test/io-test.c -o io -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
+io: tests/test-io.c cute3d
+	gcc -g -std=c99 -fPIC -I. test/test-io.c -o io -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
 
-world: tests/world-test.c cute3d
-	gcc -g -std=c99 -fPIC -I. tests/world-test.c -o world *.o -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
+world: tests/test-world.c cute3d
+	gcc -g -std=c99 -fPIC -I. tests/test-world.c -o world *.o -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
+
+solid: tests/test-solid.c cute3d
+	gcc -g -std=c99 -fPIC -I. tests/test-solid.c -o solid *.o -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
