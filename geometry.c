@@ -17,7 +17,7 @@
 #include "geometry.h"
 
 int init_geometry() {
-    const char* gl_version = (const char*)glGetString(GL_VERSION); 
+    const char* gl_version = (const char*)glGetString(GL_VERSION);
 
     printf("%s\n", gl_version);
 
@@ -50,7 +50,7 @@ GLsizei buffer_resize(GLuint* buffer, GLsizei old_bytes, GLsizei new_bytes) {
         glGenBuffers(1, &new_buffer);
         glBindBuffer(GL_COPY_WRITE_BUFFER, new_buffer);
         glBufferData(GL_COPY_WRITE_BUFFER, new_bytes, NULL, GL_STATIC_COPY);
-       
+
         if( old_bytes > 0 && old_buffer > 0 ) {
             glBindBuffer(GL_COPY_READ_BUFFER, old_buffer);
             glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, old_bytes);
@@ -62,7 +62,7 @@ GLsizei buffer_resize(GLuint* buffer, GLsizei old_bytes, GLsizei new_bytes) {
 
         *buffer = new_buffer;
 
-        if( old_bytes > 0 && old_buffer ) { 
+        if( old_bytes > 0 && old_buffer ) {
             glBindBuffer(GL_COPY_READ_BUFFER, 0);
         }
         glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
@@ -169,14 +169,14 @@ GLint vbo_alloc(struct Vbo* vbo, GLint n) {
                 resized_bytes = buffer_resize(&vbo->buffer[i].id, old_bytes, new_bytes);
             }
         }
-        
+
         if( resized_bytes > 0 ) {
             vbo->capacity += alloc;
         }
 
         return resized_bytes;
     }
-    
+
     return 0;
 }
 
@@ -201,7 +201,7 @@ void vbo_fill_value(struct Vbo* vbo, int i, GLint offset_n, GLint size_n, float 
         void* array = malloc( sizeof_type(vbo->components[i].type) * size_n );
         GLint array_offset = offset_n * vbo->components[i].size;
         GLint array_size = size_n * vbo->components[i].size;
-        
+
         switch(vbo->components[i].type) {
             case GL_FLOAT: {
                 memset(array, value, array_size);
@@ -243,7 +243,7 @@ void* vbo_map(struct Vbo* vbo, int i, GLint offset, GLint length, GLbitfield acc
             if( length <= offset || length > vbo->capacity ) {
                 length_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
             }
-        
+
             glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
             //printf("%d %lu %lu\n", vbo->buffer[i].id, offset_bytes, length_bytes);
             void* pointer = glMapBufferRange(GL_ARRAY_BUFFER, offset_bytes, length_bytes, access);
@@ -264,7 +264,7 @@ GLboolean vbo_unmap(struct Vbo* vbo, int i) {
 
         return result;
     }
-    
+
     return 0;
 }
 
@@ -282,7 +282,7 @@ void mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLen
 
         p->primitives.type = primitive_type;
         p->primitives.size = sizeof_primitive(primitive_type);
-        
+
         p->index.type = index_type;
         p->index.bytes = sizeof_type(index_type);
 
@@ -304,7 +304,7 @@ void dump_mesh(struct Mesh* mesh, FILE* f) {
     dump_vbo(mesh->vbo, f);
 
     fprintf(f, "\n");
-    
+
     fprintf(f, "mesh->offset: %d\n", mesh->offset);
     fprintf(f, "mesh->size: %d\n", mesh->size);
 
@@ -361,7 +361,7 @@ GLint mesh_alloc_vbo(struct Mesh* mesh, GLint n) {
         if( vbo_free_elements(mesh->vbo) < n ) {
             vbo_alloc(mesh->vbo, n);
         }
-        
+
         if( vbo_free_elements(mesh->vbo) >= n ) {
             mesh->vbo->reserved += n;
             mesh->size += n;
@@ -378,7 +378,7 @@ GLint mesh_alloc_primitives(struct Mesh* mesh, GLint n) {
         GLsizei size_bytes = mesh->primitives.buffer->size * mesh->index.bytes;
         GLsizei alloc_bytes = n * mesh->index.bytes;
         GLsizei resized_bytes = alloc_bytes;
-        
+
         if( mesh->primitives.buffer->used + n > mesh->primitives.buffer->size ) {
             resized_bytes = buffer_resize(&mesh->primitives.buffer->id, size_bytes, size_bytes + alloc_bytes);
         }
@@ -446,7 +446,7 @@ void* mesh_map(struct Mesh* mesh, GLint offset, GLint length, GLbitfield access)
     if( mesh && mesh->primitives.buffer->id && offset < mesh->primitives.buffer->size ) {
         if( offset + length > mesh->primitives.buffer->size ) {
             GLint alloc = offset + length - mesh->primitives.buffer->size + 1;
-            
+
             GLsizei size_bytes = mesh->primitives.buffer->size * mesh->index.bytes;
             GLsizei alloc_bytes = alloc * mesh->index.bytes;
             GLsizei resized_bytes = buffer_resize(&mesh->primitives.buffer->id, size_bytes, size_bytes + alloc_bytes);
@@ -461,11 +461,11 @@ void* mesh_map(struct Mesh* mesh, GLint offset, GLint length, GLbitfield access)
             if( length <= offset ) {
                 length_bytes = mesh->primitives.buffer->size * mesh->index.bytes;
             }
-        
+
             glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
             void* pointer = glMapBufferRange(GL_ARRAY_BUFFER, offset_bytes, length_bytes, access);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
-            
+
             return pointer;
         }
 
@@ -482,7 +482,7 @@ GLboolean mesh_unmap(struct Mesh* mesh) {
 
         return result;
     }
-    
+
     return 0;
 }
 
@@ -533,15 +533,15 @@ void mesh_primitives(struct Mesh* mesh, void* data, GLint n) {
 
         if( mesh->primitives.buffer->used + n > mesh->primitives.buffer->size ) {
             GLint alloc = mesh->primitives.buffer->used + n - mesh->primitives.buffer->size;
-            
+
             GLsizei alloc_bytes = alloc * mesh->index.bytes;
-            
+
             GLsizei resized_bytes = buffer_resize(&mesh->primitives.buffer->id, size_bytes, size_bytes + alloc_bytes);
             if( resized_bytes > 0 ) {
                 mesh->primitives.buffer->size += alloc;
             }
         }
-            
+
         GLsizei append_bytes = n * mesh->index.bytes;
         GLsizei offset_bytes = mesh->primitives.buffer->used * mesh->index.bytes;
         if( mesh->primitives.buffer->used + n <= mesh->primitives.buffer->size ) {

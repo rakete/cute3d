@@ -74,7 +74,7 @@ void solid_tetrahedron(struct Tetrahedron* tet) {
     tet->solid.triangles = tet->triangles;
     tet->solid.colors = tet->colors;
     tet->solid.normals = tet->normals;
-    
+
     float phiaa  = -19.471220333; /* the phi angle needed for generation */
     float r = 1.0; /* any radius in which the polyhedron is inscribed */
     float phia = PI * phiaa / 180.0; /* 1 set of three points */
@@ -85,7 +85,7 @@ void solid_tetrahedron(struct Tetrahedron* tet) {
     points[0] = 0.0;
     points[1] = 0.0;
     points[2] = r;
-    
+
     for(int i = 1; i < 4; i++) {
         points[i*3+0] = r * cos(the) * cos(phia);
         points[i*3+1] = r * sin(the) * cos(phia);
@@ -101,7 +101,7 @@ void solid_tetrahedron(struct Tetrahedron* tet) {
         int a = triangles[i*3+0];
         int b = triangles[i*3+1];
         int c = triangles[i*3+2];
-        
+
         tet->vertices[i*9+0] = points[a*3+0];
         tet->vertices[i*9+1] = points[a*3+1];
         tet->vertices[i*9+2] = points[a*3+2];
@@ -113,7 +113,7 @@ void solid_tetrahedron(struct Tetrahedron* tet) {
         tet->vertices[i*9+5] = points[b*3+2];
 
         tet->triangles[i*3+1] = i*3+1;
-        
+
         tet->vertices[i*9+6] = points[c*3+0];
         tet->vertices[i*9+7] = points[c*3+1];
         tet->vertices[i*9+8] = points[c*3+2];
@@ -153,10 +153,10 @@ void solid_hexahedron(struct Cube* cube) {
 
     // 1 2 3
     // 0 1 3
-    
+
     // 6 5 4
     // 7 6 4
-    
+
     // 5 1 0
     // 4 5 0
 
@@ -168,7 +168,7 @@ void solid_hexahedron(struct Cube* cube) {
 
     // 7 0 3
     // 4 0 7
-    
+
     int triangles[36] = { 1, 2, 3,
                           0, 1, 3,
                           6, 5, 4,
@@ -201,7 +201,7 @@ void solid_hexahedron(struct Cube* cube) {
         cube->vertices[i*18+5] = points[b*3+2];
 
         cube->triangles[i*6+1] = i*6+1;
-        
+
         cube->vertices[i*18+6] = points[c*3+0];
         cube->vertices[i*18+7] = points[c*3+1];
         cube->vertices[i*18+8] = points[c*3+2];
@@ -220,7 +220,7 @@ void solid_hexahedron(struct Cube* cube) {
         cube->vertices[i*18+14] = points[e*3+2];
 
         cube->triangles[i*6+4] = i*6+4;
-        
+
         cube->vertices[i*18+15] = points[f*3+0];
         cube->vertices[i*18+16] = points[f*3+1];
         cube->vertices[i*18+17] = points[f*3+2];
@@ -297,7 +297,7 @@ void solid_sphere16(struct Sphere16* sphere) {
     points[(15+6*16)*3+3+3] = 0.0;
     points[(15+6*16)*3+3+4] = 0.0;
     points[(15+6*16)*3+3+5] = -1.0;
-    
+
     //                               112
     // 0:  0  1  2  3   4   5   6   7   8   9  10  11  12  13  14  15  0
     // 1: 16 17 18 19  20  21  22  23  24  25  26  27  28  29  30  31 16
@@ -366,7 +366,7 @@ void solid_sphere16(struct Sphere16* sphere) {
             if( i == 15 ) {
                 linebreak = -15;
             }
-            
+
             triangles[(i+j*16)*6+0] = i + j*16;
             triangles[(i+j*16)*6+1] = i + j*16 + 1*linebreak;
             triangles[(i+j*16)*6+2] = i + j*16 + 16;
@@ -381,7 +381,7 @@ void solid_sphere16(struct Sphere16* sphere) {
         if( i == 15 ) {
             linebreak = -15;
         }
-        
+
         triangles[offset+i*6+0] = 112; //16 + 6*16;
         triangles[offset+i*6+1] = i + 1*linebreak;
         triangles[offset+i*6+2] = i;
@@ -406,12 +406,12 @@ void solid_sphere16(struct Sphere16* sphere) {
         sphere->vertices[i*9+5] = points[b*3+2];
 
         sphere->triangles[i*3+1] = i*3+1;
-        
+
         sphere->vertices[i*9+6] = points[c*3+0];
         sphere->vertices[i*9+7] = points[c*3+1];
         sphere->vertices[i*9+8] = points[c*3+2];
 
-        sphere->triangles[i*3+2] = i*3+2;        
+        sphere->triangles[i*3+2] = i*3+2;
     }
 }
 
@@ -440,7 +440,7 @@ void solid_sphere32(struct Sphere32* sphere) {
     points[(31+14*32)*3+3+3] = 0.0;
     points[(31+14*32)*3+3+4] = 0.0;
     points[(31+14*32)*3+3+5] = -1.0;
-    
+
     unsigned int triangles[32*14*2*3+32*3*2];
     int linebreak = 1;
     for( int j = 0; j < 14; j++ ) {
@@ -448,7 +448,7 @@ void solid_sphere32(struct Sphere32* sphere) {
             if( i == 31 ) {
                 linebreak = -31;
             }
-            
+
             triangles[(i+j*32)*6+0] = i + j*32;
             triangles[(i+j*32)*6+1] = i + j*32 + 1*linebreak;
             triangles[(i+j*32)*6+2] = i + j*32 + 32;
@@ -463,7 +463,7 @@ void solid_sphere32(struct Sphere32* sphere) {
         if( i == 31 ) {
             linebreak = -31;
         }
-        
+
         triangles[offset+i*6+0] = 480; //32 + 14*32;
         triangles[offset+i*6+1] = i + 1*linebreak;
         triangles[offset+i*6+2] = i;
@@ -488,11 +488,11 @@ void solid_sphere32(struct Sphere32* sphere) {
         sphere->vertices[i*9+5] = points[b*3+2];
 
         sphere->triangles[i*3+1] = i*3+1;
-        
+
         sphere->vertices[i*9+6] = points[c*3+0];
         sphere->vertices[i*9+7] = points[c*3+1];
         sphere->vertices[i*9+8] = points[c*3+2];
 
-        sphere->triangles[i*3+2] = i*3+2;        
+        sphere->triangles[i*3+2] = i*3+2;
     }
 }
