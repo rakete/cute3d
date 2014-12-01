@@ -168,3 +168,8 @@ void quat_matrix(const Quat quat, const Matrix m, Matrix result) {
     matrix_multiply(m,n,result);
 }
 
+float* qmatrix(const Quat quat, Matrix m) {
+    quat_matrix(quat,m,m);
+    return m;
+}
+
