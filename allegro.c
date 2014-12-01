@@ -31,7 +31,7 @@ void allegro_events(ALLEGRO_DISPLAY* display, ALLEGRO_EVENT_QUEUE** queue) {
 }
 
 void allegro_flat_shader(struct Shader* shader) {
-    shader_create(shader, "shader/flat.vertex", "shader/flat.fragment");
+    shader_create(shader, "shader/flat.vert", "shader/flat.frag");
     shader_attribute(shader, vertex_array, "vertex");
     shader_attribute(shader, color_array, "color");
     shader_attribute(shader, normal_array, "normal");

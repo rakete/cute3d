@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
 
     init_shader();
     struct Shader default_shader;
-    shader_create(&default_shader, "shader/flat.vertex", "shader/flat.fragment");
+    shader_create(&default_shader, "shader/flat.vert", "shader/flat.frag");
     shader_attribute(&default_shader, vertex_array, "vertex");
     shader_attribute(&default_shader, color_array, "color");
     shader_attribute(&default_shader, normal_array, "normal");

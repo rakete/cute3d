@@ -1,5 +1,4 @@
 #version 130
-#extension GL_ARB_uniform_buffer_object:require
 
 uniform mat4 projection_matrix;
 uniform mat4 model_matrix;
@@ -16,7 +15,7 @@ uniform vec3 light_direction;
 smooth out float intensity;
 
 void main() {
-    intensity = dot(light_direction, normal);
+    intensity = (1 + dot(light_direction, normal)) / 2;
     gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex,1.0);
     frag_color = color;
 }

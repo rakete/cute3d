@@ -34,8 +34,8 @@ struct Shader* shader_create(struct Shader* p, const char* vertex_file, const ch
         p->vertex_shader = compile_file(GL_VERTEX_SHADER, vertex_file);
         p->fragment_shader = compile_file(GL_FRAGMENT_SHADER, fragment_file);
     } else {
-        p->vertex_shader = compile_file(GL_VERTEX_SHADER, "shader/default.vertex");
-        p->fragment_shader = compile_file(GL_FRAGMENT_SHADER, "shader/default.fragment");
+        p->vertex_shader = compile_file(GL_VERTEX_SHADER, "shader/default.vert");
+        p->fragment_shader = compile_file(GL_FRAGMENT_SHADER, "shader/default.frag");
     }
 
     if( p->vertex_shader > 0 && p->fragment_shader > 0 ) {
@@ -72,7 +72,7 @@ void shader_uniform(struct Shader* shader, char* name, char* type, void* data) {
             if( strcmp(type, "2f") == 0 ) { glUniform2f(id, ((float*)data)[0], ((float*)data)[1]); }
             if( strcmp(type, "3f") == 0 ) { glUniform3f(id, ((float*)data)[0], ((float*)data)[1], ((float*)data)[2]); }
             if( strcmp(type, "4f") == 0 ) { glUniform4f(id, ((float*)data)[0], ((float*)data)[1], ((float*)data)[2], ((float*)data)[3]); }
-            
+
             shader->active_uniforms++;
         }
         glUseProgram(0);
