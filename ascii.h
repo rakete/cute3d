@@ -22,7 +22,7 @@
 struct Character {
     int w;
     int h;
-    const bool* pixels;
+    const int* pixels;
 };
 
 struct Character char_A();
@@ -78,5 +78,28 @@ struct Character char_w();
 struct Character char_x();
 struct Character char_y();
 struct Character char_z();
+
+struct Character char_0();
+struct Character char_1();
+struct Character char_2();
+struct Character char_3();
+struct Character char_4();
+struct Character char_5();
+struct Character char_6();
+struct Character char_7();
+struct Character char_8();
+struct Character char_9();
+
+struct Character char_period();
+struct Character char_comma();
+struct Character char_colon();
+struct Character char_semicolon();
+
+struct Character char_plus();
+struct Character char_minus();
+struct Character char_asterisk();
+struct Character char_slash();
+
+void ascii_create(struct Character symbols[256]);
 
 #endif
