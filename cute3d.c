@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     al_install_keyboard();
     al_set_new_display_option(ALLEGRO_DEPTH_SIZE, 24, ALLEGRO_REQUIRE);
     al_set_new_display_flags(ALLEGRO_OPENGL);
-    display = al_create_display(800, 600);
+    display = al_create_display(1600, 900);
     if (!display) {
         return 1;
     }
@@ -51,11 +51,11 @@ int main(int argc, char** argv) {
     al_register_event_source(queue, al_get_keyboard_event_source());
     al_register_event_source(queue, al_get_display_event_source(display));
 
-    glViewport(0,0,800,600);
+    glViewport(0,0,1600,900);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
-    
+
     float vertices1[9] = { -0.7, 0.0, 0.5,
                            -0.1, 0.0, -0.5,
                            -1.3, 0.0, -0.5 };
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     float colors[12] = { 1.0, 0, 0, 1.0,
                          1.0, 0, 0, 1.0,
                          1.0, 0, 0, 1.0 };
-    
+
     init_geometry();
     struct Vbo vbo;
     vbo_create(&vbo);
@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 
     struct Mesh triangle_mesh;
     mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &triangle_mesh);
-    
+
     mesh_append(&triangle_mesh, vertex_array, vertices1, 3);
     mesh_append(&triangle_mesh, color_array, colors, 3);
     mesh_triangle(&triangle_mesh, 0, 1, 2);
@@ -90,21 +90,19 @@ int main(int argc, char** argv) {
     shader_attribute(&default_shader, normal_array, "normal");
 
     struct Camera default_camera;
-    camera_create(&default_camera, 800, 600);
-    //camera_projection(&default_camera, perspective);
-    camera_projection(&default_camera, orthographic_zoom);
+    camera_create(perspective, 1600, 900, &default_camera);
     printf("camera->projection: %d\n", default_camera.type);
-    camera_frustum(&default_camera, -0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f);
+    camera_frustum(-0.5f, 0.5f, -0.28125f, 0.28125f, 1.0f, 200.0f, &default_camera);
 
     /* Quat rotation; */
     /* rotation_quat((float[]){ 1.0, 0.0, 0.0, 1.0 }, 90 * PI/180, rotation); */
     /* quat_product(default_camera.pivot.orientation, rotation, default_camera.pivot.orientation); */
-    
-    Vec translation = { -0.6, -3.5, -8.0 };
+
+    Vec translation = { 0.0, 5.0, -8.0 };
     vector_add3f(default_camera.pivot.position, translation, default_camera.pivot.position);
-    Vec origin = { -0.6, -0.5, 0.0, 1.0 };
+    Vec origin = { 0.0, 0.0, 0.0, 1.0 };
     pivot_lookat(&default_camera.pivot, origin);
-   
+
     /* struct Tetrahedron tetrahedron; */
     /* solid_tetrahedron(&tetrahedron); */
     /* solid_colors((struct Solid*)&tetrahedron, (float[4]){ 0, 1.0, 0, 1.0 }); */
@@ -121,7 +119,7 @@ int main(int argc, char** argv) {
 
     struct Cube cube;
     solid_hexahedron(&cube);
-    solid_colors((struct Solid*)&cube, (float[4]){ 0.8, 0.5, 0.0, 1.0 });
+    solid_colors((struct Solid*)&cube, (float[4]){ 1.0, 0.0, 0.0, 1.0 });
     solid_normals((struct Solid*)&cube);
 
     struct Mesh cube_mesh;
@@ -148,70 +146,19 @@ int main(int argc, char** argv) {
     /* dump_mesh(&sphere_mesh, stdout); */
 
     struct Character symbols[256];
-    symbols['A'] = char_A();
-    symbols['B'] = char_B();
-    symbols['C'] = char_C();
-    symbols['D'] = char_D();
-    symbols['E'] = char_E();
-    symbols['F'] = char_F();
-    symbols['G'] = char_G();
-    symbols['H'] = char_H();
-    symbols['I'] = char_I();
-    symbols['J'] = char_J();
-    symbols['K'] = char_K();
-    symbols['L'] = char_L();
-    symbols['M'] = char_M();
-    symbols['N'] = char_N();
-    symbols['O'] = char_O();
-    symbols['P'] = char_P();
-    symbols['Q'] = char_Q();
-    symbols['R'] = char_R();
-    symbols['S'] = char_S();
-    symbols['T'] = char_T();
-    symbols['U'] = char_U();
-    symbols['V'] = char_V();
-    symbols['W'] = char_W();
-    symbols['X'] = char_X();
-    symbols['Y'] = char_Y();
-    symbols['Z'] = char_Z();
-    
-    symbols['a'] = char_a();
-    symbols['b'] = char_b();
-    symbols['c'] = char_c();
-    symbols['d'] = char_d();
-    symbols['e'] = char_e();
-    symbols['f'] = char_f();
-    symbols['g'] = char_g();
-    symbols['h'] = char_h();
-    symbols['i'] = char_i();
-    symbols['j'] = char_j();
-    symbols['k'] = char_k();
-    symbols['l'] = char_l();
-    symbols['m'] = char_m();
-    symbols['n'] = char_n();
-    symbols['o'] = char_o();
-    symbols['p'] = char_p();
-    symbols['q'] = char_q();
-    symbols['r'] = char_r();
-    symbols['s'] = char_s();
-    symbols['t'] = char_t();
-    symbols['u'] = char_u();
-    symbols['v'] = char_v();
-    symbols['w'] = char_w();
-    symbols['x'] = char_x();
-    symbols['y'] = char_y();
-    symbols['z'] = char_z();
+    ascii_create(symbols);
 
-    struct Font* foo = font_allocate_ascii("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz", symbols);
-    int font_id = font_registry(NewFont, 0, &foo);
+    struct Font foo;
+    font_create(L"AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz", false, symbols, &foo);
+    //font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, &foo);
 
     double fps = 0;
     int frames_done = 0;
     double old_time = al_get_time();
 
-    while (true) {
+    while( true ) {
         /* Check for ESC key or close button event and quit in either case. */
-        if (!al_is_event_queue_empty(queue)) {
+        if( ! al_is_event_queue_empty(queue) ) {
             while (al_get_next_event(queue, &event)) {
                 switch (event.type) {
                     case ALLEGRO_EVENT_DISPLAY_CLOSE:
@@ -229,8 +176,7 @@ int main(int argc, char** argv) {
         glClearColor(.0f, .0f, .0f, 1.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-        Matrix projection_mat;
-        Matrix view_mat;
+        Matrix projection_mat, view_mat;
         camera_matrices(&default_camera, projection_mat, view_mat);
 
         Matrix model_grid[2];
@@ -246,7 +192,11 @@ int main(int argc, char** argv) {
 
         Vec light_direction = { 0.2, 0.5, 1.0 };
         shader_uniform(&default_shader, "light_direction", "3f", light_direction);
-        
+
+        Color ambiance = { .1, .1, .3, 1.0 };
+        shader_uniform(&default_shader, "ambiance", "4f", ambiance);
+
+
         //draw_grid(2, 16, (float[4]){.4, .4, .4, 1}, projection_mat, view_mat, model_grid);
         //render_mesh(&triangle_mesh, &default_shader, &default_camera, identity);
 
@@ -261,26 +211,24 @@ int main(int argc, char** argv) {
         /*                     projection_mat, */
         /*                     view_mat, */
         /*                     tet_left); */
-        
-        Matrix cube_right;
-        matrix_identity(cube_right);
-        matrix_translate(cube_right, (Vec){ -1.2, 0.5, 0.0, 1.0 }, cube_right);
-        render_mesh(&cube_mesh, &default_shader, &default_camera, cube_right);
+
+        Matrix cube_transform;
+        matrix_identity(cube_transform);
+
+        matrix_translate(cube_transform, (Vec){ -2.0, 0.0, 0.0, 1.0 }, cube_transform);
+        render_mesh(&cube_mesh, &default_shader, &default_camera, cube_transform);
         draw_normals_array(cube.vertices,
                            cube.normals,
                            cube.solid.size,
                            (Color){ 1.0,0.0,1.0,1.0 },
                            projection_mat,
                            view_mat,
-                           cube_right);
+                           cube_transform);
 
-        Matrix font_matrix;
-        matrix_identity(font_matrix);
-        
-        struct Font* font;
-        if( font_registry(FindFont, font_id, &font) ) {
-            text_put(L"CUTE says\n   Hello World", font, projection_mat, view_mat, font_matrix);
-        }
+        Matrix font_mat;
+        matrix_identity(font_mat);
+
+        text_put(L"CUTE says\n   Hello World", &foo, 0.33, projection_mat, view_mat, font_mat);
 
         al_flip_display();
 
@@ -296,6 +244,5 @@ int main(int argc, char** argv) {
     }
 
 done:
-    font_registry(DeleteFont, -1, NULL);
     return 0;
 }

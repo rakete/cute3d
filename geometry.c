@@ -38,6 +38,12 @@ int init_geometry() {
         ret = 0;
     }
 
+    /* if( ! glewGetExtension("GL_ARB_buffer_storage" ) ) { */
+    /*     printf("ERROR: buffer_storage extension not found!\n"); */
+    /*     ret = 0; */
+    /* } */
+
+
     return ret;
 }
 

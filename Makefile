@@ -1,5 +1,6 @@
 cute3d: *.c
 	gcc -g -std=c99 -fPIC io.c -c -o io.o
+	gcc -g -std=c99 -fPIC camera.c -c -o camera.o
 	gcc -g -std=c99 -fPIC matrix.c -c -o matrix.o
 	gcc -g -std=c99 -fPIC quaternion.c -c -o quaternion.o
 	gcc -g -std=c99 -fPIC transform.c -c -o transform.o
@@ -13,20 +14,23 @@ cute3d: *.c
 	gcc -g -std=c99 -fPIC glsl.c -c -o glsl.o -lGL -lGLEW
 	gcc -g -std=c99 -fPIC draw.c -c -o draw.o -lGL -lGLEW
 	gcc -g -std=c99 -fPIC text.c -c -o text.o -lGL -lGLEW
-	gcc -g -std=c99 -fPIC allegro.c -c -o allegro.o -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
-	gcc -g -std=c99 -fPIC cute3d.c -o cute3d *.o -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
+	gcc -g -std=c99 -fPIC allegro.c -c -o allegro.o -lallegro -lallegro_main -lGL -lGLEW -lglut
+	gcc -g -std=c99 -fPIC cute3d.c -o cute3d *.o -lm -lallegro -lallegro_main -lGL -lGLEW -lglut
 
 clean:
 	rm *.o
 
 grid: tests/test-grid.c cute3d
-	gcc -g -std=c99 -fPIC -I. tests/test-grid.c -o grid *.o -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
+	gcc -g -std=c99 -fPIC -I. tests/test-grid.c -o grid *.o -lm -lallegro -lallegro_main -lGL -lGLEW -lglut
 
 io: tests/test-io.c cute3d
-	gcc -g -std=c99 -fPIC -I. test/test-io.c -o io -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
+	gcc -g -std=c99 -fPIC -I. test/test-io.c -o io -lm -lallegro -lallegro_main -lGL -lGLEW -lglut
 
 world: tests/test-world.c cute3d
-	gcc -g -std=c99 -fPIC -I. tests/test-world.c -o world *.o -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
+	gcc -g -std=c99 -fPIC -I. tests/test-world.c -o world *.o -lm -lallegro -lallegro_main -lGL -lGLEW -lglut
 
 solid: tests/test-solid.c cute3d
-	gcc -g -std=c99 -fPIC -I. tests/test-solid.c -o solid *.o -lm -lallegro -lallegro_main -lallegro_video -lGL -lGLEW -lglut
+	gcc -g -std=c99 -fPIC -I. tests/test-solid.c -o solid *.o -lm -lallegro -lallegro_main -lGL -lGLEW -lglut
+
+text: tests/test-text.c cute3d
+	gcc -g -std=c99 -fPIC -I. tests/test-text.c -o text *.o -lm -lallegro -lallegro_main -lGL -lGLEW -lglut
