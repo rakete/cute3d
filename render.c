@@ -16,73 +16,7 @@
 
 #include "render.h"
 
-void camera_create(struct Camera* camera, int width, int height) {
-    pivot_create(&camera->pivot);
-
-    camera->type = perspective;
-
-    camera->screen.width = width;
-    camera->screen.height = height;
-
-    camera->frustum.left = -0.5f;
-    camera->frustum.right = 0.5f;
-    camera->frustum.top = -0.375f;
-    camera->frustum.bottom = 0.375f;
-    camera->frustum.zNear = 0.2f;
-    camera->frustum.zFar = 100.0f;
-}
-
-void camera_frustum(struct Camera* camera, float left, float right, float top, float bottom, float zNear, float zFar) {
-    camera->frustum.left = left;
-    camera->frustum.right = right;
-    camera->frustum.top = top;
-    camera->frustum.bottom = bottom;
-    camera->frustum.zNear = zNear;
-    camera->frustum.zFar = zFar;
-}
-
-void camera_projection(struct Camera* camera, enum Projection type) {
-    camera->type = type;
-}
-
-void camera_matrices(struct Camera* camera, Matrix projection_matrix, Matrix view_matrix) {
-    if( camera ) {
-        matrix_identity(projection_matrix);
-        
-        float left = camera->frustum.left;
-        float right = camera->frustum.right;
-        float top = camera->frustum.top;
-        float bottom = camera->frustum.bottom;
-        float zNear = camera->frustum.zNear;
-        float zFar = camera->frustum.zFar;
-        if( camera->type == perspective ) {
-            matrix_perspective(left, right, top, bottom, zNear, zFar, projection_matrix);
-        } else if( camera->type == orthographic) {
-            matrix_orthographic(left, right, top, bottom, zNear, zFar, projection_matrix);
-        } else if( camera->type == orthographic_zoom ||
-                   camera->type == pixelperfect )
-        {
-            left *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
-            right *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
-            top *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
-            bottom *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
-            matrix_orthographic(left, right, top, bottom, zNear, zFar, projection_matrix);
-        }
-
-        matrix_identity(view_matrix);
-
-        //Vec inv_position;
-        //vector_invert(camera->pivot.position, inv_position);
-        //matrix_translate(view_matrix, inv_position, view_matrix);
-        matrix_translate(view_matrix, camera->pivot.position, view_matrix);
-
-        Quat inv_quat;
-        quat_invert(camera->pivot.orientation, inv_quat);
-        quat_matrix(inv_quat, view_matrix, view_matrix);
-    }
-}
-
-void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera, Matrix model_matrix) {
+void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const struct Camera* camera, Matrix model_matrix) {
     glUseProgram(shader->program);
     
     Matrix projection_matrix;
@@ -136,7 +70,7 @@ void render_mesh(struct Mesh* mesh, struct Shader* shader, struct Camera* camera
             GLsizei c_bytes = mesh->vbo->components[array_id].bytes;
             GLsizei offset = mesh->offset * c_num * c_bytes;
             //printf("%lu %lu %lu %lu\n", c_num, mesh->offset, c_bytes, offset);
-        
+
             glVertexAttribPointer(loc[array_id], c_num, c_type, GL_FALSE, 0, (void*)(intptr_t)offset);
         }
     }

@@ -14,18 +14,44 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef RENDER_H
-#define RENDER_H
+#ifndef CAMERA_H
+#define CAMERA_H
 
-#include "GL/glew.h"
-#include "GL/gl.h"
+#include "transform.h"
 
-#include "camera.h"
-#include "shader.h"
-#include "geometry.h"
+enum Projection {
+    perspective = 0,
+    orthographic,
+    orthographic_zoom,
+    pixelperfect,
+    NUM_PROJECTION
+};
 
-void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const struct Camera* camera, Matrix model_matrix);
+struct Camera {
+    struct Pivot pivot;
 
-//void render_sprite(struct Sprite* sprite, struct Shader* shader, struct Camera* camera, Matrix model_matrix);
+    enum Projection type;
+
+    struct {
+        int width;
+        int height;
+    } screen;
+
+    struct {
+        float left;
+        float right;
+        float top;
+        float bottom;
+        
+        float zNear;
+        float zFar;
+    } frustum;
+};
+
+void camera_create(enum Projection type, int width, int height, struct Camera* camera);
+
+void camera_frustum(float left, float right, float top, float bottom, float zNear, float zFar, struct Camera* camera);
+
+void camera_matrices(const struct Camera* camera, Matrix projection_matrix, Matrix view_matrix);
 
 #endif
