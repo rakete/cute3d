@@ -54,7 +54,19 @@ void vector_subtract(const Vec v, const Vec w, Vec r) {
 }
 
 void vector_multiply(const Vec v, const Vec w, Matrix m) {
-    printf("vector_multiply not implemented yet!");
+    printf("4f vector_multiply not implemented yet!");
+}
+
+void vector_multiply1f(const Vec v, float w, Vec r) {
+    r[0] = v[0]*w;
+    r[1] = v[1]*w;
+    r[2] = v[2]*w;
+    r[3] = v[3]*w;
+}
+
+float* vmul1f(Vec v, float w) {
+    vector_multiply1f(v,w,v);
+    return v;
 }
 
 void vector_invert(const Vec v, Vec r) {
@@ -62,6 +74,12 @@ void vector_invert(const Vec v, Vec r) {
     r[1] = -v[1];
     r[2] = -v[2];
 }
+
+float* vinv(Vec v) {
+    vector_invert(v,v);
+    return v;
+}
+
 
 void vector_dot(const Vec v, const Vec w, float* r) {
     *r = v[0]*w[0] + v[1]*w[1] + v[2]*w[2];
@@ -299,14 +317,23 @@ void matrix_invert(const Matrix m, Matrix r, double* det) {
         m[8] * m[1] * m[6] - 
         m[8] * m[2] * m[5];
 
-    *det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+    double d;
+    d = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
 
-    if (*det == 0) return;
+    if(det) *det = 0;
+    if(d == 0) return;
 
-    *det = 1.0 / (*det);
+    d = 1.0 / d;
 
     for (i = 0; i < 16; i++)
-        r[i] = inv[i] * (*det);
+        r[i] = inv[i] * d;
+
+    if(det) *det = d;
+}
+
+float* minv(Matrix m, double* det) {
+    matrix_invert(m,m,det);
+    return m;
 }
 
 void matrix_multiply(const Matrix m, const Matrix n, Matrix r) {
@@ -351,10 +378,7 @@ void matrix_translate(const Matrix m, const Vec v, Matrix r) {
 }
 
 void matrix_rotate(const Matrix m, const Quat q, Matrix r) {
-    Matrix n;
-    quat_matrix(q,n,n);
-
-    matrix_multiply(m,n,r);
+    quat_matrix(q,m,r);
 }
 
 void matrix_scale(const Matrix m, const Vec v, Matrix r) {
@@ -365,4 +389,14 @@ void matrix_scale(const Matrix m, const Vec v, Matrix r) {
     n[3] = 0.0f; n[7] = 0.0f; n[11] = 0.0f; n[15] = 1.0f;
 
     matrix_multiply(m,n,r);
+}
+
+void matrix_scaling(const matrix_initfunc f, const Vec v, Matrix r) {
+    if( f ) {
+        f(r);
+    }
+
+    r[0] = v[0];
+    r[5] = v[1];
+    r[10] = v[2];
 }
