@@ -29,8 +29,10 @@
 #include "math_types.h"
 #include "ascii.h"
 
-#ifndef NUM_FONTS
-#define NUM_FONTS 32
+#include "camera.h"
+
+#ifndef FONT_SIZE
+#define FONT_SIZE 1024
 #endif
 
 struct Glyph {
@@ -41,17 +43,11 @@ struct Glyph {
 };
 
 struct Font {
-    struct {
-        struct Glyph* glyphs;
-        bool* alphabet;
-        size_t size;
-    } heap;
+    struct Glyph glyphs[FONT_SIZE];
+    bool alphabet[FONT_SIZE];
 
-    struct {
-        bool unicode;
-        size_t size;
-    } encoding;
-    
+    bool unicode;
+
     struct {
         GLuint id;
         GLsizei width;
@@ -68,26 +64,14 @@ struct Font {
 
     float kerning;
     float linespacing;
-    float size;
     Color color;
 };
 
-enum FontReg {
-    NewFont = 0,
-    CloneFont,
-    FindFont,
-    DeleteFont
-};
-
-int font_registry(enum FontReg op, int id, struct Font** font);
-
-struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols);
-struct Font* font_allocate_utf(const wchar_t* alphabet, struct Character* symbols);
-void font_delete(struct Font* font);
+void font_create(const wchar_t* alphabet, bool unicode, struct Character* symbols, struct Font* font);
 
 void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter);
 
-void text_put(const wchar_t* text, const struct Font* font, const Matrix projection_matrix, const Matrix view_matrix, const Matrix model_matrix);
-void text_putscreen(const wchar_t* text, const struct Font* font, const Matrix projection_matrix, const Matrix view_matrix, int x, int y);
+void text_put(const wchar_t* text, const struct Font* font, float scale, const Matrix projection_matrix, const Matrix view_matrix, Matrix model_matrix);
+void text_overlay(const wchar_t* text, const struct Font* font, int size, struct Camera camera, int x, int y);
 
 #endif

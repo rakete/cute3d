@@ -16,139 +16,28 @@
 
 #include "text.h"
 
-int font_registry(enum FontReg op, int id, struct Font** font) {
-    static struct Font* registry[NUM_FONTS];
-    static bool reserved_slots[NUM_FONTS] = {0};
-
-    if( ! reserved_slots[0] ) {
-        struct Character symbols[256];
-        symbols['A'] = char_A();
-        symbols['B'] = char_B();
-        symbols['C'] = char_C();
-        symbols['D'] = char_D();
-        symbols['E'] = char_E();
-        symbols['F'] = char_F();
-        symbols['G'] = char_G();
-        symbols['H'] = char_H();
-        symbols['I'] = char_I();
-        symbols['J'] = char_J();
-        symbols['K'] = char_K();
-        symbols['L'] = char_L();
-        symbols['M'] = char_M();
-        symbols['N'] = char_N();
-        symbols['O'] = char_O();
-        symbols['P'] = char_P();
-        symbols['Q'] = char_Q();
-        symbols['R'] = char_R();
-        symbols['S'] = char_S();
-        symbols['T'] = char_T();
-        symbols['U'] = char_U();
-        symbols['V'] = char_V();
-        symbols['W'] = char_W();
-        symbols['X'] = char_X();
-        symbols['Y'] = char_Y();
-        symbols['Z'] = char_Z();
-    
-        symbols['a'] = char_a();
-        symbols['b'] = char_b();
-        symbols['c'] = char_c();
-        symbols['d'] = char_d();
-        symbols['e'] = char_e();
-        symbols['f'] = char_f();
-        symbols['g'] = char_g();
-        symbols['h'] = char_h();
-        symbols['i'] = char_i();
-        symbols['j'] = char_j();
-        symbols['k'] = char_k();
-        symbols['l'] = char_l();
-        symbols['m'] = char_m();
-        symbols['n'] = char_n();
-        symbols['o'] = char_o();
-        symbols['p'] = char_p();
-        symbols['q'] = char_q();
-        symbols['r'] = char_r();
-        symbols['s'] = char_s();
-        symbols['t'] = char_t();
-        symbols['u'] = char_u();
-        symbols['v'] = char_v();
-        symbols['w'] = char_w();
-        symbols['x'] = char_x();
-        symbols['y'] = char_y();
-        symbols['z'] = char_z();
-        
-        registry[0] = font_allocate_ascii("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", symbols);
-        reserved_slots[0] = 1;
-    }
-
-    switch( op ) {
-        case NewFont: {
-            if( id < 0 && font ) {
-                font_delete( registry[0] );
-                registry[0] = *font;
-                return 0;
-            }
-            int slot = -1;
-            for( int i = 1; i < NUM_FONTS && slot < 1 && font; i++ ) {
-                if( ! reserved_slots[i] ) {
-                    reserved_slots[i] = 1;
-                    registry[i] = *font;
-                    slot = i;
-                }
-            }
-            return slot;
-            break;
-        }
-        case CloneFont: {
-            break;
-        }
-        case FindFont: {
-            if( reserved_slots[id] ) {
-                *font = registry[id];
-                return id;
-            }
-            font = &registry[0];
-            return 0;
-            break;
-        }
-        case DeleteFont: {
-            if( id < -1 ) {
-                for( int i = 0; i < NUM_FONTS; i++ ) {
-                    reserved_slots[i] = 0;
-                    font_delete( registry[i] );
-                    return 0;
-                }
-            } else if( reserved_slots[id] && id > 0 ) {
-                reserved_slots[id] = 0;
-                font_delete(registry[id]);
-                return id;
-            }
-            return -1;
-            break;
-        }
-    }
-}
-
-struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols) {
-    struct Font* font = calloc( 1, sizeof(struct Font) );
-    font->heap.size = 256;
-    font->heap.glyphs = calloc( 256, sizeof(struct Glyph) );
-    font->heap.alphabet = calloc( 256, sizeof(bool) );
-    font->encoding.unicode = 0;
-    font->encoding.size = sizeof(char);
+void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character* symbols, struct Font* font) {
+    font->unicode = unicode;
     font->kerning = 0.2;
     font->linespacing = 0.2;
-    font->size = 0.33;
     font->color[0] = 1.0;
     font->color[1] = 1.0;
     font->color[2] = 1.0;
     font->color[3] = 1.0;
-    
-    int n = strlen(alphabet);
+
+    //int n = strlen(alphabet);
+
+    int n = wcslen(unicode_alphabet);
+    char ascii_alphabet[n + 1];
+    size_t size = wcstombs(ascii_alphabet, unicode_alphabet, n);
+    if( size >= n ) {
+        ascii_alphabet[n] = '\0';
+    }
 
     int max_h = 0;
     int widths[n];
     for( int i = 0; i < n; i++ ) {
-        char c = alphabet[i];
+        char c = ascii_alphabet[i];
         if( symbols[c].h > max_h ) {
             max_h = symbols[c].h;
         }
@@ -160,7 +49,7 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
     // w: 6     6     6     6     5     5   6   6   3   6   6   6   6
     // h: 7     7     7     7     7     7   7   7   7   7   7   7   7
     //
-    // 7*13 7*6+7 7*4+7 3*7+7 2*7+7 2*7+7 7+7 7+7 7+7 7+7 7+7 7+7   7 column_height 
+    // 7*13 7*6+7 7*4+7 3*7+7 2*7+7 2*7+7 7+7 7+7 7+7 7+7 7+7 7+7   7 column_height
     //    6    12    18    24    29     5  11  17  20  26  32   6  12 row_width
     //    8    16    32    32    32    32  32  32  32  32  32  32  32 power2
     //    12   18    24    29    34    11  17  20  26  32  38  12 nan row_width + widths[i+1]
@@ -172,7 +61,7 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
     int row_offsets[n];
     for( int i = 0; i < n; i++ ) {
         row_offsets[i] = row_width;
-        
+
         int column_height = max_h * (n / (i+1)) + (n % (i+1) > 0) * max_h;
 
         row_width += widths[i];
@@ -199,7 +88,7 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
         /*     texture[i*4+3] = 1.0; */
         /* } */
 
-        struct Character c = symbols[alphabet[0]];
+        struct Character c = symbols[ascii_alphabet[0]];
         for( int gy = 0; gy < c.h; gy++ ) {
             for( int gx = 0; gx < c.w; gx++ ) {
                 texture[(gy*power2+gx)*4+0] = 1.0 * c.pixels[gy*c.w+gx];
@@ -208,12 +97,12 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
                 texture[(gy*power2+gx)*4+3] = 1.0 * c.pixels[gy*c.w+gx];
             }
         }
-    
+
         for( int i = 0; i < n; i++ ) {
-            char c = alphabet[i];
-            font->heap.alphabet[c] = 1;
-            
-            struct Glyph* glyph = &font->heap.glyphs[c];
+            char c = ascii_alphabet[i];
+            font->alphabet[c] = 1;
+
+            struct Glyph* glyph = &font->glyphs[c];
 
             int offset_x = row_offsets[i];
             int offset_y = rows[i] * max_h;
@@ -244,12 +133,12 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
         }
 
         glGenTextures(1, &font->texture.id);
-    
+
         font->texture.width = power2;
         font->texture.height = power2;
         font->texture.type = GL_FLOAT;
         font->texture.format = GL_RGBA;
-    
+
         glBindTexture(GL_TEXTURE_2D, font->texture.id);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -298,21 +187,8 @@ struct Font* font_allocate_ascii(const char* alphabet, struct Character* symbols
                   });
 
 
-        if( ! font->shader.program ) {
-            font->shader.program = make_program(vertex_source, fragment_source);
-        }
-
-        return font;
+        font->shader.program = make_program(vertex_source, fragment_source);
     }
-
-    return NULL;
-}
-
-void font_delete(struct Font* font) {
-    glDeleteTextures(1,&font->texture.id);
-    
-    free(font->heap.glyphs);
-    free(font);
 }
 
 void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter) {
@@ -331,8 +207,7 @@ void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter) 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void text_put(const wchar_t* text, const struct Font* font, const Matrix projection_matrix, const Matrix view_matrix, const Matrix model_matrix) {
-
+void text_put(const wchar_t* text, const struct Font* font, float scale, const Matrix projection_matrix, const Matrix view_matrix, Matrix model_matrix) {
     static GLuint quad = 0;
     static GLuint vertices_id = 0;
     static GLuint texcoords_id = 0;
@@ -344,7 +219,7 @@ void text_put(const wchar_t* text, const struct Font* font, const Matrix project
           0.5, -0.5, 0.0,
           0.5, -0.5, 0.0,
           -0.5, -0.5, 0.0,
-          -0.5, 0.5, 0.0 };
+          -0.5, 0.5,  0.0 };
     GLfloat texcoords[6*2] =
         { 0.0, 1.0,
           1.0, 1.0,
@@ -353,8 +228,8 @@ void text_put(const wchar_t* text, const struct Font* font, const Matrix project
           0.0, 0.0,
           0.0, 1.0 };
     GLuint elements[6] =
-        { 0, 1, 2,
-          3, 4, 5 };
+        { 0, 2, 1,
+          3, 5, 4 };
 
     if( ! quad ) {
         glGenVertexArrays(1, &quad);
@@ -368,7 +243,7 @@ void text_put(const wchar_t* text, const struct Font* font, const Matrix project
         GLint vertex_position = glGetAttribLocation(font->shader.program, "vertex");
         glEnableVertexAttribArray(vertex_position);
         glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        
+
         // texcoords
         glGenBuffers(1, &texcoords_id);
         glBindBuffer(GL_ARRAY_BUFFER, texcoords_id);
@@ -390,28 +265,22 @@ void text_put(const wchar_t* text, const struct Font* font, const Matrix project
 
     if( quad && font->texture.id ) {
         glBindVertexArray(quad);
-        
+
         glUseProgram(font->shader.program);
 
         GLint color_loc = glGetUniformLocation(font->shader.program, "color");
         glUniform4f(color_loc, 1.0, 0.0, 0.0, 1.0);
 
         GLint normal_loc = glGetUniformLocation(font->shader.program, "normal");
-        glUniform3f(color_loc, 0.0, 0.0, 1.0);
+        glUniform3f(normal_loc, 0.0, 0.0, 1.0);
 
         GLint projection_loc = glGetUniformLocation(font->shader.program, "projection_matrix");
         glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix);
-        
+
         GLint view_loc = glGetUniformLocation(font->shader.program, "view_matrix");
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
 
         GLint diffuse_loc = glGetUniformLocation(font->shader.program, "diffuse");
-
-        /* printf("color_loc: %d\n", color_loc); */
-        /* printf("normal_loc: %d\n", normal_loc); */
-        /* printf("projection_loc: %d\n", projection_loc); */
-        /* printf("view_loc: %d\n", view_loc); */
-        /* printf("diffuse_loc: %d\n", diffuse_loc); */
 
         if( diffuse_loc > -1 ) {
             glUniform1i(diffuse_loc, 0);
@@ -422,57 +291,53 @@ void text_put(const wchar_t* text, const struct Font* font, const Matrix project
             GLint glyph_loc = glGetUniformLocation(font->shader.program, "glyph");
             GLint offset_loc = glGetUniformLocation(font->shader.program, "offset");
             GLint model_loc = glGetUniformLocation(font->shader.program, "model_matrix");
-            if( glyph_loc > -1 ) {
-                /* printf("glyph_loc: %d\n", glyph_loc); */
-                /* printf("offset_loc: %d\n", offset_loc); */
-                /* printf("model_loc: %d\n", model_loc); */
 
+            if( glyph_loc > -1 ) {
                 int length = wcslen(text);
                 char ascii[length + 1];
-                size_t size = wcstombs(ascii, text, length);
-                if( size >= length ) {
+                size_t textsize = wcstombs(ascii, text, length);
+                if( textsize >= length ) {
                     ascii[length] = '\0';
                 }
 
-                Matrix column_matrix;
-                matrix_identity(column_matrix);
-                Matrix row_matrix;
-                matrix_identity(row_matrix);
-                
-                float s = font->size;
-                matrix_scale(row_matrix, (Vec){ s, s, s, 1.0 }, row_matrix);
+                Vec4f cursor_vec = {0.0,0.0,0.0,1.0};
+                bool newline = 0;
                 for( int i = 0; i < length; i++ ) {
 
-                    struct Glyph* glyph = NULL;
-                    bool newline = 0;
-                    if( font->encoding.unicode ) {
+                    const struct Glyph* glyph = NULL;
+                    if( font->unicode ) {
                         wchar_t c = text[i];
-                        if( font->heap.alphabet[c] ) {
-                            glyph = &font->heap.glyphs[c];
-                        } else if( c == '\n' ) {
+                        if( c == '\n' ) {
                             newline = 1;
+                            continue;
+                        } else if( font->alphabet[c] ) {
+                            glyph = &font->glyphs[c];
                         }
                     } else {
                         char c = ascii[i];
-                        if( font->heap.alphabet[c] ) {
-                            glyph = &font->heap.glyphs[c];
-                        } else if( c == '\n' ) {
+                        if( c == '\n' ) {
                             newline = 1;
+                            continue;
+                        } else if( font->alphabet[(int)c] ) {
+                            glyph = &font->glyphs[(int)c];
                         }
                     }
 
-                    if( ! newline ) {
+                    if( newline && i > 0 ) {
+                        float y = 1.0 + font->linespacing;
+                        cursor_vec[0] = 0.0;
+                        cursor_vec[1] += y;
+                    } else if( ! newline && i > 0 ) {
                         float x = 1.0 - font->kerning;
-                        matrix_translate(column_matrix, (Vec){ x, 0.0, 0.0, 1.0 }, column_matrix);
-                    } else {
-                        float y = 1.0*s + font->linespacing*s;
-                        matrix_translate(row_matrix, (Vec){ 0.0, y, 0.0, 1.0 }, row_matrix);
-                        matrix_identity(column_matrix);
+                        cursor_vec[0] += x;
                     }
-                    
+                    newline = 0;
+
                     Matrix glyph_matrix;
-                    matrix_multiply(model_matrix, column_matrix, glyph_matrix);
-                    matrix_multiply(glyph_matrix, row_matrix, glyph_matrix);                    
+                    matrix_identity(glyph_matrix);
+                    matrix_translate(glyph_matrix, cursor_vec, glyph_matrix);
+                    matrix_scale(glyph_matrix, (Vec){ scale, scale, scale, 1.0 }, glyph_matrix);
+                    matrix_multiply(glyph_matrix, model_matrix, glyph_matrix);
 
                     if( glyph ) {
                         glUniformMatrix4fv(model_loc, 1, GL_FALSE, glyph_matrix);
@@ -488,6 +353,25 @@ void text_put(const wchar_t* text, const struct Font* font, const Matrix project
     }
 }
 
-void text_putscreen(const wchar_t* text, const struct Font* font, const Matrix projection_matrix, const Matrix view_matrix, int x, int y) {
-}
+void text_overlay(const wchar_t* text, const struct Font* font, int size, struct Camera camera, int x, int y) {
+    camera.type = orthographic;
+    Matrix ortho_projection, ortho_view;
+    camera_matrices(&camera, ortho_projection, ortho_view);
 
+    Matrix text_matrix;
+    matrix_identity(text_matrix);
+    matrix_rotate(text_matrix, camera.pivot.orientation, text_matrix);
+
+    Vec translation;
+    translation[0] = camera.frustum.left + fabs(camera.frustum.left - camera.frustum.right)/(float)camera.screen.width * (float)x;
+    translation[1] = camera.frustum.top + fabs(camera.frustum.bottom - camera.frustum.top)/(float)camera.screen.height * (float)y;
+    translation[2] = 0.0;
+    translation[3] = 1.0;
+    matrix_translate(text_matrix, translation, text_matrix);
+
+    float scale = (float)size/(float)camera.screen.height;
+
+    glDisable(GL_DEPTH_TEST);
+    text_put(text, font, scale, ortho_projection, ortho_view, text_matrix);
+    glEnable(GL_DEPTH_TEST);
+}
