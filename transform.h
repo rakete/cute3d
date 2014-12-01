@@ -37,4 +37,6 @@ void pivot_create(struct Pivot* pivot);
 
 void pivot_lookat(struct Pivot* pivot, Vec target);
 
+void pivot_transform(struct Pivot* pivot, Matrix transform);
+
 #endif
