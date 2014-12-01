@@ -9,7 +9,7 @@ void allegro_display(int width, int height, ALLEGRO_DISPLAY** display) {
     al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
     al_set_new_display_option(ALLEGRO_DEPTH_SIZE, 24, ALLEGRO_REQUIRE);
     al_set_new_display_flags(ALLEGRO_OPENGL);
-    
+
     (*display) = al_create_display(width, height);
 
     glViewport(0,0,width,height);
@@ -40,17 +40,33 @@ void allegro_flat_shader(struct Shader* shader) {
     shader_attribute(shader, normal_array, "normal");
 }
 
-void allegro_orbit_create(ALLEGRO_DISPLAY* display, Vec origin, Vec translation, struct Camera* camera) {    
+void allegro_orbit_create(ALLEGRO_DISPLAY* display, Vec origin, Vec translation, struct Camera* camera) {
     int width = al_get_display_width(display);
     int height = al_get_display_height(display);
-    
-    camera_create(camera, width, height);
-    camera_projection(camera, perspective);
+
+    camera_create(perspective, width, height, camera);
     //camera_projection(camera, orthographic_zoom);
-    camera_frustum(camera, -0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f);
+    camera_frustum(-0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f, camera);
 
     vector_add3f(camera->pivot.position, translation, camera->pivot.position);
     pivot_lookat(&camera->pivot, origin);
 }
 
+void allegro_fps_counter(const struct Font* font, const Matrix projection_matrix, const Matrix view_matrix, const Matrix model_matrix) {
+    static int frames_done = 0;
+    static double old_time = -1;
 
+    double fps = 0;
+    double game_time = al_get_time();
+
+    if( old_time < 0 ) {
+        old_time = game_time;
+    }
+
+    if( game_time - old_time >= 1.0 ) {
+        fps = frames_done / (game_time - old_time);
+        frames_done = 0;
+        old_time = game_time;
+    }
+    frames_done++;
+}
