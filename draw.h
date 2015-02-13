@@ -21,9 +21,7 @@
 #include "stdlib.h"
 #include "string.h"
 
-#include "GL/glew.h"
-#include "GL/gl.h"
-
+#include "ogl.h"
 #include "math_types.h"
 #include "matrix.h"
 #include "quaternion.h"

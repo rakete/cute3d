@@ -42,7 +42,7 @@ struct Camera {
         float right;
         float top;
         float bottom;
-        
+
         float zNear;
         float zFar;
     } frustum;

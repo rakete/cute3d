@@ -22,9 +22,7 @@
 #include "string.h"
 #include "wchar.h"
 
-#include "GL/glew.h"
-#include "GL/gl.h"
-
+#include "ogl.h"
 #include "glsl.h"
 #include "math_types.h"
 #include "ascii.h"

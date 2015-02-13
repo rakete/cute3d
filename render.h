@@ -17,9 +17,7 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-#include "GL/glew.h"
-#include "GL/gl.h"
-
+#include "ogl.h"
 #include "camera.h"
 #include "shader.h"
 #include "geometry.h"

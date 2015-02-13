@@ -19,9 +19,7 @@
 
 #include "stdio.h"
 
-#include "GL/glew.h"
-#include "GL/gl.h"
-
+#include "ogl.h"
 #include "glsl.h"
 
 #ifndef SHADER_UNIFORMS
@@ -47,7 +45,7 @@ struct Shader {
     struct {
         char name[256];
     } uniform[SHADER_UNIFORMS];
-    
+
     struct {
         char name[256];
     } attribute[SHADER_ATTRIBUTES];

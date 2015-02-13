@@ -22,8 +22,7 @@
 #include "string.h"
 #include "math.h"
 
-#include "GL/glew.h"
-#include "GL/gl.h"
+#include "ogl.h"
 
 #ifndef NUM_PHASES
 #define NUM_PHASES 1
@@ -77,7 +76,7 @@ struct Vbo {
 
     GLint capacity; // size of the whole buffer
     GLint reserved; // actual used space by meshes
-    
+
     struct {
         uint32_t phase;
         int32_t dirty[NUM_PHASES];
@@ -134,7 +133,7 @@ struct Mesh {
     struct {
         GLenum type; // something like GL_TRIANGLES
         GLint size; // how many elements per primitive
-        
+
         // this is the buffer that contains the actual indices making up the primitives
         struct IndexBuffer {
             GLuint id; // index buffer
