@@ -18,11 +18,23 @@
 
 #include "quaternion.h"
 
-void quat_identity(Quat quat) {
-    quat[0] = 0.0;
-    quat[1] = 0.0;
-    quat[2] = 0.0;
-    quat[3] = 1.0;
+void quat_copy(const Quat q, Quat r) {
+    r[0] = q[0];
+    r[1] = q[1];
+    r[2] = q[2];
+    r[3] = q[3];
+}
+
+void quat_identity(Quat q) {
+    q[0] = 0.0;
+    q[1] = 0.0;
+    q[2] = 0.0;
+    q[3] = 1.0;
+}
+
+QuatP qidentity(Quat q) {
+    quat_identity(q);
+    return q;
 }
 
 bool quat_rotation(const Vec axis, const float angle, Quat q) {
@@ -74,12 +86,12 @@ void quat_apply_vec(const Quat q, const Vec vec, Vec r) {
     normed_vec[3] = 1.0;
 
     Quat product;
-    quat_product(quat, normed_vec, product);
+    quat_product(q, normed_vec, product);
 
     Quat conj;
-    quat_conjugate(quat, conj);
-        
-    quat_product(product, conj, result);
+    quat_conjugate(q, conj);
+
+    quat_product(product, conj, r);
 }
 
 void quat_apply_vec3f(const Quat q, const Vec3f vec, Vec3f r) {
@@ -97,28 +109,45 @@ void quat_apply_vec3f(const Quat q, const Vec3f vec, Vec3f r) {
     r[2] = result4f[2];
 }
 
-void quat_product(const Quat qa, const Quat qb, Quat result) {
+void quat_product(const Quat qa, const Quat qb, Quat r) {
     float x1,y1,z1,w1,x2,y2,z2,w2;
     x1 = qa[0];  y1 = qa[1];  z1 = qa[2];  w1 = qa[3];
     x2 = qb[0];  y2 = qb[1];  z2 = qb[2];  w2 = qb[3];
-  
+
     float qw = w1*w2 - x1*x2 - y1*y2 - z1*z2;
     float qx = w1*x2 + x1*w2 + y1*z2 - z1*y2;
     float qy = w1*y2 - x1*z2 + y1*w2 + z1*x2;
     float qz = w1*z2 + x1*y2 - y1*x2 + z1*w2;
-  
-    result[0] = qx;
-    result[1] = qy;
-    result[2] = qz;
-    result[3] = qw;
+
+    r[0] = qx;
+    r[1] = qy;
+    r[2] = qz;
+    r[3] = qw;
 }
 
-void quat_dot(const Quat qa, const Quat qb, float* result) {
+QuatP qproduct(const Quat qa, Quat qb) {
+    quat_product(qa,qb,qb);
+    return qb;
+}
+
+void quat_product1f(float qa, const Quat qb, Quat r) {
+    r[0] = qa*qb[0];
+    r[1] = qa*qb[1];
+    r[2] = qa*qb[2];
+    r[3] = qa*qb[3];
+}
+
+QuatP qproduct1f(float qa, Quat qb) {
+    vector_multiply1f(qa,qb,qb);
+    return qb;
+}
+
+void quat_dot(const Quat qa, const Quat qb, QuatP r) {
     float x1,y1,z1,w1,x2,y2,z2,w2;
     x1 = qa[0];  y1 = qa[1];  z1 = qa[2];  w1 = qa[3];
     x2 = qb[0];  y2 = qb[1];  z2 = qb[2];  w2 = qb[3];
 
-    *result = w1*w2 + x1*x2 + y1*y2 + z1*z2;
+    *r = w1*w2 + x1*x2 + y1*y2 + z1*z2;
 }
 
 float qdot(const Quat qa, const Quat qb) {
@@ -127,41 +156,56 @@ float qdot(const Quat qa, const Quat qb) {
     return dot;
 }
 
-void quat_conjugate(const Quat quat, Quat result) {
-    result[0] = -quat[0];
-    result[1] = -quat[1];
-    result[2] = -quat[2];
-    result[3] = quat[3];
+void quat_conjugate(const Quat q, Quat r) {
+    r[0] = -q[0];
+    r[1] = -q[1];
+    r[2] = -q[2];
+    r[3] = q[3];
 }
 
-void quat_invert(const Quat quat, Quat result) {
+void quat_invert(const Quat q, Quat r) {
     Quat conj;
-    quat_conjugate(quat, conj);
+    quat_conjugate(q, conj);
 
-    /* result[0] = conj[0] * (1 / qdot( quat, conj ) ); */
-    /* result[1] = conj[1] * (1 / qdot( quat, conj ) ); */
-    /* result[2] = conj[2] * (1 / qdot( quat, conj ) ); */
-    /* result[3] = conj[3] * (1 / qdot( quat, conj ) ); */
-    
-    result[0] = conj[0] / pow(qmagnitude(quat), 2.0);
-    result[1] = conj[1] / pow(qmagnitude(quat), 2.0);
-    result[2] = conj[2] / pow(qmagnitude(quat), 2.0);
-    result[3] = conj[3] / pow(qmagnitude(quat), 2.0);
+    /* r[0] = conj[0] * (1 / qdot( q, conj ) ); */
+    /* r[1] = conj[1] * (1 / qdot( q, conj ) ); */
+    /* r[2] = conj[2] * (1 / qdot( q, conj ) ); */
+    /* r[3] = conj[3] * (1 / qdot( q, conj ) ); */
+
+    r[0] = conj[0] / pow(qmagnitude(q), 2.0);
+    r[1] = conj[1] / pow(qmagnitude(q), 2.0);
+    r[2] = conj[2] / pow(qmagnitude(q), 2.0);
+    r[3] = conj[3] / pow(qmagnitude(q), 2.0);
 }
 
-void quat_magnitude(const Quat quat, float* result) {
-  *result = sqrt( qdot(quat, quat) );
+void quat_magnitude(const Quat q, QuatP r) {
+  *r = sqrt( qdot(q, q) );
 }
 
-float qmagnitude(const Quat quat) {
+void quat_normalize(const Quat q, Quat r) {
+    float norm;
+    quat_magnitude(q, &norm);
+
+    r[0] = q[0] / norm;
+    r[1] = q[1] / norm;
+    r[2] = q[2] / norm;
+    r[3] = q[3] / norm;
+}
+
+QuatP qnormalize(Quat q) {
+    quat_magnitude(q, q);
+    return q;
+}
+
+float qmagnitude(const Quat q) {
     float magnitude;
-    quat_magnitude(quat, &magnitude);
+    quat_magnitude(q, &magnitude);
     return magnitude;
 }
 
-void quat_matrix(const Quat quat, const Matrix m, Matrix result) {
+void quat_matrix(const Quat q, const Matrix m, Matrix r) {
     float x,y,z,w;
-    w = quat[3]; x = quat[0]; y = quat[1]; z = quat[2];
+    w = q[3]; x = q[0]; y = q[1]; z = q[2];
 
     float xx = x*x;
     float xy = x*y;
@@ -187,12 +231,47 @@ void quat_matrix(const Quat quat, const Matrix m, Matrix result) {
     /* printf("%f %f %f %f\n", n[1], n[5], n[9], n[13]); */
     /* printf("%f %f %f %f\n", n[2], n[6], n[10], n[14]); */
     /* printf("%f %f %f %f\n", n[3], n[7], n[11], n[15]); */
-    
-    matrix_multiply(m,n,result);
+
+    matrix_multiply(m,n,r);
 }
 
-float* qmatrix(const Quat quat, Matrix m) {
-    quat_matrix(quat,m,m);
+QuatP qmatrix(const Quat q, Matrix m) {
+    quat_matrix(q,m,m);
     return m;
 }
 
+void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
+    assert(t>=0);
+    assert(t<=1);
+
+    float flip = 1;
+
+    float cosine = qa[0]*qb[0] + qa[1]*qb[1] + qa[2]*qb[2] + qa[3]*qb[3];
+
+    if( cosine < 0 ) {
+        cosine = -cosine;
+        flip = -1;
+    }
+
+    const float epsilon = 0.00001f;
+    Quat ua,ub;
+    if( (1 - cosine) < epsilon ) {
+        vector_multiply1f(1-t, qa, ua);
+        vector_multiply1f(t*flip, qb, ub);
+        vector_add(ua, ub, r);
+    }
+
+    float theta = (float)acos(cosine);
+    float sine = (float)sin(theta);
+    float beta = (float)sin((1-t)*theta) / sine;
+    float alpha = (float)sin(t*theta) / sine * flip;
+
+    vector_multiply1f(beta, qa, ua);
+    vector_multiply1f(alpha, qb, ub);
+    vector_add(ua, ub, r);
+}
+
+QuatP qslerp(const Quat qa, Quat qb, float t) {
+    quat_slerp(qa, qb, t, qb);
+    return qb;
+}
