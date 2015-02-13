@@ -23,20 +23,15 @@
 struct Pivot {
     Vec position;
     Quat orientation;
-    float scale;
-    
+
     float zoom;
     float eye_distance;
-
-    Vec forward;
-    Vec up;
-    Vec left;
 };
 
 void pivot_create(struct Pivot* pivot);
+void pivot_lookat(struct Pivot* pivot, const Vec target);
 
-void pivot_lookat(struct Pivot* pivot, Vec target);
-
-void pivot_transform(struct Pivot* pivot, Matrix transform);
+void pivot_world_transform(struct Pivot pivot, Matrix world_transform);
+void pivot_body_transform(struct Pivot pivot, Matrix body_transform);
 
 #endif
