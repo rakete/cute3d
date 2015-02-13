@@ -21,6 +21,10 @@
 #define PI_OVER_180 0.017453292519943295769236907684886
 #define PI_OVER_360 0.0087266462599716478846184538424431
 
+typedef float* VecP;
+typedef float* MatrixP;
+typedef float* QuatP;
+
 typedef float Vec[4];
 typedef float Vec3f[3];
 typedef float Vec4f[4];
