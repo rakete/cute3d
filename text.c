@@ -187,7 +187,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
                   });
 
 
-        font->shader.program = make_program(vertex_source, fragment_source);
+        font->shader.program = glsl_make_program(vertex_source, fragment_source);
     }
 }
 

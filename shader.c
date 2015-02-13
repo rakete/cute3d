@@ -31,15 +31,15 @@ int init_shader() {
 
 struct Shader* shader_create(struct Shader* p, const char* vertex_file, const char* fragment_file) {
     if( vertex_file && fragment_file ) {
-        p->vertex_shader = compile_file(GL_VERTEX_SHADER, vertex_file);
-        p->fragment_shader = compile_file(GL_FRAGMENT_SHADER, fragment_file);
+        p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, vertex_file);
+        p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, fragment_file);
     } else {
-        p->vertex_shader = compile_file(GL_VERTEX_SHADER, "shader/default.vert");
-        p->fragment_shader = compile_file(GL_FRAGMENT_SHADER, "shader/default.frag");
+        p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, "shader/default.vert");
+        p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, "shader/default.frag");
     }
 
     if( p->vertex_shader > 0 && p->fragment_shader > 0 ) {
-        p->program = link_program(p->vertex_shader, p->fragment_shader);
+        p->program = glsl_link_program(p->vertex_shader, p->fragment_shader);
     } else {
         p->program = 0;
     }

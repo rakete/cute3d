@@ -16,7 +16,7 @@
 
 #include "glsl.h"
 
-void debug_info_log( GLuint object,
+void glsl_debug_info_log( GLuint object,
                      PFNGLGETSHADERIVPROC glGet__iv,
                      PFNGLGETSHADERINFOLOGPROC glGet__InfoLog )
 {
@@ -30,7 +30,7 @@ void debug_info_log( GLuint object,
     free(log);
 }
 
-GLuint compile_source(GLenum type, const char* source, GLsizei length) {
+GLuint glsl_compile_source(GLenum type, const char* source, GLsizei length) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, (const GLchar**)&source, &length);
     glCompileShader(shader);
@@ -39,29 +39,29 @@ GLuint compile_source(GLenum type, const char* source, GLsizei length) {
     glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_ok);
     if ( ! shader_ok ) {
         fprintf(stderr, "Failed to compile: %s\n", source);
-        debug_info_log(shader, glGetShaderiv, glGetShaderInfoLog);
+        glsl_debug_info_log(shader, glGetShaderiv, glGetShaderInfoLog);
         glDeleteShader(shader);
         return 0;
     }
-    
+
     return shader;
 }
 
-GLuint compile_file(GLenum type, const char* filename) {
+GLuint glsl_compile_file(GLenum type, const char* filename) {
     GLsizei length;
     GLchar* source = read_file(filename, &length);
 
     if(!source) return 0;
 
     fprintf(stderr, "Compiling: %s\n", filename);
-    GLuint id = compile_source(type, source, length);
+    GLuint id = glsl_compile_source(type, source, length);
     if( ! id ) {
         fprintf(stderr, "Compilation failed in: %s\n", filename);
     }
     return id;
 }
 
-GLuint link_program(GLuint vertex_shader, GLuint fragment_shader) {
+GLuint glsl_link_program(GLuint vertex_shader, GLuint fragment_shader) {
     GLuint program = glCreateProgram();
     glAttachShader(program, vertex_shader);
     glAttachShader(program, fragment_shader);
@@ -71,7 +71,7 @@ GLuint link_program(GLuint vertex_shader, GLuint fragment_shader) {
     glGetProgramiv(program, GL_LINK_STATUS, &program_ok);
     if (!program_ok) {
         fprintf(stderr, "Failed to link shader program:\n");
-        debug_info_log(program, glGetProgramiv, glGetProgramInfoLog);
+        glsl_debug_info_log(program, glGetProgramiv, glGetProgramInfoLog);
         glDeleteProgram(program);
         return 0;
     }
@@ -79,11 +79,11 @@ GLuint link_program(GLuint vertex_shader, GLuint fragment_shader) {
     return program;
 }
 
-GLuint make_program(const char *vertex_source, const char* fragment_source) {
+GLuint glsl_make_program(const char *vertex_source, const char* fragment_source) {
     GLsizei length_vertex = strlen(vertex_source);
     GLsizei length_fragment = strlen(fragment_source);
-    GLuint vertex = compile_source(GL_VERTEX_SHADER, vertex_source, length_vertex);
-    GLuint fragment = compile_source(GL_FRAGMENT_SHADER, fragment_source, length_fragment);
+    GLuint vertex = glsl_compile_source(GL_VERTEX_SHADER, vertex_source, length_vertex);
+    GLuint fragment = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source, length_fragment);
 
-    return link_program(vertex, fragment);
+    return glsl_link_program(vertex, fragment);
 }

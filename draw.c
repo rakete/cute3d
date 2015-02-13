@@ -43,7 +43,7 @@ void draw_grid( int instances,
 
     static GLuint program = 0;
     if( ! program ) {
-        program = make_program(vertex_source, fragment_source);
+        program = glsl_make_program(vertex_source, fragment_source);
     }
 
     static GLuint grid[0xffff] = {};
@@ -164,7 +164,7 @@ void draw_normals_array( float* vertices,
 
     static GLuint program = 0;
     if( ! program ) {
-        program = make_program(vertex_source, fragment_source);
+        program = glsl_make_program(vertex_source, fragment_source);
     }
 
     static GLuint arrow = 0;
@@ -291,7 +291,7 @@ void draw_texture_quad( GLuint texture_id,
 
     static GLuint program = 0;
     if( ! program ) {
-        program = make_program(vertex_source, fragment_source);
+        program = glsl_make_program(vertex_source, fragment_source);
     }
 
     static GLuint quad = 0;
