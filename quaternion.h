@@ -24,7 +24,7 @@
 #include "matrix.h"
 
 void quat_identity(Quat quat);
-bool rotation_quat(const Vec axis, const float angle, Quat quat);
+void quat_copy(const Quat q, Quat r);
 
 void quat_rotate(const Quat quat, const Vec vec, Vec result);
 void quat_rotate3f(const Quat quat, const Vec3f vec, Vec3f result);

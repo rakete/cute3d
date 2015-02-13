@@ -5,7 +5,7 @@
 void mesh_from_solid(struct Solid* solid, float color[4], struct Mesh* mesh) {
     solid_colors(solid,color);
     solid_normals(solid);
-    
+
     mesh_append(mesh, vertex_array, solid->vertices, solid->size);
     mesh_append(mesh, normal_array, solid->normals, solid->size);
     mesh_append(mesh, color_array, solid->colors, solid->size);
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     if( ! init_geometry() ) {
         return 1;
     }
-    
+
     struct Vbo vbo;
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, vertex_array, 3, GL_FLOAT, GL_STATIC_DRAW);
@@ -45,10 +45,10 @@ int main(int argc, char *argv[]) {
     solid_sphere32(&sphere32);
 
     struct Mesh tetrahedron_mesh,hexahedron_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
-    
+
     mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &tetrahedron_mesh);
     mesh_from_solid((struct Solid*)&tetrahedron, (Color){1.0,0.0,0.0,1.0}, &tetrahedron_mesh);
-    
+
     mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &hexahedron_mesh);
     mesh_from_solid((struct Solid*)&hexahedron, (Color){0.0,1.0,0.0,1.0}, &hexahedron_mesh);
 
@@ -96,14 +96,14 @@ int main(int argc, char *argv[]) {
 
         Matrix identity;
         matrix_identity(identity);
-        
+
         Matrix tetrahedron_transform, hexahedron_transform, cube_transform, sphere16_transform, sphere32_transform;
         matrix_translate(identity, (float[4]){ 0.0, 0.0, 0.0, 1.0 }, tetrahedron_transform);
         matrix_translate(identity, (float[4]){ -3.0, 0.0, 0.0, 1.0 }, hexahedron_transform);
         matrix_translate(identity, (float[4]){ 3.0, 0.0, 0.0, 1.0 }, cube_transform);
         matrix_translate(identity, (float[4]){ -1.5, -3.0, 0.0, 1.0 }, sphere16_transform);
         matrix_translate(identity, (float[4]){ 1.5, -3.0, 0.0, 1.0 }, sphere32_transform);
-        
+
         render_mesh(&tetrahedron_mesh, &shader, &camera, tetrahedron_transform);
         render_mesh(&hexahedron_mesh, &shader, &camera, hexahedron_transform);
         render_mesh(&cube_mesh, &shader, &camera, cube_transform);

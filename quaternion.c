@@ -25,30 +25,34 @@ void quat_identity(Quat quat) {
     quat[3] = 1.0;
 }
 
-bool rotation_quat(const Vec axis, const float angle, Quat quat) {
+bool quat_rotation(const Vec axis, const float angle, Quat q) {
     if( ( axis[0] == 0.0 && axis[1] == 0.0 && axis[2] == 0.0 ) ||
         angle == 0.0 )
     {
-        quat_identity(quat);
+        quat_identity(q);
         return 0;
     }
-    
+
     Vec normed_axis;
     float norm = sqrt( axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2] );
     normed_axis[0] = axis[0] / norm;
     normed_axis[1] = axis[1] / norm;
     normed_axis[2] = axis[2] / norm;
     normed_axis[3] = 1.0;
-    
-    quat[0] = normed_axis[0] * sin(angle/2);
-    quat[1] = normed_axis[1] * sin(angle/2);
-    quat[2] = normed_axis[2] * sin(angle/2);
-    quat[3] = cos(angle/2);
+
+    q[0] = normed_axis[0] * sin(angle/2);
+    q[1] = normed_axis[1] * sin(angle/2);
+    q[2] = normed_axis[2] * sin(angle/2);
+    q[3] = cos(angle/2);
 
     return 1;
 }
 
 void quat_rotate(const Quat quat, const Vec vec, Vec result) {
+QuatP qrotation(const Vec axis, const float angle, Quat q) {
+    quat_rotation(axis, angle, q);
+    return q;
+}
     Vec normed_vec;
     float norm = sqrt( vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2] );
     normed_vec[0] = vec[0] / norm;
