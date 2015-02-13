@@ -41,17 +41,17 @@ typedef float Quat[4];
 
 typedef float Color[4];
 
-#define flt(v) flt4f(v)
-#define flt3f(v) (Vec3f){(float)v[0], (float)v[1], (float)v[2]}
-#define flt4f(v) (Vec4f){(float)v[0], (float)v[1], (float)v[2], (float)v[3]}
+#define vecf(v) vec4f(v)
+#define vec3f(v) (Vec3f){(float)v[0], (float)v[1], (float)v[2]}
+#define vec4f(v) (Vec4f){(float)v[0], (float)v[1], (float)v[2], (float)v[3]}
 
-#define fltm(m) flt4x4f(m)
-#define flt4x4f(m)                                                      \
+#define matf(m) mat4x4f(m)
+#define mat4x4f(m)                                                      \
     (Matrix4f){(float)m[0], (float)m[1], (float)m[2], (float)m[3],      \
             (float)m[4], (float)m[5], (float)m[6], (float)m[7],         \
             (float)m[8], (float)m[9], (float)m[10], (float)m[11],       \
             (float)m[12], (float)m[13], (float)m[14], (float)m[15] }
-#define flt3x3f(m)                                                      \
+#define mat3x3f(m)                                                      \
     (Matrix3f){(float)m[0], (float)m[1], (float)m[2],                   \
             (float)m[3], (float)m[4], (float)m[5],                      \
             (float)m[6], (float)m[7], (float)m[8] }
