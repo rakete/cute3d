@@ -94,28 +94,10 @@ int main(int argc, char** argv) {
     printf("camera->projection: %d\n", default_camera.type);
     camera_frustum(-0.5f, 0.5f, -0.28125f, 0.28125f, 1.0f, 200.0f, &default_camera);
 
-    /* Quat rotation; */
-    /* rotation_quat((float[]){ 1.0, 0.0, 0.0, 1.0 }, 90 * PI/180, rotation); */
-    /* quat_product(default_camera.pivot.orientation, rotation, default_camera.pivot.orientation); */
-
-    Vec translation = { 0.0, 5.0, -8.0 };
+    Vec translation = { 0.0, 4.0, -8.0 };
     vector_add3f(default_camera.pivot.position, translation, default_camera.pivot.position);
     Vec origin = { 0.0, 0.0, 0.0, 1.0 };
     pivot_lookat(&default_camera.pivot, origin);
-
-    /* struct Tetrahedron tetrahedron; */
-    /* solid_tetrahedron(&tetrahedron); */
-    /* solid_colors((struct Solid*)&tetrahedron, (float[4]){ 0, 1.0, 0, 1.0 }); */
-    /* solid_normals((struct Solid*)&tetrahedron); */
-
-    /* struct Mesh tetrahedron_mesh; */
-    /* mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &tetrahedron_mesh); */
-    /* mesh_append(&tetrahedron_mesh, vertex_array, tetrahedron.vertices, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size); */
-    /* mesh_append(&tetrahedron_mesh, color_array, tetrahedron.colors, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size); */
-    /* mesh_append(&tetrahedron_mesh, normal_array, tetrahedron.normals, tetrahedron.solid.faces.num * tetrahedron.solid.faces.size); */
-    /* mesh_faces(&tetrahedron_mesh, tetrahedron.elements, tetrahedron.solid.faces.num); */
-
-    /* dump_mesh(&tetrahedron_mesh, stdout); */
 
     struct Cube cube;
     solid_hexahedron(&cube);
@@ -131,31 +113,18 @@ int main(int argc, char** argv) {
 
     dump_mesh(&cube_mesh, stdout);
 
-    /* struct Sphere32 sphere; */
-    /* solid_sphere32(&sphere); */
-    /* solid_colors((struct Solid*)&sphere, (float[4]){ 0.4, 0.7, 1.0, 1.0 }); */
-    /* solid_normals((struct Solid*)&sphere); */
-
-    /* struct Mesh sphere_mesh; */
-    /* mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere_mesh); */
-    /* mesh_append(&sphere_mesh, vertex_array, sphere.vertices, sphere.solid.faces.num * sphere.solid.faces.size); */
-    /* mesh_append(&sphere_mesh, color_array, sphere.colors, sphere.solid.faces.num * sphere.solid.faces.size); */
-    /* mesh_append(&sphere_mesh, normal_array, sphere.normals, sphere.solid.faces.num * sphere.solid.faces.size); */
-    /* mesh_faces(&sphere_mesh, sphere.elements, sphere.solid.faces.num); */
-
-    /* dump_mesh(&sphere_mesh, stdout); */
-
     struct Character symbols[256];
     ascii_create(symbols);
 
     struct Font foo;
-    font_create(L"AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz", false, symbols, &foo);
-    //font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, &foo);
+    font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, &foo);
 
     double fps = 0;
     int frames_done = 0;
     double old_time = al_get_time();
 
+    Quat cube_spinning;
+    qidentity(cube_spinning);
     while( true ) {
         /* Check for ESC key or close button event and quit in either case. */
         if( ! al_is_event_queue_empty(queue) ) {
@@ -179,43 +148,31 @@ int main(int argc, char** argv) {
         Matrix projection_mat, view_mat;
         camera_matrices(&default_camera, projection_mat, view_mat);
 
-        Matrix model_grid[2];
-        matrix_identity(model_grid[0]);
-        matrix_identity(model_grid[1]);
-        Vec scaling1 = { 8.0, 8.0, 1.0, 1.0 };
-        matrix_scale(model_grid[0], scaling1, model_grid[0]);
-        Vec scaling2 = { 2.0, 2.0, 1.0, 1.0 };
-        matrix_scale(model_grid[1], scaling2, model_grid[1]);
-
         Matrix identity;
         matrix_identity(identity);
 
-        Vec light_direction = { 0.2, 0.5, 1.0 };
+        Vec light_direction = { 2.5, -1.0, 1.5 };
         shader_uniform(&default_shader, "light_direction", "3f", light_direction);
 
         Color ambiance = { .1, .1, .3, 1.0 };
         shader_uniform(&default_shader, "ambiance", "4f", ambiance);
 
-
-        //draw_grid(2, 16, (float[4]){.4, .4, .4, 1}, projection_mat, view_mat, model_grid);
-        //render_mesh(&triangle_mesh, &default_shader, &default_camera, identity);
-
-        /* Matrix tet_left; */
-        /* matrix_identity(tet_left); */
-        /* matrix_translate(tet_left, (Color){ 1.0, -1.0, 0.0, 1.0 }, tet_left); */
-        /* render_mesh(&tetrahedron_mesh, &default_shader, &default_camera, tet_left); */
-        /* draw_normals_array(tetrahedron.vertices, */
-        /*                     tetrahedron.normals, */
-        /*                     tetrahedron.solid.faces.num * tetrahedron.solid.faces.size, */
-        /*                     (Color){ 0.0, 1.0, 1.0, 1.0 }, */
-        /*                     projection_mat, */
-        /*                     view_mat, */
-        /*                     tet_left); */
-
         Matrix cube_transform;
         matrix_identity(cube_transform);
 
+        Quat cube_rotation;
+        qidentity(cube_rotation);
+        qrotate((float[]){ 0.0, 0.0, 1.0, 1.0 }, 45 * PI/180, cube_rotation);
+        qrotate((float[]){ 0.0, 1.0, 0.0, 1.0 }, 1 * PI/180, cube_spinning);
+        quat_product(cube_rotation, cube_spinning, cube_rotation);
+
+        printf("%f %f %f %f\n", cube_spinning[0], cube_spinning[1], cube_spinning[2], cube_spinning[3]);
+
+        qmatrix(cube_rotation, cube_transform);
+
+
         matrix_translate(cube_transform, (Vec){ -2.0, 0.0, 0.0, 1.0 }, cube_transform);
+
         render_mesh(&cube_mesh, &default_shader, &default_camera, cube_transform);
         draw_normals_array(cube.vertices,
                            cube.normals,
