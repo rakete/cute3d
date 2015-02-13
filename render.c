@@ -18,7 +18,7 @@
 
 void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const struct Camera* camera, Matrix model_matrix) {
     glUseProgram(shader->program);
-    
+
     Matrix projection_matrix;
     Matrix view_matrix;
     matrix_identity(projection_matrix);
@@ -27,17 +27,17 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
     if( camera ) {
         camera_matrices(camera,projection_matrix,view_matrix);
     }
-    
+
     GLint projection_loc = glGetUniformLocation(shader->program, "projection_matrix");
     if( projection_loc > -1 ) {
         glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix);
     }
-    
+
     GLint view_loc = glGetUniformLocation(shader->program, "view_matrix");
     if( view_loc > -1 ) {
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
     }
-    
+
     GLint model_loc = glGetUniformLocation(shader->program, "model_matrix");
     bool free_model_matrix = 0;
     if( ! model_matrix ) {
@@ -62,9 +62,9 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
         /* } */
         if( mesh->vbo->buffer[array_id].id && loc[array_id] > -1 ) {
             glEnableVertexAttribArray(loc[array_id]);
-            
+
             glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[array_id].id);
-            
+
             GLint c_num = mesh->vbo->components[array_id].size;
             GLint c_type = mesh->vbo->components[array_id].type;
             GLsizei c_bytes = mesh->vbo->components[array_id].bytes;
@@ -79,11 +79,18 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
     glDrawElements(mesh->primitives.type, mesh->primitives.buffer->used, mesh->index.type, 0);
 
     for( int array_id = 0; array_id < NUM_BUFFERS; array_id++ ) {
-        if( loc[array_id] > -1 ) { 
+        if( loc[array_id] > -1 ) {
             glDisableVertexAttribArray(loc[array_id]);
         }
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void render_shader_flat(struct Shader* shader) {
+    shader_create(shader, "shader/flat.vert", "shader/flat.frag");
+    shader_attribute(shader, vertex_array, "vertex");
+    shader_attribute(shader, color_array, "color");
+    shader_attribute(shader, normal_array, "normal");
 }

@@ -33,13 +33,6 @@ void allegro_events(ALLEGRO_DISPLAY* display, ALLEGRO_EVENT_QUEUE** queue) {
     al_register_event_source((*queue), al_get_display_event_source(display));
 }
 
-void allegro_flat_shader(struct Shader* shader) {
-    shader_create(shader, "shader/flat.vert", "shader/flat.frag");
-    shader_attribute(shader, vertex_array, "vertex");
-    shader_attribute(shader, color_array, "color");
-    shader_attribute(shader, normal_array, "normal");
-}
-
 void allegro_orbit_create(ALLEGRO_DISPLAY* display, Vec origin, Vec translation, struct Camera* camera) {
     int width = al_get_display_width(display);
     int height = al_get_display_height(display);

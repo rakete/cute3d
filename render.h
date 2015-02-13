@@ -26,4 +26,6 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
 
 //void render_sprite(struct Sprite* sprite, struct Shader* shader, struct Camera* camera, Matrix model_matrix);
 
+void render_shader_flat(struct Shader* shader);
+
 #endif
