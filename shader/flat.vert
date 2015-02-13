@@ -2,6 +2,7 @@
 
 uniform mat4 projection_matrix;
 uniform mat4 model_matrix;
+uniform mat4 normal_matrix;
 uniform mat4 view_matrix;
 
 in vec3 vertex;
@@ -15,7 +16,12 @@ uniform vec3 light_direction;
 smooth out float intensity;
 
 void main() {
-    intensity = (1 + dot(light_direction, normal)) / 2;
-    gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex,1.0);
+    mat4 mvp = projection_matrix * view_matrix * model_matrix;
+
+    intensity = (1.0 + dot(vec4(normalize(light_direction), 0.0),
+                           normalize(normal_matrix * vec4(normal,0.0)))) / 2.0;
+
+    gl_Position = mvp * vec4(vertex,1.0);
+
     frag_color = color;
 }

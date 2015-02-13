@@ -45,9 +45,17 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
         matrix_identity(model_matrix);
         free_model_matrix = 1;
     }
-    
+
     if( model_loc > -1 ) {
         glUniformMatrix4fv(model_loc, 1, GL_FALSE, model_matrix);
+    }
+
+    GLint normal_loc = glGetUniformLocation(shader->program, "normal_matrix");
+    if( ! free_model_matrix ) {
+        Matrix normal_matrix;
+        matrix_invert(model_matrix, normal_matrix, NULL);
+        matrix_transpose(normal_matrix, normal_matrix);
+        glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix);
     }
 
     if( free_model_matrix ) {
