@@ -17,10 +17,6 @@
 #include "geometry.h"
 
 int init_geometry() {
-    const char* gl_version = (const char*)glGetString(GL_VERSION);
-
-    printf("%s\n", gl_version);
-
     int ret = 1;
 
     glewInit();

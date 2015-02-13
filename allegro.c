@@ -11,6 +11,8 @@ void allegro_display(int width, int height, ALLEGRO_DISPLAY** display) {
     al_set_new_display_flags(ALLEGRO_OPENGL);
 
     (*display) = al_create_display(width, height);
+    const char* gl_version = (const char*)glGetString(GL_VERSION);
+    printf("%s\n", gl_version);
 
     glViewport(0,0,width,height);
     glDepthMask(GL_TRUE);
