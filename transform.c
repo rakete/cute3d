@@ -20,6 +20,7 @@ void pivot_create(struct Pivot* pivot) {
     pivot->position[0] = 0.0;
     pivot->position[1] = 0.0;
     pivot->position[2] = 0.0;
+    pivot->position[3] = 1.0;
 
     pivot->orientation[0] = 0.0;
     pivot->orientation[1] = 0.0;
