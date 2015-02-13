@@ -19,6 +19,7 @@
 #define SYMBOLS "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 // palette: bnw
+// format: rgb
 static float palette[1*8*3] = {
     0.0, 0.0, 0.0,
     1.0, 1.0, 1.0,
@@ -554,11 +555,11 @@ struct Character char_q() {
     // bitmap: char_q
     // using: bnw
     static int pixels[5*6] = {
-        0, 0, 0, 0, 0, 
-        0, 1, 1, 1, 0, 
-        0, 1, 0, 1, 0, 
-        0, 0, 1, 1, 0, 
-        0, 0, 0, 1, 0, 
+        0, 0, 0, 0, 0,
+        0, 1, 1, 1, 0,
+        0, 1, 0, 1, 0,
+        0, 1, 1, 1, 0,
+        0, 0, 0, 1, 0,
         0, 0, 0, 1, 0
     };
     struct Character r = { .w = 5, .h = 6, .pixels = pixels };
@@ -616,7 +617,7 @@ struct Character char_s() {
     // bitmap: char_s
     // using: bnw
     static int pixels[5*6] = {
-        0, 0, 0, 0, 0, 
+        0, 0, 0, 0, 0,
         0, 0, 1, 1, 0,
         0, 1, 1, 0, 0,
         0, 0, 1, 1, 0,
@@ -1069,7 +1070,7 @@ void ascii_create(struct Character symbols[256]) {
     symbols['X'] = char_X();
     symbols['Y'] = char_Y();
     symbols['Z'] = char_Z();
-    
+
     symbols['a'] = char_a();
     symbols['b'] = char_b();
     symbols['c'] = char_c();

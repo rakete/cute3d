@@ -28,7 +28,7 @@ void camera_frustum(float left, float right, float top, float bottom, float zNea
 void camera_matrices(const struct Camera* camera, Matrix projection_matrix, Matrix view_matrix) {
     if( camera ) {
         matrix_identity(projection_matrix);
-        
+
         float left = camera->frustum.left;
         float right = camera->frustum.right;
         float top = camera->frustum.top;

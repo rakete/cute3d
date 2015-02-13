@@ -28,15 +28,15 @@ char* read_file(const char* filename, int32_t* length) {
     if( ! file ) {
         return NULL;
     }
-    
+
     fseek(file, 0, SEEK_END);
     *length = ftell(file);
     fseek(file, 0, SEEK_SET);
-    
+
     char* contents = malloc(*length);
     fread(contents, *length, 1, file);
     fclose(file);
-    
+
     return contents;
 }
 
@@ -60,7 +60,7 @@ static void encode_packet(unsigned char* input,
     }
     unsigned char* output = realloc(*result, alloc_offset);
     //printf("%lu %lu %lu %lu %lu %lu\n", encoded_begin, input_offset, *allocated, *literal_run, *encoded_run, alloc_offset);
-    
+
     for( uint64_t l = literal_begin; l < literal_end ; l+=bytes ) {
         for( int b = 0; b < bytes; b++ ) {
             output[*allocated+b] = input[l+b];
@@ -74,24 +74,24 @@ static void encode_packet(unsigned char* input,
         if( bytes == 1 && *encoded_run > 255 ) {
             output[output_offset+1*bytes] = 255;
             *encoded_run -= 255;
-            
+
             alloc_offset += 3;
             output = realloc(*result, alloc_offset);
-            
+
             output_offset += 3;
         } else if( bytes == 2 && *encoded_run > 65535 ) {
             //printf("%d", 65535);
             *encoded_run -= 65535;
         } else if( bytes == 4 && *encoded_run > 4294967295 ) {
             //printf("%lu", 4294967295);
-            *encoded_run -= 4294967295; 
+            *encoded_run -= 4294967295;
         } else {
             for( int b = 0; b < bytes; b++ ) {
                 output[output_offset+1*bytes+b] = ((unsigned char*)encoded_run)[b];
             }
             *encoded_run = 1;
         }
-            
+
         for( int b = 0; b < bytes; b++ ) {
             output[output_offset+2*bytes+b] = input[encoded_begin+b];
         }
@@ -105,13 +105,13 @@ size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char
     if( bytes != 1 && bytes != 2 && bytes != 4 && bytes != 8 ) {
         return 0;
     }
-    
+
     unsigned char last[bytes];
     uint64_t literal_run = 0;
     uint64_t encoded_run = 0;
     size_t allocated = 0;
     int force = 0;
-    
+
     for( size_t i = 0; i < size; i+=bytes ) {
         unsigned char current[bytes];
         int equal = 1;
@@ -149,7 +149,7 @@ size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char
     }
     //printf("-> %lu %lu\n", literal_run, encoded_run);
     encode_packet(input, size, bytes, flag, &literal_run, &encoded_run, &allocated, output);
-    
+
     // literal_run
     // encoded_run
     return allocated;
