@@ -48,11 +48,24 @@ bool quat_rotation(const Vec axis, const float angle, Quat q) {
     return 1;
 }
 
-void quat_rotate(const Quat quat, const Vec vec, Vec result) {
 QuatP qrotation(const Vec axis, const float angle, Quat q) {
     quat_rotation(axis, angle, q);
     return q;
 }
+
+bool quat_rotate(const Quat q, const Vec axis, const float angle, Quat r) {
+    Quat rotation;
+    bool success = quat_rotation(axis, angle, rotation);
+    quat_product(q, rotation, r);
+    return success;
+}
+
+QuatP qrotate(const Vec axis, const float angle, Quat q) {
+    quat_rotate(q, axis, angle, q);
+    return q;
+}
+
+void quat_apply_vec(const Quat q, const Vec vec, Vec r) {
     Vec normed_vec;
     float norm = sqrt( vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2] );
     normed_vec[0] = vec[0] / norm;
@@ -69,13 +82,19 @@ QuatP qrotation(const Vec axis, const float angle, Quat q) {
     quat_product(product, conj, result);
 }
 
-void quat_rotate3f(const Quat quat, const Vec3f vec, Vec3f result) {
+void quat_apply_vec3f(const Quat q, const Vec3f vec, Vec3f r) {
     Vec result4f;
-    quat_rotate(quat,vec,result4f);
-    
-    result[0] = result4f[0];
-    result[1] = result4f[1];
-    result[2] = result4f[2];
+    Vec vec4f;
+    vec4f[0] = vec[0];
+    vec4f[1] = vec[1];
+    vec4f[2] = vec[2];
+    vec4f[3] = 1.0;
+
+    quat_apply_vec(q,vec4f,result4f);
+
+    r[0] = result4f[0];
+    r[1] = result4f[1];
+    r[2] = result4f[2];
 }
 
 void quat_product(const Quat qa, const Quat qb, Quat result) {

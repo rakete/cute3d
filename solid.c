@@ -242,7 +242,7 @@ void solid_cube(struct Cube* cube) {
     Quat q;
     quat_rotation((Vec){0.0,0.0,1.0,1.0}, PI/4, q);
     for( int i = 0; i < 108; i+=3 ) {
-        quat_rotate3f(q, cube->vertices+i, cube->vertices+i);
+        quat_apply_vec3f(q, cube->vertices+i, cube->vertices+i);
     }
 
     // IGNORE THESE, I LEFT THEM IN BECAUSE I LIKE THEM, BUT THEY ARE WRONG

@@ -26,12 +26,15 @@
 void quat_identity(Quat quat);
 void quat_copy(const Quat q, Quat r);
 
-void quat_rotate(const Quat quat, const Vec vec, Vec result);
-void quat_rotate3f(const Quat quat, const Vec3f vec, Vec3f result);
 
 void quat_product(const Quat qa, const Quat qb, Quat result);
 
 void quat_dot(const Quat qa, const Quat qb, float* result);
+bool quat_rotate(const Quat q, const Vec axis, const float angle, Quat r);
+QuatP qrotate(const Vec axis, const float angle, Quat q);
+
+void quat_apply_vec(const Quat q, const Vec vec, Vec r);
+void quat_apply_vec3f(const Quat q, const Vec3f vec, Vec3f r);
 float qdot(const Quat qa, const Quat qb);
 
 void quat_conjugate(const Quat quat, Quat result);
