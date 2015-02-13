@@ -21,7 +21,7 @@ char* read_file(const char* filename, int32_t* length) {
 
     if( ! file ) {
         char* path = malloc(strlen(ENGINE_ROOT) + strlen(filename) + 1);
-        sprintf(path, "%s%s\0", ENGINE_ROOT, filename);
+        sprintf(path, "%s%s", ENGINE_ROOT, filename);
         file = fopen(path, "rb");
     }
 
