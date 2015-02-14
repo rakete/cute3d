@@ -1,7 +1,7 @@
 #include "grid.h"
 
 // x:3 y:3 z:3 = 27 cubes
-// 
+//
 //  0:x0y0z0,  1:x1y0z0,  2:x2y0z0,  3:x0y1z0,  4:x1y1z0,  5:x2y1z0,  6:x0y2z0,  7:x1y2z0,  8:x2y2z0,
 //  9:x0y0z1, 10:x1y0z1, 11:x2y0z1, 12:x0y1z1, 13:x1y1z1, 14:x2y1z1, 15:x0y2z1, 16:x1y2z1, 17:x2y2z1,
 // 18:x0y0z2, 19:x1y0z2, 20:x2y0z2, 21:x0y1z2, 22:x1y1z2, 23:x2y1z2, 24:x0y2z2, 25:x1y2z2, 26:x2y2z2
@@ -9,7 +9,7 @@
 //
 //
 //
-//    
+//
 //   18.19 19.20 20.21
 //  /   / /   / /   /
 // 0...1 1...2 2...3
@@ -64,18 +64,18 @@ struct GridBox* grid_pagebox(struct Grid* grid, struct GridPages* pages, uint64_
     uint64_t z = page / (pages->num.x * pages->num.y);
     uint64_t y = page % (pages->num.x * pages->num.y) / pages->num.x;
     uint64_t x = page % (pages->num.x * pages->num.y) % pages->num.x;
-    
+
     return grid_pagebox_xyz(grid, pages, x, y, z, level, box);
 }
 
 struct GridBox* grid_levelup(struct Grid* grid, struct GridPages* pages, struct GridBox* box) {
     if( box && box->level < pages->top ) {
         box->level++;
-        
+
         box->size.x /= 2;
         box->size.y /= 2;
         box->size.z /= 2;
-        
+
         box->position.x /= 2;
         box->position.y /= 2;
         box->position.z /= 2;
@@ -86,11 +86,11 @@ struct GridBox* grid_levelup(struct Grid* grid, struct GridPages* pages, struct 
 struct GridBox* grid_leveldown(struct Grid* grid, struct GridPages* pages, struct GridBox* box) {
     if( box && box->level > 0 ) {
         box->level--;
-        
+
         box->size.x *= 2;
         box->size.y *= 2;
         box->size.z *= 2;
-        
+
         box->position.x *= 2;
         box->position.y *= 2;
         box->position.z *= 2;
@@ -104,7 +104,7 @@ struct GridIndex* grid_index_xyz(struct Grid* grid, struct GridPages* pages, str
     }
 
     int level = box->level;
-    
+
     if( x >= box->size.x ) x = box->size.x - 1;
     if( y >= box->size.y ) y = box->size.y - 1;
     if( z >= box->size.z ) z = box->size.z - 1;
@@ -114,7 +114,7 @@ struct GridIndex* grid_index_xyz(struct Grid* grid, struct GridPages* pages, str
         grid_pagesize(pages, box->level, &size);
         uint64_t pagesize_x = size.x;
         uint64_t pagesize_y = size.y;
-        uint64_t pagesize_z = size.z;    
+        uint64_t pagesize_z = size.z;
 
         uint64_t page_x = (box->position.x + x) / pagesize_x;
         uint64_t page_y = (box->position.y + y) / pagesize_y;
@@ -154,7 +154,7 @@ struct GridSize* grid_levelsize(struct Grid* grid, struct GridPages* pages, int 
         if( level > pages->top ) {
             level = pages->top;
         }
-    
+
         size->x = grid->size.x > 1 ? grid->size.x / (1 << level) : 1;
         size->y = grid->size.y > 1 ? grid->size.y / (1 << level) : 1;
         size->z = grid->size.z > 1 ? grid->size.z / (1 << level) : 1;
@@ -164,7 +164,7 @@ struct GridSize* grid_levelsize(struct Grid* grid, struct GridPages* pages, int 
     return size;
 }
 
-struct GridSize* grid_pagesize(struct GridPages* pages, int level, struct GridSize* size) {    
+struct GridSize* grid_pagesize(struct GridPages* pages, int level, struct GridSize* size) {
     if( pages && size ) {
         if( level > pages->top ) {
             level = pages->top;
@@ -403,9 +403,9 @@ void grid_shift(struct Grid* grid, struct GridPages* pages, struct GridBox* box,
             grid_index(grid, pages, box, i, &index);
             if( pages->array[index.page][index.level] ) {
                 if( shift < 0 ) {
-                    pages->array[index.page][index.level][index.cell] << abs(shift);
+                    pages->array[index.page][index.level][index.cell] <<= abs(shift);
                 } else {
-                    pages->array[index.page][index.level][index.cell] >> shift;
+                    pages->array[index.page][index.level][index.cell] >>= shift;
                 }
             }
         }

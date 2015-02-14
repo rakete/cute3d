@@ -195,7 +195,7 @@ GLint vbo_free_bytes(struct Vbo* vbo, int i) {
     if( vbo && vbo->buffer[i].id ) {
         freespace = vbo_free_elements(vbo) * vbo->components[i].size * vbo->components[i].bytes;
     }
-    return 0;
+    return freespace;
 }
 
 void vbo_fill_value(struct Vbo* vbo, int i, GLint offset_n, GLint size_n, float value) {

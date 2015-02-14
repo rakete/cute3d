@@ -46,7 +46,7 @@ void draw_grid( int instances,
         program = glsl_make_program(vertex_source, fragment_source);
     }
 
-    static GLuint grid[0xffff] = {};
+    static GLuint grid[0xffff] = { 0 };
     float w = 1.0f;
     float h = 1.0f;
     int size = (steps+1)*2 + (steps+1)*2;

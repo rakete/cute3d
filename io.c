@@ -128,7 +128,7 @@ size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char
         } else if( ! equal && ! force && encoded_run <= 3 ) {
             literal_run += encoded_run;
             encoded_run = 1;
-        } else if( ! equal && encoded_run > 3 || force ) {
+        } else if( (! equal && encoded_run > 3) || force ) {
             //printf("-> %lu %lu", literal_run, encoded_run);
             encode_packet(input, i, bytes, flag, &literal_run, &encoded_run, &allocated, output);
         }

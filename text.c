@@ -37,7 +37,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
     int max_h = 0;
     int widths[n];
     for( int i = 0; i < n; i++ ) {
-        char c = ascii_alphabet[i];
+        unsigned char c = ascii_alphabet[i];
         if( symbols[c].h > max_h ) {
             max_h = symbols[c].h;
         }
@@ -88,7 +88,8 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
         /*     texture[i*4+3] = 1.0; */
         /* } */
 
-        struct Character c = symbols[ascii_alphabet[0]];
+        unsigned char k = ascii_alphabet[0];
+        struct Character c = symbols[k];
         for( int gy = 0; gy < c.h; gy++ ) {
             for( int gx = 0; gx < c.w; gx++ ) {
                 texture[(gy*power2+gx)*4+0] = 1.0 * c.pixels[gy*c.w+gx];
@@ -99,7 +100,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
         }
 
         for( int i = 0; i < n; i++ ) {
-            char c = ascii_alphabet[i];
+            unsigned char c = ascii_alphabet[i];
             font->alphabet[c] = 1;
 
             struct Glyph* glyph = &font->glyphs[c];
