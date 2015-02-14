@@ -29,7 +29,7 @@ int init_shader() {
     return ret;
 }
 
-struct Shader* shader_create(struct Shader* p, const char* vertex_file, const char* fragment_file) {
+void shader_create(const char* vertex_file, const char* fragment_file, struct Shader* p) {
     if( vertex_file && fragment_file ) {
         p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, vertex_file);
         p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, fragment_file);

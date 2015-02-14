@@ -97,7 +97,7 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
 }
 
 void render_shader_flat(struct Shader* shader) {
-    shader_create(shader, "shader/flat.vert", "shader/flat.frag");
+    shader_create("shader/flat.vert", "shader/flat.frag", shader);
     shader_attribute(shader, vertex_array, "vertex");
     shader_attribute(shader, color_array, "color");
     shader_attribute(shader, normal_array, "normal");

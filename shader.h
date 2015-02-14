@@ -53,7 +53,7 @@ struct Shader {
 
 int init_shader();
 
-struct Shader* shader_create(struct Shader* p, const char* vertex_file, const char* fragment_file);
+void shader_create(const char* vertex_file, const char* fragment_file, struct Shader* p);
 void shader_attribute(struct Shader* shader, int array_id, char* name);
 void shader_uniform(struct Shader* shader, char* name, char* type, void* data);
 
