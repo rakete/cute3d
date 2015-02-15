@@ -1,21 +1,25 @@
 #ifndef SDL2_H
 #define SDL2_H
 
-#include "geometry.h"
-#include "render.h"
-#include "text.h"
-
 #include "SDL2/SDL.h"
+#include "assert.h"
+
+#include "ogl.h"
+#include "text.h"
+#include "geometry.h"
+#include "shader.h"
+
+#define sdl2_stringify(arg) #arg
 
 #ifdef DEBUG
-#define sdl2_debug(line) do {                               \
-        line;                                               \
-        const char* error = SDL_GetError();                 \
-        if( strlen(error) > 0 ) {                           \
-            printf("%d: %s\n", __LINE__, #line);            \
-            printf("SDL_GetError(): %s\n", SDL_GetError()); \
-        }                                                   \
-        assert(strlen(error) == 0);                         \
+#define sdl2_debug(line) do {                                           \
+        line;                                                           \
+        const char* error = SDL_GetError();                             \
+        if( strlen(error) > 0 ) {                                       \
+            printf("%s@%d:::::\n%s\n", __FILE__, __LINE__, sdl2_stringify(line)); \
+            printf("SDL_GetError(): %s\n", SDL_GetError());             \
+        }                                                               \
+        assert(strlen(error) == 0);                                     \
     } while(0)
 #else
 #define sdl2_debug(line) line
