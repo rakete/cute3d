@@ -1,17 +1,17 @@
 #include "world.h"
-#include "allegro.h"
+#include "sdl2.h"
 
 int main(int argc, char *argv[]) {
 
-    if( ! init_allegro() ) {
+    if( ! init_sdl2() ) {
         return 1;
     }
 
-    ALLEGRO_DISPLAY* display;
-    allegro_display(800,600,&display);
+    SDL_Window* window;
+    sdl2_window("test-world", 0, 0, 800, 600, &window);
 
-    ALLEGRO_EVENT_QUEUE* events;
-    allegro_events(display, &events);
+    SDL_GLContext* context;
+    sdl2_glcontext(window, &context);
 
     if( ! init_geometry() ) {
         return 1;
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     struct Cube cube;
     solid_cube(&cube);
     solid_normals((struct Solid*)&cube);
-    
+
     world_grid_create(&grid, &pages, 0, 1.0, 1.0, 1.0, &cube, &world_mesh);
 
     pages.array[0][0][0] = 1;

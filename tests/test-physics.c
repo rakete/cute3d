@@ -2,9 +2,11 @@
 
 #include "sdl2.h"
 #include "ogl.h"
+
 #include "text.h"
 #include "solid.h"
 #include "draw.h"
+#include "render.h"
 
 #include "physics.h"
 
@@ -119,21 +121,22 @@ int main(int argc, char *argv[]) {
     /* Eventloop */
     //ALLEGRO_EVENT event;
     while (true) {
-        /* if (!al_is_event_queue_empty(events)) { */
-        /*     while (al_get_next_event(events, &event)) { */
-        /*         switch (event.type) { */
-        /*             case ALLEGRO_EVENT_DISPLAY_CLOSE: */
-        /*                 goto done; */
+        SDL_Event event;
+        while( SDL_PollEvent(&event) ) {
+            switch (event.type) {
+                case SDL_QUIT:
+                    goto done;
+                case SDL_KEYDOWN: {
+                    SDL_KeyboardEvent* key_event = (SDL_KeyboardEvent*)&event;
+                    if(key_event->keysym.scancode == SDL_SCANCODE_ESCAPE) {
+                        goto done;
+                    }
+                    break;
+                }
+            }
+        }
 
-        /*             case ALLEGRO_EVENT_KEY_DOWN: */
-        /*                 if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE) */
-        /*                     goto done; */
-        /*                 break; */
-        /*         } */
-        /*     } */
-        /* } */
-
-        SDL_GL_SetSwapInterval(1);
+        sdl2_debug( SDL_GL_SetSwapInterval(1) );
 
         time_advance(sdl2_time_delta(), &time);
 
@@ -145,9 +148,11 @@ int main(int argc, char *argv[]) {
         const float alpha = time.offset / time.dt;
         current = physics_interpolate(previous, current, alpha);
 
-        ogl_debug(glClearDepth(1.0f));
-        ogl_debug(glClearColor(.0f, .0f, .0f, 1.0f));
-        ogl_debug(glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ));
+        ogl_debug({
+                glClearDepth(1.0f);
+                glClearColor(.0f, .0f, .0f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            });
 
         render_mesh(&cube_mesh, &shader, &camera, cube_transform);
         draw_normals_array(cube.vertices,
@@ -158,7 +163,7 @@ int main(int argc, char *argv[]) {
                            view_mat,
                            cube_transform);
 
-        SDL_GL_SwapWindow(window);
+        sdl2_debug( SDL_GL_SwapWindow(window) );
     }
 
 done:

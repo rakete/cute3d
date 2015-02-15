@@ -1,6 +1,7 @@
 #include "geometry.h"
 #include "solid.h"
-#include "allegro.h"
+#include "render.h"
+#include "sdl2.h"
 
 void mesh_from_solid(struct Solid* solid, float color[4], struct Mesh* mesh) {
     solid_colors(solid,color);
@@ -13,15 +14,15 @@ void mesh_from_solid(struct Solid* solid, float color[4], struct Mesh* mesh) {
 }
 
 int main(int argc, char *argv[]) {
-    if( ! init_allegro() ) {
+    if( ! init_sdl2() ) {
         return 1;
     }
 
-    ALLEGRO_DISPLAY* display;
-    allegro_display(800,600,&display);
+    SDL_Window* window;
+    sdl2_window("test-solid", 0, 0, 800, 600, &window);
 
-    ALLEGRO_EVENT_QUEUE* events;
-    allegro_events(display,&events);
+    SDL_GLContext* context;
+    sdl2_glcontext(window, &context);
 
     if( ! init_geometry() ) {
         return 1;
@@ -62,31 +63,35 @@ int main(int argc, char *argv[]) {
     mesh_from_solid((struct Solid*)&sphere32, (Color){1.0,1.0,0.0,1.0}, &sphere32_mesh);
 
     struct Shader shader;
-    allegro_flat_shader(&shader);
+    render_shader_flat(&shader);
 
     struct Camera camera;
-    allegro_orbit_create(display, (Vec){0.0,0.0,0.0,1.0}, (Vec){0.0,-8.0,-8.0,1.0}, &camera);
+    sdl2_orbit_create(window, (Vec){0.0,0.0,0.0,1.0}, (Vec){0.0,-8.0,-8.0,1.0}, &camera);
 
-    ALLEGRO_EVENT event;
     while (true) {
-        /* Check for ESC key or close button event and quit in either case. */
-        if (!al_is_event_queue_empty(events)) {
-            while (al_get_next_event(events, &event)) {
-                switch (event.type) {
-                    case ALLEGRO_EVENT_DISPLAY_CLOSE:
+        SDL_Event event;
+        while( SDL_PollEvent(&event) ) {
+            switch (event.type) {
+                case SDL_QUIT:
+                    goto done;
+                case SDL_KEYDOWN: {
+                    SDL_KeyboardEvent* key_event = (SDL_KeyboardEvent*)&event;
+                    if(key_event->keysym.scancode == SDL_SCANCODE_ESCAPE) {
                         goto done;
-
-                    case ALLEGRO_EVENT_KEY_DOWN:
-                        if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
-                            goto done;
-                        break;
+                    }
+                    break;
                 }
             }
         }
 
-        glClearDepth(1.0f);
-        glClearColor(.0f, .0f, .0f, 1.0f);
-        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+        sdl2_debug( SDL_GL_SetSwapInterval(1) );
+
+        ogl_debug({
+                glClearDepth(1.0f);
+                glClearColor(.0f, .0f, .0f, 1.0f);
+                glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+            });
+
 
         Vec light_direction = { 0.2, 0.5, 1.0 };
         shader_uniform(&shader, "light_direction", "3f", light_direction);
@@ -110,7 +115,7 @@ int main(int argc, char *argv[]) {
         render_mesh(&sphere16_mesh, &shader, &camera, sphere16_transform);
         render_mesh(&sphere32_mesh, &shader, &camera, sphere32_transform);
 
-        al_flip_display();
+        sdl2_debug( SDL_GL_SwapWindow(window) );
     }
 
 done:

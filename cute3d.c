@@ -25,36 +25,18 @@
 #include "solid.h"
 #include "text.h"
 #include "draw.h"
-
-#include "allegro5/allegro.h"
-
-#include "GL/glut.h"
+#include "sdl2.h"
 
 int main(int argc, char** argv) {
-    ALLEGRO_DISPLAY *display;
-    ALLEGRO_EVENT_QUEUE *queue;
-    ALLEGRO_EVENT event;
-
-    if (!al_init()) {
+    if(! init_sdl2() ) {
         return 1;
     }
 
-    al_install_keyboard();
-    al_set_new_display_option(ALLEGRO_DEPTH_SIZE, 24, ALLEGRO_REQUIRE);
-    al_set_new_display_flags(ALLEGRO_OPENGL);
-    display = al_create_display(1600, 900);
-    if (!display) {
-        return 1;
-    }
+    SDL_Window* window;
+    sdl2_window("cute3d", 0, 0, 1600, 900, &window);
 
-    queue = al_create_event_queue();
-    al_register_event_source(queue, al_get_keyboard_event_source());
-    al_register_event_source(queue, al_get_display_event_source(display));
-
-    glViewport(0,0,1600,900);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_DEPTH_TEST);
+    SDL_GLContext* context;
+    sdl2_glcontext(window, &context);
 
     float vertices1[9] = { -0.7, 0.0, 0.5,
                            -0.1, 0.0, -0.5,
@@ -67,6 +49,7 @@ int main(int argc, char** argv) {
                          1.0, 0, 0, 1.0 };
 
     init_geometry();
+
     struct Vbo vbo;
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, vertex_array, 3, GL_FLOAT, GL_STATIC_DRAW);
@@ -119,27 +102,25 @@ int main(int argc, char** argv) {
     struct Font foo;
     font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, &foo);
 
-    double fps = 0;
-    int frames_done = 0;
-    double old_time = al_get_time();
-
     Quat cube_spinning;
     qidentity(cube_spinning);
     while( true ) {
-        /* Check for ESC key or close button event and quit in either case. */
-        if( ! al_is_event_queue_empty(queue) ) {
-            while (al_get_next_event(queue, &event)) {
-                switch (event.type) {
-                    case ALLEGRO_EVENT_DISPLAY_CLOSE:
+        SDL_Event event;
+        while( SDL_PollEvent(&event) ) {
+            switch (event.type) {
+                case SDL_QUIT:
+                    goto done;
+                case SDL_KEYDOWN: {
+                    SDL_KeyboardEvent* key_event = (SDL_KeyboardEvent*)&event;
+                    if(key_event->keysym.scancode == SDL_SCANCODE_ESCAPE) {
                         goto done;
-
-                    case ALLEGRO_EVENT_KEY_DOWN:
-                        if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
-                            goto done;
-                        break;
+                    }
+                    break;
                 }
             }
         }
+
+        sdl2_debug( SDL_GL_SetSwapInterval(1) );
 
         glClearDepth(1.0f);
         glClearColor(.0f, .0f, .0f, 1.0f);
@@ -187,17 +168,7 @@ int main(int argc, char** argv) {
 
         text_put(L"CUTE says\n   Hello World", &foo, 0.33, projection_mat, view_mat, font_mat);
 
-        al_flip_display();
-
-        double game_time = al_get_time();
-        if( game_time - old_time >= 1.0 ) {
-            fps = frames_done / (game_time - old_time);
-            frames_done = 0;
-            old_time = game_time;
-        }
-        frames_done++;
-
-        //printf("%f\n", fps);
+        sdl2_debug( SDL_GL_SwapWindow(window) );
     }
 
 done:

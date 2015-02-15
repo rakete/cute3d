@@ -1,18 +1,16 @@
 #include "grid.h"
-#include "allegro.h"
+#include "sdl2.h"
 
 int main(int argc, char *argv[]) {
-    if( ! init_allegro() ) {
+    if( ! init_sdl2() ) {
         return 1;
     }
 
-    printf("display\n");
-    ALLEGRO_DISPLAY* display;
-    allegro_display(800,600,&display);
+    SDL_Window* window;
+    sdl2_window("test-grid", 0, 0, 800, 600, &window);
 
-    printf("events\n");
-    ALLEGRO_EVENT_QUEUE* events;
-    allegro_events(display,&events);
+    SDL_GLContext* context;
+    sdl2_glcontext(window, &context);
 
     if( ! init_geometry() ) {
         return 1;
@@ -43,7 +41,7 @@ int main(int argc, char *argv[]) {
     }
 
     printf("-----------\n");
-    
+
     struct GridBox box;
     box.position.x = 1;
     box.position.y = 1;
@@ -75,7 +73,7 @@ int main(int argc, char *argv[]) {
     grid_alloc(&pages, 1, 0);
     grid_alloc(&pages, 2, 0);
     grid_alloc(&pages, 3, 0);
-    
+
     grid_set1(&grid, &pages, NULL, 23);
     grid_set1(&grid, &pages, &box, 42);
 
@@ -83,7 +81,7 @@ int main(int argc, char *argv[]) {
 
     grid_pagebox(&grid, &pages, 3, 0, &box);
     printf("%lu %lu %lu %lu %lu %lu %d\n", box.position.x, box.position.y, box.position.z, box.size.x, box.size.y, box.size.z, box.level);
-    
+
     /* grid_pageout(&grid, &pages, 0, NULL); */
     /* printf("\n"); */
     /* grid_pageout(&grid, &pages, 1, NULL); */
@@ -92,6 +90,6 @@ int main(int argc, char *argv[]) {
     /* printf("\n"); */
     /* grid_pageout(&grid, &pages, 3, NULL); */
     /* printf("\n"); */
-    
+
     return 0;
 }
