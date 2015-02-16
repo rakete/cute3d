@@ -41,7 +41,7 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
     Vec target_direction;
     vector_subtract(target, pivot->position, target_direction);
 
-    vector_magnitude(target_direction, &pivot->eye_distance);
+    vector_length(target_direction, &pivot->eye_distance);
     vector_normalize(target_direction, target_direction);
 
     // achse = cross product
@@ -69,17 +69,17 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
     }
 }
 
-void pivot_world_transform(const struct Pivot pivot, Matrix world_transform) {
-    Matrix translation;
+void pivot_world_transform(const struct Pivot pivot, Mat world_transform) {
+    Mat translation;
     matrix_translate(translation, pivot.position, translation);
-    Matrix rotation;
+    Mat rotation;
     quat_matrix(pivot.orientation, rotation, rotation);
 
     matrix_multiply(translation, rotation, world_transform);
 }
 
-void pivot_body_transform(const struct Pivot pivot, Matrix body_transform) {
-    Matrix world_transform;
+void pivot_body_transform(const struct Pivot pivot, Mat body_transform) {
+    Mat world_transform;
     pivot_world_transform(pivot, world_transform);
-    matrix_invert(world_transform, body_transform, NULL);
+    matrix_invert(world_transform, NULL, body_transform);
 }

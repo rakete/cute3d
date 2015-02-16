@@ -126,10 +126,10 @@ int main(int argc, char** argv) {
         glClearColor(.0f, .0f, .0f, 1.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-        Matrix projection_mat, view_mat;
+        Mat projection_mat, view_mat;
         camera_matrices(&default_camera, projection_mat, view_mat);
 
-        Matrix identity;
+        Mat identity;
         matrix_identity(identity);
 
         Vec light_direction = { 2.5, -1.0, 1.5 };
@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
         Color ambiance = { .1, .1, .3, 1.0 };
         shader_uniform(&default_shader, "ambiance", "4f", ambiance);
 
-        Matrix cube_transform;
+        Mat cube_transform;
         matrix_identity(cube_transform);
 
         Quat cube_rotation;
@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
                            view_mat,
                            cube_transform);
 
-        Matrix font_mat;
+        Mat font_mat;
         matrix_identity(font_mat);
 
         text_put(L"CUTE says\n   Hello World", &foo, 0.33, projection_mat, view_mat, font_mat);

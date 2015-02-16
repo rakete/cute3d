@@ -69,7 +69,7 @@ void font_create(const wchar_t* alphabet, bool unicode, struct Character* symbol
 
 void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter);
 
-void text_put(const wchar_t* text, const struct Font* font, float scale, const Matrix projection_matrix, const Matrix view_matrix, Matrix model_matrix);
+void text_put(const wchar_t* text, const struct Font* font, float scale, const Mat projection_matrix, const Mat view_matrix, Mat model_matrix);
 void text_overlay(const wchar_t* text, const struct Font* font, int size, struct Camera camera, int x, int y);
 
 #endif

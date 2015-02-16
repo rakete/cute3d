@@ -24,8 +24,6 @@
 #include "math_types.h"
 #include "quaternion.h"
 
-typedef void (*matrix_initfunc)(Matrix m);
-
 // vector
 void vector_copy(const Vec v, Vec r);
 
@@ -37,8 +35,8 @@ void vector3f_add3f(const Vec3f v, const Vec3f w, Vec3f r);
 
 void vector_subtract(const Vec v, const Vec w, Vec r);
 
-void vector_multiply(const Vec v, const Vec w, Matrix m);
-VecP vmul(Vec v, Matrix w);
+void vector_multiply(const Vec v, const Vec w, Mat m);
+VecP vmul(Vec v, Mat w);
 
 void vector_multiply1f(float v, const Vec w, Vec r);
 VecP vmul1f(float v, Vec w);
@@ -52,51 +50,52 @@ float vdot(const Vec v, const Vec w);
 void vector_cross(const Vec v, const Vec w, Vec r);
 VecP vcross(const Vec v, Vec w);
 
-void vector_magnitude(const Vec v, VecP r);
-float vmagnitude(const Vec v);
+void vector_length(const Vec v, float* r);
+float vlength(const Vec v);
 
 void vector_normalize(const Vec v, Vec r);
 VecP vnormalize(Vec v);
 
-void vector_angle(const Vec v, const Vec w, VecP r);
+void vector_angle(const Vec v, const Vec w, float* r);
 float vangle(const Vec v, const Vec w);
 
 void vector_isnull(const Vec v, bool* r);
 bool vnullp(const Vec v);
 
 void vector_perpendicular(const Vec v, Vec r);
+VecP vperpendicular(const Vec v);
 
 // matrix creation
-void matrix_copy(const Matrix m, Matrix r);
+void matrix_copy(const Mat m, Mat r);
 
-void matrix_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Matrix m);
-void matrix_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Matrix m);
+void matrix_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Mat m);
+void matrix_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Mat m);
 
-void matrix_identity(Matrix m);
-//MatrixP midentity(Matrix m);
+void matrix_identity(Mat m);
+//MatP midentity(Mat m);
 
-void matrix_invert(const Matrix m, Matrix r, double* det);
-MatrixP minv(Matrix m, double* det);
+void matrix_invert(const Mat m, double* det, Mat r);
+MatP minv(double* det, Mat m);
 
 // matrix op
-void matrix_multiply(const Matrix m, const Matrix n, Matrix r);
-MatrixP mmul(const Matrix m, Matrix n);
+void matrix_multiply(const Mat m, const Mat n, Mat r);
+MatP mmul(const Mat m, Mat n);
 
-void matrix_multiply_vec(const Matrix m, const Vec v, Vec r);
-MatrixP mmul_vec(const Matrix m, Vec v);
+void matrix_multiply_vec(const Mat m, const Vec v, Vec r);
+MatP mmul_vec(const Mat m, Vec v);
 
-void matrix_translate(const Matrix m, const Vec v, Matrix r);
-//MatrixP mtranslate(const Vec v, Matrix m);
+void matrix_translate(const Mat m, const Vec v, Mat r);
+//MatP mtranslate(const Vec v, Mat m);
 
-void matrix_rotate(const Matrix m, const Quat q, Matrix r);
-//MatrixP mrotate(const Quat q, Matrix m);
+void matrix_rotate(const Mat m, const Quat q, Mat r);
+//MatP mrotate(const Quat q, Mat m);
 
-void matrix_scale(const Matrix m, const Vec v, Matrix r);
-//MatrixP mscale(const Vec v, Matrix m);
+void matrix_scale(const Mat m, const Vec v, Mat r);
+//MatP mscale(const Vec v, Mat m);
 
-void matrix_scaling(const matrix_initfunc f, const Vec v, Matrix r);
+void matrix_scaling(const Vec v, Mat r);
 
-void matrix_transpose(const Matrix m, Matrix r);
-MatrixP mtransp(Matrix m);
+void matrix_transpose(const Mat m, Mat r);
+MatP mtranspose(Mat m);
 
 #endif

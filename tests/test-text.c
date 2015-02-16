@@ -80,20 +80,20 @@ int main(int argc, char *argv[]) {
         Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
         shader_uniform(&shader, "ambiance", "4f", ambiance);
 
-        Matrix sphere32_transform;
+        Mat sphere32_transform;
         matrix_identity(sphere32_transform);
         matrix_translate(sphere32_transform, (Vec){1.0,-3.5,0.0,1.0}, sphere32_transform);
         //render_mesh(&sphere32_mesh, &shader, &camera, sphere32_transform);
 
-        /* Matrix perspective_projection, perspective_view; */
+        /* Mat perspective_projection, perspective_view; */
         /* camera_matrices(&camera, perspective_projection, perspective_view); */
 
         /* camera.type = orthographic; */
-        /* Matrix ortho_projection, ortho_view; */
+        /* Mat ortho_projection, ortho_view; */
         /* camera_matrices(&camera, ortho_projection, ortho_view); */
         /* camera.type = perspective; */
 
-        /* Matrix text_matrix; */
+        /* Mat text_matrix; */
         /* matrix_identity(text_matrix); */
         /* matrix_rotate(text_matrix, camera.pivot.orientation, text_matrix); */
         /* matrix_translate(text_matrix, (Vec){-0.5,0.0,0.0,1.0}, text_matrix); */

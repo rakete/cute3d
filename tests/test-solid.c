@@ -99,10 +99,10 @@ int main(int argc, char *argv[]) {
         Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
         shader_uniform(&shader, "ambiance", "4f", ambiance);
 
-        Matrix identity;
+        Mat identity;
         matrix_identity(identity);
 
-        Matrix tetrahedron_transform, hexahedron_transform, cube_transform, sphere16_transform, sphere32_transform;
+        Mat tetrahedron_transform, hexahedron_transform, cube_transform, sphere16_transform, sphere32_transform;
         matrix_translate(identity, (float[4]){ 0.0, 0.0, 0.0, 1.0 }, tetrahedron_transform);
         matrix_translate(identity, (float[4]){ -3.0, 0.0, 0.0, 1.0 }, hexahedron_transform);
         matrix_translate(identity, (float[4]){ 3.0, 0.0, 0.0, 1.0 }, cube_transform);

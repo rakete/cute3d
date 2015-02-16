@@ -25,7 +25,7 @@ void camera_frustum(float left, float right, float top, float bottom, float zNea
     camera->frustum.zFar = zFar;
 }
 
-void camera_matrices(const struct Camera* camera, Matrix projection_matrix, Matrix view_matrix) {
+void camera_matrices(const struct Camera* camera, Mat projection_matrix, Mat view_matrix) {
     if( camera ) {
         matrix_identity(projection_matrix);
 

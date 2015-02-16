@@ -226,7 +226,7 @@ void draw_normals_array( float* vertices,
 
 
         for( int i = 0; i < n; i++ ) {
-            Matrix arrow_matrix;
+            Mat arrow_matrix;
             matrix_identity(arrow_matrix);
 
             Vec z = { 0.0, 0.0, 1.0, 1.0 };

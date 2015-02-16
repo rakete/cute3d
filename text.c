@@ -208,7 +208,7 @@ void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter) 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void text_put(const wchar_t* text, const struct Font* font, float scale, const Matrix projection_matrix, const Matrix view_matrix, Matrix model_matrix) {
+void text_put(const wchar_t* text, const struct Font* font, float scale, const Mat projection_matrix, const Mat view_matrix, Mat model_matrix) {
     static GLuint quad = 0;
     static GLuint vertices_id = 0;
     static GLuint texcoords_id = 0;
@@ -334,7 +334,7 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
                     }
                     newline = 0;
 
-                    Matrix glyph_matrix;
+                    Mat glyph_matrix;
                     matrix_identity(glyph_matrix);
                     matrix_translate(glyph_matrix, cursor_vec, glyph_matrix);
                     matrix_scale(glyph_matrix, (Vec){ scale, scale, scale, 1.0 }, glyph_matrix);
@@ -356,10 +356,10 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
 
 void text_overlay(const wchar_t* text, const struct Font* font, int size, struct Camera camera, int x, int y) {
     camera.type = orthographic;
-    Matrix ortho_projection, ortho_view;
+    Mat ortho_projection, ortho_view;
     camera_matrices(&camera, ortho_projection, ortho_view);
 
-    Matrix text_matrix;
+    Mat text_matrix;
     matrix_identity(text_matrix);
     matrix_rotate(text_matrix, camera.pivot.orientation, text_matrix);
 

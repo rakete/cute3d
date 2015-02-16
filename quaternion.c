@@ -203,7 +203,7 @@ float qmagnitude(const Quat q) {
     return magnitude;
 }
 
-void quat_matrix(const Quat q, const Matrix m, Matrix r) {
+void quat_matrix(const Quat q, const Mat m, Mat r) {
     float x,y,z,w;
     w = q[3]; x = q[0]; y = q[1]; z = q[2];
 
@@ -221,7 +221,7 @@ void quat_matrix(const Quat q, const Matrix m, Matrix r) {
     float wz = w*z;
     float ww = w*w;
 
-    Matrix n;
+    Mat n;
     n[0] = ww + xx - yy - zz; n[4] = 2*(xy + wz);       n[8]  =  2*(xz - wy);       n[12] = 0;
     n[1] = 2*(xy - wz);       n[5] = ww - xx + yy - zz; n[9]  =  2*(yz + wx);       n[13] = 0;
     n[2] = 2*(xz + wy);       n[6] = 2*(yz - wx);       n[10] =  ww - xx - yy + zz; n[14] = 0;
@@ -235,7 +235,7 @@ void quat_matrix(const Quat q, const Matrix m, Matrix r) {
     matrix_multiply(m,n,r);
 }
 
-QuatP qmatrix(const Quat q, Matrix m) {
+QuatP qmatrix(const Quat q, Mat m) {
     quat_matrix(q,m,m);
     return m;
 }

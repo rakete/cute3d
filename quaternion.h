@@ -44,20 +44,20 @@ QuatP qproduct(const Quat qa, Quat qb);
 void quat_product1f(float qa, const Quat qb, Quat r);
 QuatP qproduct1f(float qa, Quat qb);
 
-void quat_dot(const Quat qa, const Quat qb, QuatP r);
+void quat_dot(const Quat qa, const Quat qb, float* r);
 float qdot(const Quat qa, const Quat qb);
 
 void quat_conjugate(const Quat q, Quat r);
 void quat_invert(const Quat q, Quat r);
 
-void quat_magnitude(const Quat q, QuatP r);
+void quat_magnitude(const Quat q, float* r);
 float qmagnitude(const Quat q);
 
 void quat_normalize(const Quat q, Quat r);
 QuatP qnormalize(Quat q);
 
-void quat_matrix(const Quat q, const Matrix m, Matrix r);
-QuatP qmatrix(const Quat q, Matrix m);
+void quat_matrix(const Quat q, const Mat m, Mat r);
+QuatP qmatrix(const Quat q, Mat m);
 
 void quat_slerp(const Quat qa, const Quat qb, float t, Quat r);
 QuatP qslerp(const Quat qa, Quat qb, float t);

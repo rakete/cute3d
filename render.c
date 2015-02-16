@@ -16,11 +16,11 @@
 
 #include "render.h"
 
-void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const struct Camera* camera, Matrix model_matrix) {
+void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const struct Camera* camera, Mat model_matrix) {
     glUseProgram(shader->program);
 
-    Matrix projection_matrix;
-    Matrix view_matrix;
+    Mat projection_matrix;
+    Mat view_matrix;
     matrix_identity(projection_matrix);
     matrix_identity(view_matrix);
 
@@ -41,7 +41,7 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
     GLint model_loc = glGetUniformLocation(shader->program, "model_matrix");
     bool free_model_matrix = 0;
     if( ! model_matrix ) {
-        model_matrix = malloc(sizeof(Matrix));
+        model_matrix = malloc(sizeof(Mat));
         matrix_identity(model_matrix);
         free_model_matrix = 1;
     }
@@ -52,8 +52,8 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
 
     GLint normal_loc = glGetUniformLocation(shader->program, "normal_matrix");
     if( ! free_model_matrix ) {
-        Matrix normal_matrix;
-        matrix_invert(model_matrix, normal_matrix, NULL);
+        Mat normal_matrix;
+        matrix_invert(model_matrix, NULL, normal_matrix);
         matrix_transpose(normal_matrix, normal_matrix);
         glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix);
     }

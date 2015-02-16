@@ -31,7 +31,7 @@ struct Pivot {
 void pivot_create(struct Pivot* pivot);
 void pivot_lookat(struct Pivot* pivot, const Vec target);
 
-void pivot_world_transform(struct Pivot pivot, Matrix world_transform);
-void pivot_body_transform(struct Pivot pivot, Matrix body_transform);
+void pivot_world_transform(struct Pivot pivot, Mat world_transform);
+void pivot_body_transform(struct Pivot pivot, Mat body_transform);
 
 #endif

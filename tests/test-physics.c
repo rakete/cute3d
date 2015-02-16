@@ -103,10 +103,10 @@ int main(int argc, char *argv[]) {
     struct Camera camera;
     sdl2_orbit_create(window, (Vec){0.0,0.0,0.0,1.0}, (Vec){0.0,-8.0,-8.0,1.0}, &camera);
 
-    Matrix projection_mat, view_mat;
+    Mat projection_mat, view_mat;
     camera_matrices(&camera, projection_mat, view_mat);
 
-    Matrix cube_transform;
+    Mat cube_transform;
     matrix_identity(cube_transform);
 
     /* Physics */

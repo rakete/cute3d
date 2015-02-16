@@ -65,11 +65,11 @@ void vector_subtract(const Vec v, const Vec w, Vec r) {
     }
 }
 
-void vector_multiply(const Vec v, const Vec w, Matrix m) {
+void vector_multiply(const Vec v, const Vec w, Mat m) {
     printf("4f vector_multiply not implemented yet!");
 }
 
-VecP vmul(Vec v, Matrix w) {
+VecP vmul(Vec v, Mat w) {
     Vec t;
     t[0] = w[0];
     t[1] = w[1];
@@ -129,18 +129,18 @@ VecP vcross(const Vec v, Vec w) {
     return w;
 }
 
-void vector_magnitude(const Vec v, VecP r) {
+void vector_length(const Vec v, VecP r) {
     *r = sqrt( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
 }
 
-float vmagnitude(const Vec v) {
+float vlength(const Vec v) {
     float r;
-    vector_magnitude(v,&r);
+    vector_length(v,&r);
     return r;
 }
 
 void vector_normalize(const Vec v, Vec r) {
-    float norm = vmagnitude(v);
+    float norm = vlength(v);
     r[0] = v[0] / norm;
     r[1] = v[1] / norm;
     r[2] = v[2] / norm;
@@ -153,7 +153,7 @@ VecP vnormalize(Vec v) {
 }
 
 void vector_angle(const Vec v, const Vec w, VecP r) {
-    *r = acos(vdot(v,w) / (vmagnitude(v) * vmagnitude(w)));
+    *r = acos(vdot(v,w) / (vlength(v) * vlength(w)));
 }
 
 float vangle(const Vec v, const Vec w) {
@@ -186,15 +186,15 @@ void vector_perpendicular(const Vec v, Vec r) {
     r[3] = v[3];
 }
 
-void matrix_copy(const Matrix m, Matrix r) {
+void matrix_copy(const Mat m, Mat r) {
     r[0] = m[0];  r[4] = m[4];  r[8] = m[8];   r[12] = m[12];
     r[1] = m[1];  r[5] = m[5];  r[9] = m[9];   r[13] = m[13];
     r[2] = m[2];  r[6] = m[6];  r[10] = m[10]; r[14] = m[14];
     r[3] = m[3];  r[7] = m[7];  r[11] = m[11]; r[15] = m[15];
 }
 
-void matrix_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Matrix m) {
-    Matrix n;
+void matrix_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Mat m) {
+    Mat n;
     // songho.ca my hero
     n[0] = (2.0*zNear)/(right-left);  n[4] = 0.0f;                      n[8] = (right+left)/(right-left);   n[12] = 0.0f;
     n[1] = 0.0f;                      n[5] = (2.0*zNear)/(top-bottom);  n[9] = (top+bottom)/(top-bottom);   n[13] = 0.0f;
@@ -204,8 +204,8 @@ void matrix_perspective(float left, float right, float top, float bottom, float 
     matrix_multiply(m,n,m);
 }
 
-void matrix_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Matrix m) {
-    Matrix n;
+void matrix_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Mat m) {
+    Mat n;
     n[0] = 2.0/(right-left); n[4] = 0.0f;             n[8] = 0.0f;               n[12] = -(right+left)/(right-left);
     n[1] = 0.0f;             n[5] = 2.0/(top-bottom); n[9] = 0.0f;               n[13] = -(top+bottom)/(top-bottom);
     n[2] = 0.0f;             n[6] = 0.0f;             n[10] = -2.0/(zFar-zNear); n[14] = -(zFar+zNear)/(zFar-zNear);
@@ -214,14 +214,14 @@ void matrix_orthographic(float left, float right, float top, float bottom, float
     matrix_multiply(m,n,m);
 }
 
-void matrix_identity(Matrix m) {
+void matrix_identity(Mat m) {
     m[0] = 1.0f; m[4] = 0.0f; m[8]  = 0.0f; m[12] = 0.0f;
     m[1] = 0.0f; m[5] = 1.0f; m[9]  = 0.0f; m[13] = 0.0f;
     m[2] = 0.0f; m[6] = 0.0f; m[10] = 1.0f; m[14] = 0.0f;
     m[3] = 0.0f; m[7] = 0.0f; m[11] = 0.0f; m[15] = 1.0f;
 }
 
-void matrix_invert(const Matrix m, Matrix r, double* det) {
+void matrix_invert(const Mat m, double* det, Mat r) {
     double inv[16];
     int i;
 
@@ -366,13 +366,13 @@ void matrix_invert(const Matrix m, Matrix r, double* det) {
     if(det) *det = d;
 }
 
-MatrixP minv(Matrix m, double* det) {
-    matrix_invert(m,m,det);
+MatP minv(double* det, Mat m) {
+    matrix_invert(m,det,m);
     return m;
 }
 
-void matrix_multiply(const Matrix m, const Matrix n, Matrix r) {
-    Matrix t;
+void matrix_multiply(const Mat m, const Mat n, Mat r) {
+    Mat t;
     for(int i = 0; i < 4; i++){
         t[i*4]   = m[i*4] * n[0] + m[i*4+1] * n[4] + m[i*4+2] * n[8]  + m[i*4+3] * n[12];
         t[i*4+1] = m[i*4] * n[1] + m[i*4+1] * n[5] + m[i*4+2] * n[9]  + m[i*4+3] * n[13];
@@ -385,12 +385,12 @@ void matrix_multiply(const Matrix m, const Matrix n, Matrix r) {
     }
 }
 
-MatrixP mmul(const Matrix m, Matrix n) {
+MatP mmul(const Mat m, Mat n) {
     matrix_multiply(m,n,n);
     return n;
 }
 
-void matrix_multiply_vec(const Matrix m, const Vec v, Vec r) {
+void matrix_multiply_vec(const Mat m, const Vec v, Vec r) {
     Vec t;
     t[0] = m[0]*v[0] + m[1]*v[1] + m[2]*v[2] + m[3]*v[3];
     t[1] = m[4]*v[0] + m[5]*v[1] + m[6]*v[2] + m[7]*v[3];
@@ -400,13 +400,13 @@ void matrix_multiply_vec(const Matrix m, const Vec v, Vec r) {
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; r[3] = t[3];
 }
 
-MatrixP mmul_vec(const Matrix m, Vec v) {
+MatP mmul_vec(const Mat m, Vec v) {
     matrix_multiply_vec(m,v,v);
     return v;
 }
 
-void matrix_translate(const Matrix m, const Vec v, Matrix r) {
-    Matrix n;
+void matrix_translate(const Mat m, const Vec v, Mat r) {
+    Mat n;
     n[0] = 1.0f; n[4] = 0.0f;  n[8]  = 0.0f; n[12] = v[0];
     n[1] = 0.0f; n[5] = 1.0f;  n[9]  = 0.0f; n[13] = v[1];
     n[2] = 0.0f; n[6] = 0.0f;  n[10] = 1.0f; n[14] = v[2];
@@ -415,12 +415,12 @@ void matrix_translate(const Matrix m, const Vec v, Matrix r) {
     matrix_multiply(m,n,r);
 }
 
-void matrix_rotate(const Matrix m, const Quat q, Matrix r) {
+void matrix_rotate(const Mat m, const Quat q, Mat r) {
     quat_matrix(q,m,r);
 }
 
-void matrix_scale(const Matrix m, const Vec v, Matrix r) {
-    Matrix n;
+void matrix_scale(const Mat m, const Vec v, Mat r) {
+    Mat n;
     n[0] = v[0]; n[4] = 0.0f; n[8]  = 0.0f; n[12] = 0.0f;
     n[1] = 0.0f; n[5] = v[1]; n[9]  = 0.0f; n[13] = 0.0f;
     n[2] = 0.0f; n[6] = 0.0f; n[10] = v[2]; n[14] = 0.0f;
@@ -429,18 +429,16 @@ void matrix_scale(const Matrix m, const Vec v, Matrix r) {
     matrix_multiply(m,n,r);
 }
 
-void matrix_scaling(const matrix_initfunc f, const Vec v, Matrix r) {
-    if( f ) {
-        f(r);
-    }
+void matrix_scaling(const Vec v, Mat r) {
+    r = (Mat){0};
 
     r[0] = v[0];
     r[5] = v[1];
     r[10] = v[2];
 }
 
-void matrix_transpose(const Matrix m, Matrix r) {
-    Matrix t;
+void matrix_transpose(const Mat m, Mat r) {
+    Mat t;
     t[0] = m[0];  t[4] = m[1];  t[8]  = m[2];  t[12] = m[3];
     t[1] = m[4];  t[5] = m[5];  t[9]  = m[6];  t[13] = m[7];
     t[2] = m[8];  t[6] = m[9];  t[10] = m[10]; t[14] = m[11];
@@ -451,7 +449,7 @@ void matrix_transpose(const Matrix m, Matrix r) {
     }
 }
 
-MatrixP mtransp(Matrix m) {
+MatP mtranspose(Mat m) {
     matrix_transpose(m, m);
     return m;
 }
