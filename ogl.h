@@ -3,7 +3,9 @@
 
 #include "GL/glew.h"
 #include "GL/gl.h"
+
 #include "assert.h"
+#include "stdio.h"
 
 // hack to get rid of annoying clang warning
 #define ogl_stringify(arg) #arg
