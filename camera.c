@@ -27,7 +27,7 @@ void camera_frustum(float left, float right, float top, float bottom, float zNea
 
 void camera_matrices(const struct Camera* camera, Mat projection_matrix, Mat view_matrix) {
     if( camera ) {
-        matrix_identity(projection_matrix);
+        mat_identity(projection_matrix);
 
         float left = camera->frustum.left;
         float right = camera->frustum.right;
@@ -36,9 +36,9 @@ void camera_matrices(const struct Camera* camera, Mat projection_matrix, Mat vie
         float zNear = camera->frustum.zNear;
         float zFar = camera->frustum.zFar;
         if( camera->type == perspective ) {
-            matrix_perspective(left, right, top, bottom, zNear, zFar, projection_matrix);
+            mat_perspective(left, right, top, bottom, zNear, zFar, projection_matrix);
         } else if( camera->type == orthographic) {
-            matrix_orthographic(left, right, top, bottom, zNear, zFar, projection_matrix);
+            mat_orthographic(left, right, top, bottom, zNear, zFar, projection_matrix);
         } else if( camera->type == orthographic_zoom ||
                    camera->type == pixelperfect )
         {
@@ -46,18 +46,18 @@ void camera_matrices(const struct Camera* camera, Mat projection_matrix, Mat vie
             right *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
             top *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
             bottom *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
-            matrix_orthographic(left, right, top, bottom, zNear, zFar, projection_matrix);
+            mat_orthographic(left, right, top, bottom, zNear, zFar, projection_matrix);
         }
 
-        matrix_identity(view_matrix);
+        mat_identity(view_matrix);
 
         //Vec inv_position;
-        //vector_invert(camera->pivot.position, inv_position);
-        //matrix_translate(view_matrix, inv_position, view_matrix);
-        matrix_translate(view_matrix, camera->pivot.position, view_matrix);
+        //vec_invert(camera->pivot.position, inv_position);
+        //mat_translate(view_matrix, inv_position, view_matrix);
+        mat_translate(view_matrix, camera->pivot.position, view_matrix);
 
         Quat inv_quat;
         quat_invert(camera->pivot.orientation, inv_quat);
-        quat_matrix(inv_quat, view_matrix, view_matrix);
+        quat_mat(inv_quat, view_matrix, view_matrix);
     }
 }

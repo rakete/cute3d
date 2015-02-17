@@ -130,18 +130,6 @@ QuatP qproduct(const Quat qa, Quat qb) {
     return qb;
 }
 
-void quat_product1f(float qa, const Quat qb, Quat r) {
-    r[0] = qa*qb[0];
-    r[1] = qa*qb[1];
-    r[2] = qa*qb[2];
-    r[3] = qa*qb[3];
-}
-
-QuatP qproduct1f(float qa, Quat qb) {
-    vector_multiply1f(qa,qb,qb);
-    return qb;
-}
-
 void quat_dot(const Quat qa, const Quat qb, QuatP r) {
     float x1,y1,z1,w1,x2,y2,z2,w2;
     x1 = qa[0];  y1 = qa[1];  z1 = qa[2];  w1 = qa[3];
@@ -203,7 +191,7 @@ float qmagnitude(const Quat q) {
     return magnitude;
 }
 
-void quat_matrix(const Quat q, const Mat m, Mat r) {
+void quat_mat(const Quat q, const Mat m, Mat r) {
     float x,y,z,w;
     w = q[3]; x = q[0]; y = q[1]; z = q[2];
 
@@ -232,11 +220,11 @@ void quat_matrix(const Quat q, const Mat m, Mat r) {
     /* printf("%f %f %f %f\n", n[2], n[6], n[10], n[14]); */
     /* printf("%f %f %f %f\n", n[3], n[7], n[11], n[15]); */
 
-    matrix_multiply(m,n,r);
+    mat_mul(m,n,r);
 }
 
-QuatP qmatrix(const Quat q, Mat m) {
-    quat_matrix(q,m,m);
+QuatP qmat(const Quat q, Mat m) {
+    quat_mat(q,m,m);
     return m;
 }
 
@@ -256,9 +244,9 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
     const float epsilon = 0.00001f;
     Quat ua,ub;
     if( (1 - cosine) < epsilon ) {
-        vector_multiply1f(1-t, qa, ua);
-        vector_multiply1f(t*flip, qb, ub);
-        vector_add(ua, ub, r);
+        vec_mul1f(1-t, qa, ua);
+        vec_mul1f(t*flip, qb, ub);
+        vec_add(ua, ub, r);
     }
 
     float theta = (float)acos(cosine);
@@ -266,9 +254,9 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
     float beta = (float)sin((1-t)*theta) / sine;
     float alpha = (float)sin(t*theta) / sine * flip;
 
-    vector_multiply1f(beta, qa, ua);
-    vector_multiply1f(alpha, qb, ub);
-    vector_add(ua, ub, r);
+    vec_mul1f(beta, qa, ua);
+    vec_mul1f(alpha, qb, ub);
+    vec_add(ua, ub, r);
 }
 
 QuatP qslerp(const Quat qa, Quat qb, float t) {

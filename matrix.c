@@ -16,14 +16,14 @@
 
 #include "matrix.h"
 
-void vector_copy(const Vec v, Vec r) {
+void vec_copy(const Vec v, Vec r) {
     r[0] = v[0];
     r[1] = v[1];
     r[2] = v[2];
     r[3] = v[3];
 }
 
-void vector_add(const Vec v, const Vec w, Vec r) {
+void vec_add(const Vec v, const Vec w, Vec r) {
     r[0] = v[0] + w[0];
     r[1] = v[1] + w[1];
     r[2] = v[2] + w[2];
@@ -36,24 +36,24 @@ void vector_add(const Vec v, const Vec w, Vec r) {
 }
 
 VecP vadd(const Vec v, Vec w) {
-    vector_add(v,w,w);
+    vec_add(v,w,w);
     return w;
 }
 
-void vector_add3f(const Vec v, const Vec3f w, Vec r) {
+void vec_add3f(const Vec v, const Vec3f w, Vec r) {
     r[0] = v[0] + w[0];
     r[1] = v[1] + w[1];
     r[2] = v[2] + w[2];
     r[3] = v[3];
 }
 
-void vector3f_add3f(const Vec3f v, const Vec3f w, Vec3f r) {
+void vec3f_add3f(const Vec3f v, const Vec3f w, Vec3f r) {
     r[0] = v[0] + w[0];
     r[1] = v[1] + w[1];
     r[2] = v[2] + w[2];
 }
 
-void vector_subtract(const Vec v, const Vec w, Vec r) {
+void vec_subtract(const Vec v, const Vec w, Vec r) {
     r[0] = v[0] - w[0];
     r[1] = v[1] - w[1];
     r[2] = v[2] - w[2];
@@ -65,8 +65,8 @@ void vector_subtract(const Vec v, const Vec w, Vec r) {
     }
 }
 
-void vector_multiply(const Vec v, const Vec w, Mat m) {
-    printf("4f vector_multiply not implemented yet!");
+void vec_mul(const Vec v, const Vec w, Mat m) {
+    printf("4f vec_mul not implemented yet!");
 }
 
 VecP vmul(Vec v, Mat w) {
@@ -76,12 +76,12 @@ VecP vmul(Vec v, Mat w) {
     t[2] = w[2];
     t[3] = w[3];
 
-    vector_multiply(v,t,w);
+    vec_mul(v,t,w);
     return w;
 }
 
 
-void vector_multiply1f(float v, const Vec w, Vec r) {
+void vec_mul1f(float v, const Vec w, Vec r) {
     r[0] = v*w[0];
     r[1] = v*w[1];
     r[2] = v*w[2];
@@ -89,33 +89,33 @@ void vector_multiply1f(float v, const Vec w, Vec r) {
 }
 
 VecP vmul1f(float v, Vec w) {
-    vector_multiply1f(v,w,w);
+    vec_mul1f(v,w,w);
     return w;
 }
 
-void vector_invert(const Vec v, Vec r) {
+void vec_invert(const Vec v, Vec r) {
     r[0] = -v[0];
     r[1] = -v[1];
     r[2] = -v[2];
 }
 
-VecP vinv(Vec v) {
-    vector_invert(v,v);
+VecP vinvert(Vec v) {
+    vec_invert(v,v);
     return v;
 }
 
 
-void vector_dot(const Vec v, const Vec w, float* r) {
+void vec_dot(const Vec v, const Vec w, float* r) {
     *r = v[0]*w[0] + v[1]*w[1] + v[2]*w[2];
 }
 
 float vdot(const Vec v, const Vec w) {
     float r;
-    vector_dot(v,w,&r);
+    vec_dot(v,w,&r);
     return r;
 }
 
-void vector_cross(const Vec v, const Vec w, Vec r) {
+void vec_cross(const Vec v, const Vec w, Vec r) {
     Vec t;
     t[0] = v[1]*w[2] - v[2]*w[1];
     t[1] = v[2]*w[0] - v[0]*w[2];
@@ -125,21 +125,21 @@ void vector_cross(const Vec v, const Vec w, Vec r) {
 }
 
 VecP vcross(const Vec v, Vec w) {
-    vector_cross(v,w,w);
+    vec_cross(v,w,w);
     return w;
 }
 
-void vector_length(const Vec v, VecP r) {
+void vec_length(const Vec v, VecP r) {
     *r = sqrt( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
 }
 
 float vlength(const Vec v) {
     float r;
-    vector_length(v,&r);
+    vec_length(v,&r);
     return r;
 }
 
-void vector_normalize(const Vec v, Vec r) {
+void vec_normalize(const Vec v, Vec r) {
     float norm = vlength(v);
     r[0] = v[0] / norm;
     r[1] = v[1] / norm;
@@ -148,21 +148,21 @@ void vector_normalize(const Vec v, Vec r) {
 }
 
 VecP vnormalize(Vec v) {
-    vector_normalize(v,v);
+    vec_normalize(v,v);
     return v;
 }
 
-void vector_angle(const Vec v, const Vec w, VecP r) {
+void vec_angle(const Vec v, const Vec w, VecP r) {
     *r = acos(vdot(v,w) / (vlength(v) * vlength(w)));
 }
 
 float vangle(const Vec v, const Vec w) {
     float r;
-    vector_angle(v,w,&r);
+    vec_angle(v,w,&r);
     return r;
 }
 
-void vector_isnull(const Vec v, bool* r) {
+void vec_nullp(const Vec v, bool* r) {
     if( v[0] == 0.0 &&
         v[1] == 0.0 &&
         v[2] == 0.0 )
@@ -175,25 +175,25 @@ void vector_isnull(const Vec v, bool* r) {
 
 bool vnullp(const Vec v) {
     bool r;
-    vector_isnull(v,&r);
+    vec_nullp(v,&r);
     return r;
 }
 
-void vector_perpendicular(const Vec v, Vec r) {
+void vec_perpendicular(const Vec v, Vec r) {
     r[0] = -v[2];
     r[1] = -v[1];
     r[2] = -v[0];
     r[3] = v[3];
 }
 
-void matrix_copy(const Mat m, Mat r) {
+void mat_copy(const Mat m, Mat r) {
     r[0] = m[0];  r[4] = m[4];  r[8] = m[8];   r[12] = m[12];
     r[1] = m[1];  r[5] = m[5];  r[9] = m[9];   r[13] = m[13];
     r[2] = m[2];  r[6] = m[6];  r[10] = m[10]; r[14] = m[14];
     r[3] = m[3];  r[7] = m[7];  r[11] = m[11]; r[15] = m[15];
 }
 
-void matrix_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Mat m) {
+void mat_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Mat m) {
     Mat n;
     // songho.ca my hero
     n[0] = (2.0*zNear)/(right-left);  n[4] = 0.0f;                      n[8] = (right+left)/(right-left);   n[12] = 0.0f;
@@ -201,27 +201,27 @@ void matrix_perspective(float left, float right, float top, float bottom, float 
     n[2] = 0.0f;                      n[6] = 0.0f;                      n[10] = -(zFar+zNear)/(zFar-zNear); n[14] = -2.0*zFar*zNear/(zFar-zNear);
     n[3] = 0.0f;                      n[7] = 0.0f;                      n[11] = -1.0f;                      n[15] = 0.0f;
 
-    matrix_multiply(m,n,m);
+    mat_mul(m,n,m);
 }
 
-void matrix_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Mat m) {
+void mat_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Mat m) {
     Mat n;
     n[0] = 2.0/(right-left); n[4] = 0.0f;             n[8] = 0.0f;               n[12] = -(right+left)/(right-left);
     n[1] = 0.0f;             n[5] = 2.0/(top-bottom); n[9] = 0.0f;               n[13] = -(top+bottom)/(top-bottom);
     n[2] = 0.0f;             n[6] = 0.0f;             n[10] = -2.0/(zFar-zNear); n[14] = -(zFar+zNear)/(zFar-zNear);
     n[3] = 0.0f;             n[7] = 0.0f;             n[11] = 0.0f;              n[15] = 1.0f;
 
-    matrix_multiply(m,n,m);
+    mat_mul(m,n,m);
 }
 
-void matrix_identity(Mat m) {
+void mat_identity(Mat m) {
     m[0] = 1.0f; m[4] = 0.0f; m[8]  = 0.0f; m[12] = 0.0f;
     m[1] = 0.0f; m[5] = 1.0f; m[9]  = 0.0f; m[13] = 0.0f;
     m[2] = 0.0f; m[6] = 0.0f; m[10] = 1.0f; m[14] = 0.0f;
     m[3] = 0.0f; m[7] = 0.0f; m[11] = 0.0f; m[15] = 1.0f;
 }
 
-void matrix_invert(const Mat m, double* det, Mat r) {
+void mat_invert(const Mat m, double* det, Mat r) {
     double inv[16];
     int i;
 
@@ -366,12 +366,12 @@ void matrix_invert(const Mat m, double* det, Mat r) {
     if(det) *det = d;
 }
 
-MatP minv(double* det, Mat m) {
-    matrix_invert(m,det,m);
+MatP minvert(double* det, Mat m) {
+    mat_invert(m,det,m);
     return m;
 }
 
-void matrix_multiply(const Mat m, const Mat n, Mat r) {
+void mat_mul(const Mat m, const Mat n, Mat r) {
     Mat t;
     for(int i = 0; i < 4; i++){
         t[i*4]   = m[i*4] * n[0] + m[i*4+1] * n[4] + m[i*4+2] * n[8]  + m[i*4+3] * n[12];
@@ -386,11 +386,11 @@ void matrix_multiply(const Mat m, const Mat n, Mat r) {
 }
 
 MatP mmul(const Mat m, Mat n) {
-    matrix_multiply(m,n,n);
+    mat_mul(m,n,n);
     return n;
 }
 
-void matrix_multiply_vec(const Mat m, const Vec v, Vec r) {
+void mat_mul_vec(const Mat m, const Vec v, Vec r) {
     Vec t;
     t[0] = m[0]*v[0] + m[1]*v[1] + m[2]*v[2] + m[3]*v[3];
     t[1] = m[4]*v[0] + m[5]*v[1] + m[6]*v[2] + m[7]*v[3];
@@ -401,35 +401,35 @@ void matrix_multiply_vec(const Mat m, const Vec v, Vec r) {
 }
 
 MatP mmul_vec(const Mat m, Vec v) {
-    matrix_multiply_vec(m,v,v);
+    mat_mul_vec(m,v,v);
     return v;
 }
 
-void matrix_translate(const Mat m, const Vec v, Mat r) {
+void mat_translate(const Mat m, const Vec v, Mat r) {
     Mat n;
     n[0] = 1.0f; n[4] = 0.0f;  n[8]  = 0.0f; n[12] = v[0];
     n[1] = 0.0f; n[5] = 1.0f;  n[9]  = 0.0f; n[13] = v[1];
     n[2] = 0.0f; n[6] = 0.0f;  n[10] = 1.0f; n[14] = v[2];
     n[3] = 0.0f; n[7] = 0.0f;  n[11] = 0.0f; n[15] = 1.0f;
 
-    matrix_multiply(m,n,r);
+    mat_mul(m,n,r);
 }
 
-void matrix_rotate(const Mat m, const Quat q, Mat r) {
-    quat_matrix(q,m,r);
+void mat_rotate(const Mat m, const Quat q, Mat r) {
+    quat_mat(q,m,r);
 }
 
-void matrix_scale(const Mat m, const Vec v, Mat r) {
+void mat_scale(const Mat m, const Vec v, Mat r) {
     Mat n;
     n[0] = v[0]; n[4] = 0.0f; n[8]  = 0.0f; n[12] = 0.0f;
     n[1] = 0.0f; n[5] = v[1]; n[9]  = 0.0f; n[13] = 0.0f;
     n[2] = 0.0f; n[6] = 0.0f; n[10] = v[2]; n[14] = 0.0f;
     n[3] = 0.0f; n[7] = 0.0f; n[11] = 0.0f; n[15] = 1.0f;
 
-    matrix_multiply(m,n,r);
+    mat_mul(m,n,r);
 }
 
-void matrix_scaling(const Vec v, Mat r) {
+void mat_scaling(const Vec v, Mat r) {
     r = (Mat){0};
 
     r[0] = v[0];
@@ -437,7 +437,7 @@ void matrix_scaling(const Vec v, Mat r) {
     r[10] = v[2];
 }
 
-void matrix_transpose(const Mat m, Mat r) {
+void mat_transpose(const Mat m, Mat r) {
     Mat t;
     t[0] = m[0];  t[4] = m[1];  t[8]  = m[2];  t[12] = m[3];
     t[1] = m[4];  t[5] = m[5];  t[9]  = m[6];  t[13] = m[7];
@@ -450,6 +450,6 @@ void matrix_transpose(const Mat m, Mat r) {
 }
 
 MatP mtranspose(Mat m) {
-    matrix_transpose(m, m);
+    mat_transpose(m, m);
     return m;
 }

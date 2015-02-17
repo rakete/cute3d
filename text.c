@@ -335,10 +335,10 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
                     newline = 0;
 
                     Mat glyph_matrix;
-                    matrix_identity(glyph_matrix);
-                    matrix_translate(glyph_matrix, cursor_vec, glyph_matrix);
-                    matrix_scale(glyph_matrix, (Vec){ scale, scale, scale, 1.0 }, glyph_matrix);
-                    matrix_multiply(glyph_matrix, model_matrix, glyph_matrix);
+                    mat_identity(glyph_matrix);
+                    mat_translate(glyph_matrix, cursor_vec, glyph_matrix);
+                    mat_scale(glyph_matrix, (Vec){ scale, scale, scale, 1.0 }, glyph_matrix);
+                    mat_mul(glyph_matrix, model_matrix, glyph_matrix);
 
                     if( glyph ) {
                         glUniformMatrix4fv(model_loc, 1, GL_FALSE, glyph_matrix);
@@ -360,15 +360,15 @@ void text_overlay(const wchar_t* text, const struct Font* font, int size, struct
     camera_matrices(&camera, ortho_projection, ortho_view);
 
     Mat text_matrix;
-    matrix_identity(text_matrix);
-    matrix_rotate(text_matrix, camera.pivot.orientation, text_matrix);
+    mat_identity(text_matrix);
+    mat_rotate(text_matrix, camera.pivot.orientation, text_matrix);
 
     Vec translation;
     translation[0] = camera.frustum.left + fabs(camera.frustum.left - camera.frustum.right)/(float)camera.screen.width * (float)x;
     translation[1] = camera.frustum.top + fabs(camera.frustum.bottom - camera.frustum.top)/(float)camera.screen.height * (float)y;
     translation[2] = 0.0;
     translation[3] = 1.0;
-    matrix_translate(text_matrix, translation, text_matrix);
+    mat_translate(text_matrix, translation, text_matrix);
 
     float scale = (float)size/(float)camera.screen.height;
 

@@ -21,8 +21,8 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
 
     Mat projection_matrix;
     Mat view_matrix;
-    matrix_identity(projection_matrix);
-    matrix_identity(view_matrix);
+    mat_identity(projection_matrix);
+    mat_identity(view_matrix);
 
     if( camera ) {
         camera_matrices(camera,projection_matrix,view_matrix);
@@ -42,7 +42,7 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
     bool free_model_matrix = 0;
     if( ! model_matrix ) {
         model_matrix = malloc(sizeof(Mat));
-        matrix_identity(model_matrix);
+        mat_identity(model_matrix);
         free_model_matrix = 1;
     }
 
@@ -53,8 +53,8 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
     GLint normal_loc = glGetUniformLocation(shader->program, "normal_matrix");
     if( ! free_model_matrix ) {
         Mat normal_matrix;
-        matrix_invert(model_matrix, NULL, normal_matrix);
-        matrix_transpose(normal_matrix, normal_matrix);
+        mat_invert(model_matrix, NULL, normal_matrix);
+        mat_transpose(normal_matrix, normal_matrix);
         glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix);
     }
 

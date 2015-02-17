@@ -45,6 +45,11 @@ typedef float Color[4];
 #define vec3f(v) (Vec3f){(float)v[0], (float)v[1], (float)v[2]}
 #define vec4f(v) (Vec4f){(float)v[0], (float)v[1], (float)v[2], (float)v[3]}
 
+#define x_(v) v[0]
+#define y_(v) v[1]
+#define z_(v) v[2]
+#define w_(v) v[3]
+
 #define matf(m) mat4x4f(m)
 #define mat4x4f(m)                                                      \
     (Mat4f){(float)m[0], (float)m[1], (float)m[2], (float)m[3],         \

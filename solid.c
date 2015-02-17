@@ -37,8 +37,8 @@ void solid_normals(struct Solid* solid) {
             v[3] = 1.0;
 
             Vec normal;
-            vector_cross(u,v,normal);
-            vector_normalize(normal,normal);
+            vec_cross(u,v,normal);
+            vec_normalize(normal,normal);
 
             solid->normals[a*3+0] = normal[0];
             solid->normals[a*3+1] = normal[1];

@@ -227,27 +227,27 @@ void draw_normals_array( float* vertices,
 
         for( int i = 0; i < n; i++ ) {
             Mat arrow_matrix;
-            matrix_identity(arrow_matrix);
+            mat_identity(arrow_matrix);
 
             Vec z = { 0.0, 0.0, 1.0, 1.0 };
             Vec normal = { normals[i*3+0], normals[i*3+1], normals[i*3+2] };
             Vec axis;
-            vector_cross(normal,z,axis);
+            vec_cross(normal,z,axis);
             if( vnullp(axis) ) {
-                vector_perpendicular(z,axis);
+                vec_perpendicular(z,axis);
             }
 
             float angle;
-            vector_angle(normal,z,&angle);
+            vec_angle(normal,z,&angle);
 
             Quat rotation;
             quat_rotation(axis,angle,rotation);
-            quat_matrix(rotation, arrow_matrix, arrow_matrix);
+            quat_mat(rotation, arrow_matrix, arrow_matrix);
 
             Vec vertex = { vertices[i*3+0], vertices[i*3+1], vertices[i*3+2], 1.0 };
-            matrix_translate(arrow_matrix, vertex, arrow_matrix);
+            mat_translate(arrow_matrix, vertex, arrow_matrix);
 
-            matrix_multiply(arrow_matrix, model_matrix, arrow_matrix);
+            mat_mul(arrow_matrix, model_matrix, arrow_matrix);
 
             GLint model_loc = glGetUniformLocation(program, "model_matrix");
             glUniformMatrix4fv(model_loc, 1, GL_FALSE, arrow_matrix);

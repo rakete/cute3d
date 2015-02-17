@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
     camera_matrices(&camera, projection_mat, view_mat);
 
     Mat cube_transform;
-    matrix_identity(cube_transform);
+    mat_identity(cube_transform);
 
     /* Physics */
     struct Physics previous;

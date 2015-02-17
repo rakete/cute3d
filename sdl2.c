@@ -55,7 +55,7 @@ void sdl2_orbit_create(SDL_Window* window, Vec origin, Vec translation, struct C
     //camera_projection(camera, orthographic_zoom);
     camera_frustum(-0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f, camera);
 
-    vector_add3f(camera->pivot.position, translation, camera->pivot.position);
+    vec_add3f(camera->pivot.position, translation, camera->pivot.position);
     pivot_lookat(&camera->pivot, origin);
 }
 

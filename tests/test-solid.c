@@ -100,14 +100,14 @@ int main(int argc, char *argv[]) {
         shader_uniform(&shader, "ambiance", "4f", ambiance);
 
         Mat identity;
-        matrix_identity(identity);
+        mat_identity(identity);
 
         Mat tetrahedron_transform, hexahedron_transform, cube_transform, sphere16_transform, sphere32_transform;
-        matrix_translate(identity, (float[4]){ 0.0, 0.0, 0.0, 1.0 }, tetrahedron_transform);
-        matrix_translate(identity, (float[4]){ -3.0, 0.0, 0.0, 1.0 }, hexahedron_transform);
-        matrix_translate(identity, (float[4]){ 3.0, 0.0, 0.0, 1.0 }, cube_transform);
-        matrix_translate(identity, (float[4]){ -1.5, -3.0, 0.0, 1.0 }, sphere16_transform);
-        matrix_translate(identity, (float[4]){ 1.5, -3.0, 0.0, 1.0 }, sphere32_transform);
+        mat_translate(identity, (float[4]){ 0.0, 0.0, 0.0, 1.0 }, tetrahedron_transform);
+        mat_translate(identity, (float[4]){ -3.0, 0.0, 0.0, 1.0 }, hexahedron_transform);
+        mat_translate(identity, (float[4]){ 3.0, 0.0, 0.0, 1.0 }, cube_transform);
+        mat_translate(identity, (float[4]){ -1.5, -3.0, 0.0, 1.0 }, sphere16_transform);
+        mat_translate(identity, (float[4]){ 1.5, -3.0, 0.0, 1.0 }, sphere32_transform);
 
         render_mesh(&tetrahedron_mesh, &shader, &camera, tetrahedron_transform);
         render_mesh(&hexahedron_mesh, &shader, &camera, hexahedron_transform);

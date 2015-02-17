@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
     camera_frustum(-0.5f, 0.5f, -0.28125f, 0.28125f, 1.0f, 200.0f, &default_camera);
 
     Vec translation = { 0.0, 4.0, -8.0 };
-    vector_add3f(default_camera.pivot.position, translation, default_camera.pivot.position);
+    vec_add3f(default_camera.pivot.position, translation, default_camera.pivot.position);
     Vec origin = { 0.0, 0.0, 0.0, 1.0 };
     pivot_lookat(&default_camera.pivot, origin);
 
@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
         camera_matrices(&default_camera, projection_mat, view_mat);
 
         Mat identity;
-        matrix_identity(identity);
+        mat_identity(identity);
 
         Vec light_direction = { 2.5, -1.0, 1.5 };
         shader_uniform(&default_shader, "light_direction", "3f", light_direction);
@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
         shader_uniform(&default_shader, "ambiance", "4f", ambiance);
 
         Mat cube_transform;
-        matrix_identity(cube_transform);
+        mat_identity(cube_transform);
 
         Quat cube_rotation;
         qidentity(cube_rotation);
@@ -149,10 +149,10 @@ int main(int argc, char** argv) {
 
         printf("%f %f %f %f\n", cube_spinning[0], cube_spinning[1], cube_spinning[2], cube_spinning[3]);
 
-        qmatrix(cube_rotation, cube_transform);
+        qmat(cube_rotation, cube_transform);
 
 
-        matrix_translate(cube_transform, (Vec){ -2.0, 0.0, 0.0, 1.0 }, cube_transform);
+        mat_translate(cube_transform, (Vec){ -2.0, 0.0, 0.0, 1.0 }, cube_transform);
 
         render_mesh(&cube_mesh, &default_shader, &default_camera, cube_transform);
         draw_normals_array(cube.vertices,
@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
                            cube_transform);
 
         Mat font_mat;
-        matrix_identity(font_mat);
+        mat_identity(font_mat);
 
         text_put(L"CUTE says\n   Hello World", &foo, 0.33, projection_mat, view_mat, font_mat);
 

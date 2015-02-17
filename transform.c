@@ -39,21 +39,21 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
 
     // vektor wo er hingucken soll
     Vec target_direction;
-    vector_subtract(target, pivot->position, target_direction);
+    vec_subtract(target, pivot->position, target_direction);
 
-    vector_length(target_direction, &pivot->eye_distance);
-    vector_normalize(target_direction, target_direction);
+    vec_length(target_direction, &pivot->eye_distance);
+    vec_normalize(target_direction, target_direction);
 
     // achse = cross product
     Vec rotation_axis;
-    vector_cross(target_direction, looking_direction, rotation_axis);
+    vec_cross(target_direction, looking_direction, rotation_axis);
     if( vnullp(rotation_axis) ) {
-        vector_perpendicular(target_direction, rotation_axis);
+        vec_perpendicular(target_direction, rotation_axis);
     }
 
     // winkel = dot product
     float rotation_angle;
-    vector_angle(target_direction, looking_direction, &rotation_angle);
+    vec_angle(target_direction, looking_direction, &rotation_angle);
 
     // quat das forward vektor auf den target punkt dreht
     Quat rotation;
@@ -71,15 +71,15 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
 
 void pivot_world_transform(const struct Pivot pivot, Mat world_transform) {
     Mat translation;
-    matrix_translate(translation, pivot.position, translation);
+    mat_translate(translation, pivot.position, translation);
     Mat rotation;
-    quat_matrix(pivot.orientation, rotation, rotation);
+    quat_mat(pivot.orientation, rotation, rotation);
 
-    matrix_multiply(translation, rotation, world_transform);
+    mat_mul(translation, rotation, world_transform);
 }
 
 void pivot_body_transform(const struct Pivot pivot, Mat body_transform) {
     Mat world_transform;
     pivot_world_transform(pivot, world_transform);
-    matrix_invert(world_transform, NULL, body_transform);
+    mat_invert(world_transform, NULL, body_transform);
 }
