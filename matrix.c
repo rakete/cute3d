@@ -81,16 +81,16 @@ VecP vmul(Vec v, Mat w) {
 }
 
 
-void vec_mul1f(float v, const Vec w, Vec r) {
-    r[0] = v*w[0];
-    r[1] = v*w[1];
-    r[2] = v*w[2];
-    r[3] = v*w[3];
+void vec_mul1f(const Vec v, float w, Vec r) {
+    r[0] = v[0]*w;
+    r[1] = v[1]*w;
+    r[2] = v[2]*w;
+    r[3] = v[3]*w;
 }
 
-VecP vmul1f(float v, Vec w) {
-    vec_mul1f(v,w,w);
-    return w;
+VecP vmul1f(Vec v, float w) {
+    vec_mul1f(v,w,v);
+    return v;
 }
 
 void vec_invert(const Vec v, Vec r) {

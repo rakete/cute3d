@@ -244,8 +244,8 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
     const float epsilon = 0.00001f;
     Quat ua,ub;
     if( (1 - cosine) < epsilon ) {
-        vec_mul1f(1-t, qa, ua);
-        vec_mul1f(t*flip, qb, ub);
+        vec_mul1f(qa, 1-t, ua);
+        vec_mul1f(qb, t*flip, ub);
         vec_add(ua, ub, r);
     }
 
@@ -254,8 +254,8 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
     float beta = (float)sin((1-t)*theta) / sine;
     float alpha = (float)sin(t*theta) / sine * flip;
 
-    vec_mul1f(beta, qa, ua);
-    vec_mul1f(alpha, qb, ub);
+    vec_mul1f(qa, beta, ua);
+    vec_mul1f(qb, alpha, ub);
     vec_add(ua, ub, r);
 }
 

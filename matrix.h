@@ -31,15 +31,19 @@ void vec_add(const Vec v, const Vec w, Vec r);
 VecP vadd(const Vec v, Vec w);
 
 void vec_add3f(const Vec v, const Vec3f w, Vec r);
+//VecP vadd3f(const Vec v, Vec3f w);
+
 void vec3f_add3f(const Vec3f v, const Vec3f w, Vec3f r);
+//VecP v3fadd3f(const Vec3f v, Vec3f w);
 
 void vec_subtract(const Vec v, const Vec w, Vec r);
+//VecP vsubtract(const Vec v, Vec w);
 
 void vec_mul(const Vec v, const Vec w, Mat m);
 VecP vmul(Vec v, Mat w);
 
-void vec_mul1f(float v, const Vec w, Vec r);
-VecP vmul1f(float v, Vec w);
+void vec_mul1f(const Vec v, float w, Vec r);
+VecP vmul1f(Vec v, float w);
 
 void vec_invert(const Vec v, Vec r);
 VecP vinvert(Vec v);
@@ -74,10 +78,13 @@ void mat_orthographic(float left, float right, float top, float bottom, float zN
 void mat_identity(Mat m);
 MatP midentity(Mat m);
 
+void mat_scaling(const Vec v, Mat r);
+//MatP mscaling(Mat v);
+
+// matrix op
 void mat_invert(const Mat m, double* det, Mat r);
 MatP minvert(double* det, Mat m);
 
-// matrix op
 void mat_mul(const Mat m, const Mat n, Mat r);
 MatP mmul(const Mat m, Mat n);
 
@@ -92,8 +99,6 @@ void mat_rotate(const Mat m, const Quat q, Mat r);
 
 void mat_scale(const Mat m, const Vec v, Mat r);
 //MatP mscale(const Vec v, Mat m);
-
-void mat_scaling(const Vec v, Mat r);
 
 void mat_transpose(const Mat m, Mat r);
 MatP mtranspose(Mat m);

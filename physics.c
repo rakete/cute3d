@@ -36,26 +36,26 @@ struct Physics physics_interpolate(struct Physics a, struct Physics b, float alp
     struct Physics state = b;
 
     //state.position = a.position*(1-alpha) + b.position*alpha;
-    vec_copy(vadd(vmul1f(1-alpha, a.pivot.position), vmul1f(alpha, b.pivot.position)), state.pivot.position);
+    vec_copy(vadd(vmul1f(a.pivot.position, 1-alpha), vmul1f(b.pivot.position, alpha)), state.pivot.position);
 
     //state.momentum = a.momentum*(1-alpha) + b.momentum*alpha;
-    vec_copy(vadd(vmul1f(1-alpha, a.momentum), vmul1f(alpha, b.momentum)), state.momentum);
+    vec_copy(vadd(vmul1f(a.momentum, 1-alpha), vmul1f(b.momentum, alpha)), state.momentum);
 
     //state.orientation = slerp(a.orientation, b.orientation, alpha);
     quat_slerp(a.pivot.orientation, b.pivot.orientation, alpha, state.pivot.orientation);
 
     //state.angularMomentum = a.angularMomentum*(1-alpha) + b.angularMomentum*alpha;
-    vec_copy(vadd(vmul1f(1-alpha, a.angular_momentum), vmul1f(alpha, b.angular_momentum)), state.angular_momentum);
+    vec_copy(vadd(vmul1f(a.angular_momentum, 1-alpha), vmul1f(b.angular_momentum, alpha)), state.angular_momentum);
 
     return physics_recalculate(state);
 }
 
 struct Physics physics_recalculate(struct Physics physics) {
     Vec velocity;
-    vec_mul1f(physics.inverse_mass, physics.momentum, velocity);
+    vec_mul1f(physics.momentum, physics.inverse_mass, velocity);
 
     Vec angular_velocity;
-    vec_mul1f(physics.inverse_inertia, physics.angular_momentum, angular_velocity);
+    vec_mul1f(physics.angular_momentum, physics.inverse_inertia, angular_velocity);
 
     Quat orientation = { physics.pivot.orientation[0],
                          physics.pivot.orientation[1],
@@ -66,7 +66,7 @@ struct Physics physics_recalculate(struct Physics physics) {
     //0.5 * q * orientation;
     Quat spin;
     quat_product((Quat){0, angular_velocity[0], angular_velocity[1], angular_velocity[2]}, orientation, spin);
-    vec_mul1f(0.5, spin, spin);
+    vec_mul1f(spin, 0.5, spin);
 
     vec_copy(velocity, physics.velocity);
     vec_copy(angular_velocity, physics.angular_velocity);
@@ -87,19 +87,19 @@ struct PhysicsDerivative physics_eval_time(struct Physics state, float t) {
 
 struct PhysicsDerivative physics_eval_future(struct Physics state, struct PhysicsDerivative derivative, float t, float dt) {
     Vec movement;
-    vec_mul1f(dt, derivative.velocity, movement);
+    vec_mul1f(derivative.velocity, dt, movement);
     vec_add(state.pivot.position, movement, state.pivot.position);
 
     Vec force;
-    vec_mul1f(dt, derivative.force, force);
+    vec_mul1f(derivative.force, dt, force);
     vec_add(state.momentum, force, state.momentum);
 
     Quat spin;
-    vec_mul1f(dt, derivative.spin, spin);
+    vec_mul1f(derivative.spin, dt, spin);
     vec_add(state.pivot.orientation, spin, state.pivot.orientation);
 
     Vec torque;
-    vec_mul1f(dt, derivative.torque, torque);
+    vec_mul1f(derivative.torque, dt, torque);
     vec_add(state.angular_momentum, spin, state.angular_momentum);
 
     state = physics_recalculate(state);
@@ -118,19 +118,19 @@ struct Physics physics_integrate(struct Physics state, float t, float dt) {
     struct PhysicsDerivative d = physics_eval_future(state, c, t, dt);
 
     //state.position += 1.0f/6.0f * dt * (a.velocity + 2.0f*(b.velocity + c.velocity) + d.velocity);
-    VecP position_change = vmul1f(1.0f/6.0f * dt, vadd(a.velocity, vadd( vmul1f(2.0f, vadd(b.velocity, c.velocity)), d.velocity)));
+    VecP position_change = vmul1f(vadd(a.velocity, vadd( vmul1f(vadd(b.velocity, c.velocity), 2.0f), d.velocity)), 1.0f/6.0f * dt);
     vec_add(state.pivot.position, position_change, state.pivot.position);
 
     //state.momentum += 1.0f/6.0f * dt * (a.force + 2.0f*(b.force + c.force) + d.force);
-    VecP momentum_change = vmul1f(1.0f/6.0f * dt, vadd(a.force, vadd( vmul1f(2.0f, vadd(b.force, c.force)), d.force)));
+    VecP momentum_change = vmul1f(vadd(a.force, vadd( vmul1f(vadd(b.force, c.force), 2.0f), d.force)), 1.0f/6.0f * dt);
     vec_add(state.momentum, momentum_change, state.momentum);
 
     //state.orientation += 1.0f/6.0f * dt * (a.spin + 2.0f*(b.spin + c.spin) + d.spin);
-    VecP orientation_change = vmul1f(1.0f/6.0f * dt, vadd(a.spin, vadd( vmul1f(2.0f, vadd(b.spin, c.spin)), d.spin)));
+    VecP orientation_change = vmul1f(vadd(a.spin, vadd( vmul1f(vadd(b.spin, c.spin), 2.0f), d.spin)), 1.0f/6.0f * dt);
     vec_add(state.pivot.orientation, orientation_change, state.pivot.orientation);
 
     //state.angularMomentum += 1.0f/6.0f * dt * (a.torque + 2.0f*(b.torque + c.torque) + d.torque);
-    VecP angular_momentum_change = vmul1f(1.0f/6.0f * dt, vadd(a.torque, vadd( vmul1f(2.0f, vadd(b.torque, c.torque)), d.torque)));
+    VecP angular_momentum_change = vmul1f(vadd(a.torque, vadd( vmul1f(vadd(b.torque, c.torque), 2.0f), d.torque)), 1.0f/6.0f * dt);
     vec_add(state.angular_momentum, angular_momentum_change, state.angular_momentum);
 
     return physics_recalculate(state);
@@ -138,7 +138,7 @@ struct Physics physics_integrate(struct Physics state, float t, float dt) {
 
 void physics_forces(struct Physics state, float t, Vec force, Vec torque) {
     // attract towards origin
-    vec_mul1f(-10, state.pivot.position, force);
+    vec_mul1f(state.pivot.position, -10, force);
 
     // sine force to add some randomness to the motion
 
