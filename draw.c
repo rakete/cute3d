@@ -242,7 +242,7 @@ void draw_normals_array( float* vertices,
 
             Quat rotation;
             quat_rotation(axis,angle,rotation);
-            quat_mat(rotation, arrow_matrix, arrow_matrix);
+            quat_mat(rotation, arrow_matrix);
 
             Vec vertex = { vertices[i*3+0], vertices[i*3+1], vertices[i*3+2], 1.0 };
             mat_translate(arrow_matrix, vertex, arrow_matrix);

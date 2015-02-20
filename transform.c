@@ -71,9 +71,10 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
 
 void pivot_world_transform(const struct Pivot pivot, Mat world_transform) {
     Mat translation;
-    mat_translate(translation, pivot.position, translation);
+    mat_translating(pivot.position, translation);
+
     Mat rotation;
-    quat_mat(pivot.orientation, rotation, rotation);
+    quat_mat(pivot.orientation, rotation);
 
     mat_mul(translation, rotation, world_transform);
 }

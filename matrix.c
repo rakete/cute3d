@@ -47,7 +47,12 @@ void vec_add3f(const Vec v, const Vec3f w, Vec r) {
     r[3] = v[3];
 }
 
-void vec3f_add3f(const Vec3f v, const Vec3f w, Vec3f r) {
+VecP vadd3f(const Vec v, Vec w) {
+    vec_3fadd3f(v,w,w);
+    return w;
+}
+
+void vec_3fadd3f(const Vec3f v, const Vec3f w, Vec3f r) {
     r[0] = v[0] + w[0];
     r[1] = v[1] + w[1];
     r[2] = v[2] + w[2];
@@ -69,7 +74,7 @@ void vec_mul(const Vec v, const Vec w, Mat m) {
     printf("4f vec_mul not implemented yet!");
 }
 
-VecP vmul(Vec v, Mat w) {
+VecP vmul(const Vec v, Mat w) {
     Vec t;
     t[0] = w[0];
     t[1] = w[1];
@@ -186,6 +191,10 @@ void vec_perpendicular(const Vec v, Vec r) {
     r[3] = v[3];
 }
 
+void vec_print(const char* title, const Vec v) {
+    printf("%s(%f %f %f %f)\n", title, v[0], v[1], v[2], v[3]);
+}
+
 void mat_copy(const Mat m, Mat r) {
     r[0] = m[0];  r[4] = m[4];  r[8] = m[8];   r[12] = m[12];
     r[1] = m[1];  r[5] = m[5];  r[9] = m[9];   r[13] = m[13];
@@ -220,6 +229,21 @@ void mat_identity(Mat m) {
     m[2] = 0.0f; m[6] = 0.0f; m[10] = 1.0f; m[14] = 0.0f;
     m[3] = 0.0f; m[7] = 0.0f; m[11] = 0.0f; m[15] = 1.0f;
 }
+
+void mat_scaling(const Vec v, Mat r) {
+    r[0] = v[0]; r[4] = 0.0f;  r[8]  = 0.0f; r[12] = 0.0f;
+    r[1] = 0.0f; r[5] = v[1];  r[9]  = 0.0f; r[13] = 0.0f;
+    r[2] = 0.0f; r[6] = 0.0f;  r[10] = v[2]; r[14] = 0.0f;
+    r[3] = 0.0f; r[7] = 0.0f;  r[11] = 0.0f; r[15] = 1.0f;
+}
+
+void mat_translating(const Vec v, Mat r) {
+    r[0] = 1.0f; r[4] = 0.0f;  r[8]  = 0.0f; r[12] = v[0];
+    r[1] = 0.0f; r[5] = 1.0f;  r[9]  = 0.0f; r[13] = v[1];
+    r[2] = 0.0f; r[6] = 0.0f;  r[10] = 1.0f; r[14] = v[2];
+    r[3] = 0.0f; r[7] = 0.0f;  r[11] = 0.0f; r[15] = 1.0f;
+}
+
 
 void mat_invert(const Mat m, double* det, Mat r) {
     double inv[16];
@@ -366,7 +390,7 @@ void mat_invert(const Mat m, double* det, Mat r) {
     if(det) *det = d;
 }
 
-MatP minvert(double* det, Mat m) {
+MatP minvert(Mat m, double* det) {
     mat_invert(m,det,m);
     return m;
 }
@@ -416,7 +440,14 @@ void mat_translate(const Mat m, const Vec v, Mat r) {
 }
 
 void mat_rotate(const Mat m, const Quat q, Mat r) {
-    quat_mat(q,m,r);
+    Mat n;
+    quat_mat(q,n);
+    mat_mul(m,n,r);
+}
+
+MatP mrotate(Mat m, const Quat q) {
+    mat_rotate(m,q,m);
+    return m;
 }
 
 void mat_scale(const Mat m, const Vec v, Mat r) {
@@ -427,14 +458,6 @@ void mat_scale(const Mat m, const Vec v, Mat r) {
     n[3] = 0.0f; n[7] = 0.0f; n[11] = 0.0f; n[15] = 1.0f;
 
     mat_mul(m,n,r);
-}
-
-void mat_scaling(const Vec v, Mat r) {
-    r = (Mat){0};
-
-    r[0] = v[0];
-    r[5] = v[1];
-    r[10] = v[2];
 }
 
 void mat_transpose(const Mat m, Mat r) {
@@ -452,4 +475,12 @@ void mat_transpose(const Mat m, Mat r) {
 MatP mtranspose(Mat m) {
     mat_transpose(m, m);
     return m;
+}
+
+void mat_print(const char* title, const Mat m) {
+    printf("%s\n", title);
+    printf("[%f %f %f %f]\n", m[0], m[4], m[8], m[12]);
+    printf("[%f %f %f %f]\n", m[1], m[5], m[9], m[13]);
+    printf("[%f %f %f %f]\n", m[2], m[6], m[10], m[14]);
+    printf("[%f %f %f %f]\n", m[3], m[7], m[11], m[15]);
 }

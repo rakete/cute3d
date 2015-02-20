@@ -191,7 +191,7 @@ float qmagnitude(const Quat q) {
     return magnitude;
 }
 
-void quat_mat(const Quat q, const Mat m, Mat r) {
+void quat_mat(const Quat q, Mat r) {
     float x,y,z,w;
     w = q[3]; x = q[0]; y = q[1]; z = q[2];
 
@@ -209,22 +209,14 @@ void quat_mat(const Quat q, const Mat m, Mat r) {
     float wz = w*z;
     float ww = w*w;
 
-    Mat n;
-    n[0] = ww + xx - yy - zz; n[4] = 2*(xy + wz);       n[8]  =  2*(xz - wy);       n[12] = 0;
-    n[1] = 2*(xy - wz);       n[5] = ww - xx + yy - zz; n[9]  =  2*(yz + wx);       n[13] = 0;
-    n[2] = 2*(xz + wy);       n[6] = 2*(yz - wx);       n[10] =  ww - xx - yy + zz; n[14] = 0;
-    n[3] = 0;                 n[7] = 0;                 n[11] =  0;                 n[15] = ww + xx + yy + zz;
-
-    /* printf("%f %f %f %f\n", n[0], n[4], n[8], n[12]); */
-    /* printf("%f %f %f %f\n", n[1], n[5], n[9], n[13]); */
-    /* printf("%f %f %f %f\n", n[2], n[6], n[10], n[14]); */
-    /* printf("%f %f %f %f\n", n[3], n[7], n[11], n[15]); */
-
-    mat_mul(m,n,r);
+    r[0] = ww + xx - yy - zz; r[4] = 2*(xy + wz);       r[8]  =  2*(xz - wy);       r[12] = 0;
+    r[1] = 2*(xy - wz);       r[5] = ww - xx + yy - zz; r[9]  =  2*(yz + wx);       r[13] = 0;
+    r[2] = 2*(xz + wy);       r[6] = 2*(yz - wx);       r[10] =  ww - xx - yy + zz; r[14] = 0;
+    r[3] = 0;                 r[7] = 0;                 r[11] =  0;                 r[15] = ww + xx + yy + zz;
 }
 
 QuatP qmat(const Quat q, Mat m) {
-    quat_mat(q,m,m);
+    quat_mat(q,m);
     return m;
 }
 
