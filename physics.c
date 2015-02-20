@@ -32,7 +32,7 @@ void physics_create(float mass, float inertia, struct Physics* physics) {
     physics->inverse_inertia = 1.0f/inertia;
 }
 
-struct Physics physics_interpolate(struct Physics a, struct Physics b, float alpha) {
+struct Physics physics_interpolate(struct Physics a, struct Physics b, double alpha) {
     struct Physics state = b;
 
     //state.position = a.position*(1-alpha) + b.position*alpha;
@@ -88,7 +88,7 @@ struct PhysicsDerivative physics_eval_time(struct Physics state, float t) {
 struct PhysicsDerivative physics_eval_future(struct Physics state, struct PhysicsDerivative derivative, float t, float dt) {
     Vec movement;
     vec_mul1f(derivative.velocity, dt, movement);
-    vec_add(state.pivot.position, movement, state.pivot.position);
+    vec_add3f(state.pivot.position, movement, state.pivot.position);
 
     Vec force;
     vec_mul1f(derivative.force, dt, force);
@@ -119,7 +119,7 @@ struct Physics physics_integrate(struct Physics state, float t, float dt) {
 
     //state.position += 1.0f/6.0f * dt * (a.velocity + 2.0f*(b.velocity + c.velocity) + d.velocity);
     VecP position_change = vmul1f(vadd(a.velocity, vadd( vmul1f(vadd(b.velocity, c.velocity), 2.0f), d.velocity)), 1.0f/6.0f * dt);
-    vec_add(state.pivot.position, position_change, state.pivot.position);
+    vec_add3f(state.pivot.position, position_change, state.pivot.position);
 
     //state.momentum += 1.0f/6.0f * dt * (a.force + 2.0f*(b.force + c.force) + d.force);
     VecP momentum_change = vmul1f(vadd(a.force, vadd( vmul1f(vadd(b.force, c.force), 2.0f), d.force)), 1.0f/6.0f * dt);
@@ -145,12 +145,14 @@ void physics_forces(struct Physics state, float t, Vec force, Vec torque) {
     force[0] += 10 * sin(t * 0.9f + 0.5f);
     force[1] += 11 * sin(t * 0.5f + 0.4f);
     force[2] += 12 * sin(t * 0.7f + 0.9f);
+    force[3] = 1.0f;
 
     // sine torque to get some spinning action
 
     torque[0] = 1.0f * sin(t * 0.9f + 0.5f);
     torque[1] = 1.1f * sin(t * 0.5f + 0.4f);
     torque[2] = 1.2f * sin(t * 0.7f + 0.9f);
+    torque[3] = 1.0f;
 
     // damping torque so we dont spin too fast
 

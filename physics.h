@@ -52,7 +52,7 @@ struct PhysicsWorld;
 
 void physics_create(float mass, float inertia, struct Physics* physics);
 
-struct Physics physics_interpolate(struct Physics a, struct Physics b, float alpha);
+struct Physics physics_interpolate(struct Physics a, struct Physics b, double alpha);
 
 struct Physics physics_recalculate(struct Physics state);
 

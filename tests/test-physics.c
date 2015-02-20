@@ -37,30 +37,41 @@ struct Time {
 
     double current;
     double frame;
-    double offset;
+    double max_frame;
+    double accumulator;
 };
 
-void time_create(double t, double dt, double frame, double offset, struct Time* time) {
-    time->t = t;
+void time_create(double dt, struct Time* time) {
     time->dt = dt;
+    time->t = 0.0f;
+    time->current = 0.0f;
+    time->frame = 0.0f;
+    time->max_frame = 0.25f;
+    time->accumulator = 0.0f;
+}
+
+void time_createx(double dt, double t, double frame, double max_frame, double accumulator, struct Time* time) {
+    time->dt = dt;
+    time->t = t;
     time->current = 0.0;
     time->frame = frame;
-    time->offset = offset;
+    time->max_frame = max_frame;
+    time->accumulator = accumulator;
 }
 
 void time_advance(double delta, struct Time* time) {
     time->frame = delta;
-    if ( time->frame > 0.25 ) {
-        time->frame = 0.25;
+    if ( time->frame > time->max_frame ) {
+        time->frame = time->max_frame;
     }
     time->current += time->frame;
-    time->offset += time->frame;
+    time->accumulator += time->frame;
 }
 
 int time_integrate(struct Time* time) {
-    if( time->offset >= time->dt ) {
+    if( time->accumulator >= time->dt ) {
         time->t += time->dt;
-        time->offset -= time->dt;
+        time->accumulator -= time->dt;
         return 1;
     }
 
@@ -93,10 +104,10 @@ int main(int argc, char *argv[]) {
     struct Shader shader;
     render_shader_flat(&shader);
 
-    Vec light_direction = { 0.2, 0.5, 1.0 };
+    Vec light_direction = { 0.0, 1.0, 0.0 };
     shader_uniform(&shader, "light_direction", "3f", light_direction);
 
-    Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
+    Color ambiance = { 0.1, 0.0, 0.05, 1.0 };
     shader_uniform(&shader, "ambiance", "4f", ambiance);
 
     /* Matrices */
@@ -116,11 +127,17 @@ int main(int argc, char *argv[]) {
     previous = current;
 
     struct Time time;
-    time_create(0.0f, 0.01f, 0.0f, 0.0f, &time);
+    time_create(0.01f, &time);
 
     /* Eventloop */
-    //ALLEGRO_EVENT event;
+    const char* frame = "foo";
     while (true) {
+        if( strcmp(frame,"foo") == 0 ) {
+            frame = "bar";
+        } else {
+            frame = "foo";
+        }
+
         SDL_Event event;
         while( SDL_PollEvent(&event) ) {
             switch (event.type) {
@@ -138,21 +155,28 @@ int main(int argc, char *argv[]) {
 
         sdl2_debug( SDL_GL_SetSwapInterval(1) );
 
-        time_advance(sdl2_time_delta(), &time);
-
-        previous = current;
-        while( time_integrate(&time) ) {
-            current = physics_integrate(current, time.t, time.dt);
-        }
-
-        const float alpha = time.offset / time.dt;
-        current = physics_interpolate(previous, current, alpha);
-
         ogl_debug({
                 glClearDepth(1.0f);
                 glClearColor(.0f, .0f, .0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             });
+
+        time_advance(sdl2_time_delta(), &time);
+
+        previous = current;
+        current = physics_integrate(current, time.t, time.dt);
+        while( time_integrate(&time) ) {
+            previous = current;
+            current = physics_integrate(current, time.t, time.dt);
+        }
+
+        const double alpha = time.accumulator / time.dt;
+        current = physics_interpolate(previous, current, alpha);
+
+        //vec_print("position: ", current.pivot.position);
+        //vec_print("orientation: ", current.pivot.orientation);
+        pivot_world_transform(current.pivot, cube_transform);
+        //mat_print("cube_transform: ", cube_transform);
 
         render_mesh(&cube_mesh, &shader, &camera, cube_transform);
         draw_normals_array(cube.vertices,
@@ -169,23 +193,3 @@ int main(int argc, char *argv[]) {
 done:
     return 0;
 }
-
-/* struct Physics physics_step(double now, struct PhysicsTime time, struct Physics previous_state) { */
-/*     struct Physics next_state = physics_integrate(previous_state, time.t, time.dt); */
-
-/*     time.frame = now - time.current; */
-/*     if ( time.frame > 0.25 ) { */
-/*         time.frame = 0.25; */
-/*     } */
-/*     time.current = now; */
-/*     time.offset += time.frame; */
-
-/*     while( time.offset >= time.dt ) { */
-/*         time.t += time.dt; */
-/*         time.offset -= time.dt; */
-/*         next_state = physics_integrate(next_state, time.t, time.dt); */
-/*     } */
-
-/*     const float alpha = time.offset / time.dt; */
-/*     return physics_interpolate(previous_state, next_state, alpha); */
-/* } */

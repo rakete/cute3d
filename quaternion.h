@@ -56,7 +56,7 @@ float qmagnitude(const Quat q);
 void quat_normalize(const Quat q, Quat r);
 QuatP qnormalize(Quat q);
 
-void quat_mat(const Quat q, const Mat m, Mat r);
+void quat_mat(const Quat q, Mat r);
 QuatP qmat(const Quat q, Mat m);
 
 void quat_slerp(const Quat qa, const Quat qb, float t, Quat r);

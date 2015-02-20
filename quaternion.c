@@ -226,7 +226,7 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
 
     float flip = 1;
 
-    float cosine = qa[0]*qb[0] + qa[1]*qb[1] + qa[2]*qb[2] + qa[3]*qb[3];
+    float cosine = qa[3]*qb[3] + qa[0]*qb[0] + qa[1]*qb[1] + qa[2]*qb[2];
 
     if( cosine < 0 ) {
         cosine = -cosine;
@@ -239,6 +239,7 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
         vec_mul1f(qa, 1-t, ua);
         vec_mul1f(qb, t*flip, ub);
         vec_add(ua, ub, r);
+        return;
     }
 
     float theta = (float)acos(cosine);
