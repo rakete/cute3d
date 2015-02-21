@@ -41,6 +41,7 @@ typedef float Quat[4];
 
 typedef float Color[4];
 
+#define vec(v) vec4f(v)
 #define vecf(v) vec4f(v)
 #define vec3f(v) (Vec3f){(float)v[0], (float)v[1], (float)v[2]}
 #define vec4f(v) (Vec4f){(float)v[0], (float)v[1], (float)v[2], (float)v[3]}
