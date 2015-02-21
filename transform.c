@@ -76,7 +76,7 @@ void pivot_world_transform(const struct Pivot pivot, Mat world_transform) {
     Mat rotation;
     quat_mat(pivot.orientation, rotation);
 
-    mat_mul(translation, rotation, world_transform);
+    mat_mul(rotation, translation, world_transform);
 }
 
 void pivot_body_transform(const struct Pivot pivot, Mat body_transform) {
