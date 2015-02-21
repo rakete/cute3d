@@ -74,13 +74,15 @@ int main(int argc, char** argv) {
 
     struct Camera default_camera;
     camera_create(perspective, 1600, 900, &default_camera);
-    printf("camera->projection: %d\n", default_camera.type);
-    camera_frustum(-0.5f, 0.5f, -0.28125f, 0.28125f, 1.0f, 200.0f, &default_camera);
 
-    Vec translation = { 0.0, 4.0, -8.0 };
-    vec_add3f(default_camera.pivot.position, translation, default_camera.pivot.position);
-    Vec origin = { 0.0, 0.0, 0.0, 1.0 };
-    pivot_lookat(&default_camera.pivot, origin);
+    printf("camera->projection: %d\n", default_camera.type);
+    /* camera_frustum(-0.5f, 0.5f, -0.28125f, 0.28125f, 1.0f, 200.0f, &default_camera); */
+    /* Vec translation = { 0.0, 4.0, -8.0 }; */
+    /* vec_add3f(default_camera.pivot.position, translation, default_camera.pivot.position); */
+    sdl2_orbit_create(window, (Vec){0.0, 4.0, 8.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, &default_camera);
+
+    /* Vec origin = { 0.0, 0.0, 0.0, 1.0 }; */
+    /* pivot_lookat(&default_camera.pivot, origin); */
 
     struct Cube cube;
     solid_hexahedron(&cube);
@@ -132,7 +134,7 @@ int main(int argc, char** argv) {
         Mat identity;
         mat_identity(identity);
 
-        Vec light_direction = { 2.5, -1.0, 1.5 };
+        Vec light_direction = { 0.4, -1.0, -0.2 };
         shader_uniform(&default_shader, "light_direction", "3f", light_direction);
 
         Color ambiance = { .1, .1, .3, 1.0 };
@@ -167,7 +169,7 @@ int main(int argc, char** argv) {
         Mat font_mat;
         mat_identity(font_mat);
 
-        text_put(L"CUTE says\n   Hello World", &foo, 0.33, projection_mat, view_mat, font_mat);
+        text_put(L"Cute3D says\n   Hello World", &foo, 0.33, projection_mat, view_mat, font_mat);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }

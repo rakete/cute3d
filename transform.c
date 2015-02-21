@@ -34,12 +34,12 @@ void pivot_create(struct Pivot* pivot) {
 void pivot_lookat(struct Pivot* pivot, const Vec target) {
     // vektor wo er hinguckt
     Vec looking_direction;
-    Vec forward = { 0.0, 0.0, 1.0 };
+    Vec forward = { 0.0, 0.0, 1.0, 1.0 };
     quat_apply_vec(pivot->orientation, forward, looking_direction);
 
     // vektor wo er hingucken soll
     Vec target_direction;
-    vec_subtract(target, pivot->position, target_direction);
+    vec_subtract(pivot->position, target, target_direction);
 
     vec_length(target_direction, &pivot->eye_distance);
     vec_normalize(target_direction, target_direction);
@@ -54,6 +54,9 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
     // winkel = dot product
     float rotation_angle;
     vec_angle(target_direction, looking_direction, &rotation_angle);
+    printf("rotation_angle: %f\n", rotation_angle);
+    vec_print("target_direction: ", target_direction);
+    vec_print("rotation_axis: ", rotation_axis);
 
     // quat das forward vektor auf den target punkt dreht
     Quat rotation;

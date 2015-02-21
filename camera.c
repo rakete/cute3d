@@ -51,13 +51,16 @@ void camera_matrices(const struct Camera* camera, Mat projection_mat, Mat view_m
 
         mat_identity(view_mat);
 
-        //Vec inv_position;
-        //vec_invert(camera->pivot.position, inv_position);
-        //mat_translate(view_mat, inv_position, view_mat);
-        mat_translate(view_mat, camera->pivot.position, view_mat);
+        Vec inv_vec;
+        vec_invert(camera->pivot.position, inv_vec);
+        mat_translate(view_mat, inv_vec, view_mat);
 
         Quat inv_quat;
         quat_invert(camera->pivot.orientation, inv_quat);
         mat_rotate(view_mat, inv_quat, view_mat);
+
+        /* mat_rotate(view_mat, camera->pivot.orientation, view_mat); */
+        /* mat_translate(view_mat, camera->pivot.position, view_mat); */
+        /* mat_invert(view_mat, NULL, view_mat); */
     }
 }

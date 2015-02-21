@@ -221,13 +221,20 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
           0.5, -0.5, 0.0,
           -0.5, -0.5, 0.0,
           -0.5, 0.5,  0.0 };
+    /* GLfloat texcoords[6*2] = */
+    /*     { 0.0, 1.0, */
+    /*       1.0, 1.0, */
+    /*       1.0, 0.0, */
+    /*       1.0, 0.0, */
+    /*       0.0, 0.0, */
+    /*       0.0, 1.0 }; */
     GLfloat texcoords[6*2] =
-        { 0.0, 1.0,
+        { 0.0, 0.0,
+          1.0, 0.0,
           1.0, 1.0,
-          1.0, 0.0,
-          1.0, 0.0,
-          0.0, 0.0,
-          0.0, 1.0 };
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0 };
     GLuint elements[6] =
         { 0, 2, 1,
           3, 5, 4 };
@@ -327,7 +334,7 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
                     if( newline && i > 0 ) {
                         float y = 1.0 + font->linespacing;
                         cursor_vec[0] = 0.0;
-                        cursor_vec[1] += y;
+                        cursor_vec[1] -= y;
                     } else if( ! newline && i > 0 ) {
                         float x = 1.0 - font->kerning;
                         cursor_vec[0] += x;
@@ -365,7 +372,7 @@ void text_overlay(const wchar_t* text, const struct Font* font, int size, struct
 
     Vec translation;
     translation[0] = camera.frustum.left + fabs(camera.frustum.left - camera.frustum.right)/(float)camera.screen.width * (float)x;
-    translation[1] = camera.frustum.top + fabs(camera.frustum.bottom - camera.frustum.top)/(float)camera.screen.height * (float)y;
+    translation[1] = camera.frustum.top - fabs(camera.frustum.top - camera.frustum.bottom)/(float)camera.screen.height * (float)y;
     translation[2] = 0.0;
     translation[3] = 1.0;
     mat_translate(text_matrix, translation, text_matrix);

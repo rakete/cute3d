@@ -30,7 +30,7 @@ int init_sdl2();
 void sdl2_window(const char* title, int x, int y, int width, int height, SDL_Window** window);
 void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context);
 
-void sdl2_orbit_create(SDL_Window* window, Vec origin, Vec translation, struct Camera* camera);
+void sdl2_orbit_create(SDL_Window* window, Vec eye, Vec target, struct Camera* camera);
 
 double sdl2_time();
 double sdl2_time_delta();

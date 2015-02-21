@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     render_shader_flat(&shader);
 
     struct Camera camera;
-    sdl2_orbit_create(window, (Vec){0.0,0.0,0.0,1.0}, (Vec){0.0,-8.0,-8.0,1.0}, &camera);
+    sdl2_orbit_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, &camera);
 
     while (true) {
         SDL_Event event;
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
             });
 
 
-        Vec light_direction = { 0.2, 0.5, 1.0 };
+        Vec light_direction = { 0.2, -0.5, -1.0 };
         shader_uniform(&shader, "light_direction", "3f", light_direction);
 
         Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
@@ -103,11 +103,11 @@ int main(int argc, char *argv[]) {
         mat_identity(identity);
 
         Mat tetrahedron_transform, hexahedron_transform, cube_transform, sphere16_transform, sphere32_transform;
-        mat_translate(identity, (float[4]){ 0.0, 0.0, 0.0, 1.0 }, tetrahedron_transform);
-        mat_translate(identity, (float[4]){ -3.0, 0.0, 0.0, 1.0 }, hexahedron_transform);
-        mat_translate(identity, (float[4]){ 3.0, 0.0, 0.0, 1.0 }, cube_transform);
-        mat_translate(identity, (float[4]){ -1.5, -3.0, 0.0, 1.0 }, sphere16_transform);
-        mat_translate(identity, (float[4]){ 1.5, -3.0, 0.0, 1.0 }, sphere32_transform);
+        mat_translate(identity, (float[4]){ 0.0, 0.0, 2.0, 1.0 }, tetrahedron_transform);
+        mat_translate(identity, (float[4]){ -3.0, 0.0, 2.0, 1.0 }, hexahedron_transform);
+        mat_translate(identity, (float[4]){ 3.0, 0.0, 2.0, 1.0 }, cube_transform);
+        mat_translate(identity, (float[4]){ -1.5, 0.0, -2.0, 1.0 }, sphere16_transform);
+        mat_translate(identity, (float[4]){ 1.5, 0.0, -2.0, 1.0 }, sphere32_transform);
 
         render_mesh(&tetrahedron_mesh, &shader, &camera, tetrahedron_transform);
         render_mesh(&hexahedron_mesh, &shader, &camera, hexahedron_transform);

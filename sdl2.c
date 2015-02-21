@@ -47,7 +47,7 @@ void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context) {
     init_shader();
 }
 
-void sdl2_orbit_create(SDL_Window* window, Vec origin, Vec translation, struct Camera* camera) {
+void sdl2_orbit_create(SDL_Window* window, Vec eye, Vec target, struct Camera* camera) {
     int width,height;
     sdl2_debug( SDL_GL_GetDrawableSize(window, &width, &height) );
 
@@ -58,8 +58,8 @@ void sdl2_orbit_create(SDL_Window* window, Vec origin, Vec translation, struct C
     float bottom = -top;
     camera_frustum(-0.5f, 0.5f, bottom, top, 1.0f, 200.0f, camera);
 
-    vec_add3f(camera->pivot.position, translation, camera->pivot.position);
-    pivot_lookat(&camera->pivot, origin);
+    vec_add3f(camera->pivot.position, eye, camera->pivot.position);
+    pivot_lookat(&camera->pivot, target);
 }
 
 double sdl2_time() {

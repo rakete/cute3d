@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
     struct Shader shader;
     render_shader_flat(&shader);
 
-    Vec light_direction = { 0.0, 1.0, 0.0 };
+    Vec light_direction = { 0.0, 0.2, -0.8 };
     shader_uniform(&shader, "light_direction", "3f", light_direction);
 
     Color ambiance = { 0.1, 0.0, 0.05, 1.0 };
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
 
     /* Matrices */
     struct Camera camera;
-    sdl2_orbit_create(window, (Vec){0.0,0.0,0.0,1.0}, (Vec){0.0,-8.0,-8.0,1.0}, &camera);
+    sdl2_orbit_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, &camera);
 
     Mat projection_mat, view_mat;
     camera_matrices(&camera, projection_mat, view_mat);
@@ -124,6 +124,7 @@ int main(int argc, char *argv[]) {
     struct Physics previous;
     struct Physics current;
     physics_create(1.0, 1.0, &current);
+    vec_copy((Vec){0.0f, 2.0f, 0.0f, 1.0f}, current.pivot.position);
     previous = current;
 
     struct Time time;
@@ -173,15 +174,14 @@ int main(int argc, char *argv[]) {
         const double alpha = time.accumulator / time.dt;
         current = physics_interpolate(previous, current, alpha);
 
-        //vec_print("position: ", current.pivot.position);
-        //vec_print("orientation: ", current.pivot.orientation);
+        vec_print("position: ", current.pivot.position);
         pivot_world_transform(current.pivot, cube_transform);
-        //mat_print("cube_transform: ", cube_transform);
 
         render_mesh(&cube_mesh, &shader, &camera, cube_transform);
         draw_normals_array(cube.vertices,
                            cube.normals,
                            cube.solid.size,
+                           1.0,
                            (Color){ 1.0,0.0,1.0,1.0 },
                            projection_mat,
                            view_mat,

@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     render_shader_flat(&shader);
 
     struct Camera camera;
-    sdl2_orbit_create(window, (Vec){0.0,0.0,0.0,1.0}, (Vec){0.0,0.0,-8.0,1.0}, &camera);
+    sdl2_orbit_create(window, (Vec){0.0,0.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, &camera);
 
     struct Character symbols[256];
     ascii_create(symbols);
@@ -79,24 +79,6 @@ int main(int argc, char *argv[]) {
 
         Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
         shader_uniform(&shader, "ambiance", "4f", ambiance);
-
-        Mat sphere32_transform;
-        mat_identity(sphere32_transform);
-        mat_translate(sphere32_transform, (Vec){1.0,-3.5,0.0,1.0}, sphere32_transform);
-        //render_mesh(&sphere32_mesh, &shader, &camera, sphere32_transform);
-
-        /* Mat perspective_projection, perspective_view; */
-        /* camera_matrices(&camera, perspective_projection, perspective_view); */
-
-        /* camera.type = orthographic; */
-        /* Mat ortho_projection, ortho_view; */
-        /* camera_matrices(&camera, ortho_projection, ortho_view); */
-        /* camera.type = perspective; */
-
-        /* Mat text_matrix; */
-        /* mat_identity(text_matrix); */
-        /* mat_rotate(text_matrix, camera.pivot.orientation, text_matrix); */
-        /* mat_translate(text_matrix, (Vec){-0.5,0.0,0.0,1.0}, text_matrix); */
 
         text_overlay(L"ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789", &font, 15, camera, 25, 25);
         text_overlay(L"Hallo allerseits, dies ist ein Test.\n"
