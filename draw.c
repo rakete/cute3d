@@ -17,11 +17,11 @@
 #include "draw.h"
 
 void draw_grid( int instances,
-                 int steps,
-                 float color[4],
-                 float projection_matrix[16],
-                 float view_matrix[16],
-                 float model_matrix[][16] )
+                int steps,
+                Color color,
+                Mat projection_matrix,
+                Mat view_matrix,
+                Mat model_matrix[] )
 {
     const char* vertex_source =
         GLSL( uniform mat4 projection_matrix;
@@ -136,13 +136,13 @@ void draw_grid( int instances,
     }
 }
 
-void draw_normals_array( float* vertices,
-                          float* normals,
-                          int n,
-                          float color[4],
-                          float projection_matrix[16],
-                          float view_matrix[16],
-                          float model_matrix[16] )
+void draw_vec( Vec v,
+               Vec pos,
+               float scale,
+               Color color,
+               Mat projection_matrix,
+               Mat view_matrix,
+               Mat model_matrix)
 {
     const char* vertex_source =
         GLSL( uniform mat4 projection_matrix;
@@ -170,7 +170,7 @@ void draw_normals_array( float* vertices,
     static GLuint arrow = 0;
     static GLuint vertices_id = 0;
     static GLuint elements_id = 0;
-    GLfloat arrow_vertices[18] =
+    static GLfloat arrow_vertices[18] =
         { 0.0,  0.0,  0.0,
           0.0,  0.0,  0.5,
           0.05,  0.0,  0.4,
@@ -178,7 +178,7 @@ void draw_normals_array( float* vertices,
           -0.05, 0.0,  0.4,
           0.0,  -0.05, 0.4 };
 
-    GLuint arrow_elements[18] =
+    static GLuint arrow_elements[18] =
         { 0, 1,
           1, 2,
           1, 3,
@@ -224,47 +224,63 @@ void draw_normals_array( float* vertices,
         GLint view_loc = glGetUniformLocation(program, "view_matrix");
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
 
+        Mat arrow_matrix;
+        mat_identity(arrow_matrix);
 
-        for( int i = 0; i < n; i++ ) {
-            Mat arrow_matrix;
-            mat_identity(arrow_matrix);
-
-            Vec z = { 0.0, 0.0, 1.0, 1.0 };
-            Vec normal = { normals[i*3+0], normals[i*3+1], normals[i*3+2] };
-            Vec axis;
-            vec_cross(normal,z,axis);
-            if( vnullp(axis) ) {
-                vec_perpendicular(z,axis);
-            }
-
-            float angle;
-            vec_angle(normal,z,&angle);
-
-            Quat rotation;
-            quat_rotation(axis,angle,rotation);
-            quat_mat(rotation, arrow_matrix);
-
-            Vec vertex = { vertices[i*3+0], vertices[i*3+1], vertices[i*3+2], 1.0 };
-            mat_translate(arrow_matrix, vertex, arrow_matrix);
-
-            mat_mul(arrow_matrix, model_matrix, arrow_matrix);
-
-            GLint model_loc = glGetUniformLocation(program, "model_matrix");
-            glUniformMatrix4fv(model_loc, 1, GL_FALSE, arrow_matrix);
-
-            glDrawElements(GL_LINES, 18, GL_UNSIGNED_INT, 0);
+        Vec z = { 0.0, 0.0, 1.0, 1.0 };
+        Vec axis;
+        vec_cross(v,z,axis);
+        if( vnullp(axis) ) {
+            vec_perpendicular(z,axis);
         }
+
+        float angle;
+        vec_angle(v,z,&angle);
+
+        Quat rotation;
+        quat_rotation(axis,angle,rotation);
+        quat_mat(rotation, arrow_matrix);
+
+        mat_scale(arrow_matrix, (Vec){scale, scale, scale}, arrow_matrix);
+
+        mat_translate(arrow_matrix, pos, arrow_matrix);
+        mat_mul(arrow_matrix, model_matrix, arrow_matrix);
+
+        GLint model_loc = glGetUniformLocation(program, "model_matrix");
+        glUniformMatrix4fv(model_loc, 1, GL_FALSE, arrow_matrix);
+
+        glDrawElements(GL_LINES, 18, GL_UNSIGNED_INT, 0);
 
         glUseProgram(0);
         glBindVertexArray(0);
+    }
+}
+
+void draw_normals_array( float* vertices,
+                         float* normals,
+                         int n,
+                         float scale,
+                         Color color,
+                         Mat projection_matrix,
+                         Mat view_matrix,
+                         Mat model_matrix )
+{
+    for( int i = 0; i < n; i++ ) {
+        Mat arrow_matrix;
+        mat_identity(arrow_matrix);
+
+        Vec normal = { normals[i*3+0], normals[i*3+1], normals[i*3+2], 1.0f };
+        Vec vertex = { vertices[i*3+0], vertices[i*3+1], vertices[i*3+2], 1.0 };
+
+        draw_vec(normal, vertex, scale, color, projection_matrix, view_matrix, model_matrix);
     }
 
 }
 
 void draw_texture_quad( GLuint texture_id,
-                         float projection_matrix[16],
-                         float view_matrix[16],
-                         float model_matrix[16] )
+                        Mat projection_matrix,
+                        Mat view_matrix,
+                        Mat model_matrix )
 {
     const char* vertex_source =
         GLSL( uniform mat4 projection_matrix;

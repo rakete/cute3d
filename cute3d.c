@@ -158,6 +158,7 @@ int main(int argc, char** argv) {
         draw_normals_array(cube.vertices,
                            cube.normals,
                            cube.solid.size,
+                           1.0,
                            (Color){ 1.0,0.0,1.0,1.0 },
                            projection_mat,
                            view_mat,

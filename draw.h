@@ -29,30 +29,40 @@
 
 void draw_grid(int instances,
                int steps,
-               float color[4],
-               float projection_matrix[16],
-               float view_matrix[16],
-               float model_matrix[][16]);
+               Color color,
+               Mat projection_matrix,
+               Mat view_matrix,
+               Mat model_matrix[]);
+
+void draw_vec(Vec v,
+              Vec pos,
+              float scale,
+              Color color,
+              Mat projection_matrix,
+              Mat view_matrix,
+              Mat model_matrix);
 
 void draw_normals_array(float* vertices,
                         float* normals,
                         int n,
-                        float color[4],
-                        float projection_matrix[16],
-                        float view_matrix[16],
-                        float model_matrix[16]);
+                        float scale,
+                        Color color,
+                        Mat projection_matrix,
+                        Mat view_matrix,
+                        Mat model_matrix);
 
 void draw_normals_buffer(GLuint vertices,
                          GLuint normals,
                          int n,
-                         float color[4],
-                         float projection_matrix[16],
-                         float view_matrix[16],
-                         float model_matrix[16]);
+                         float scale,
+                         Color color,
+                         Mat projection_matrix,
+                         Mat view_matrix,
+                         Mat model_matrix);
 
 void draw_texture_quad(GLuint texture_id,
-                       float projection_matrix[16],
-                       float view_matrix[16],
-                       float model_matrix[16]);
+                       Mat projection_matrix,
+                       Mat view_matrix,
+                       Mat model_matrix);
 
 #endif
