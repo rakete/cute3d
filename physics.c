@@ -77,6 +77,8 @@ struct Physics physics_recalculate(struct Physics physics) {
 
 struct PhysicsDerivative physics_eval_time(struct Physics state, float t) {
     struct PhysicsDerivative output;
+    vec_copy((Vec){0.0, 0.0, 0.0, 1.0}, output.force);
+    quat_copy((Quat){0.0, 0.0, 0.0, 1.0}, output.torque);
 
     vec_copy(state.velocity, output.velocity);
     quat_copy(state.spin, output.spin);
@@ -86,9 +88,9 @@ struct PhysicsDerivative physics_eval_time(struct Physics state, float t) {
 }
 
 struct PhysicsDerivative physics_eval_future(struct Physics state, struct PhysicsDerivative derivative, float t, float dt) {
-    Vec movement;
-    vec_mul1f(derivative.velocity, dt, movement);
-    vec_add3f(state.pivot.position, movement, state.pivot.position);
+    Vec velocity;
+    vec_mul1f(derivative.velocity, dt, velocity);
+    vec_add3f(state.pivot.position, velocity, state.pivot.position);
 
     Vec force;
     vec_mul1f(derivative.force, dt, force);
@@ -100,7 +102,7 @@ struct PhysicsDerivative physics_eval_future(struct Physics state, struct Physic
 
     Vec torque;
     vec_mul1f(derivative.torque, dt, torque);
-    vec_add(state.angular_momentum, spin, state.angular_momentum);
+    vec_add(state.angular_momentum, torque, state.angular_momentum);
 
     state = physics_recalculate(state);
 
@@ -137,22 +139,32 @@ struct Physics physics_integrate(struct Physics state, float t, float dt) {
 }
 
 void physics_forces(struct Physics state, float t, Vec force, Vec torque) {
+    Mat body_transform;
+    pivot_body_transform(state.pivot, body_transform);
+
+    Vec gravity;
+    if( state.pivot.position[1] > 0.0f ) {
+        vec_copy((Vec){0.0f, t * -0.1f, 0.0f, 0.0f}, gravity);
+    } else {
+        vec_copy((Vec){0.0f, t * 0.1f, 0.0f, 0.0f}, gravity);
+    }
+    vec_add(force, gravity, force);
+
     // attract towards origin
-    vec_mul1f(state.pivot.position, -10, force);
+    //vec_mul1f(state.pivot.position, -10, force);
 
     // sine force to add some randomness to the motion
 
-    force[0] += 10 * sin(t * 0.9f + 0.5f);
-    force[1] += 11 * sin(t * 0.5f + 0.4f);
-    force[2] += 12 * sin(t * 0.7f + 0.9f);
-    force[3] = 1.0f;
+    /* force[0] += 10 * sin(t * 0.9f + 0.5f); */
+    /* force[1] += 11 * sin(t * 0.5f + 0.4f); */
+    /* force[2] += 12 * sin(t * 0.7f + 0.9f); */
+    /* force[3] = 1.0f; */
 
     // sine torque to get some spinning action
 
     torque[0] = 1.0f * sin(t * 0.9f + 0.5f);
     torque[1] = 1.1f * sin(t * 0.5f + 0.4f);
     torque[2] = 1.2f * sin(t * 0.7f + 0.9f);
-    torque[3] = 1.0f;
 
     // damping torque so we dont spin too fast
 
