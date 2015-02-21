@@ -53,7 +53,10 @@ void sdl2_orbit_create(SDL_Window* window, Vec origin, Vec translation, struct C
 
     camera_create(perspective, width, height, camera);
     //camera_projection(camera, orthographic_zoom);
-    camera_frustum(-0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f, camera);
+    //camera_frustum(-0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f, camera);
+    float top = (1.0/width) * height/2.0;
+    float bottom = -top;
+    camera_frustum(-0.5f, 0.5f, bottom, top, 1.0f, 200.0f, camera);
 
     vec_add3f(camera->pivot.position, translation, camera->pivot.position);
     pivot_lookat(&camera->pivot, origin);

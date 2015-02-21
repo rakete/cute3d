@@ -16,7 +16,7 @@ void camera_create(enum Projection type, int width, int height, struct Camera* c
     camera->frustum.zFar = 100.0f;
 }
 
-void camera_frustum(float left, float right, float top, float bottom, float zNear, float zFar, struct Camera* camera) {
+void camera_frustum(float left, float right, float bottom, float top, float zNear, float zFar, struct Camera* camera) {
     camera->frustum.left = left;
     camera->frustum.right = right;
     camera->frustum.top = top;
