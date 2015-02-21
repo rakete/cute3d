@@ -185,8 +185,8 @@ bool vnullp(const Vec v) {
 }
 
 void vec_perpendicular(const Vec v, Vec r) {
-    r[0] = -v[2];
-    r[1] = -v[1];
+    r[0] = -v[1];
+    r[1] = -v[2];
     r[2] = -v[0];
     r[3] = v[3];
 }
