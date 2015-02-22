@@ -77,8 +77,6 @@ struct Physics physics_recalculate(struct Physics physics) {
 
 struct PhysicsDerivative physics_eval_time(struct Physics state, float t) {
     struct PhysicsDerivative output;
-    vec_copy((Vec){0.0, 0.0, 0.0, 1.0}, output.force);
-    quat_copy((Quat){0.0, 0.0, 0.0, 1.0}, output.torque);
 
     vec_copy(state.velocity, output.velocity);
     quat_copy(state.spin, output.spin);
@@ -139,6 +137,9 @@ struct Physics physics_integrate(struct Physics state, float t, float dt) {
 }
 
 void physics_forces(struct Physics state, float t, Vec force, Vec torque) {
+    vec_copy((Vec){0.0, 0.0, 0.0, 1.0}, force);
+    quat_copy((Quat){0.0, 0.0, 0.0, 1.0}, torque);
+
     Mat body_transform;
     pivot_body_transform(state.pivot, body_transform);
 
