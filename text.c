@@ -221,13 +221,6 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
           0.5, -0.5, 0.0,
           -0.5, -0.5, 0.0,
           -0.5, 0.5,  0.0 };
-    /* GLfloat texcoords[6*2] = */
-    /*     { 0.0, 1.0, */
-    /*       1.0, 1.0, */
-    /*       1.0, 0.0, */
-    /*       1.0, 0.0, */
-    /*       0.0, 0.0, */
-    /*       0.0, 1.0 }; */
     GLfloat texcoords[6*2] =
         { 0.0, 0.0,
           1.0, 0.0,
