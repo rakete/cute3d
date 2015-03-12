@@ -36,8 +36,11 @@ VecP vadd3f(const Vec v, Vec w);
 void vec_3fadd3f(const Vec3f v, const Vec3f w, Vec3f r);
 //VecP v3fadd3f(const Vec3f v, Vec w3f);
 
-void vec_subtract(const Vec v, const Vec w, Vec r);
-//VecP vsubtract(const Vec v, Vec w);
+void vec_sub(const Vec v, const Vec w, Vec r);
+VecP vsub(const Vec v, Vec w);
+
+void vec_sub1f(const Vec v, float w, Vec r);
+VecP vsub1f(Vec v, float w);
 
 void vec_mul(const Vec v, const Vec w, Mat m);
 VecP vmul(const Vec v, Mat w);

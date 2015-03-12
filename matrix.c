@@ -58,7 +58,7 @@ void vec_3fadd3f(const Vec3f v, const Vec3f w, Vec3f r) {
     r[2] = v[2] + w[2];
 }
 
-void vec_subtract(const Vec v, const Vec w, Vec r) {
+void vec_sub(const Vec v, const Vec w, Vec r) {
     r[0] = v[0] - w[0];
     r[1] = v[1] - w[1];
     r[2] = v[2] - w[2];
@@ -68,6 +68,28 @@ void vec_subtract(const Vec v, const Vec w, Vec r) {
     } else {
         r[3] = w3;
     }
+}
+
+VecP vsub(const Vec v, Vec w) {
+    vec_sub(v,w,w);
+    return w;
+}
+
+void vec_sub1f(const Vec v, const float w, Vec r) {
+    r[0] = v[0] - w;
+    r[1] = v[1] - w;
+    r[2] = v[2] - w;
+    float w3 = v[3] - w;
+    if( w3 < 0.0f ) {
+        r[3] = 0.0f;
+    } else {
+        r[3] = w3;
+    }
+}
+
+VecP vsub1f(Vec v, float w) {
+    vec_sub1f(v,w,v);
+    return v;
 }
 
 void vec_mul(const Vec v, const Vec w, Mat m) {
