@@ -20,6 +20,14 @@ void sdl2_window(const char* title, int x, int y, int width, int height, SDL_Win
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
 
             *window = SDL_CreateWindow(title, x, y, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+
+            // these can be set before creating an opengl context
+            SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         });
 }
 
@@ -29,15 +37,10 @@ void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context) {
     sdl2_debug({
             *context = SDL_GL_CreateContext(window);
 
+            // i can only set these after creating an opengl context
             SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-
-            SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 
             SDL_GL_GetDrawableSize(window, &width, &height);
         });
