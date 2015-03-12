@@ -62,4 +62,6 @@ typedef float Color[4];
             (float)m[3], (float)m[4], (float)m[5],  \
             (float)m[6], (float)m[7], (float)m[8] }
 
+#define ZERO { 0 }
+
 #endif
