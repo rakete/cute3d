@@ -78,15 +78,8 @@ QuatP qrotate(const Vec axis, const float angle, Quat q) {
 }
 
 void quat_apply_vec(const Quat q, const Vec vec, Vec r) {
-    Vec normed_vec;
-    float norm = sqrt( vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2] );
-    normed_vec[0] = vec[0] / norm;
-    normed_vec[1] = vec[1] / norm;
-    normed_vec[2] = vec[2] / norm;
-    normed_vec[3] = 1.0;
-
     Quat product;
-    quat_product(q, normed_vec, product);
+    quat_product(q, vec, product);
 
     Quat conj;
     quat_conjugate(q, conj);
