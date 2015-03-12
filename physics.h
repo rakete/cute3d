@@ -20,6 +20,7 @@
 #include "math_types.h"
 #include "matrix.h"
 #include "transform.h"
+#include "collisions.h"
 
 struct Physics {
     struct Pivot pivot;
@@ -38,7 +39,6 @@ struct Physics {
     float inverse_mass;              ///< inverse of the mass used to convert momentum to velocity.
     float inertia;            ///< inertia tensor of the cube (i have simplified it to a single value due to the mass properties a cube).
     float inverse_inertia;     ///< inverse inertia tensor used to convert angular momentum to angular velocity.
-
 };
 
 struct PhysicsDerivative {
@@ -48,7 +48,19 @@ struct PhysicsDerivative {
     Vec torque;                  ///< torque is the derivative of angular momentum.
 };
 
-struct PhysicsWorld;
+struct PhysicsForce {
+    Vec linear;
+    Vec angular;
+};
+
+struct PhysicsImpulse {
+    Vec linear;
+    Vec angular;
+};
+
+/* struct PhysicsWorld { */
+/*     struct Collider* colliders; */
+/* }; */
 
 void physics_create(float mass, float inertia, struct Physics* physics);
 
@@ -76,5 +88,9 @@ struct Physics physics_integrate(struct Physics state, float t, float dt);
 /// its accuracy by detecting curvature in derivative values over the
 /// timestep so we need our force values to supply the curvature.
 void physics_forces(struct Physics state, float t, Vec force, Vec torque);
+
+void physics_collide(struct Physics state, struct Collider* const collider, size_t num_colliders, struct Collider** const colliders, struct Collision* collisions);
+
+struct Physics physics_resolve(struct Physics state, struct Collision collision);
 
 #endif

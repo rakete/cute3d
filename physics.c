@@ -143,13 +143,17 @@ void physics_forces(struct Physics state, float t, Vec force, Vec torque) {
     Mat body_transform;
     pivot_body_transform(state.pivot, body_transform);
 
-    Vec gravity;
-    if( state.pivot.position[1] > 0.0f ) {
-        vec_copy((Vec){0.0f, t * -0.1f, 0.0f, 0.0f}, gravity);
-    } else {
-        vec_copy((Vec){0.0f, t * 0.1f, 0.0f, 0.0f}, gravity);
-    }
-    vec_add(force, gravity, force);
+    // gravity
+    force[1] -= 9.81f;
+
+    const float linear = 0.001f;
+    const float angular = 0.001f;
+
+    //force -= linear * state.velocity;
+    vec_sub(force, vmul1f(state.velocity, linear), force);
+
+    //torque -= angular * state.angular_velocity;
+    vec_sub(torque, vmul1f(state.angular_velocity, angular), torque);
 
     // attract towards origin
     //vec_mul1f(state.pivot.position, -10, force);
@@ -162,14 +166,22 @@ void physics_forces(struct Physics state, float t, Vec force, Vec torque) {
     /* force[3] = 1.0f; */
 
     // sine torque to get some spinning action
-
     torque[0] = 1.0f * sin(t * 0.9f + 0.5f);
     torque[1] = 1.1f * sin(t * 0.5f + 0.4f);
     torque[2] = 1.2f * sin(t * 0.7f + 0.9f);
 
     // damping torque so we dont spin too fast
+    /* torque[0] -= 0.2f * state.angular_velocity[0]; */
+    /* torque[1] -= 0.2f * state.angular_velocity[1]; */
+    /* torque[2] -= 0.2f * state.angular_velocity[2]; */
+}
 
-    torque[0] -= 0.2f * state.angular_velocity[0];
-    torque[1] -= 0.2f * state.angular_velocity[1];
-    torque[2] -= 0.2f * state.angular_velocity[2];
+void physics_collide(struct Physics state, struct Collider* const collider, size_t num_colliders, struct Collider** const colliders, struct Collision* collisions) {
+    for( size_t i = 0; i < num_colliders; i++ ) {
+        collision_generic(collider, colliders[i], &collisions[i]);
+    }
+}
+
+struct Physics physics_resolve(struct Physics state, struct Collision collision) {
+    return state;
 }

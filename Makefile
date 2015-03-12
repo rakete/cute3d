@@ -16,6 +16,7 @@ cute3d: *.c
 	gcc -std=c11 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC draw.c -c -o draw.o -lGL -lGLEW
 	gcc -std=c11 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC text.c -c -o text.o -lGL -lGLEW
 	gcc -std=c11 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC physics.c -c -o physics.o
+	gcc -std=c11 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC collisions.c -c -o collisions.o
 	gcc -std=c11 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC sdl2.c -c -o sdl2.o -lSDL2 -lSDL2main -lGL -lGLEW
 	gcc -std=c11 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC cute3d.c -o cute3d *.o -lm -lSDL2 -lSDL2main -lGL -lGLEW -lglut
 
