@@ -28,6 +28,14 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
         camera_matrices(camera,projection_matrix,view_matrix);
     }
 
+    GLint mvp_loc = glGetUniformLocation(shader->program, "mvp_matrix");
+    if( mvp_loc > -1 ) {
+        Mat mvp_matrix;
+        mat_mul(model_matrix, view_matrix, mvp_matrix);
+        mat_mul(mvp_matrix, projection_matrix, mvp_matrix);
+        glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, mvp_matrix);
+    }
+
     GLint projection_loc = glGetUniformLocation(shader->program, "projection_matrix");
     if( projection_loc > -1 ) {
         glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix);
@@ -51,7 +59,7 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
     }
 
     GLint normal_loc = glGetUniformLocation(shader->program, "normal_matrix");
-    if( ! free_model_matrix ) {
+    if( (! free_model_matrix) && normal_loc > -1 ) {
         Mat normal_matrix;
         mat_invert(model_matrix, NULL, normal_matrix);
         mat_transpose(normal_matrix, normal_matrix);
