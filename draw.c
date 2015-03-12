@@ -16,22 +16,21 @@
 
 #include "draw.h"
 
-void draw_grid( int instances,
+void draw_grid( float width,
+                float height,
                 int steps,
                 Color color,
                 Mat projection_matrix,
                 Mat view_matrix,
-                Mat model_matrix[] )
+                Mat model_matrix)
 {
     const char* vertex_source =
-        GLSL( uniform mat4 projection_matrix;
-              uniform mat4 model_matrix;
-              uniform mat4 view_matrix;
+        GLSL( uniform mat4 mvp_matrix;
               in vec3 vertex;
               uniform vec4 color;
               out vec4 frag_color;
               void main() {
-                  gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex,1.0);
+                  gl_Position = mvp_matrix * vec4(vertex,1.0);
                   frag_color = color;
               });
 
@@ -46,63 +45,67 @@ void draw_grid( int instances,
         program = glsl_make_program(vertex_source, fragment_source);
     }
 
-    static GLuint grid[0xffff] = { 0 };
-    float w = 1.0f;
-    float h = 1.0f;
     int size = (steps+1)*2 + (steps+1)*2;
-    static GLuint vertices_id = 0;
-    static GLuint elements_id = 0;
+
     GLfloat vertices[size * 3];
     GLuint elements[size];
-    if( ! grid[steps] && program ) {
+
+    GLuint grid = 0;
+    GLuint vbo_ids[2] = { 0 };
+
+    if( program ) {
         // 1  5  9 10----11
         // |  |  |
         // |  |  | 6-----7
         // |  |  |
         // 0  4  8 2-----3
         for( int i = 0; i < (steps+1); i++ ) {
-            float xf = -w/2.0f + (float)i * (w / (float)steps);
 
+            float xf = -width/2.0f + (float)i * (width / (float)steps);
+            float yf = -height/2.0f + (float)i * (height / (float)steps);
+
+            // a step includes one horizontal and one vertical line
+            // made up of 2 vertices each, which makes 4 vertices in total
+            // with 3 components which results in the number 12 below
             vertices[i * 12 + 0]  = xf;
-            vertices[i * 12 + 1]  = -h/2.0f;
+            vertices[i * 12 + 1]  = -height/2.0f;
             vertices[i * 12 + 2]  = 0.0;
 
             elements[i * 4 + 0]   = i * 4 + 0;
 
             vertices[i * 12 + 3]  = xf;
-            vertices[i * 12 + 4]  = h/2.0f ;
+            vertices[i * 12 + 4]  = height/2.0f ;
             vertices[i * 12 + 5]  = 0.0f;
 
             elements[i * 4 + 1]   = i * 4 + 1;
 
-            float yf = -h/2.0f + i * (h / (float)steps);
-
-            vertices[i * 12 + 6]  = -w/2.0f;
+            vertices[i * 12 + 6]  = -width/2.0f;
             vertices[i * 12 + 7]  = yf;
             vertices[i * 12 + 8]  = 0.0;
 
             elements[i * 4 + 2]   = i * 4 + 2;
 
-            vertices[i * 12 + 9]  = w/2.0f;
+            vertices[i * 12 + 9]  = width/2.0f;
             vertices[i * 12 + 10] = yf;
             vertices[i * 12 + 11] = 0.0f;
 
             elements[i * 4 + 3]   = i * 4 + 3;
         }
 
-        glGenVertexArrays(1, &grid[steps]);
-        glBindVertexArray(grid[steps]);
+        glGenVertexArrays(1, &grid);
+        glBindVertexArray(grid);
 
-        glGenBuffers(1, &vertices_id);
-        glBindBuffer(GL_ARRAY_BUFFER, vertices_id);
+        glGenBuffers(1, &vbo_ids[0]);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[0]);
+
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
         GLint vertex_position = glGetAttribLocation(program, "vertex");
         glEnableVertexAttribArray(vertex_position);
         glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), 0);
 
-        glGenBuffers(1, &elements_id);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elements_id);
+        glGenBuffers(1, &vbo_ids[1]);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo_ids[1]);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
         glBindVertexArray(0);
@@ -110,29 +113,28 @@ void draw_grid( int instances,
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
 
-    if( grid[steps] && program ) {
-        glBindVertexArray(grid[steps]);
+    if( grid && program ) {
+        glBindVertexArray(grid);
 
         glUseProgram(program);
 
         GLint color_loc = glGetUniformLocation(program, "color");
         glUniform4f(color_loc, color[0], color[1], color[2], color[3]);
 
-        GLint projection_loc = glGetUniformLocation(program, "projection_matrix");
-        glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix);
+        Mat mvp_matrix;
+        mat_mul(model_matrix, view_matrix, mvp_matrix);
+        mat_mul(mvp_matrix, projection_matrix, mvp_matrix);
 
-        GLint view_loc = glGetUniformLocation(program, "view_matrix");
-        glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
+        GLint mvp_loc = glGetUniformLocation(program, "mvp_matrix");
+        glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, mvp_matrix);
 
-        for( int i = 0; i < instances; i++ ) {
-            GLint model_loc = glGetUniformLocation(program, "model_matrix");
-            glUniformMatrix4fv(model_loc, 1, GL_FALSE, model_matrix[i]);
-
-            glDrawElements(GL_LINES, size, GL_UNSIGNED_INT, 0);
-        }
+        glDrawElements(GL_LINES, size, GL_UNSIGNED_INT, 0);
 
         glUseProgram(0);
         glBindVertexArray(0);
+
+        glDeleteBuffers(2, vbo_ids);
+        glDeleteVertexArrays(1, &grid);
     }
 }
 

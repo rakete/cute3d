@@ -27,32 +27,24 @@
 #include "quaternion.h"
 #include "glsl.h"
 
-void draw_grid(int instances,
-               int steps,
+void draw_grid( float width,
+                float height,
+                int steps,
+                Color color,
+                Mat projection_matrix,
+                Mat view_matrix,
+                Mat model_matrix);
+
+void draw_vec( Vec v,
+               Vec pos,
+               float scale,
                Color color,
                Mat projection_matrix,
                Mat view_matrix,
-               Mat model_matrix[]);
+               Mat model_matrix);
 
-void draw_vec(Vec v,
-              Vec pos,
-              float scale,
-              Color color,
-              Mat projection_matrix,
-              Mat view_matrix,
-              Mat model_matrix);
-
-void draw_normals_array(float* vertices,
-                        float* normals,
-                        int n,
-                        float scale,
-                        Color color,
-                        Mat projection_matrix,
-                        Mat view_matrix,
-                        Mat model_matrix);
-
-void draw_normals_buffer(GLuint vertices,
-                         GLuint normals,
+void draw_normals_array( float* vertices,
+                         float* normals,
                          int n,
                          float scale,
                          Color color,
@@ -60,9 +52,18 @@ void draw_normals_buffer(GLuint vertices,
                          Mat view_matrix,
                          Mat model_matrix);
 
-void draw_texture_quad(GLuint texture_id,
-                       Mat projection_matrix,
-                       Mat view_matrix,
-                       Mat model_matrix);
+void draw_normals_buffer( GLuint vertices,
+                          GLuint normals,
+                          int n,
+                          float scale,
+                          Color color,
+                          Mat projection_matrix,
+                          Mat view_matrix,
+                          Mat model_matrix);
+
+void draw_texture_quad( GLuint texture_id,
+                        Mat projection_matrix,
+                        Mat view_matrix,
+                        Mat model_matrix);
 
 #endif
