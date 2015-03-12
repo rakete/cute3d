@@ -67,7 +67,7 @@ void solid_colors(struct Solid* solid, float color[4]) {
     }
 }
 
-void solid_tetrahedron(struct Tetrahedron* tet) {
+void solid_tetrahedron(float radius, struct Tetrahedron* tet) {
     tet->solid.size = 4*3;
 
     tet->solid.vertices = tet->vertices;
@@ -76,7 +76,7 @@ void solid_tetrahedron(struct Tetrahedron* tet) {
     tet->solid.normals = tet->normals;
 
     float phiaa  = -19.471220333; /* the phi angle needed for generation */
-    float r = 1.0; /* any radius in which the polyhedron is inscribed */
+    float r = radius; /* any radius in which the polyhedron is inscribed */
     float phia = PI * phiaa / 180.0; /* 1 set of three points */
     float the120 = PI * 120.0 / 180.0;
     float the = 0.0;
@@ -122,7 +122,7 @@ void solid_tetrahedron(struct Tetrahedron* tet) {
     }
 }
 
-void solid_hexahedron(struct Cube* cube) {
+void solid_hexahedron(float radius, struct Cube* cube) {
     cube->solid.size = 12*3;
 
     cube->solid.vertices = cube->vertices;
@@ -132,7 +132,7 @@ void solid_hexahedron(struct Cube* cube) {
 
     float points[24]; /* 8 vertices with x, y, z coordinate */
     float phiaa = 35.264391; /* the phi needed for generation */
-    float r = 1.0; /* any radius in which the polyhedron is inscribed */
+    float r = radius; /* any radius in which the polyhedron is inscribed */
     float phia = PI * phiaa / 180.0; /* 2 sets of four points */
     float phib = -phia;
     float the90 = PI * 90.0 / 180.0;
@@ -229,10 +229,10 @@ void solid_hexahedron(struct Cube* cube) {
     }
 }
 
-void solid_cube(struct Cube* cube) {
+void solid_cube(float size, struct Cube* cube) {
     cube->solid.size = 12*3;
 
-    solid_hexahedron(cube);
+    solid_hexahedron(size, cube);
 
     cube->solid.vertices = cube->vertices;
     cube->solid.triangles = cube->triangles;
@@ -272,7 +272,7 @@ void solid_cube(struct Cube* cube) {
 
 }
 
-void solid_sphere16(struct Sphere16* sphere) {
+void solid_sphere16(float radius, struct Sphere16* sphere) {
     sphere->solid.size = (16*6*2+16*2)*3;
 
     sphere->solid.vertices = sphere->vertices;
@@ -285,18 +285,18 @@ void solid_sphere16(struct Sphere16* sphere) {
         float v = (float)(j+1) * (PI/8.0);
         for( int i = 0; i < 16; i++ ) {
             float u = (float)i * (2.0*PI/16.0);
-            points[(i+j*16)*3+0] = sin(u)*sin(v);
-            points[(i+j*16)*3+1] = cos(u)*sin(v);
-            points[(i+j*16)*3+2] = cos(v);
+            points[(i+j*16)*3+0] = radius*sin(u)*sin(v);
+            points[(i+j*16)*3+1] = radius*cos(u)*sin(v);
+            points[(i+j*16)*3+2] = radius*cos(v);
         }
     }
     points[(15+6*16)*3+3+0] = 0.0;
     points[(15+6*16)*3+3+1] = 0.0;
-    points[(15+6*16)*3+3+2] = 1.0;
+    points[(15+6*16)*3+3+2] = radius;
 
     points[(15+6*16)*3+3+3] = 0.0;
     points[(15+6*16)*3+3+4] = 0.0;
-    points[(15+6*16)*3+3+5] = -1.0;
+    points[(15+6*16)*3+3+5] = -radius;
 
     //                               112
     // 0:  0  1  2  3   4   5   6   7   8   9  10  11  12  13  14  15  0
@@ -415,7 +415,7 @@ void solid_sphere16(struct Sphere16* sphere) {
     }
 }
 
-void solid_sphere32(struct Sphere32* sphere) {
+void solid_sphere32(float radius, struct Sphere32* sphere) {
     sphere->solid.size = (32*14*2+32*2)*3;
 
     sphere->solid.vertices = sphere->vertices;
@@ -428,18 +428,18 @@ void solid_sphere32(struct Sphere32* sphere) {
         float v = (float)(j+1) * (PI/16.0);
         for( int i = 0; i < 32; i++ ) {
             float u = (float)i * (2.0*PI/32.0);
-            points[(i+j*32)*3+0] = sin(u)*sin(v);
-            points[(i+j*32)*3+1] = cos(u)*sin(v);
-            points[(i+j*32)*3+2] = cos(v);
+            points[(i+j*32)*3+0] = radius*sin(u)*sin(v);
+            points[(i+j*32)*3+1] = radius*cos(u)*sin(v);
+            points[(i+j*32)*3+2] = radius*cos(v);
         }
     }
     points[(31+14*32)*3+3+0] = 0.0;
     points[(31+14*32)*3+3+1] = 0.0;
-    points[(31+14*32)*3+3+2] = 1.0;
+    points[(31+14*32)*3+3+2] = radius;
 
     points[(31+14*32)*3+3+3] = 0.0;
     points[(31+14*32)*3+3+4] = 0.0;
-    points[(31+14*32)*3+3+5] = -1.0;
+    points[(31+14*32)*3+3+5] = -radius;
 
     unsigned int triangles[32*14*2*3+32*3*2];
     int linebreak = 1;

@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
     /* pivot_lookat(&default_camera.pivot, origin); */
 
     struct Cube cube;
-    solid_hexahedron(&cube);
+    solid_hexahedron(1.0, &cube);
     solid_colors((struct Solid*)&cube, (float[4]){ 1.0, 0.0, 0.0, 1.0 });
     solid_normals((struct Solid*)&cube);
 

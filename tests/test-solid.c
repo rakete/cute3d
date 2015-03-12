@@ -39,11 +39,11 @@ int main(int argc, char *argv[]) {
     struct Cube cube;
     struct Sphere16 sphere16;
     struct Sphere32 sphere32;
-    solid_tetrahedron(&tetrahedron);
-    solid_hexahedron(&hexahedron);
-    solid_cube(&cube);
-    solid_sphere16(&sphere16);
-    solid_sphere32(&sphere32);
+    solid_tetrahedron(1.0, &tetrahedron);
+    solid_hexahedron(1.0, &hexahedron);
+    solid_cube(1.0, &cube);
+    solid_sphere16(1.0, &sphere16);
+    solid_sphere32(1.0, &sphere32);
 
     struct Mesh tetrahedron_mesh,hexahedron_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
 
