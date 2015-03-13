@@ -52,15 +52,15 @@ int main(int argc, char** argv) {
 
     struct Vbo vbo;
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, vertex_array, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, color_array, 4, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, normal_array, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, COLOR_ARRAY, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
 
     struct Mesh triangle_mesh;
     mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &triangle_mesh);
 
-    mesh_append(&triangle_mesh, vertex_array, vertices1, 3);
-    mesh_append(&triangle_mesh, color_array, colors, 3);
+    mesh_append(&triangle_mesh, VERTEX_ARRAY, vertices1, 3);
+    mesh_append(&triangle_mesh, COLOR_ARRAY, colors, 3);
     mesh_triangle(&triangle_mesh, 0, 1, 2);
 
     dump_mesh(&triangle_mesh, stdout);
@@ -68,9 +68,10 @@ int main(int argc, char** argv) {
     init_shader();
     struct Shader default_shader;
     shader_create("shader/flat.vert", "shader/flat.frag", &default_shader);
-    shader_attribute(&default_shader, vertex_array, "vertex");
-    shader_attribute(&default_shader, color_array, "color");
-    shader_attribute(&default_shader, normal_array, "normal");
+    shader_attribute(&default_shader, VERTEX_ARRAY, "vertex");
+    shader_attribute(&default_shader, COLOR_ARRAY, "color");
+    shader_attribute(&default_shader, NORMAL_ARRAY, "normal");
+
 
     struct Camera default_camera;
     camera_create(perspective, 1600, 900, &default_camera);
@@ -91,9 +92,9 @@ int main(int argc, char** argv) {
 
     struct Mesh cube_mesh;
     mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
-    mesh_append(&cube_mesh, vertex_array, cube.vertices, cube.solid.size);
-    mesh_append(&cube_mesh, color_array, cube.colors, cube.solid.size);
-    mesh_append(&cube_mesh, normal_array, cube.normals, cube.solid.size);
+    mesh_append(&cube_mesh, VERTEX_ARRAY, cube.vertices, cube.solid.size);
+    mesh_append(&cube_mesh, COLOR_ARRAY, cube.colors, cube.solid.size);
+    mesh_append(&cube_mesh, NORMAL_ARRAY, cube.normals, cube.solid.size);
     mesh_primitives(&cube_mesh, cube.triangles, cube.solid.size);
 
     dump_mesh(&cube_mesh, stdout);

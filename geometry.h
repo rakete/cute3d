@@ -37,16 +37,16 @@ GLsizei sizeof_type(GLenum type);
 GLsizei sizeof_primitive(GLenum primitive);
 
 enum buffer_array_type {
-    vertex_array = 0,
-    normal_array,
-    color_array,
-    texcoord_array,
+    VERTEX_ARRAY = 0,
+    NORMAL_ARRAY,
+    COLOR_ARRAY,
+    TEXCOORD_ARRAY,
     NUM_BUFFERS
 };
 
 enum scheduling {
-    many_buffer = 0,
-    big_buffer
+    MANY_BUFFER = 0,
+    BIG_BUFFER
 };
 
 // meshes are made up of primitives, like triangles, quads, lines, points

@@ -45,7 +45,7 @@ void world_grid_create(struct Grid* grid,
     GLfloat vertices[3 * n];
     GLfloat normals[3 * n];
     GLfloat colors[4 * n];
-    
+
     for( uint64_t zi = 0; zi < size.z; zi++ ) {
         for( uint64_t yi = 0; yi < size.y; yi++ ) {
             for( uint64_t xi = 0; xi < size.x; xi++ ) {
@@ -73,10 +73,10 @@ void world_grid_create(struct Grid* grid,
         }
     }
 
-    
-    mesh_append(mesh, vertex_array, vertices, n);
-    mesh_append(mesh, normal_array, normals, n);
-    mesh_append(mesh, color_array, colors, n);
+
+    mesh_append(mesh, VERTEX_ARRAY, vertices, n);
+    mesh_append(mesh, NORMAL_ARRAY, normals, n);
+    mesh_append(mesh, COLOR_ARRAY, colors, n);
 }
 
 void world_grid_update(struct Grid* grid,
@@ -86,10 +86,10 @@ void world_grid_update(struct Grid* grid,
                        struct Cube* cube,
                        struct Mesh* mesh)
 {
-    
+
     // first create _all_ vertices and normals in mesh needed for the grid, then just
     // generate the mesh by modifying the indices buffer
-    
+
     // two ways to approach this:
     // 1. create a box for every cell of the grid
     //    + more straightforward to implement
@@ -119,7 +119,7 @@ void world_grid_update(struct Grid* grid,
         for( uint64_t yi = 0; yi < box.size.y; yi++ ) {
             for( uint64_t zi = 0; zi < box.size.z; zi++ ) {
                 grid_index_xyz(grid, pages, &box, xi, yi, zi, &index);
-                
+
                 if( pages->array[index.page][index.level][index.cell] > 0 ) {
                     uint64_t v_offset = 3 * 12 * 3 * (zi * box.size.x * box.size.y + yi * box.size.x + xi);
                     uint64_t t_offset = 3 * 6 * 2 * (zi * box.size.x * box.size.y + yi * box.size.x + xi);

@@ -7,9 +7,9 @@ void mesh_from_solid(struct Solid* solid, float color[4], struct Mesh* mesh) {
     solid_colors(solid,color);
     solid_normals(solid);
 
-    mesh_append(mesh, vertex_array, solid->vertices, solid->size);
-    mesh_append(mesh, normal_array, solid->normals, solid->size);
-    mesh_append(mesh, color_array, solid->colors, solid->size);
+    mesh_append(mesh, VERTEX_ARRAY, solid->vertices, solid->size);
+    mesh_append(mesh, NORMAL_ARRAY, solid->normals, solid->size);
+    mesh_append(mesh, COLOR_ARRAY, solid->colors, solid->size);
     mesh_primitives(mesh, solid->triangles, solid->size);
 }
 
@@ -30,9 +30,9 @@ int main(int argc, char *argv[]) {
 
     struct Vbo vbo;
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, vertex_array, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, normal_array, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, color_array, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, COLOR_ARRAY, 4, GL_FLOAT, GL_STATIC_DRAW);
 
     struct Tetrahedron tetrahedron;
     struct Cube hexahedron;

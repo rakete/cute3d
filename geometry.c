@@ -125,7 +125,7 @@ void vbo_create(struct Vbo* p) {
         p->scheduler.fence[i] = 0;
     }
     p->scheduler.phase = 0;
-    p->scheduler.type = many_buffer;
+    p->scheduler.type = MANY_BUFFER;
     p->scheduler.offset = 0;
 
 }

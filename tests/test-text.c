@@ -22,23 +22,9 @@ int main(int argc, char *argv[]) {
 
     struct Vbo vbo;
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, vertex_array, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, normal_array, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, color_array, 4, GL_FLOAT, GL_STATIC_DRAW);
-
-    struct Sphere32 sphere32;
-    solid_sphere32(&sphere32);
-
-    struct Mesh sphere32_mesh;
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere32_mesh);
-
-    solid_colors((struct Solid*)&sphere32,(Color){1.0,1.0,0.0,1.0});
-    solid_normals((struct Solid*)&sphere32);
-
-    mesh_append(&sphere32_mesh, vertex_array, sphere32.vertices, sphere32.solid.size);
-    mesh_append(&sphere32_mesh, normal_array, sphere32.normals, sphere32.solid.size);
-    mesh_append(&sphere32_mesh, color_array, sphere32.colors, sphere32.solid.size);
-    mesh_primitives(&sphere32_mesh, sphere32.triangles, sphere32.solid.size);
+    vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, COLOR_ARRAY, 4, GL_FLOAT, GL_STATIC_DRAW);
 
     struct Shader shader;
     render_shader_flat(&shader);
