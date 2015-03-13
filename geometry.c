@@ -207,9 +207,11 @@ void vbo_fill_value(struct Vbo* vbo, int i, GLint offset_n, GLint size_n, float 
         switch(vbo->components[i].type) {
             case GL_FLOAT: {
                 memset(array, value, array_size);
+                break;
             }
             case GL_INT: {
                 memset(array, (GLint)ceil(value), array_size);
+                break;
             }
             case GL_UNSIGNED_INT: {
                 if( value < 0.0 ) {
@@ -217,19 +219,25 @@ void vbo_fill_value(struct Vbo* vbo, int i, GLint offset_n, GLint size_n, float 
                 } else {
                     memset(array, (GLuint)ceil(value), array_size);
                 }
+                break;
             }
             case GL_SHORT: {
+                break;
             }
             case GL_UNSIGNED_SHORT: {
+                break;
             }
             case GL_BYTE: {
+                break;
             }
             case GL_UNSIGNED_BYTE: {
+                break;
             }
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
         glBufferSubData(GL_ARRAY_BUFFER, array_offset, array_size, array);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
 
@@ -339,13 +347,15 @@ void dump_mesh(struct Mesh* mesh, FILE* f) {
                                 fprintf(f, ", ");
                             }
                         }
-                        break;
                     } else {
                         fprintf(f, "NULL\n");
                     }
+                    vbo_unmap(mesh->vbo, j);
+                    break;
                 }
                 case GL_INT: {
                     fprintf(f, "not implemented\n");
+                    break;
                 }
             }
         }
