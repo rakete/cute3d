@@ -157,7 +157,7 @@ VecP vcross(const Vec v, Vec w) {
 }
 
 void vec_length(const Vec v, VecP r) {
-    *r = sqrt( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
+    *r = sqrtf( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
 }
 
 float vlength(const Vec v) {
@@ -180,7 +180,7 @@ VecP vnormalize(Vec v) {
 }
 
 void vec_angle(const Vec v, const Vec w, VecP r) {
-    *r = acos(vdot(v,w) / (vlength(v) * vlength(w)));
+    *r = acosf(vdot(v,w) / (vlength(v) * vlength(w)));
 }
 
 float vangle(const Vec v, const Vec w) {

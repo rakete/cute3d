@@ -87,9 +87,9 @@ void solid_tetrahedron(float radius, struct Tetrahedron* tet) {
     points[2] = r;
 
     for(int i = 1; i < 4; i++) {
-        points[i*3+0] = r * cos(the) * cos(phia);
-        points[i*3+1] = r * sin(the) * cos(phia);
-        points[i*3+2] = r * sin(phia);
+        points[i*3+0] = r * cosf(the) * cosf(phia);
+        points[i*3+1] = r * sinf(the) * cosf(phia);
+        points[i*3+2] = r * sinf(phia);
         the = the + the120;
     }
 
@@ -138,16 +138,16 @@ void solid_hexahedron(float radius, struct Cube* cube) {
     float the90 = PI * 90.0 / 180.0;
     float the = 0.0;
     for(int i = 0; i < 4; i++) {
-        points[i*3+0] = r * cos(the) * cos(phia);
-        points[i*3+1] = r * sin(the) * cos(phia);
-        points[i*3+2] = r * sin(phia);
+        points[i*3+0] = r * cosf(the) * cosf(phia);
+        points[i*3+1] = r * sinf(the) * cosf(phia);
+        points[i*3+2] = r * sinf(phia);
         the += the90;
     }
     the = 0.0;
     for( int i = 4; i < 8; i++ ) {
-        points[i*3+0] = r * cos(the) * cos(phib);
-        points[i*3+1] = r * sin(the) * cos(phib);
-        points[i*3+2] = r * sin(phib);
+        points[i*3+0] = r * cosf(the) * cosf(phib);
+        points[i*3+1] = r * sinf(the) * cosf(phib);
+        points[i*3+2] = r * sinf(phib);
         the += the90;
     }
 
@@ -285,9 +285,9 @@ void solid_sphere16(float radius, struct Sphere16* sphere) {
         float v = (float)(j+1) * (PI/8.0);
         for( int i = 0; i < 16; i++ ) {
             float u = (float)i * (2.0*PI/16.0);
-            points[(i+j*16)*3+0] = radius*sin(u)*sin(v);
-            points[(i+j*16)*3+1] = radius*cos(u)*sin(v);
-            points[(i+j*16)*3+2] = radius*cos(v);
+            points[(i+j*16)*3+0] = radius*sinf(u)*sinf(v);
+            points[(i+j*16)*3+1] = radius*cosf(u)*sinf(v);
+            points[(i+j*16)*3+2] = radius*cosf(v);
         }
     }
     points[(15+6*16)*3+3+0] = 0.0;
@@ -428,9 +428,9 @@ void solid_sphere32(float radius, struct Sphere32* sphere) {
         float v = (float)(j+1) * (PI/16.0);
         for( int i = 0; i < 32; i++ ) {
             float u = (float)i * (2.0*PI/32.0);
-            points[(i+j*32)*3+0] = radius*sin(u)*sin(v);
-            points[(i+j*32)*3+1] = radius*cos(u)*sin(v);
-            points[(i+j*32)*3+2] = radius*cos(v);
+            points[(i+j*32)*3+0] = radius*sinf(u)*sinf(v);
+            points[(i+j*32)*3+1] = radius*cosf(u)*sinf(v);
+            points[(i+j*32)*3+2] = radius*cosf(v);
         }
     }
     points[(31+14*32)*3+3+0] = 0.0;
