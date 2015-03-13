@@ -28,37 +28,68 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
         camera_matrices(camera,projection_matrix,view_matrix);
     }
 
-    GLint mvp_loc = glGetUniformLocation(shader->program, "mvp_matrix");
+    bool free_model_matrix = 0;
+
+    GLint mvp_loc = -1;
+    if( shader->location[SHADER_MVP_MATRIX].id > -1) {
+        mvp_loc = shader->location[SHADER_MVP_MATRIX].id;
+    } else {
+        mvp_loc = glGetUniformLocation(shader->program, "mvp_matrix");
+    }
+
     if( mvp_loc > -1 ) {
         Mat mvp_matrix;
         mat_mul(model_matrix, view_matrix, mvp_matrix);
         mat_mul(mvp_matrix, projection_matrix, mvp_matrix);
         glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, mvp_matrix);
+    } else {
+        GLint projection_loc = -1;
+        if( shader->location[SHADER_PROJECTION_MATRIX].id > -1 ) {
+            projection_loc = shader->location[SHADER_PROJECTION_MATRIX].id;
+        } else {
+            projection_loc = glGetUniformLocation(shader->program, "projection_matrix");
+        }
+
+        if( projection_loc > -1 ) {
+            glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix);
+        }
+
+        GLint view_loc = -1;
+        if( shader->location[SHADER_VIEW_MATRIX].id > -1 ) {
+            view_loc = shader->location[SHADER_VIEW_MATRIX].id;
+        } else {
+            view_loc = glGetUniformLocation(shader->program, "view_matrix");
+        }
+
+        if( view_loc > -1 ) {
+            glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
+        }
+
+        GLint model_loc = -1;
+        if( shader->location[SHADER_MODEL_MATRIX].id > -1 ) {
+            model_loc = shader->location[SHADER_MODEL_MATRIX].id;
+        } else {
+            model_loc = glGetUniformLocation(shader->program, "model_matrix");
+        }
+
+        if( ! model_matrix ) {
+            model_matrix = malloc(sizeof(Mat));
+            mat_identity(model_matrix);
+            free_model_matrix = 1;
+        }
+
+        if( model_loc > -1 ) {
+            glUniformMatrix4fv(model_loc, 1, GL_FALSE, model_matrix);
+        }
     }
 
-    GLint projection_loc = glGetUniformLocation(shader->program, "projection_matrix");
-    if( projection_loc > -1 ) {
-        glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix);
+    GLint normal_loc = -1;
+    if( shader->location[SHADER_NORMAL_MATRIX].id > -1 ) {
+        normal_loc = shader->location[SHADER_NORMAL_MATRIX].id;
+    } else {
+        normal_loc = glGetUniformLocation(shader->program, "normal_matrix");
     }
 
-    GLint view_loc = glGetUniformLocation(shader->program, "view_matrix");
-    if( view_loc > -1 ) {
-        glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
-    }
-
-    GLint model_loc = glGetUniformLocation(shader->program, "model_matrix");
-    bool free_model_matrix = 0;
-    if( ! model_matrix ) {
-        model_matrix = malloc(sizeof(Mat));
-        mat_identity(model_matrix);
-        free_model_matrix = 1;
-    }
-
-    if( model_loc > -1 ) {
-        glUniformMatrix4fv(model_loc, 1, GL_FALSE, model_matrix);
-    }
-
-    GLint normal_loc = glGetUniformLocation(shader->program, "normal_matrix");
     if( (! free_model_matrix) && normal_loc > -1 ) {
         Mat normal_matrix;
         mat_invert(model_matrix, NULL, normal_matrix);
@@ -110,4 +141,8 @@ void render_shader_flat(struct Shader* shader) {
     shader_attribute(shader, COLOR_ARRAY, "color");
     shader_attribute(shader, NORMAL_ARRAY, "normal");
 
+    shader_location(shader, SHADER_MVP_MATRIX, "mvp_matrix");
+    shader_location(shader, SHADER_NORMAL_MATRIX, "normal_matrix");
+    shader_location(shader, SHADER_LIGHT_DIRECTION, "light_direction");
+    shader_location(shader, SHADER_AMBIENT_COLOR, "ambiance");
 }

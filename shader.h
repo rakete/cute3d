@@ -22,39 +22,42 @@
 #include "ogl.h"
 #include "glsl.h"
 
-#ifndef SHADER_UNIFORMS
-#define SHADER_UNIFORMS 32
-#endif
-
 #ifndef SHADER_ATTRIBUTES
 #define SHADER_ATTRIBUTES 3
 #endif
 
-/* enum uniform_type { */
-/*     invalid_uniform = 0, */
-/*     uniform1f, */
-/*     uniform2f, */
-/*     uniform3f, */
-/*     uniform4f */
-/* }; */
+#define SHADER_LOCATIONS 256
+
+#define SHADER_MVP_MATRIX 127
+#define SHADER_MODEL_MATRIX 128
+#define SHADER_VIEW_MATRIX 129
+#define SHADER_PROJECTION_MATRIX 130
+#define SHADER_NORMAL_MATRIX 131
+
+#define SHADER_LIGHT_DIRECTION 140
+
+#define SHADER_AMBIENT_COLOR 150
 
 struct Shader {
     GLuint vertex_shader, fragment_shader, program;
 
-    uint32_t active_uniforms;
-    struct {
-        char name[256];
-    } uniform[SHADER_UNIFORMS];
-
     struct {
         char name[256];
     } attribute[SHADER_ATTRIBUTES];
+
+    struct {
+        GLint id;
+        char name[256];
+    } location[SHADER_LOCATIONS];
 };
 
 int init_shader();
 
 void shader_create(const char* vertex_file, const char* fragment_file, struct Shader* p);
-void shader_attribute(struct Shader* shader, int array_id, char* name);
-void shader_uniform(struct Shader* shader, char* name, char* type, void* data);
+
+void shader_attribute(struct Shader* shader, int array_index, const char* name);
+GLint shader_location(struct Shader* shader, int location_index, const char* name);
+
+GLint shader_uniform(struct Shader* shader, int location_index, const char* name, const char* type, void* data);
 
 #endif

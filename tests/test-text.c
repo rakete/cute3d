@@ -61,10 +61,10 @@ int main(int argc, char *argv[]) {
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
         Vec light_direction = { 0.2, 0.5, 1.0 };
-        shader_uniform(&shader, "light_direction", "3f", light_direction);
+        shader_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
 
         Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
-        shader_uniform(&shader, "ambiance", "4f", ambiance);
+        shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
         text_overlay(L"ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789", &font, 15, camera, 25, 25);
         text_overlay(L"Hallo allerseits, dies ist ein Test.\n"

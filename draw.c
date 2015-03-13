@@ -118,19 +118,24 @@ void draw_grid( float width,
 
         glUseProgram(program);
 
-        GLint color_loc = glGetUniformLocation(program, "color");
+        static GLint color_loc = -1;
+        if( color_loc < 0 ) {
+            color_loc = glGetUniformLocation(program, "color");
+        }
         glUniform4f(color_loc, color[0], color[1], color[2], color[3]);
 
         Mat mvp_matrix;
         mat_mul(model_matrix, view_matrix, mvp_matrix);
         mat_mul(mvp_matrix, projection_matrix, mvp_matrix);
 
-        GLint mvp_loc = glGetUniformLocation(program, "mvp_matrix");
+        GLint mvp_loc = -1;
+        if( mvp_loc < 0 ) {
+            mvp_loc = glGetUniformLocation(program, "mvp_matrix");
+        }
         glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, mvp_matrix);
 
         glDrawElements(GL_LINES, size, GL_UNSIGNED_INT, 0);
 
-        glUseProgram(0);
         glBindVertexArray(0);
 
         glDeleteBuffers(2, vbo_ids);
@@ -217,13 +222,22 @@ void draw_vec( Vec v,
 
         glUseProgram(program);
 
-        GLint color_loc = glGetUniformLocation(program, "color");
+        static GLint color_loc = -1;
+        if( color_loc < 0 ) {
+            color_loc = glGetUniformLocation(program, "color");
+        }
         glUniform4f(color_loc, color[0], color[1], color[2], color[3]);
 
-        GLint projection_loc = glGetUniformLocation(program, "projection_matrix");
+        static GLint projection_loc = -1;
+        if( projection_loc < 0 ) {
+            projection_loc = glGetUniformLocation(program, "projection_matrix");
+        }
         glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix);
 
-        GLint view_loc = glGetUniformLocation(program, "view_matrix");
+        static GLint view_loc = -1;
+        if( view_loc < 0 ) {
+            view_loc = glGetUniformLocation(program, "view_matrix");
+        }
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
 
         Mat arrow_matrix;
@@ -248,12 +262,14 @@ void draw_vec( Vec v,
         mat_translate(arrow_matrix, pos, arrow_matrix);
         mat_mul(arrow_matrix, model_matrix, arrow_matrix);
 
-        GLint model_loc = glGetUniformLocation(program, "model_matrix");
+        static GLint model_loc = -1;
+        if( model_loc < 0 ) {
+            model_loc = glGetUniformLocation(program, "model_matrix");
+        }
         glUniformMatrix4fv(model_loc, 1, GL_FALSE, arrow_matrix);
 
         glDrawElements(GL_LINES, 18, GL_UNSIGNED_INT, 0);
 
-        glUseProgram(0);
         glBindVertexArray(0);
     }
 }
@@ -371,16 +387,28 @@ void draw_texture_quad( GLuint texture_id,
 
         glUseProgram(program);
 
-        GLint color_loc = glGetUniformLocation(program, "color");
+        static GLint color_loc = -1;
+        if( color_loc < 0 ) {
+            color_loc = glGetUniformLocation(program, "color");
+        }
         glUniform4f(color_loc, 1.0, 0.0, 0.0, 1.0);
 
-        GLint projection_loc = glGetUniformLocation(program, "projection_matrix");
+        static GLint projection_loc = -1;
+        if( projection_loc < 0 ) {
+            projection_loc = glGetUniformLocation(program, "projection_matrix");
+        }
         glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix);
 
-        GLint view_loc = glGetUniformLocation(program, "view_matrix");
+        static GLint view_loc = -1;
+        if( view_loc < 0 ) {
+            view_loc = glGetUniformLocation(program, "view_matrix");
+        }
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
 
-        GLint model_loc = glGetUniformLocation(program, "model_matrix");
+        static GLint model_loc = -1;
+        if( model_loc < 0 ) {
+            model_loc = glGetUniformLocation(program, "model_matrix");
+        }
         glUniformMatrix4fv(model_loc, 1, GL_FALSE, model_matrix);
 
         GLint diffuse_loc = glGetUniformLocation(program, "diffuse");
@@ -391,7 +419,6 @@ void draw_texture_quad( GLuint texture_id,
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        glUseProgram(0);
         glBindVertexArray(0);
     }
 }

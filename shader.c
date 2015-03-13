@@ -44,37 +44,50 @@ void shader_create(const char* vertex_file, const char* fragment_file, struct Sh
         p->program = 0;
     }
 
-    p->active_uniforms = 0;
-    for( int i = 0; i < SHADER_UNIFORMS; i++ ) {
-        strncpy(p->uniform[i].name, "\0", 1);
-    }
-
     for( int i = 0; i < SHADER_ATTRIBUTES; i++ ) {
         strncpy(p->attribute[i].name, "\0", 1);
     }
-}
 
-void shader_attribute(struct Shader* shader, int array_id, char* name) {
-    if( strlen(name) < 256 ) {
-        strncpy(shader->attribute[array_id].name, name, strlen(name)+1);
+    for( int i = 0; i < SHADER_LOCATIONS; i++ ) {
+        strncpy(p->location[i].name, "\0", 1);
+        p->location[i].id = -1;
     }
 }
 
-void shader_uniform(struct Shader* shader, char* name, char* type, void* data) {
-    if( shader->active_uniforms < SHADER_UNIFORMS &&
-        strlen(name) < 256 )
-    {
+void shader_attribute(struct Shader* shader, int array_index, const char* name) {
+    if( strlen(name) < 256 ) {
+        strncpy(shader->attribute[array_index].name, name, strlen(name)+1);
+    }
+}
+
+GLint shader_location(struct Shader* shader, int location_index, const char* name) {
+    if( shader->location[location_index].id > -1 ) {
+        return shader->location[location_index].id;
+    } else {
         glUseProgram(shader->program);
         GLint id = glGetUniformLocation(shader->program, name);
+
+        if( id > -1 ) {
+            shader->location[location_index].id = id;
+            strncpy(shader->location[location_index].name, name, strlen(name)+1);
+            return shader->location[location_index].id;
+        }
+    }
+
+    return -1;
+}
+
+GLint shader_uniform(struct Shader* shader, int location_index, const char* name, const char* type, void* data) {
+    if( strlen(name) < 256 ) {
+        GLint id = shader_location(shader, location_index, name);
         if( id >= 0 ) {
-            strncpy(shader->uniform[shader->active_uniforms].name, name, strlen(name));
+            glUseProgram(shader->program);
             if( strcmp(type, "1f") == 0 ) { glUniform1f(id, ((float*)data)[0]); }
             if( strcmp(type, "2f") == 0 ) { glUniform2f(id, ((float*)data)[0], ((float*)data)[1]); }
             if( strcmp(type, "3f") == 0 ) { glUniform3f(id, ((float*)data)[0], ((float*)data)[1], ((float*)data)[2]); }
             if( strcmp(type, "4f") == 0 ) { glUniform4f(id, ((float*)data)[0], ((float*)data)[1], ((float*)data)[2], ((float*)data)[3]); }
-
-            shader->active_uniforms++;
         }
-        glUseProgram(0);
+        return id;
     }
+    return -1;
 }

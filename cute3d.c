@@ -72,6 +72,10 @@ int main(int argc, char** argv) {
     shader_attribute(&default_shader, COLOR_ARRAY, "color");
     shader_attribute(&default_shader, NORMAL_ARRAY, "normal");
 
+    shader_location(&default_shader, SHADER_MVP_MATRIX, "mvp_matrix");
+    shader_location(&default_shader, SHADER_NORMAL_MATRIX, "normal_matrix");
+    shader_location(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction");
+    shader_location(&default_shader, SHADER_AMBIENT_COLOR, "ambiance");
 
     struct Camera default_camera;
     camera_create(perspective, 1600, 900, &default_camera);
@@ -136,10 +140,10 @@ int main(int argc, char** argv) {
         mat_identity(identity);
 
         Vec light_direction = { 0.4, -1.0, -0.2 };
-        shader_uniform(&default_shader, "light_direction", "3f", light_direction);
+        shader_uniform(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
 
         Color ambiance = { .1, .1, .3, 1.0 };
-        shader_uniform(&default_shader, "ambiance", "4f", ambiance);
+        shader_uniform(&default_shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
         Mat cube_transform;
         mat_identity(cube_transform);
@@ -153,7 +157,6 @@ int main(int argc, char** argv) {
         printf("%f %f %f %f\n", cube_spinning[0], cube_spinning[1], cube_spinning[2], cube_spinning[3]);
 
         qmat(cube_rotation, cube_transform);
-
 
         mat_translate(cube_transform, (Vec){ -2.0, 0.0, 0.0, 1.0 }, cube_transform);
 

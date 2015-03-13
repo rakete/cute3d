@@ -139,10 +139,10 @@ int main(int argc, char *argv[]) {
     render_shader_flat(&shader);
 
     Vec light_direction = { 0.0, 0.2, -0.8 };
-    shader_uniform(&shader, "light_direction", "3f", light_direction);
+    shader_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
 
     Color ambiance = { 0.1, 0.0, 0.05, 1.0 };
-    shader_uniform(&shader, "ambiance", "4f", ambiance);
+    shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
     /* Matrices */
     struct Camera camera;
