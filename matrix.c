@@ -23,6 +23,13 @@ void vec_copy(const Vec v, Vec r) {
     r[3] = v[3];
 }
 
+void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r) {
+    r[0] = x[0];  r[4] = y[0];  r[8]  = z[0];  r[12] = 0.0;
+    r[1] = x[1];  r[5] = y[1];  r[9]  = z[1];  r[13] = 0.0;
+    r[2] = x[2];  r[6] = y[2];  r[10] = z[2];  r[14] = 0.0;
+    r[3] = 0.0;   r[7] = 0.0;   r[11] = 0.0;   r[15] = 1.0;
+}
+
 void vec_add(const Vec v, const Vec w, Vec r) {
     r[0] = v[0] + w[0];
     r[1] = v[1] + w[1];
@@ -48,11 +55,11 @@ void vec_add3f(const Vec v, const Vec3f w, Vec r) {
 }
 
 VecP vadd3f(const Vec v, Vec w) {
-    vec_3fadd3f(v,w,w);
+    vec_add3f3f(v,w,w);
     return w;
 }
 
-void vec_3fadd3f(const Vec3f v, const Vec3f w, Vec3f r) {
+void vec_add3f3f(const Vec3f v, const Vec3f w, Vec3f r) {
     r[0] = v[0] + w[0];
     r[1] = v[1] + w[1];
     r[2] = v[2] + w[2];

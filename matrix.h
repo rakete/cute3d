@@ -26,6 +26,7 @@
 
 // vector
 void vec_copy(const Vec v, Vec r);
+void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
 
 void vec_add(const Vec v, const Vec w, Vec r);
 VecP vadd(const Vec v, Vec w);
@@ -33,7 +34,7 @@ VecP vadd(const Vec v, Vec w);
 void vec_add3f(const Vec v, const Vec3f w, Vec r);
 VecP vadd3f(const Vec v, Vec w);
 
-void vec_3fadd3f(const Vec3f v, const Vec3f w, Vec3f r);
+void vec_add3f3f(const Vec3f v, const Vec3f w, Vec3f r);
 //VecP v3fadd3f(const Vec3f v, Vec w3f);
 
 void vec_sub(const Vec v, const Vec w, Vec r);
