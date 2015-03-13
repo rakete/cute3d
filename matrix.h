@@ -72,10 +72,14 @@ bool vnullp(const Vec v);
 void vec_perpendicular(const Vec v, Vec r);
 VecP vperpendicular(const Vec v);
 
+void vec_basis(const Vec x, Vec y, Vec z);
+
 void vec_print(const char* title, const Vec v);
 
 // matrix creation
 void mat_copy(const Mat m, Mat r);
+
+void mat_basis(const Vec x, Mat r);
 
 void mat_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Mat m);
 void mat_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Mat m);

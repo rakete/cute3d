@@ -213,6 +213,37 @@ void vec_perpendicular(const Vec v, Vec r) {
     r[3] = v[3];
 }
 
+void vec_basis(const Vec x, Vec y, Vec z) {
+    if( fabsf(x[0]) > fabsf(x[1]) ) {
+        // Scaling factor to ensure the results are normalised
+        const float s = 1.0/sqrtf(x[2]*x[2] + x[0]*x[0]);
+
+        // The new Z-axis is at right angles to the world Y-axis
+        z[0] = x[2]*s;
+        z[1] = 0.0;
+        z[2] = -x[0]*s;
+        z[3] = 1.0;
+
+        // The new Y-axis is at right angles to the new X- and Z- axes
+        y[0] = x[1]*z[0];
+        y[1] = x[2]*z[0] - x[0]*z[2];
+        y[2] = -x[1]*z[0];
+        y[3] = 1.0;
+    } else {
+        const float s = 1.0/sqrtf(x[2]*x[2] + x[1]*x[1]);
+
+        z[0] = 0;
+        z[1] = -x[2]*s;
+        z[2] = x[1]*s;
+        z[3] = 1.0;
+
+        y[0] = x[1]*z[2] - x[2]*z[1];
+        y[1] = -x[0]*z[2];
+        y[2] = x[0]*z[1];
+        y[3] = 1.0;
+    }
+}
+
 void vec_print(const char* title, const Vec v) {
     printf("%s(%f %f %f %f)\n", title, v[0], v[1], v[2], v[3]);
 }
@@ -222,6 +253,16 @@ void mat_copy(const Mat m, Mat r) {
     r[1] = m[1];  r[5] = m[5];  r[9] = m[9];   r[13] = m[13];
     r[2] = m[2];  r[6] = m[6];  r[10] = m[10]; r[14] = m[14];
     r[3] = m[3];  r[7] = m[7];  r[11] = m[11]; r[15] = m[15];
+}
+
+void mat_basis(const Vec x, Mat r) {
+    Vec y,z;
+    vec_basis(x, y, z);
+
+    r[0] = x[0];  r[4] = y[0];  r[8]  = z[0];  r[12] = 0.0;
+    r[1] = x[1];  r[5] = y[1];  r[9]  = z[1];  r[13] = 0.0;
+    r[2] = x[2];  r[6] = y[2];  r[10] = z[2];  r[14] = 0.0;
+    r[3] = 0.0;   r[7] = 0.0;   r[11] = 0.0;   r[15] = 1.0;
 }
 
 void mat_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Mat m) {
