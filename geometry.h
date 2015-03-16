@@ -59,7 +59,8 @@ enum scheduling {
 //
 // now the elements are just logical units, the buffers that contain the components also
 // contain the elements, and just like the components make up elements, the elements make up
-// primitives
+// primitives, e.g. three float components make one vertex element, and three vertex elements
+// make one triangle primitive
 struct Vbo {
     struct Buffer {
         GLuint id;
@@ -75,7 +76,7 @@ struct Vbo {
     struct Components* components;
 
     GLint capacity; // size of the whole buffer
-    GLint reserved; // actual used space by meshes
+    GLint reserved; // actual space used by meshes
 
     struct {
         uint32_t phase;
@@ -88,7 +89,7 @@ struct Vbo {
 
 void vbo_create(struct Vbo* p);
 
-void dump_vbo(struct Vbo* vbo, FILE* f);
+void vbo_print(struct Vbo* vbo);
 
 void vbo_add_buffer(struct Vbo* vbo,
                     int i,
@@ -149,7 +150,7 @@ struct Mesh {
 
 void mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct Mesh* p);
 
-void dump_mesh(struct Mesh* mesh, FILE* f);
+void mesh_print(struct Mesh* mesh);
 
 GLint mesh_alloc(struct Mesh* mesh, GLint n);
 GLint mesh_alloc_vbo(struct Mesh* mesh, GLint n);

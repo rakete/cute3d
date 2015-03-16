@@ -48,26 +48,25 @@ GLsizei buffer_resize(GLuint* buffer, GLsizei old_bytes, GLsizei new_bytes) {
     GLuint old_buffer = *buffer;
 
     if( new_bytes > old_bytes ) {
-
-        glGenBuffers(1, &new_buffer);
-        glBindBuffer(GL_COPY_WRITE_BUFFER, new_buffer);
-        glBufferData(GL_COPY_WRITE_BUFFER, new_bytes, NULL, GL_STATIC_COPY);
+        ogl_debug( glGenBuffers(1, &new_buffer);
+                   glBindBuffer(GL_COPY_WRITE_BUFFER, new_buffer);
+                   glBufferData(GL_COPY_WRITE_BUFFER, new_bytes, NULL, GL_STATIC_COPY); );
 
         if( old_bytes > 0 && old_buffer > 0 ) {
-            glBindBuffer(GL_COPY_READ_BUFFER, old_buffer);
-            glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, old_bytes);
+            ogl_debug( glBindBuffer(GL_COPY_READ_BUFFER, old_buffer);
+                       glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, old_bytes); );
         }
 
         if( old_buffer ) {
-            glDeleteBuffers(1, &old_buffer);
+            ogl_debug( glDeleteBuffers(1, &old_buffer) );
         }
 
         *buffer = new_buffer;
 
         if( old_bytes > 0 && old_buffer ) {
-            glBindBuffer(GL_COPY_READ_BUFFER, 0);
+            ogl_debug( glBindBuffer(GL_COPY_READ_BUFFER, 0) );
         }
-        glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+        ogl_debug( glBindBuffer(GL_COPY_WRITE_BUFFER, 0) );
 
         return new_bytes - old_bytes;
     }
@@ -130,9 +129,9 @@ void vbo_create(struct Vbo* p) {
 
 }
 
-void dump_vbo(struct Vbo* vbo, FILE* f) {
-    fprintf(f, "vbo->capacity: %d\n", vbo->capacity);
-    fprintf(f, "vbo->reserved: %d\n", vbo->reserved);
+void vbo_print(struct Vbo* vbo) {
+    printf("vbo->capacity: %d\n", vbo->capacity);
+    printf("vbo->reserved: %d\n", vbo->reserved);
 }
 
 void vbo_add_buffer(struct Vbo* vbo,
@@ -142,7 +141,7 @@ void vbo_add_buffer(struct Vbo* vbo,
                     GLenum usage)
 {
     if( vbo && i < NUM_BUFFERS ) {
-        glGenBuffers(1, &vbo->buffer[i].id);
+        ogl_debug( glGenBuffers(1, &vbo->buffer[i].id) );
 
         vbo->buffer[i].usage = usage;
 
@@ -151,9 +150,10 @@ void vbo_add_buffer(struct Vbo* vbo,
         vbo->components[i].bytes = sizeof_type(component_t);
 
         GLsizei nbytes = vbo->capacity * component_n * sizeof_type(component_t);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
-        glBufferData(GL_ARRAY_BUFFER, nbytes, NULL, usage);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
+                   glBufferData(GL_ARRAY_BUFFER, nbytes, NULL, usage);
+                   glBindBuffer(GL_ARRAY_BUFFER, 0); );
+
     }
 }
 
@@ -235,9 +235,9 @@ void vbo_fill_value(struct Vbo* vbo, int i, GLint offset_n, GLint size_n, float 
             }
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
-        glBufferSubData(GL_ARRAY_BUFFER, array_offset, array_size, array);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
+                   glBufferSubData(GL_ARRAY_BUFFER, array_offset, array_size, array);
+                   glBindBuffer(GL_ARRAY_BUFFER, 0); );
     }
 }
 
@@ -254,10 +254,10 @@ void* vbo_map(struct Vbo* vbo, int i, GLint offset, GLint length, GLbitfield acc
                 length_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
             }
 
-            glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
-            //printf("%d %lu %lu\n", vbo->buffer[i].id, offset_bytes, length_bytes);
-            void* pointer = glMapBufferRange(GL_ARRAY_BUFFER, offset_bytes, length_bytes, access);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            void* pointer = NULL;
+            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
+                       pointer = glMapBufferRange(GL_ARRAY_BUFFER, offset_bytes, length_bytes, access);
+                       glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
             return pointer;
         }
@@ -268,9 +268,10 @@ void* vbo_map(struct Vbo* vbo, int i, GLint offset, GLint length, GLbitfield acc
 
 GLboolean vbo_unmap(struct Vbo* vbo, int i) {
     if( vbo && vbo->buffer[i].id ) {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
-        GLboolean result = glUnmapBuffer(GL_ARRAY_BUFFER);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        GLboolean result = 0;
+        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
+                   result = glUnmapBuffer(GL_ARRAY_BUFFER);
+                   glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
         return result;
     }
@@ -304,34 +305,34 @@ void mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLen
         }
         p->primitives.buffer = &p->primitives._internal_buffer[0];
 
-        glGenBuffers(1, &p->primitives.buffer->id);
+        ogl_debug( glGenBuffers(1, &p->primitives.buffer->id) );
 
         p->garbage = 0;
     }
 }
 
-void dump_mesh(struct Mesh* mesh, FILE* f) {
-    dump_vbo(mesh->vbo, f);
+void mesh_print(struct Mesh* mesh) {
+    vbo_print(mesh->vbo);
 
-    fprintf(f, "\n");
+    printf("\n");
 
-    fprintf(f, "mesh->offset: %d\n", mesh->offset);
-    fprintf(f, "mesh->size: %d\n", mesh->size);
+    printf("mesh->offset: %d\n", mesh->offset);
+    printf("mesh->size: %d\n", mesh->size);
 
-    fprintf(f, "mesh->primitives.type: %d\n", mesh->primitives.type);
-    fprintf(f, "mesh->primitives.size: %d\n", mesh->primitives.size);
+    printf("mesh->primitives.type: %d\n", mesh->primitives.type);
+    printf("mesh->primitives.size: %d\n", mesh->primitives.size);
 
-    fprintf(f, "mesh->index.type: %d\n", mesh->index.type);
-    fprintf(f, "mesh->index.bytes: %d\n", mesh->index.bytes);
-    fprintf(f, "mesh->primitives.buffer->size: %d\n", mesh->primitives.buffer->size);
-    fprintf(f, "mesh->primitives.buffer->used: %d\n", mesh->primitives.buffer->used);
+    printf("mesh->index.type: %d\n", mesh->index.type);
+    printf("mesh->index.bytes: %d\n", mesh->index.bytes);
+    printf("mesh->primitives.buffer->size: %d\n", mesh->primitives.buffer->size);
+    printf("mesh->primitives.buffer->used: %d\n", mesh->primitives.buffer->used);
 
-    fprintf(f, "\n");
+    printf("\n");
 
     for( int i = 0; i < NUM_PHASES; i++ ) {
         for( int j = 0; j < NUM_BUFFERS-1; j++ ) {
-            fprintf(f, "mesh->uses[%d]: %d\n", j, mesh->uses[j]);
-            fprintf(f, "mesh->vbo->buffer[%d][%d]:\n", i, j);
+            printf("mesh->uses[%d]: %d\n", j, mesh->uses[j]);
+            printf("mesh->vbo->buffer[%d][%d]:\n", i, j);
             switch(mesh->vbo->components[j].type) {
                 case GL_FLOAT: {
                     GLfloat* array = (GLfloat*)vbo_map(mesh->vbo, j, mesh->offset, mesh->size, GL_MAP_READ_BIT);
@@ -340,21 +341,21 @@ void dump_mesh(struct Mesh* mesh, FILE* f) {
                             GLfloat a = array[k*mesh->vbo->components[j].size+0];
                             GLfloat b = array[k*mesh->vbo->components[j].size+1];
                             GLfloat c = array[k*mesh->vbo->components[j].size+2];
-                            fprintf(f, "[%f %f %f]", a, b, c);
+                            printf("[%f %f %f]", a, b, c);
                             if( k == mesh->size - 1 ) {
-                                fprintf(f, "\n");
+                                printf("\n");
                             } else {
-                                fprintf(f, ", ");
+                                printf(", ");
                             }
                         }
                     } else {
-                        fprintf(f, "NULL\n");
+                        printf("NULL\n");
                     }
                     vbo_unmap(mesh->vbo, j);
                     break;
                 }
                 case GL_INT: {
-                    fprintf(f, "not implemented\n");
+                    printf("ERROR: GL_INT not implemented in mesh_print\n");
                     break;
                 }
             }
@@ -420,9 +421,10 @@ void mesh_append_generic(struct Mesh* mesh, int i, void* data, GLint n, GLint co
         GLsizei offset_bytes = (mesh->offset + mesh->uses[i]) * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
 
         if( used_bytes + append_bytes <= size_bytes ) {
-            glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
-            glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
+                       glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
+                       glBindBuffer(GL_ARRAY_BUFFER, 0); );
+
 
             mesh->uses[i] += n;
         } else if( mesh->offset + mesh->size == mesh->vbo->reserved &&
@@ -433,9 +435,9 @@ void mesh_append_generic(struct Mesh* mesh, int i, void* data, GLint n, GLint co
             // if num and type do not fit the stored values in vbo
             mesh_alloc_vbo(mesh,n);
 
-            glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
-            glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
+                       glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
+                       glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
             mesh->uses[i] += n;
         }
@@ -474,9 +476,10 @@ void* mesh_map(struct Mesh* mesh, GLint offset, GLint length, GLbitfield access)
                 length_bytes = mesh->primitives.buffer->size * mesh->index.bytes;
             }
 
-            glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
-            void* pointer = glMapBufferRange(GL_ARRAY_BUFFER, offset_bytes, length_bytes, access);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            void* pointer = NULL;
+            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
+                       pointer = glMapBufferRange(GL_ARRAY_BUFFER, offset_bytes, length_bytes, access);
+                       glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
             return pointer;
         }
@@ -488,9 +491,10 @@ void* mesh_map(struct Mesh* mesh, GLint offset, GLint length, GLbitfield access)
 
 GLboolean mesh_unmap(struct Mesh* mesh) {
     if( mesh && mesh->primitives.buffer->id ) {
-        glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
-        GLboolean result = glUnmapBuffer(GL_ARRAY_BUFFER);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        GLboolean result = 0;
+        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
+                   result = glUnmapBuffer(GL_ARRAY_BUFFER);
+                   glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
         return result;
     }
@@ -528,9 +532,9 @@ void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c) {
         GLsizei triangle_bytes = 3 * mesh->index.bytes;
         GLsizei offset_bytes = mesh->primitives.buffer->used * mesh->index.bytes;
         if( mesh->primitives.buffer->used + 3 <= mesh->primitives.buffer->size ) {
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.buffer->id);
-            glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset_bytes, triangle_bytes, data);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.buffer->id);
+                       glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset_bytes, triangle_bytes, data);
+                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
 
             mesh->primitives.buffer->used += 3;
         }
@@ -557,9 +561,9 @@ void mesh_primitives(struct Mesh* mesh, void* data, GLint n) {
         GLsizei append_bytes = n * mesh->index.bytes;
         GLsizei offset_bytes = mesh->primitives.buffer->used * mesh->index.bytes;
         if( mesh->primitives.buffer->used + n <= mesh->primitives.buffer->size ) {
-            glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
-            glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
+                       glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
+                       glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
             mesh->primitives.buffer->used += n;
         }
