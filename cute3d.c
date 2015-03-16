@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     mesh_append(&triangle_mesh, COLOR_ARRAY, colors, 3);
     mesh_triangle(&triangle_mesh, 0, 1, 2);
 
-    dump_mesh(&triangle_mesh, stdout);
+    mesh_print(&triangle_mesh);
 
     init_shader();
     struct Shader default_shader;
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
     mesh_append(&cube_mesh, NORMAL_ARRAY, cube.normals, cube.solid.size);
     mesh_primitives(&cube_mesh, cube.triangles, cube.solid.size);
 
-    dump_mesh(&cube_mesh, stdout);
+    mesh_print(&cube_mesh);
 
     struct Character symbols[256];
     ascii_create(symbols);
