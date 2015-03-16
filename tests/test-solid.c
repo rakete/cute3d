@@ -86,11 +86,9 @@ int main(int argc, char *argv[]) {
 
         sdl2_debug( SDL_GL_SetSwapInterval(1) );
 
-        ogl_debug({
-                glClearDepth(1.0f);
-                glClearColor(.0f, .0f, .0f, 1.0f);
-                glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-            });
+        ogl_debug( glClearDepth(1.0f);
+                   glClearColor(.0f, .0f, .0f, 1.0f);
+                   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
 
 
         Vec light_direction = { 0.2, -0.5, -1.0 };
