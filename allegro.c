@@ -46,22 +46,3 @@ void allegro_orbit_create(ALLEGRO_DISPLAY* display, Vec origin, Vec translation,
     vec_add3f(camera->pivot.position, translation, camera->pivot.position);
     pivot_lookat(&camera->pivot, origin);
 }
-
-void allegro_fps_counter(const struct Font* font, const Matrix projection_matrix, const Matrix view_matrix, const Matrix model_matrix) {
-    static int frames_done = 0;
-    static double old_time = -1;
-
-    double fps = 0;
-    double game_time = al_get_time();
-
-    if( old_time < 0 ) {
-        old_time = game_time;
-    }
-
-    if( game_time - old_time >= 1.0 ) {
-        fps = frames_done / (game_time - old_time);
-        frames_done = 0;
-        old_time = game_time;
-    }
-    frames_done++;
-}
