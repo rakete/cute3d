@@ -30,40 +30,104 @@
 void draw_grid( float width,
                 float height,
                 int steps,
-                Color color,
-                Mat projection_matrix,
-                Mat view_matrix,
-                Mat model_matrix);
+                const Color color,
+                const Mat projection_matrix,
+                const Mat view_matrix,
+                const Mat model_matrix);
 
-void draw_vec( Vec v,
-               Vec pos,
+void draw_grid2( float width,
+                 float height,
+                 int steps,
+                 const Color color,
+                 const Mat projection_matrix,
+                 const Mat view_matrix,
+                 const Mat model_matrix);
+
+void draw_grid3( float width,
+                 float height,
+                 int steps,
+                 const Color color,
+                 const Mat projection_matrix,
+                 const Mat view_matrix,
+                 const Mat model_matrix);
+
+void draw_grid4( float width,
+                 float height,
+                 int steps,
+                 const Color color,
+                 const Mat projection_matrix,
+                 const Mat view_matrix,
+                 const Mat model_matrix);
+
+void draw_arrow( const Vec v,
+                 const Vec pos,
+                 float scale,
+                 float offset,
+                 const Color color,
+                 const Mat projection_matrix,
+                 const Mat view_matrix,
+                 const Mat model_matrix);
+
+void draw_vec( const Vec v,
+               const Vec pos,
                float scale,
-               Color color,
-               Mat projection_matrix,
-               Mat view_matrix,
-               Mat model_matrix);
+               const Color color,
+               const Mat projection_matrix,
+               const Mat view_matrix,
+               const Mat model_matrix);
 
-void draw_normals_array( float* vertices,
-                         float* normals,
+void draw_circle( const Vec normal,
+                  float radius,
+                  float start,
+                  float end,
+                  float arrow,
+                  const Color color,
+                  const Mat projection_matrix,
+                  const Mat view_matrix,
+                  const Mat model_matrix);
+
+void draw_pivot( float scale,
+                 const Mat projection_matrix,
+                 const Mat view_matrix,
+                 const Mat model_matrix);
+
+void draw_physics( const Vec position,
+                   float mass,
+                   const Mat inertia,
+                   const Vec linear_velocity,
+                   const Vec angular_velocity,
+                   float scale,
+                   const Mat projection_matrix,
+                   const Mat view_matrix);
+
+void draw_contact( const Vec contact_point,
+                   const Vec contact_normal,
+                   float contact_penetration,
+                   const Mat projection_matrix,
+                   const Mat view_matrix,
+                   const Mat model_matrix);
+
+void draw_normals_array( const float* vertices,
+                         const float* normals,
                          int n,
                          float scale,
-                         Color color,
-                         Mat projection_matrix,
-                         Mat view_matrix,
-                         Mat model_matrix);
+                         const Color color,
+                         const Mat projection_matrix,
+                         const Mat view_matrix,
+                         const Mat model_matrix);
 
 void draw_normals_buffer( GLuint vertices,
                           GLuint normals,
                           int n,
                           float scale,
-                          Color color,
-                          Mat projection_matrix,
-                          Mat view_matrix,
-                          Mat model_matrix);
+                          const Color color,
+                          const Mat projection_matrix,
+                          const Mat view_matrix,
+                          const Mat model_matrix);
 
 void draw_texture_quad( GLuint texture_id,
-                        Mat projection_matrix,
-                        Mat view_matrix,
-                        Mat model_matrix);
+                        const Mat projection_matrix,
+                        const Mat view_matrix,
+                        const Mat model_matrix);
 
 #endif
