@@ -31,8 +31,8 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
     bool free_model_matrix = 0;
 
     GLint mvp_loc = -1;
-    if( shader->location[SHADER_MVP_MATRIX].id > -1) {
-        mvp_loc = shader->location[SHADER_MVP_MATRIX].id;
+    if( shader->uniform[SHADER_MVP_MATRIX].location > -1) {
+        mvp_loc = shader->uniform[SHADER_MVP_MATRIX].location;
     } else {
         ogl_debug( mvp_loc = glGetUniformLocation(shader->program, "mvp_matrix") );
     }
@@ -44,8 +44,8 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
         ogl_debug( glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, mvp_matrix) );
     } else {
         GLint projection_loc = -1;
-        if( shader->location[SHADER_PROJECTION_MATRIX].id > -1 ) {
-            projection_loc = shader->location[SHADER_PROJECTION_MATRIX].id;
+        if( shader->uniform[SHADER_PROJECTION_MATRIX].location > -1 ) {
+            projection_loc = shader->uniform[SHADER_PROJECTION_MATRIX].location;
         } else {
             ogl_debug( projection_loc = glGetUniformLocation(shader->program, "projection_matrix") );
         }
@@ -55,8 +55,8 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
         }
 
         GLint view_loc = -1;
-        if( shader->location[SHADER_VIEW_MATRIX].id > -1 ) {
-            view_loc = shader->location[SHADER_VIEW_MATRIX].id;
+        if( shader->uniform[SHADER_VIEW_MATRIX].location > -1 ) {
+            view_loc = shader->uniform[SHADER_VIEW_MATRIX].location;
         } else {
             ogl_debug( view_loc = glGetUniformLocation(shader->program, "view_matrix") );
         }
@@ -66,8 +66,8 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
         }
 
         GLint model_loc = -1;
-        if( shader->location[SHADER_MODEL_MATRIX].id > -1 ) {
-            model_loc = shader->location[SHADER_MODEL_MATRIX].id;
+        if( shader->uniform[SHADER_MODEL_MATRIX].location > -1 ) {
+            model_loc = shader->uniform[SHADER_MODEL_MATRIX].location;
         } else {
             ogl_debug( model_loc = glGetUniformLocation(shader->program, "model_matrix") );
         }
@@ -84,8 +84,8 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
     }
 
     GLint normal_loc = -1;
-    if( shader->location[SHADER_NORMAL_MATRIX].id > -1 ) {
-        normal_loc = shader->location[SHADER_NORMAL_MATRIX].id;
+    if( shader->uniform[SHADER_NORMAL_MATRIX].location > -1 ) {
+        normal_loc = shader->uniform[SHADER_NORMAL_MATRIX].location;
     } else {
         ogl_debug( normal_loc = glGetUniformLocation(shader->program, "normal_matrix") );
     }
@@ -103,7 +103,11 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
 
     GLint loc[NUM_BUFFERS];
     for( int array_id = 0; array_id < NUM_BUFFERS; array_id++ ) {
-        ogl_debug( loc[array_id] = glGetAttribLocation(shader->program, shader->attribute[array_id].name) );
+        if( shader->attribute[array_id].location > -1 ) {
+            loc[array_id] = shader->attribute[array_id].location;
+        } else {
+            ogl_debug( loc[array_id] = glGetAttribLocation(shader->program, shader->attribute[array_id].name) );
+        }
 
         if( mesh->vbo->buffer[array_id].id && loc[array_id] > -1 ) {
             GLint c_num = mesh->vbo->components[array_id].size;
@@ -132,12 +136,14 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
 
 void render_shader_flat(struct Shader* shader) {
     shader_create("shader/flat.vert", "shader/flat.frag", shader);
+
+    // these guys could go into shader_create
     shader_attribute(shader, VERTEX_ARRAY, "vertex");
     shader_attribute(shader, COLOR_ARRAY, "color");
     shader_attribute(shader, NORMAL_ARRAY, "normal");
 
-    shader_location(shader, SHADER_MVP_MATRIX, "mvp_matrix");
-    shader_location(shader, SHADER_NORMAL_MATRIX, "normal_matrix");
-    shader_location(shader, SHADER_LIGHT_DIRECTION, "light_direction");
-    shader_location(shader, SHADER_AMBIENT_COLOR, "ambiance");
+    shader_uniform(shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
+    shader_uniform(shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL);
+    shader_uniform(shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL);
+    shader_uniform(shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
 }

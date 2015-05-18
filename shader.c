@@ -46,32 +46,40 @@ void shader_create(const char* vertex_file, const char* fragment_file, struct Sh
 
     for( int i = 0; i < SHADER_ATTRIBUTES; i++ ) {
         strncpy(p->attribute[i].name, "\0", 1);
+        p->attribute[i].location = -1;
     }
 
-    for( int i = 0; i < SHADER_LOCATIONS; i++ ) {
-        strncpy(p->location[i].name, "\0", 1);
-        p->location[i].id = -1;
+    for( int i = 0; i < SHADER_UNIFORMS; i++ ) {
+        strncpy(p->uniform[i].name, "\0", 1);
+        p->uniform[i].location = -1;
     }
 }
 
-void shader_attribute(struct Shader* shader, int array_index, const char* name) {
+GLint shader_attribute(struct Shader* shader, int array_index, const char* name) {
     if( strlen(name) < 256 ) {
-        strncpy(shader->attribute[array_index].name, name, strlen(name)+1);
-    }
-}
+        GLint id = -1;
 
-GLint shader_location(struct Shader* shader, int location_index, const char* name) {
-    if( shader->location[location_index].id > -1 ) {
-        return shader->location[location_index].id;
-    } else {
-        glUseProgram(shader->program);
-        GLint id = glGetUniformLocation(shader->program, name);
-
-        if( id > -1 ) {
-            shader->location[location_index].id = id;
-            strncpy(shader->location[location_index].name, name, strlen(name)+1);
-            return shader->location[location_index].id;
+        if( (! name) && strlen(shader->attribute[array_index].name) ) {
+            name = shader->attribute[array_index].name;
         }
+
+        if( ! name ) {
+            return -1;
+        }
+
+        if( shader->attribute[array_index].location > -1 ) {
+            id = shader->attribute[array_index].location;
+        } else {
+            ogl_debug( glUseProgram(shader->program);
+                       id = glGetAttribLocation(shader->program, name) );
+
+            if( id > -1 ) {
+                shader->attribute[array_index].location = id;
+                strncpy(shader->attribute[array_index].name, name, strlen(name)+1);
+            }
+        }
+
+        return id;
     }
 
     return -1;
@@ -79,14 +87,38 @@ GLint shader_location(struct Shader* shader, int location_index, const char* nam
 
 GLint shader_uniform(struct Shader* shader, int location_index, const char* name, const char* type, void* data) {
     if( strlen(name) < 256 ) {
-        GLint id = shader_location(shader, location_index, name);
-        if( id >= 0 ) {
+
+        GLint id = -1;
+
+        if( (! name) && strlen(shader->uniform[location_index].name) ) {
+            name = shader->uniform[location_index].name;
+        }
+
+        if( ! name ) {
+            return -1;
+        }
+
+        if( shader->uniform[location_index].location > -1 ) {
+           id = shader->uniform[location_index].location;
+        } else {
+
+            ogl_debug( glUseProgram(shader->program);
+                      id = glGetUniformLocation(shader->program, name); );
+
+            if( id > -1 ) {
+                shader->uniform[location_index].location = id;
+                strncpy(shader->uniform[location_index].name, name, strlen(name)+1);
+            }
+        }
+
+        if( id > -1 && type && data ) {
             glUseProgram(shader->program);
             if( strcmp(type, "1f") == 0 ) { glUniform1f(id, ((float*)data)[0]); }
             if( strcmp(type, "2f") == 0 ) { glUniform2f(id, ((float*)data)[0], ((float*)data)[1]); }
             if( strcmp(type, "3f") == 0 ) { glUniform3f(id, ((float*)data)[0], ((float*)data)[1], ((float*)data)[2]); }
             if( strcmp(type, "4f") == 0 ) { glUniform4f(id, ((float*)data)[0], ((float*)data)[1], ((float*)data)[2], ((float*)data)[3]); }
         }
+
         return id;
     }
     return -1;
