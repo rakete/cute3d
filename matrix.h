@@ -49,6 +49,12 @@ VecP vmul(const Vec v, Mat w);
 void vec_mul1f(const Vec v, float w, Vec r);
 VecP vmul1f(Vec v, float w);
 
+void vec_mul4f1f(const Vec v, float w, Vec r);
+VecP vmul4f1f(Vec v, float w);
+
+void vec_mul3f1f(const Vec3f v, float w, Vec r);
+VecP vmul3f1f(Vec v, float w);
+
 void vec_invert(const Vec v, Vec r);
 VecP vinvert(Vec v);
 
@@ -79,6 +85,7 @@ void vec_print(const char* title, const Vec v);
 
 // matrix creation
 void mat_copy(const Mat m, Mat r);
+void mat_copy3f(const Mat3f m, Mat3f r);
 
 void mat_basis(const Vec x, Mat r);
 
@@ -94,9 +101,15 @@ void mat_scaling(const Vec v, Mat r);
 void mat_translating(const Vec v, Mat r);
 //MatP mtranslating(Mat v);
 
+void mat_rotating(Vec axis, float angle, Mat r);
+//MatP mrotating(Mat axis, float angle);
+
 // matrix op
 void mat_invert(const Mat m, double* det, Mat r);
 MatP minvert(Mat m, double* det);
+
+void mat_invert3f(const Mat3f m, double* det, Mat3f r);
+MatP minvert3f(Mat3f m, double* det);
 
 void mat_mul(const Mat m, const Mat n, Mat r);
 MatP mmul(const Mat m, Mat n);

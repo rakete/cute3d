@@ -69,12 +69,7 @@ void vec_sub(const Vec v, const Vec w, Vec r) {
     r[0] = v[0] - w[0];
     r[1] = v[1] - w[1];
     r[2] = v[2] - w[2];
-    float w3 = v[3] - w[3];
-    if( w3 < 0.0f ) {
-        r[3] = 0.0f;
-    } else {
-        r[3] = w3;
-    }
+    r[3] = 1.0;
 }
 
 VecP vsub(const Vec v, Vec w) {
@@ -86,12 +81,7 @@ void vec_sub1f(const Vec v, const float w, Vec r) {
     r[0] = v[0] - w;
     r[1] = v[1] - w;
     r[2] = v[2] - w;
-    float w3 = v[3] - w;
-    if( w3 < 0.0f ) {
-        r[3] = 0.0f;
-    } else {
-        r[3] = w3;
-    }
+    r[3] = 1.0;
 }
 
 VecP vsub1f(Vec v, float w) {
@@ -119,11 +109,34 @@ void vec_mul1f(const Vec v, float w, Vec r) {
     r[0] = v[0]*w;
     r[1] = v[1]*w;
     r[2] = v[2]*w;
-    r[3] = v[3]*w;
+    r[3] = 1.0;
 }
 
 VecP vmul1f(Vec v, float w) {
     vec_mul1f(v,w,v);
+    return v;
+}
+
+void vec_mul4f1f(const Vec v, float w, Vec r) {
+    r[0] = v[0]*w;
+    r[1] = v[1]*w;
+    r[2] = v[2]*w;
+    r[3] = v[3]*w;
+}
+
+VecP vmul4f1f(Vec v, float w) {
+    vec_mul4f1f(v,w,v);
+    return v;
+}
+
+void vec_mul3f1f(const Vec3f v, float w, Vec3f r) {
+    r[0] = v[0]*w;
+    r[1] = v[1]*w;
+    r[2] = v[2]*w;
+}
+
+VecP vmul3f1f(Vec3f v, float w) {
+    vec_mul3f1f(v,w,v);
     return v;
 }
 
@@ -163,7 +176,7 @@ VecP vcross(const Vec v, Vec w) {
     return w;
 }
 
-void vec_length(const Vec v, VecP r) {
+void vec_length(const Vec v, float* r) {
     *r = sqrtf( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
 }
 
@@ -186,7 +199,7 @@ VecP vnormalize(Vec v) {
     return v;
 }
 
-void vec_angle(const Vec v, const Vec w, VecP r) {
+void vec_angle(const Vec v, const Vec w, float* r) {
     *r = acosf(vdot(v,w) / (vlength(v) * vlength(w)));
 }
 
@@ -262,6 +275,12 @@ void mat_copy(const Mat m, Mat r) {
     r[3] = m[3];  r[7] = m[7];  r[11] = m[11]; r[15] = m[15];
 }
 
+void mat_copy3f(const Mat3f m, Mat r) {
+    r[0] = m[0];  r[3] = m[3];  r[6] = m[6];
+    r[1] = m[1];  r[4] = m[4];  r[7] = m[7];
+    r[2] = m[2];  r[5] = m[5];  r[8] = m[8];
+}
+
 void mat_basis(const Vec x, Mat r) {
     Vec y,z;
     vec_basis(x, y, z);
@@ -314,6 +333,11 @@ void mat_translating(const Vec v, Mat r) {
     r[3] = 0.0f; r[7] = 0.0f;  r[11] = 0.0f; r[15] = 1.0f;
 }
 
+void mat_rotating(Vec axis, float angle, Mat r) {
+    Quat rotation;
+    quat_rotating(axis, angle, rotation);
+    quat_mat(rotation, r);
+}
 
 void mat_invert(const Mat m, double* det, Mat r) {
     double inv[16];
@@ -350,6 +374,14 @@ void mat_invert(const Mat m, double* det, Mat r) {
         m[8]  * m[6] * m[13] -
         m[12] * m[5] * m[10] +
         m[12] * m[6] * m[9];
+
+    double d;
+    d = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+    if(det) *det = 0;
+    if(d == 0) {
+        mat_copy(m, r);
+    }
 
     inv[1] =
         -m[1] * m[10] * m[15] +
@@ -446,12 +478,6 @@ void mat_invert(const Mat m, double* det, Mat r) {
         m[8] * m[1] * m[6] -
         m[8] * m[2] * m[5];
 
-    double d;
-    d = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
-
-    if(det) *det = 0;
-    if(d == 0) return;
-
     d = 1.0 / d;
 
     for (i = 0; i < 16; i++)
@@ -465,14 +491,77 @@ MatP minvert(Mat m, double* det) {
     return m;
 }
 
-void mat_mul(const Mat m, const Mat n, Mat r) {
-    Mat t;
-    for(int i = 0; i < 4; i++){
-        t[i*4]   = m[i*4] * n[0] + m[i*4+1] * n[4] + m[i*4+2] * n[8]  + m[i*4+3] * n[12];
-        t[i*4+1] = m[i*4] * n[1] + m[i*4+1] * n[5] + m[i*4+2] * n[9]  + m[i*4+3] * n[13];
-        t[i*4+2] = m[i*4] * n[2] + m[i*4+1] * n[6] + m[i*4+2] * n[10] + m[i*4+3] * n[14];
-        t[i*4+3] = m[i*4] * n[3] + m[i*4+1] * n[7] + m[i*4+2] * n[11] + m[i*4+3] * n[15];
+void mat_invert3f(const Mat3f m, double* det, Mat3f r) {
+    // 00:0 10:3 20:6
+    // 01:1 11:4 21:7
+    // 02:2 12:5 22:8
+
+    // computes the inverse of a matrix m
+    double d =
+        m[0] * (m[4] * m[8] - m[7] * m[5]) -
+        m[1] * (m[3] * m[8] - m[5] * m[6]) +
+        m[2] * (m[3] * m[7] - m[4] * m[6]);
+
+    if(det) *det = 0;
+    if(d == 0) {
+        mat_copy3f(m, r);
     }
+
+    double invdet = 1.0 / d;
+
+    r[0] = (m[4] * m[8] - m[7] * m[5]) * invdet;
+    r[1] = (m[2] * m[7] - m[1] * m[8]) * invdet;
+    r[2] = (m[1] * m[5] - m[2] * m[4]) * invdet;
+    r[3] = (m[5] * m[6] - m[3] * m[8]) * invdet;
+    r[4] = (m[0] * m[8] - m[2] * m[6]) * invdet;
+    r[5] = (m[3] * m[2] - m[0] * m[5]) * invdet;
+    r[6] = (m[3] * m[7] - m[6] * m[4]) * invdet;
+    r[7] = (m[6] * m[1] - m[0] * m[7]) * invdet;
+    r[8] = (m[0] * m[4] - m[3] * m[1]) * invdet;
+
+    if(det) *det = d;
+}
+
+MatP minvert3f(Mat3f m, double* det) {
+    mat_invert3f(m,det,m);
+    return m;
+}
+
+/* void mat_mul(const Mat m, const Mat n, Mat r) { */
+/*     Mat t; */
+/*     for(int i = 0; i < 4; i++){ */
+/*         t[i*4]   = m[i*4] * n[0] + m[i*4+1] * n[4] + m[i*4+2] * n[8]  + m[i*4+3] * n[12]; */
+/*         t[i*4+1] = m[i*4] * n[1] + m[i*4+1] * n[5] + m[i*4+2] * n[9]  + m[i*4+3] * n[13]; */
+/*         t[i*4+2] = m[i*4] * n[2] + m[i*4+1] * n[6] + m[i*4+2] * n[10] + m[i*4+3] * n[14]; */
+/*         t[i*4+3] = m[i*4] * n[3] + m[i*4+1] * n[7] + m[i*4+2] * n[11] + m[i*4+3] * n[15]; */
+/*     } */
+
+/*     for(int i = 0; i < 16; i++ ) { */
+/*         r[i] = t[i]; */
+/*     } */
+/* } */
+
+void mat_mul(const Mat n, const Mat m, Mat r) {
+    Mat t;
+    t[0] = m[0] * n[0] + m[4] * n[1] + m[8] * n[2] + m[12] * n[3];
+    t[4] = m[0] * n[4] + m[4] * n[5] + m[8] * n[6] + m[12] * n[7];
+    t[8] = m[0] * n[8] + m[4] * n[9] + m[8] * n[10] + m[12] * n[11];
+    t[12] = m[0] * n[12] + m[4] * n[13] + m[8] * n[14] + m[12] * n[15];
+
+    t[1] = m[1] * n[0] + m[5] * n[1] + m[9] * n[2] + m[13] * n[3];
+    t[5] = m[1] * n[4] + m[5] * n[5] + m[9] * n[6] + m[13] * n[7];
+    t[9] = m[1] * n[8] + m[5] * n[9] + m[9] * n[10] + m[13] * n[11];
+    t[13] = m[1] * n[12] + m[5] * n[13] + m[9] * n[14] + m[13] * n[15];
+
+    t[2] = m[2] * n[0] + m[6] * n[1] + m[10] * n[2] + m[14] * n[3];
+    t[6] = m[2] * n[4] + m[6] * n[5] + m[10] * n[6] + m[14] * n[7];
+    t[10] = m[2] * n[8] + m[6] * n[9] + m[10] * n[10] + m[14] * n[11];
+    t[14] = m[2] * n[12] + m[6] * n[13] + m[10] * n[14] + m[14] * n[15];
+
+    t[3] = m[3] * n[0] + m[7] * n[1] + m[11] * n[2] + m[15] * n[3];
+    t[7] = m[3] * n[4] + m[7] * n[5] + m[11] * n[6] + m[15] * n[7];
+    t[11] = m[3] * n[8] + m[7] * n[9] + m[11] * n[10] + m[15] * n[11];
+    t[15] = m[3] * n[12] + m[7] * n[13] + m[11] * n[14] + m[15] * n[15];
 
     for(int i = 0; i < 16; i++ ) {
         r[i] = t[i];
@@ -480,16 +569,21 @@ void mat_mul(const Mat m, const Mat n, Mat r) {
 }
 
 MatP mmul(const Mat m, Mat n) {
-    mat_mul(m,n,n);
+    mat_mul(n,m,n);
     return n;
 }
 
 void mat_mul_vec(const Mat m, const Vec v, Vec r) {
     Vec t;
-    t[0] = m[0]*v[0] + m[1]*v[1] + m[2]*v[2] + m[3]*v[3];
-    t[1] = m[4]*v[0] + m[5]*v[1] + m[6]*v[2] + m[7]*v[3];
-    t[2] = m[8]*v[0] + m[9]*v[1] + m[10]*v[2] + m[11]*v[3];
-    t[3] = m[12]*v[0] + m[13]*v[1] + m[14]*v[2] + m[15]*v[3];
+    /* t[0] = m[0]*v[0] + m[1]*v[1] + m[2]*v[2] + m[3]*v[3]; */
+    /* t[1] = m[4]*v[0] + m[5]*v[1] + m[6]*v[2] + m[7]*v[3]; */
+    /* t[2] = m[8]*v[0] + m[9]*v[1] + m[10]*v[2] + m[11]*v[3]; */
+    /* t[3] = m[12]*v[0] + m[13]*v[1] + m[14]*v[2] + m[15]*v[3]; */
+
+    t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]*v[3];
+    t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]*v[3];
+    t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]*v[3];
+    t[3] = m[3]*v[0] + m[7]*v[1] + m[11]*v[2] + m[15]*v[3];
 
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; r[3] = t[3];
 }
