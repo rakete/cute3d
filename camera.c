@@ -58,9 +58,5 @@ void camera_matrices(const struct Camera* camera, Mat projection_mat, Mat view_m
         Quat inv_quat;
         quat_invert(camera->pivot.orientation, inv_quat);
         mat_rotate(view_mat, inv_quat, view_mat);
-
-        /* mat_rotate(view_mat, camera->pivot.orientation, view_mat); */
-        /* mat_translate(view_mat, camera->pivot.position, view_mat); */
-        /* mat_invert(view_mat, NULL, view_mat); */
     }
 }
