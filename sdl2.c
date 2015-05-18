@@ -6,7 +6,7 @@ int init_sdl2() {
         return 0;
     }
 
-    if( sdl2_time() > 0.0 ) {
+    if( sdl2_time_delta() > 0.0 ) {
         return 0;
     }
 
@@ -50,7 +50,7 @@ void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context) {
     init_shader();
 }
 
-void sdl2_orbit_create(SDL_Window* window, Vec eye, Vec target, struct Camera* camera) {
+void sdl2_orbit_create(SDL_Window* window, Vec eye, Vec target, float near, float far, struct Camera* camera) {
     int width,height;
     sdl2_debug( SDL_GL_GetDrawableSize(window, &width, &height) );
 
@@ -59,18 +59,10 @@ void sdl2_orbit_create(SDL_Window* window, Vec eye, Vec target, struct Camera* c
     //camera_frustum(-0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f, camera);
     float top = (1.0/width) * height/2.0;
     float bottom = -top;
-    camera_frustum(-0.5f, 0.5f, bottom, top, 1.0f, 200.0f, camera);
+    camera_frustum(-0.5f, 0.5f, bottom, top, near, far, camera);
 
     vec_add3f(camera->pivot.position, eye, camera->pivot.position);
     pivot_lookat(&camera->pivot, target);
-}
-
-double sdl2_time() {
-    static double time = 0.0;
-
-    time += sdl2_time_delta();
-
-    return time;
 }
 
 double sdl2_time_delta() {
