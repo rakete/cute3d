@@ -240,7 +240,7 @@ void solid_cube(float size, struct Cube* cube) {
     cube->solid.normals = cube->normals;
 
     Quat q;
-    quat_rotation((Vec){0.0,0.0,1.0,1.0}, PI/4, q);
+    quat_rotating((Vec){0.0,0.0,1.0,1.0}, PI/4, q);
     for( int i = 0; i < 108; i+=3 ) {
         quat_apply_vec3f(q, cube->vertices+i, cube->vertices+i);
     }

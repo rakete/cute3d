@@ -41,9 +41,6 @@ int main(int argc, char** argv) {
     float vertices1[9] = { -0.7, 0.0, 0.5,
                            -0.1, 0.0, -0.5,
                            -1.3, 0.0, -0.5 };
-    float vertices2[9] = { 0.7, 0.5, 0.0,
-                          0.1, -0.5, 0.0,
-                          1.3, -0.5, 0.0 };
     float colors[12] = { 1.0, 0, 0, 1.0,
                          1.0, 0, 0, 1.0,
                          1.0, 0, 0, 1.0 };
@@ -72,10 +69,10 @@ int main(int argc, char** argv) {
     shader_attribute(&default_shader, COLOR_ARRAY, "color");
     shader_attribute(&default_shader, NORMAL_ARRAY, "normal");
 
-    shader_location(&default_shader, SHADER_MVP_MATRIX, "mvp_matrix");
-    shader_location(&default_shader, SHADER_NORMAL_MATRIX, "normal_matrix");
-    shader_location(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction");
-    shader_location(&default_shader, SHADER_AMBIENT_COLOR, "ambiance");
+    shader_uniform(&default_shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
+    shader_uniform(&default_shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL);
+    shader_uniform(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL);
+    shader_uniform(&default_shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
 
     struct Camera default_camera;
     camera_create(perspective, 1600, 900, &default_camera);
@@ -84,7 +81,7 @@ int main(int argc, char** argv) {
     /* camera_frustum(-0.5f, 0.5f, -0.28125f, 0.28125f, 1.0f, 200.0f, &default_camera); */
     /* Vec translation = { 0.0, 4.0, -8.0 }; */
     /* vec_add3f(default_camera.pivot.position, translation, default_camera.pivot.position); */
-    sdl2_orbit_create(window, (Vec){0.0, 4.0, 8.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, &default_camera);
+    sdl2_orbit_create(window, (Vec){0.0, 4.0, 8.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, 1.0f, 200.0f, &default_camera);
 
     /* Vec origin = { 0.0, 0.0, 0.0, 1.0 }; */
     /* pivot_lookat(&default_camera.pivot, origin); */
@@ -152,7 +149,7 @@ int main(int argc, char** argv) {
         qidentity(cube_rotation);
         qrotate((float[]){ 0.0, 0.0, 1.0, 1.0 }, 45 * PI/180, cube_rotation);
         qrotate((float[]){ 0.0, 1.0, 0.0, 1.0 }, 1 * PI/180, cube_spinning);
-        quat_product(cube_rotation, cube_spinning, cube_rotation);
+        quat_mul(cube_rotation, cube_spinning, cube_rotation);
 
         printf("%f %f %f %f\n", cube_spinning[0], cube_spinning[1], cube_spinning[2], cube_spinning[3]);
 
@@ -164,7 +161,7 @@ int main(int argc, char** argv) {
         draw_normals_array(cube.vertices,
                            cube.normals,
                            cube.solid.size,
-                           1.0,
+                           0.5,
                            (Color){ 1.0,0.0,1.0,1.0 },
                            projection_mat,
                            view_mat,

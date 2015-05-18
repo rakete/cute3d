@@ -60,7 +60,7 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
 
     // quat das forward vektor auf den target punkt dreht
     Quat rotation;
-    quat_rotation(rotation_axis, rotation_angle, rotation);
+    quat_rotating(rotation_axis, rotation_angle, rotation);
 
     if( ! isnan(rotation[0]) &&
         ! isnan(rotation[1]) &&
@@ -68,7 +68,7 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
         ! isnan(rotation[3]) )
     {
         // neue orientation
-        quat_product(pivot->orientation, rotation, pivot->orientation);
+        quat_mul(pivot->orientation, rotation, pivot->orientation);
     }
 }
 
@@ -82,8 +82,8 @@ void pivot_world_transform(const struct Pivot pivot, Mat world_transform) {
     mat_mul(rotation, translation, world_transform);
 }
 
-void pivot_body_transform(const struct Pivot pivot, Mat body_transform) {
+void pivot_local_transform(const struct Pivot pivot, Mat local_transform) {
     Mat world_transform;
     pivot_world_transform(pivot, world_transform);
-    mat_invert(world_transform, NULL, body_transform);
+    mat_invert(world_transform, NULL, local_transform);
 }
