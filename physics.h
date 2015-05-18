@@ -20,25 +20,29 @@
 #include "math_types.h"
 #include "matrix.h"
 #include "transform.h"
-#include "collisions.h"
+#include "text.h"
 
 struct Physics {
     struct Pivot pivot;
 
     // primary state
-    Vec momentum;                ///< the momentum of the cube in kilogram meters per second.
-    Vec angular_momentum;         ///< angular momentum vector.
+    Vec linear_momentum;            ///< the momentum of the cube in kilogram meters per second.
+    Vec angular_momentum;           ///< angular momentum vector.
 
     // secondary state
-    Vec velocity;                   ///< velocity in meters per second (calculated from momentum).
+    Vec linear_velocity;            ///< velocity in meters per second (calculated from momentum).
+    Vec angular_velocity;           ///< angular velocity (calculated from angularMomentum).
     Quat spin;                      ///< quaternion rate of change in orientation.
-    Vec angular_velocity;            ///< angular velocity (calculated from angularMomentum).
+
+    Mat world_transform;
+    Mat local_transform;
+    Mat world_inverse_inertia;
 
     /// constant state
     float mass;                     ///< mass of the cube in kilograms.
-    float inverse_mass;              ///< inverse of the mass used to convert momentum to velocity.
-    float inertia;            ///< inertia tensor of the cube (i have simplified it to a single value due to the mass properties a cube).
-    float inverse_inertia;     ///< inverse inertia tensor used to convert angular momentum to angular velocity.
+    float inverse_mass;             ///< inverse of the mass used to convert momentum to velocity.
+    Mat inertia;
+    Mat inverse_inertia;
 };
 
 struct PhysicsDerivative {
@@ -48,49 +52,30 @@ struct PhysicsDerivative {
     Vec torque;                  ///< torque is the derivative of angular momentum.
 };
 
-struct PhysicsForce {
-    Vec linear;
-    Vec angular;
-};
+typedef void (*physics_forces_func)(struct Physics state, float t, float dt, Vec force, Vec torque);
 
-struct PhysicsImpulse {
-    Vec linear;
-    Vec angular;
-};
-
-/* struct PhysicsWorld { */
-/*     struct Collider* colliders; */
-/* }; */
-
-void physics_create(float mass, float inertia, struct Physics* physics);
+void physics_create(float mass, Mat inertia, struct Physics* physics);
 
 struct Physics physics_interpolate(struct Physics a, struct Physics b, double alpha);
 
+struct Physics physics_simulate(struct Physics state);
 struct Physics physics_recalculate(struct Physics state);
 
 /// Evaluate all derivative values for the physics state at time t.
 /// @param state the physics state of the cube.
-struct PhysicsDerivative physics_eval_time(struct Physics state, float t);
+struct PhysicsDerivative physics_eval_time(struct Physics state, float t, physics_forces_func forces_func);
 
 /// Evaluate derivative values for the physics state at future time t+dt
 /// using the specified set of derivatives to advance dt seconds from the
 /// specified physics state.
-struct PhysicsDerivative physics_eval_future(struct Physics state, struct PhysicsDerivative derivative, float t, float dt);
+struct PhysicsDerivative physics_eval_future(struct Physics state, struct PhysicsDerivative derivative, float t, float dt, physics_forces_func forces_func);
 
 /// Integrate physics state forward by dt seconds.
 /// Uses an RK4 integrator to numerically integrate with error O(5).
-struct Physics physics_integrate(struct Physics state, float t, float dt);
+struct Physics physics_integrate(struct Physics state, float t, float dt, physics_forces_func forces_func);
 
-/// Calculate force and torque for physics state at time t.
-/// Due to the way that the RK4 integrator works we need to calculate
-/// force implicitly from state rather than explictly applying forces
-/// to the rigid body once per update. This is because the RK4 achieves
-/// its accuracy by detecting curvature in derivative values over the
-/// timestep so we need our force values to supply the curvature.
-void physics_forces(struct Physics state, float t, Vec force, Vec torque);
+void physics_sphere_inertia(float size, float mass, Mat inertia);
 
-void physics_collide(struct Physics state, struct Collider* const collider, size_t num_colliders, struct Collider** const colliders, struct Collision* collisions);
-
-struct Physics physics_resolve(struct Physics state, struct Collision collision);
+void physics_inertia_transform(struct Physics physics, Mat r);
 
 #endif
