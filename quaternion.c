@@ -37,7 +37,7 @@ QuatP qidentity(Quat q) {
     return q;
 }
 
-bool quat_rotation(const Vec axis, const float angle, Quat q) {
+bool quat_rotating(const Vec axis, const float angle, Quat q) {
     if( ( axis[0] == 0.0 && axis[1] == 0.0 && axis[2] == 0.0 ) ||
         angle == 0.0 )
     {
@@ -60,15 +60,15 @@ bool quat_rotation(const Vec axis, const float angle, Quat q) {
     return 1;
 }
 
-QuatP qrotation(const Vec axis, const float angle, Quat q) {
-    quat_rotation(axis, angle, q);
+QuatP qrotating(const Vec axis, const float angle, Quat q) {
+    quat_rotating(axis, angle, q);
     return q;
 }
 
 bool quat_rotate(const Quat q, const Vec axis, const float angle, Quat r) {
     Quat rotation;
-    bool success = quat_rotation(axis, angle, rotation);
-    quat_product(q, rotation, r);
+    bool success = quat_rotating(axis, angle, rotation);
+    quat_mul(q, rotation, r);
     return success;
 }
 
@@ -79,12 +79,12 @@ QuatP qrotate(const Vec axis, const float angle, Quat q) {
 
 void quat_apply_vec(const Quat q, const Vec vec, Vec r) {
     Quat product;
-    quat_product(q, vec, product);
+    quat_mul(q, vec, product);
 
     Quat conj;
     quat_conjugate(q, conj);
 
-    quat_product(product, conj, r);
+    quat_mul(product, conj, r);
 }
 
 void quat_apply_vec3f(const Quat q, const Vec3f vec, Vec3f r) {
@@ -102,7 +102,7 @@ void quat_apply_vec3f(const Quat q, const Vec3f vec, Vec3f r) {
     r[2] = result4f[2];
 }
 
-void quat_product(const Quat qa, const Quat qb, Quat r) {
+void quat_mul(const Quat qa, const Quat qb, Quat r) {
     float x1,y1,z1,w1,x2,y2,z2,w2;
     x1 = qa[0];  y1 = qa[1];  z1 = qa[2];  w1 = qa[3];
     x2 = qb[0];  y2 = qb[1];  z2 = qb[2];  w2 = qb[3];
@@ -118,12 +118,36 @@ void quat_product(const Quat qa, const Quat qb, Quat r) {
     r[3] = qw;
 }
 
-QuatP qproduct(const Quat qa, Quat qb) {
-    quat_product(qa,qb,qb);
+QuatP qmul(const Quat qa, Quat qb) {
+    quat_mul(qa,qb,qb);
     return qb;
 }
 
-void quat_dot(const Quat qa, const Quat qb, QuatP r) {
+void quat_mul1f(const Quat qa, float b, Quat r) {
+    r[0] = qa[0] * b;
+    r[1] = qa[1] * b;
+    r[2] = qa[2] * b;
+    r[3] = qa[3] * b;
+}
+
+QuatP qmul1f(Quat qa, float b) {
+    quat_mul1f(qa,b,qa);
+    return qa;
+}
+
+void quat_add(const Quat qa, const Quat qb, Quat r) {
+    r[0] = qa[0] + qb[0];
+    r[1] = qa[1] + qb[1];
+    r[2] = qa[2] + qb[2];
+    r[3] = qa[3] + qb[3];
+}
+
+QuatP qadd(const Quat qa, Quat qb) {
+    quat_add(qa,qb,qb);
+    return qb;
+}
+
+void quat_dot(const Quat qa, const Quat qb, float* r) {
     float x1,y1,z1,w1,x2,y2,z2,w2;
     x1 = qa[0];  y1 = qa[1];  z1 = qa[2];  w1 = qa[3];
     x2 = qb[0];  y2 = qb[1];  z2 = qb[2];  w2 = qb[3];
@@ -159,23 +183,30 @@ void quat_invert(const Quat q, Quat r) {
     r[3] = conj[3] / pow(qmagnitude(q), 2.0);
 }
 
-void quat_magnitude(const Quat q, QuatP r) {
-  *r = sqrt( qdot(q, q) );
-}
-
 void quat_normalize(const Quat q, Quat r) {
     float norm;
     quat_magnitude(q, &norm);
-
-    r[0] = q[0] / norm;
-    r[1] = q[1] / norm;
-    r[2] = q[2] / norm;
-    r[3] = q[3] / norm;
+    if( norm == 0.0f ) {
+        r[0] = 0;
+        r[1] = 0;
+        r[2] = 0;
+        r[3] = 1;
+    } else {
+        float inv = 1.0f / norm;
+        r[0] = q[0] * inv;
+        r[1] = q[1] * inv;
+        r[2] = q[2] * inv;
+        r[3] = q[3] * inv;
+    }
 }
 
 QuatP qnormalize(Quat q) {
-    quat_magnitude(q, q);
+    quat_normalize(q, q);
     return q;
+}
+
+void quat_magnitude(const Quat q, float* r) {
+    *r = sqrt( qdot(q, q) );
 }
 
 float qmagnitude(const Quat q) {
@@ -229,9 +260,9 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
     const float epsilon = 0.00001f;
     Quat ua,ub;
     if( (1 - cosine) < epsilon ) {
-        vec_mul1f(qa, 1-t, ua);
-        vec_mul1f(qb, t*flip, ub);
-        vec_add(ua, ub, r);
+        quat_mul1f(qa, t*flip, ua);
+        quat_mul1f(qb, 1-t, ub);
+        quat_add(ua, ub, r);
         return;
     }
 
@@ -240,9 +271,9 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
     float beta = (float)sin((1-t)*theta) / sine;
     float alpha = (float)sin(t*theta) / sine * flip;
 
-    vec_mul1f(qa, beta, ua);
-    vec_mul1f(qb, alpha, ub);
-    vec_add(ua, ub, r);
+    quat_mul1f(qa, alpha, ua);
+    quat_mul1f(qb, beta, ub);
+    quat_add(ua, ub, r);
 }
 
 QuatP qslerp(const Quat qa, Quat qb, float t) {
