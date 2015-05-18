@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     render_shader_flat(&shader);
 
     struct Camera camera;
-    sdl2_orbit_create(window, (Vec){0.0,0.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, &camera);
+    sdl2_orbit_create(window, (Vec){12.0,16.0,-8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, &camera);
 
     struct Character symbols[256];
     ascii_create(symbols);
@@ -66,12 +66,12 @@ int main(int argc, char *argv[]) {
         Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
         shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
-        text_overlay(L"ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789", &font, 15, camera, 25, 25);
+        text_overlay(L"ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789\n.,:;", &font, 25, camera, 25, 25);
         text_overlay(L"Hallo allerseits, dies ist ein Test.\n"
                      L"Ich moechte an dieser Stelle auf die\n"
                      L"blah, blah, blah hinweisen, die es mir\n"
                      L"gestatten auf den lol, lol, lol zu ver\n"
-                     L"zichten.", &font, 15, camera, 25, 120);
+                     L"zichten.", &font, 15, camera, 25, 220);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
