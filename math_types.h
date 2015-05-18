@@ -62,6 +62,14 @@ typedef float Color[4];
             (float)m[3], (float)m[4], (float)m[5],  \
             (float)m[6], (float)m[7], (float)m[8] }
 
-#define ZERO { 0 }
+#define NULL_VEC { 0, 0, 0, 1 }
+#define NULL_VEC3F { 0, 0, 0 }
+#define NULL_MAT { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+
+#define IDENTITY_MAT { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }
+
+#define X_AXIS { 1, 0, 0, 1 }
+#define Y_AXIS { 0, 1, 0, 1 }
+#define Z_AXIS { 0, 0, 1, 1 }
 
 #endif
