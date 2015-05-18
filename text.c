@@ -27,7 +27,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
 
     //int n = strlen(alphabet);
 
-    int n = wcslen(unicode_alphabet);
+    unsigned int n = wcslen(unicode_alphabet);
     char ascii_alphabet[n + 1];
     size_t size = wcstombs(ascii_alphabet, unicode_alphabet, n);
     if( size >= n ) {
@@ -36,7 +36,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
 
     int max_h = 0;
     int widths[n];
-    for( int i = 0; i < n; i++ ) {
+    for( unsigned int i = 0; i < n; i++ ) {
         unsigned char c = ascii_alphabet[i];
         if( symbols[c].h > max_h ) {
             max_h = symbols[c].h;
@@ -59,7 +59,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
     int row_n = 0;
     int rows[n];
     int row_offsets[n];
-    for( int i = 0; i < n; i++ ) {
+    for( unsigned int i = 0; i < n; i++ ) {
         row_offsets[i] = row_width;
 
         int column_height = max_h * (n / (i+1)) + (n % (i+1) > 0) * max_h;
@@ -294,7 +294,7 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
             GLint model_loc = glGetUniformLocation(font->shader.program, "model_matrix");
 
             if( glyph_loc > -1 ) {
-                int length = wcslen(text);
+                unsigned int length = wcslen(text);
                 char ascii[length + 1];
                 size_t textsize = wcstombs(ascii, text, length);
                 if( textsize >= length ) {
@@ -303,7 +303,7 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
 
                 Vec4f cursor_vec = {0.0,0.0,0.0,1.0};
                 bool newline = 0;
-                for( int i = 0; i < length; i++ ) {
+                for( unsigned int i = 0; i < length; i++ ) {
 
                     const struct Glyph* glyph = NULL;
                     if( font->unicode ) {
@@ -361,7 +361,6 @@ void text_overlay(const wchar_t* text, const struct Font* font, int size, struct
 
     Mat text_matrix;
     mat_identity(text_matrix);
-    mat_rotate(text_matrix, camera.pivot.orientation, text_matrix);
 
     Vec translation;
     translation[0] = camera.frustum.left + fabs(camera.frustum.left - camera.frustum.right)/(float)camera.screen.width * (float)x;
@@ -370,9 +369,82 @@ void text_overlay(const wchar_t* text, const struct Font* font, int size, struct
     translation[3] = 1.0;
     mat_translate(text_matrix, translation, text_matrix);
 
+    mat_rotate(text_matrix, camera.pivot.orientation, text_matrix);
+
     float scale = (float)size/(float)camera.screen.height;
 
     glDisable(GL_DEPTH_TEST);
-    text_put(text, font, scale, ortho_projection, ortho_view, text_matrix);
+     text_put(text, font, scale, ortho_projection, ortho_view, text_matrix);
     glEnable(GL_DEPTH_TEST);
+}
+
+static wchar_t show_buffer[SHOW_BUFSIZE];
+
+void show_printf(const wchar_t* format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    swprintf(show_buffer + wcslen(show_buffer), SHOW_BUFSIZE - wcslen(show_buffer), L"\n");
+    vswprintf(show_buffer + wcslen(show_buffer), SHOW_BUFSIZE - wcslen(show_buffer), format, args);
+    va_end(args);
+}
+
+void show_fps_counter(double delta) {
+    static int frames_done = 0;
+    static double old_time = -1;
+    static double game_time = 0;
+    static double fps = 0;
+
+    game_time += delta;
+
+    if( old_time < 0 ) {
+        old_time = game_time;
+    }
+
+    if( (game_time - old_time) >= 1.0 ) {
+        fps = (double)frames_done / (game_time - old_time);
+        frames_done = 0;
+        old_time = game_time;
+    }
+    frames_done++;
+
+    show_printf(L"FPS :%.1f", fps);
+}
+
+void show_time(double time) {
+    int hours = 0;
+    int minutes = 0;
+    int seconds = 0;
+    int milliseconds = 0;
+
+    hours = (int)floor(time) / 60 / 60;
+    minutes = (int)floor(time) / 60 % 60;
+    seconds = (int)floor(time) % 60;
+    milliseconds = (int)floor((time - floor(time)) * 1000);
+
+    show_printf(L"TIME:%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
+}
+
+void show_vec(const char* title, Vec v) {
+    show_printf(L"%s(%f %f %f %f)\n", title, v[0], v[1], v[2], v[3]);
+}
+
+void show_render(const struct Font* font, int size, struct Camera camera) {
+    if( font == NULL ) {
+        static int default_font_created = 0;
+        static struct Font default_font;
+
+        if( ! default_font_created ) {
+            struct Character symbols[256];
+            ascii_create(symbols);
+            font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, &default_font);
+            default_font_created = 1;
+        }
+
+        text_overlay(show_buffer, &default_font, size, camera, size, 0);
+    } else {
+        text_overlay(show_buffer, font, size, camera, size, 0);
+    }
+
+    show_buffer[0] = '\0';
 }

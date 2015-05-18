@@ -19,6 +19,7 @@
 
 #include "stdio.h"
 #include "stdlib.h"
+#include "stdarg.h"
 #include "string.h"
 #include "wchar.h"
 
@@ -71,5 +72,19 @@ void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter);
 
 void text_put(const wchar_t* text, const struct Font* font, float scale, const Mat projection_matrix, const Mat view_matrix, Mat model_matrix);
 void text_overlay(const wchar_t* text, const struct Font* font, int size, struct Camera camera, int x, int y);
+
+#ifndef SHOW_BUFSIZE
+#define SHOW_BUFSIZE 8192
+#endif
+
+void show_printf(const wchar_t* format, ...);
+
+void show_fps_counter(double delta);
+
+void show_time(double time);
+
+void show_vec(const char* title, Vec v);
+
+void show_render(const struct Font* font, int size, struct Camera camera);
 
 #endif
