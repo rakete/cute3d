@@ -33,5 +33,6 @@ void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context);
 void sdl2_orbit_create(SDL_Window* window, Vec eye, Vec target, float near, float far, struct Camera* camera);
 
 double sdl2_time_delta();
+double sdl2_time();
 
 #endif

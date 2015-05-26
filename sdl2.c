@@ -6,7 +6,7 @@ int init_sdl2() {
         return 0;
     }
 
-    if( sdl2_time_delta() > 0.0 ) {
+    if( sdl2_time() > 0.0 || sdl2_time_delta() > 0.0 ) {
         return 0;
     }
 
@@ -79,8 +79,28 @@ double sdl2_time_delta() {
     Uint64 frequency;
     sdl2_debug( frequency = SDL_GetPerformanceFrequency() );
 
-    double delta = (double)(now - then) / (double)frequency;
+    double dt = (double)(now - then) / (double)frequency;
     then = now;
 
-    return delta;
+    return dt;
+}
+
+double sdl2_time() {
+    static Uint64 then = 0;
+
+    Uint64 now;
+    sdl2_debug( now = SDL_GetPerformanceCounter() );
+
+    if( then == 0 ) {
+        then = now;
+        return 0.0;
+    }
+
+    Uint64 frequency;
+    sdl2_debug( frequency = SDL_GetPerformanceFrequency() );
+
+    double t = (double)now / (double)frequency;
+    then = now;
+
+    return t;
 }
