@@ -93,7 +93,6 @@ void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const str
     if( (! free_model_matrix) && normal_loc > -1 ) {
         Mat normal_matrix;
         mat_invert(model_matrix, NULL, normal_matrix);
-        mat_transpose(normal_matrix, normal_matrix);
         ogl_debug( glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix) );
     }
 

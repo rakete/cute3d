@@ -534,8 +534,13 @@ void mat_invert(const Mat m, double* det, Mat r) {
 
     d = 1.0 / d;
 
-    for (i = 0; i < 16; i++)
-        r[i] = inv[i] * d;
+    // the above code assumes a row-major order, but we use column-major
+    // so because I don't want to change the above code, have to transpose
+    // the inversion when assigning the result
+    r[0] = inv[0] * d;  r[4] = inv[1] * d;  r[8]  = inv[2] * d;  r[12] = inv[3] * d;
+    r[1] = inv[4] * d;  r[5] = inv[5] * d;  r[9]  = inv[6] * d;  r[13] = inv[7] * d;
+    r[2] = inv[8] * d;  r[6] = inv[9] * d;  r[10] = inv[10] * d; r[14] = inv[11] * d;
+    r[3] = inv[12] * d; r[7] = inv[13] * d; r[11] = inv[14] * d; r[15] = inv[15] * d;
 
     if(det) *det = d;
 }
