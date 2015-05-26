@@ -12,16 +12,17 @@ void collider_unique_id(unsigned long* id) {
     *id = unique_id;
 }
 
-void collider_plane(struct Pivot* pivot, Vec normal, float offset, struct ColliderPlane* plane) {
+void collider_plane(Vec normal, float offset, struct Pivot* pivot, struct ColliderPlane* plane) {
     plane->collider.type = COLLIDER_PLANE;
     mat_identity(plane->collider.offset);
     plane->collider.pivot = pivot;
 
+    vec_normalize(normal, normal);
     vec_copy(normal, plane->normal);
     plane->offset = offset;
 }
 
-void collider_sphere(struct Pivot* pivot, float radius, struct ColliderSphere* sphere) {
+void collider_sphere(float radius, struct Pivot* pivot, struct ColliderSphere* sphere) {
     sphere->collider.type = COLLIDER_SPHERE;
     mat_identity(sphere->collider.offset);
     sphere->collider.pivot = pivot;
@@ -29,7 +30,7 @@ void collider_sphere(struct Pivot* pivot, float radius, struct ColliderSphere* s
     sphere->radius = radius;
 }
 
-void collider_box(struct Pivot* pivot, float width, float height, float depth, struct ColliderBox* box) {
+void collider_box(float width, float height, float depth, struct Pivot* pivot, struct ColliderBox* box) {
     box->collider.type = COLLIDER_BOX;
     mat_identity(box->collider.offset);
     box->collider.pivot = pivot;
@@ -39,8 +40,8 @@ void collider_box(struct Pivot* pivot, float width, float height, float depth, s
     box->depth = depth;
 }
 
-void collider_cube(struct Pivot* pivot, float size, struct ColliderBox* box) {
-    collider_box(pivot, size, size, size, box);
+void collider_cube(float size, struct Pivot* pivot, struct ColliderBox* box) {
+    collider_box(size, size, size, pivot, box);
 }
 
 unsigned int collide_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2, struct Collision* collision) {
@@ -82,16 +83,18 @@ unsigned int collide_sphere_plane(struct ColliderSphere* const sphere, struct Co
         return 0;
     }
 
-    Vec position;
-    vec_copy(sphere->collider.pivot->position, position);
+    // computing the distance between sphere and plane by projecting the plane normal on a vector between the
+    // sphere and the plane
+    Vec distance_vector;
+    vec_copy(sphere->collider.pivot->position, distance_vector);
 
-    vec_sub1f(position, sphere->radius, position);
-    vec_sub1f(position, plane->offset, position);
+    // we need to account for the offset (and spheres radius), because if we'll just project without doing that,
+    // we'll compute the distance between spheres center and plane through origin
+    float distance = plane->offset + sphere->radius;
+    vec_dot(plane->normal, distance_vector, &distance);
+    distance -= plane->offset + sphere->radius;
 
-    float distance = 0.0;
-    vec_dot(plane->normal, position, &distance);
-
-    if( distance >= 0.0 ) {
+    if( distance >= 0.0f ) {
         return 0;
     }
 
@@ -99,8 +102,8 @@ unsigned int collide_sphere_plane(struct ColliderSphere* const sphere, struct Co
     vec_copy(plane->normal, collision->contact[i].normal);
     collision->contact[i].penetration = -distance;
 
-    vec_mul1f(plane->normal, distance * sphere->radius, collision->contact[i].point);
-    vec_sub(sphere->collider.pivot->position, collision->contact[i].point, collision->contact[i].point);
+    vec_mul1f(plane->normal, -sphere->radius + distance, collision->contact[i].point);
+    //vec_sub(sphere->collider.pivot->position, collision->contact[i].point, collision->contact[i].point);
 
     collision->num_contacts++;
 

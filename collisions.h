@@ -59,12 +59,12 @@ struct ColliderBox {
 
 struct ColliderHierachy;
 
-void collider_plane(struct Pivot* pivot, Vec normal, float offset, struct ColliderPlane* plane);
+void collider_plane(Vec normal, float offset, struct Pivot* pivot, struct ColliderPlane* plane);
 
-void collider_sphere(struct Pivot* pivot, float radius, struct ColliderSphere* sphere);
+void collider_sphere(float radius, struct Pivot* pivot, struct ColliderSphere* sphere);
 
-void collider_box(struct Pivot* pivot, float width, float height, float depth, struct ColliderBox* box);
-void collider_cube(struct Pivot* pivot, float size, struct ColliderBox* box);
+void collider_box(float width, float height, float depth, struct Pivot* pivot, struct ColliderBox* box);
+void collider_cube(float size, struct Pivot* pivot, struct ColliderBox* box);
 
 struct Contact {
     Vec point;
