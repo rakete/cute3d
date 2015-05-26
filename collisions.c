@@ -172,7 +172,7 @@ size_t collisions_narrow(size_t self,
     for( size_t i = 0; i < candidates_size; i++ ) {
         size_t candidate = candidates[i];
 
-        if( collide_generic(world_colliders[self], world_colliders[candidate], &collisions[collisions_size]) > 0 ) {
+        if( candidate != self && collide_generic(world_colliders[self], world_colliders[candidate], &collisions[collisions_size]) > 0 ) {
             bodies[collisions_size] = world_bodies[candidate];
             collisions_size++;
         }
@@ -198,12 +198,14 @@ struct Physics collisions_resolve(struct Physics previous,
         for( size_t j = 0; j < collisions[i].num_contacts; j++ ) {
             Vec* contact_normal = &collisions[i].contact[j].normal;
             Vec* contact_point = &collisions[i].contact[j].point;
+            float penetration = collisions[i].contact[j].penetration;
 
             Mat contact_to_world = IDENTITY_MAT;
             contact_world_transform(collisions[i].contact[j], contact_to_world);
 
             Mat world_to_contact = IDENTITY_MAT;
             mat_transpose(contact_to_world, world_to_contact);
+
 
             /* Vec avoid = NULL_VEC; */
             /* vec_mul1f(collisions[i].contact[j].normal, collisions[i].contact[j].penetration+0.1, avoid); */
@@ -340,15 +342,22 @@ struct Physics collisions_resolve(struct Physics previous,
 
             float d = 0.0;
             vec_dot(current.linear_momentum, *contact_normal, &d);
+            //printf("%f\n", d);
 
-            float restitution = 0.7;
-            float j = fmax(-( 1 + restitution ) * d, 0);
+            if( d < 0.0 ) {
+                Vec offset;
+                vec_mul1f(*contact_normal, penetration, offset);
+                vec_add(current.pivot.position, offset, current.pivot.position);
 
-            Vec momentum_change;
-            vec_mul1f(*contact_normal, j, momentum_change);
-            vec_add(current.linear_momentum, momentum_change, current.linear_momentum);
+                float restitution = 0.3;
+                float j = fmax(-( 1 + restitution ) * d, 0);
 
-            current = physics_simulate(current);
+                Vec momentum_change;
+                vec_mul1f(*contact_normal, j, momentum_change);
+                vec_add(current.linear_momentum, momentum_change, current.linear_momentum);
+
+                current = physics_simulate(current);
+            }
         }
     }
 
