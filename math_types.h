@@ -72,4 +72,6 @@ typedef float Color[4];
 #define Y_AXIS { 0, 1, 0, 1 }
 #define Z_AXIS { 0, 0, 1, 1 }
 
+#define EPSILON 0.00001f
+
 #endif

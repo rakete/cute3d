@@ -177,7 +177,11 @@ VecP vcross(const Vec v, Vec w) {
 }
 
 void vec_length(const Vec v, float* r) {
-    *r = sqrtf( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
+    if( fabs(v[0]) < EPSILON && fabs(v[1]) < EPSILON && fabs(v[2]) < EPSILON ) {
+        *r = 0.0f;
+    } else {
+        *r = sqrtf( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
+    }
 }
 
 float vlength(const Vec v) {
