@@ -60,7 +60,7 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
 
     // quat das forward vektor auf den target punkt dreht
     Quat rotation;
-    quat_rotating(rotation_axis, rotation_angle, rotation);
+    quat_rotating_axis(rotation_axis, rotation_angle, rotation);
 
     if( ! isnan(rotation[0]) &&
         ! isnan(rotation[1]) &&

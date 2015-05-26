@@ -333,10 +333,8 @@ void mat_translating(const Vec v, Mat r) {
     r[3] = 0.0f; r[7] = 0.0f;  r[11] = 0.0f; r[15] = 1.0f;
 }
 
-void mat_rotating(Vec axis, float angle, Mat r) {
-    Quat rotation;
-    quat_rotating(axis, angle, rotation);
-    quat_mat(rotation, r);
+void mat_rotating(const Quat q, Mat r) {
+    quat_mat(q, r);
 }
 
 void mat_invert(const Mat m, double* det, Mat r) {

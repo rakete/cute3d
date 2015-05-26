@@ -29,11 +29,17 @@ void quat_copy(const Quat q, Quat r);
 void quat_identity(Quat q);
 QuatP qidentity(Quat q);
 
-bool quat_rotating(const Vec axis, const float angle, Quat q);
-QuatP qrotating(const Vec axis, const float angle, Quat q);
+bool quat_rotating_axis(const Vec axis, const float angle, Quat q);
+QuatP qrotating_axis(Vec axis, const float angle);
 
-bool quat_rotate(const Quat q, const Vec axis, const float angle, Quat r);
-QuatP qrotate(const Vec axis, const float angle, Quat q);
+bool quat_rotating_vec(const Vec a, const Vec b, Quat q);
+QuatP qrotating_vec(const Vec a, Vec b);
+
+bool quat_rotate_axis(const Quat q, const Vec axis, const float angle, Quat r);
+QuatP qrotate_axis(const Vec axis, const float angle, Quat q);
+
+bool quat_rotate_vec(const Quat q, const Vec a, const Vec b, Quat r);
+QuatP qrotate_vec(const Vec a, const Vec b, Quat q);
 
 void quat_apply_vec(const Quat q, const Vec vec, Vec r);
 void quat_apply_vec3f(const Quat q, const Vec3f vec, Vec3f r);
@@ -64,6 +70,9 @@ QuatP qnormalize(Quat q);
 
 void quat_mat(const Quat q, Mat r);
 QuatP qmat(const Quat q, Mat m);
+
+void quat_axis_angle(const Quat q, Vec axis, float* angle);
+//VecP qaxis_angle(Quat q);
 
 void quat_slerp(const Quat qa, const Quat qb, float t, Quat r);
 QuatP qslerp(const Quat qa, Quat qb, float t);

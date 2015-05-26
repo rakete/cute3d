@@ -37,7 +37,7 @@ QuatP qidentity(Quat q) {
     return q;
 }
 
-bool quat_rotating(const Vec axis, const float angle, Quat q) {
+bool quat_rotating_axis(const Vec axis, const float angle, Quat q) {
     if( ( axis[0] == 0.0 && axis[1] == 0.0 && axis[2] == 0.0 ) ||
         angle == 0.0 )
     {
@@ -60,20 +60,56 @@ bool quat_rotating(const Vec axis, const float angle, Quat q) {
     return 1;
 }
 
-QuatP qrotating(const Vec axis, const float angle, Quat q) {
-    quat_rotating(axis, angle, q);
-    return q;
+QuatP qrotating_axis(Vec axis, const float angle) {
+    quat_rotating_axis(axis, angle, axis);
+    return axis;
 }
 
-bool quat_rotate(const Quat q, const Vec axis, const float angle, Quat r) {
+bool quat_rotating_vec(const Vec a, const Vec b, Quat q) {
+    Vec axis;
+    vec_cross(b,a,axis);
+
+    float angle;
+    vec_angle(b,a,&angle);
+
+    if( ( axis[0] == 0.0 && axis[1] == 0.0 && axis[2] == 0.0 ) ||
+        angle == 0.0 )
+    {
+        quat_identity(q);
+        return 0;
+    }
+
+    quat_rotating_axis(axis, angle, q);
+
+    return 1;
+}
+
+QuatP qrotating_vec(const Vec a, Vec b) {
+    quat_rotating_vec(a,b,b);
+    return b;
+}
+
+bool quat_rotate_axis(const Quat q, const Vec axis, const float angle, Quat r) {
     Quat rotation;
-    bool success = quat_rotating(axis, angle, rotation);
+    bool success = quat_rotating_axis(axis, angle, rotation);
     quat_mul(q, rotation, r);
     return success;
 }
 
-QuatP qrotate(const Vec axis, const float angle, Quat q) {
-    quat_rotate(q, axis, angle, q);
+QuatP qrotate_axis(const Vec axis, const float angle, Quat q) {
+    quat_rotate_axis(q, axis, angle, q);
+    return q;
+}
+
+bool quat_rotate_vec(const Quat q, const Vec a, const Vec b, Quat r) {
+    Quat rotation;
+    bool success = quat_rotating_vec(a, b, rotation);
+    quat_mul(q, rotation, r);
+    return success;
+}
+
+QuatP qrotate_vec(const Vec a, const Vec b, Quat q) {
+    quat_rotate_vec(q, a, b, q);
     return q;
 }
 
@@ -186,11 +222,11 @@ void quat_invert(const Quat q, Quat r) {
 void quat_normalize(const Quat q, Quat r) {
     float norm;
     quat_magnitude(q, &norm);
-    if( norm == 0.0f ) {
+    if( norm < EPSILON ) {
         r[0] = 0;
         r[1] = 0;
         r[2] = 0;
-        r[3] = 1;
+        r[3] = 0;
     } else {
         float inv = 1.0f / norm;
         r[0] = q[0] * inv;
@@ -239,6 +275,33 @@ void quat_mat(const Quat q, Mat r) {
     r[3] = 0;                 r[7] = 0;                 r[11] =  0;                 r[15] = ww + xx + yy + zz;
 }
 
+void quat_axis_angle(const Quat p, Vec axis, float* angle) {
+    Quat q;
+    quat_copy(p, q);
+    quat_normalize(q, q); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
+
+    *angle = 2.0 * acos(q[3]);
+    double s = sqrt(1.0 - q[3] * q[3]); // assuming quaternion normalised then w is less than 1, so term always positive.
+
+    if( s < EPSILON ) { // test to avoid divide by zero, s is always positive due to sqrt
+        // if s close to zero then direction of axis not important
+        axis[0] = q[0]; // if it is important that axis is normalised then replace with x=1; y=z=0;
+        axis[1] = q[1];
+        axis[2] = q[2];
+        axis[3] = 1.0f;
+    } else {
+        axis[0] = q[0] / s; // normalise axis
+        axis[1] = q[1] / s;
+        axis[2] = q[2] / s;
+        axis[3] = 1.0f;
+    }
+
+    float length = vlength(axis);
+    if( length < EPSILON ) {
+        *angle = 0.0f;
+    }
+}
+
 QuatP qmat(const Quat q, Mat m) {
     quat_mat(q,m);
     return m;
@@ -257,9 +320,8 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
         flip = -1;
     }
 
-    const float epsilon = 0.00001f;
     Quat ua,ub;
-    if( (1 - cosine) < epsilon ) {
+    if( (1 - cosine) < EPSILON ) {
         quat_mul1f(qa, t*flip, ua);
         quat_mul1f(qb, 1-t, ub);
         quat_add(ua, ub, r);

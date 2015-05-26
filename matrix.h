@@ -101,8 +101,8 @@ void mat_scaling(const Vec v, Mat r);
 void mat_translating(const Vec v, Mat r);
 //MatP mtranslating(Mat v);
 
-void mat_rotating(Vec axis, float angle, Mat r);
-//MatP mrotating(Mat axis, float angle);
+void mat_rotating(const Quat q, Mat r);
+//MatP mrotating(Mat q);
 
 // matrix op
 void mat_invert(const Mat m, double* det, Mat r);

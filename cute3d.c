@@ -147,8 +147,8 @@ int main(int argc, char** argv) {
 
         Quat cube_rotation;
         qidentity(cube_rotation);
-        qrotate((float[]){ 0.0, 0.0, 1.0, 1.0 }, 45 * PI/180, cube_rotation);
-        qrotate((float[]){ 0.0, 1.0, 0.0, 1.0 }, 1 * PI/180, cube_spinning);
+        quat_rotate_axis(cube_rotation, (float[]){ 0.0, 0.0, 1.0, 1.0 }, 45 * PI/180, cube_rotation);
+        quat_rotate_axis(cube_spinning, (float[]){ 0.0, 1.0, 0.0, 1.0 }, 1 * PI/180, cube_spinning);
         quat_mul(cube_rotation, cube_spinning, cube_rotation);
 
         printf("%f %f %f %f\n", cube_spinning[0], cube_spinning[1], cube_spinning[2], cube_spinning[3]);
