@@ -99,6 +99,14 @@ struct Character char_plus();
 struct Character char_minus();
 struct Character char_asterisk();
 struct Character char_slash();
+struct Character char_equal();
+
+struct Character char_open_paren();
+struct Character char_close_paren();
+struct Character char_open_bracket();
+struct Character char_close_bracket();
+struct Character char_open_brace();
+struct Character char_close_brace();
 
 void ascii_create(struct Character symbols[256]);
 

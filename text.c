@@ -437,7 +437,7 @@ void show_render(const struct Font* font, int size, struct Camera camera) {
         if( ! default_font_created ) {
             struct Character symbols[256];
             ascii_create(symbols);
-            font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, &default_font);
+            font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;+-*/=()[]{}", false, symbols, &default_font);
             default_font_created = 1;
         }
 
