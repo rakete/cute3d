@@ -226,6 +226,58 @@ bool vnullp(const Vec v) {
     return r;
 }
 
+void vec_sum(const Vec v, float* sum) {
+    *sum = v[0] + v[1] + v[2];
+}
+
+float vsum(const Vec v) {
+    float sum;
+    vec_sum(v, &sum);
+    return sum;
+}
+
+void vec_sign(const Vec v, int* sign) {
+    // this is a hack, it was created when I wanted to visualize quaternion and needed a way to distinguish
+    // an rotation axis form its inverse, without having both the axis and its inverse at that moment
+    //
+    // so this function tries to find a sign for a given vector, that should always opposite of the sign
+    // that the vectors inverse has
+    Vec w;
+    vec_normalize(v, w);
+
+    float sum = vsum(w);
+    if( sum != 0.0f ) {
+        *sign = sum;
+        return;
+    }
+
+    float sum01 = v[0] + v[1];
+    if( sum01 != 0.0f ) {
+        *sign = sum;
+        return;
+    }
+
+    float sum12 = v[1] + v[2];
+    if( sum12 != 0.0f ) {
+        *sign = sum;
+        return;
+    }
+
+    float sum02 = v[0] + v[2];
+    if( sum02 != 0.0f ) {
+        *sign = sum;
+        return;
+    }
+
+    *sign = 0.0f;
+}
+
+int vsign(const Vec v) {
+    int sign;
+    vec_sign(v, &sign);
+    return sign;
+}
+
 void vec_perpendicular(const Vec v, Vec r) {
     r[0] = -v[1];
     r[1] = -v[2];

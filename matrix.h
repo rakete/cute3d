@@ -76,6 +76,12 @@ float vangle(const Vec v, const Vec w);
 void vec_nullp(const Vec v, bool* r);
 bool vnullp(const Vec v);
 
+void vec_sum(const Vec v, float* sum);
+float vsum(const Vec v);
+
+void vec_sign(const Vec v, int* sign);
+int vsign(const Vec v);
+
 void vec_perpendicular(const Vec v, Vec r);
 VecP vperpendicular(const Vec v);
 
