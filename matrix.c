@@ -168,7 +168,7 @@ void vec_cross(const Vec v, const Vec w, Vec r) {
     t[1] = v[2]*w[0] - v[0]*w[2];
     t[2] = v[0]*w[1] - v[1]*w[0];
 
-    r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
+    r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; r[3] = 1.0;
 }
 
 VecP vcross(const Vec v, Vec w) {
