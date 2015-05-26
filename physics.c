@@ -29,8 +29,10 @@ void physics_create(float mass, Mat inertia, struct Physics* physics) {
     physics->inverse_mass = 1.0f/mass;
 
     mat_copy(inertia, physics->inertia);
-    //mat_invert(inertia, NULL, physics->inverse_inertia);
     mat_transpose(inertia, physics->inverse_inertia);
+
+    physics->t = -1.0f;
+    physics->dt = -1.0f;
 }
 
 struct Physics physics_interpolate(struct Physics a, struct Physics b, double alpha) {
@@ -67,7 +69,7 @@ struct Physics physics_simulate(struct Physics physics) {
                   angular_velocity[1],
                   angular_velocity[2],
                   0.0 };
-    quat_mul(physics.pivot.orientation, spin, spin);
+    quat_mul(spin, physics.pivot.orientation, spin);
     quat_mul1f(spin, 0.5, spin);
 
     vec_copy(linear_velocity, physics.linear_velocity);
@@ -125,6 +127,9 @@ struct PhysicsDerivative physics_eval_future(struct Physics state, struct Physic
 }
 
 struct Physics physics_integrate(struct Physics state, float t, float dt, physics_forces_func forces_func) {
+    state.t = t;
+    state.dt = dt;
+
     struct PhysicsDerivative a = physics_eval_time(state, t, forces_func);
     struct PhysicsDerivative b = physics_eval_future(state, a, t, dt * 0.5f, forces_func);
     struct PhysicsDerivative c = physics_eval_future(state, b, t, dt * 0.5f, forces_func);
@@ -139,7 +144,7 @@ struct Physics physics_integrate(struct Physics state, float t, float dt, physic
     vec_add(state.linear_momentum, linear_momentum_change, state.linear_momentum);
 
     //state.orientation += 1.0f/6.0f * dt * (a.spin + 2.0f*(b.spin + c.spin) + d.spin);
-    VecP orientation_change = qmul1f(qadd(a.spin, qadd( qmul1f(qadd(b.spin, c.spin), 2.0f), d.spin)), 1.0f/6.0f * dt);
+    QuatP orientation_change = qmul1f(qadd(a.spin, qadd( qmul1f(qadd(b.spin, c.spin), 2.0f), d.spin)), 1.0f/6.0f * dt);
     quat_add(state.pivot.orientation, orientation_change, state.pivot.orientation);
 
     //state.angularMomentum += 1.0f/6.0f * dt * (a.torque + 2.0f*(b.torque + c.torque) + d.torque);

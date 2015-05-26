@@ -22,6 +22,12 @@
 #include "transform.h"
 #include "text.h"
 
+enum PhysicsMode {
+    PhysicsStatic = 0x001,
+    PhysicsResting = 0x002,
+    PhysicsInactive = 0x004
+};
+
 struct Physics {
     struct Pivot pivot;
 
@@ -43,6 +49,13 @@ struct Physics {
     float inverse_mass;             ///< inverse of the mass used to convert momentum to velocity.
     Mat inertia;
     Mat inverse_inertia;
+
+    // last times
+    double t;
+    double dt;
+
+    // simulation mode flags
+    enum PhysicsMode mode;
 };
 
 struct PhysicsDerivative {
