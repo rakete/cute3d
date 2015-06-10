@@ -44,10 +44,6 @@ void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context) {
 
             SDL_GL_GetDrawableSize(window, &width, &height);
         });
-
-    init_ogl(width, height);
-
-    init_shader();
 }
 
 void sdl2_orbit_create(SDL_Window* window, Vec eye, Vec target, float near, float far, struct Camera* camera) {
