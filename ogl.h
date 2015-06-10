@@ -49,6 +49,6 @@
 #define ogl_debug(line) line
 #endif
 
-int init_ogl(int width, int height);
+int init_ogl(int width, int height, const float clear_color[4]);
 
 #endif
