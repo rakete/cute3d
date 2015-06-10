@@ -42,14 +42,14 @@ void mesh_from_solid(struct Solid* solid, float color[4], struct Mesh* mesh) {
 /*     const char* identifier; */
 /* }; */
 
-struct BouncingSphere {
+struct BouncingCube {
     /* Physics */
     struct Physics current;
     struct Physics previous;
-    struct ColliderSphere collider;
+    struct ColliderOBB collider;
 
     /* Mesh */
-    struct Sphere16 solid;
+    struct Cube solid;
     struct Mesh mesh;
 };
 
@@ -106,27 +106,38 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    int width = 1920;
+    int height = 1080;
+
     SDL_Window* window;
-    sdl2_window("test-physics", 0, 0, 1920, 1080, &window);
+    sdl2_window("test-physics", 0, 0, width, height, &window);
     SDL_SetWindowFullscreen(window, SDL_TRUE);
 
     SDL_GLContext* context;
     sdl2_glcontext(window, &context);
 
+    if( ! init_ogl(width, height, (Color){0.0f, 0.0f, 0.0f, 1.0f}) ) {
+        return 1;
+    }
+
+    if( ! init_shader() ) {
+        return 1;
+    }
+
     if( ! init_geometry() ) {
         return 1;
     }
 
-    struct BouncingSphere entity;
+    struct BouncingCube entity;
 
-    /* Sphere */
-    float radius = 2.0f;
-    solid_sphere16(radius, &entity.solid);
+    /* Box */
+    float size = 2.0f;
+    solid_cube(size, &entity.solid);
     mesh_from_solid((struct Solid*)&entity.solid, (Color){0.7, 0.1, 0.0, 1.0}, &entity.mesh);
 
     Mat inertia;
     float mass = 1;
-    physics_sphere_inertia(radius, mass, inertia);
+    physics_box_inertia(size, size, size, mass, inertia);
     physics_create(mass, inertia, &entity.current);
 
     vec_copy((Vec){0.0f, 10.0f, 0.0f, 1.0f}, entity.current.pivot.position);
@@ -134,12 +145,12 @@ int main(int argc, char *argv[]) {
     vec_copy((Vec){0.0f, 0.0f, 0.0f, 1.0f}, entity.current.angular_momentum);
 
     entity.previous = entity.current;
-    collider_sphere(radius, &entity.current.pivot, &entity.collider);
+    collider_obb(size, size, size, &entity.current.pivot, &entity.collider);
 
     /* Ground */
     struct Ground ground;
     pivot_create(&ground.pivot);
-    collider_plane(((Vec){0.0, 1.0, 0.0, 1.0}), -4.0, &ground.pivot, &ground.collider);
+    collider_plane(((Vec){0.2, 0.8, 0.0, 1.0}), -4.0, &ground.pivot, &ground.collider);
     //vec_copy((Vec){0.0, -4.0, 0.0, 1.0}, ground.pivot.position);
 
     /* Shader */
@@ -159,9 +170,6 @@ int main(int argc, char *argv[]) {
     /* Matrices */
     struct Camera camera;
     sdl2_orbit_create(window, (Vec){0.0, 12.0, 32.0, 1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0f, 1000.0f, &camera);
-
-    Mat projection_mat, view_mat;
-    camera_matrices(&camera, projection_mat, view_mat);
 
     SDL_Delay(100);
 
@@ -204,11 +212,12 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        Mat projection_mat, view_mat;
+        camera_matrices(&camera, projection_mat, view_mat);
+
         gametime_advance(sdl2_time_delta(), &time);
 
-        ogl_debug( glClearDepth(1.0f);
-                   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-                   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); );
+        ogl_debug( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); );
 
         show_fps_counter(time.frame);
         show_time(time.t);
@@ -297,7 +306,7 @@ int main(int argc, char *argv[]) {
         /* draw contacts */
         for( unsigned int i = 0; i < collisions_size; i++ ) {
             for( unsigned int j = 0; j < collisions[i].num_contacts; j++ ) {
-                Vec* contact_normal = &collisions[i].contact[j].normal;
+                Vec* contact_normal = &collisions[i].normal;
                 Vec* contact_point = &collisions[i].contact[j].point;
                 float penetration = collisions[i].contact[j].penetration;
 

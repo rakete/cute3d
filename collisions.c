@@ -14,7 +14,7 @@ void collider_unique_id(unsigned long* id) {
 
 void collider_plane(Vec normal, float offset, struct Pivot* pivot, struct ColliderPlane* plane) {
     plane->collider.type = COLLIDER_PLANE;
-    mat_identity(plane->collider.offset);
+    vec_copy((Vec)NULL_VEC, plane->collider.position);
     plane->collider.pivot = pivot;
 
     vec_normalize(normal, normal);
@@ -24,27 +24,24 @@ void collider_plane(Vec normal, float offset, struct Pivot* pivot, struct Collid
 
 void collider_sphere(float radius, struct Pivot* pivot, struct ColliderSphere* sphere) {
     sphere->collider.type = COLLIDER_SPHERE;
-    mat_identity(sphere->collider.offset);
+    vec_copy((Vec)NULL_VEC, sphere->collider.position);
     sphere->collider.pivot = pivot;
 
     sphere->radius = radius;
 }
 
-void collider_box(float width, float height, float depth, struct Pivot* pivot, struct ColliderBox* box) {
-    box->collider.type = COLLIDER_BOX;
-    mat_identity(box->collider.offset);
-    box->collider.pivot = pivot;
+void collider_obb(float width, float height, float depth, struct Pivot* pivot, struct ColliderOBB* obb) {
+    obb->collider.type = COLLIDER_OBB;
+    vec_copy((Vec)NULL_VEC, obb->collider.position);
+    obb->collider.pivot = pivot;
 
-    box->width = width;
-    box->height = height;
-    box->depth = depth;
+    mat_identity(obb->orientation);
+    obb->width = width;
+    obb->height = height;
+    obb->depth = depth;
 }
 
-void collider_cube(float size, struct Pivot* pivot, struct ColliderBox* box) {
-    collider_box(size, size, size, pivot, box);
-}
-
-unsigned int collide_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2, struct Collision* collision) {
+unsigned int contacts_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2, struct Collision* collision) {
     assert(sphere1->collider.type == COLLIDER_SPHERE);
     assert(sphere2->collider.type == COLLIDER_SPHERE);
 
@@ -62,7 +59,7 @@ unsigned int collide_sphere_sphere(struct ColliderSphere* const sphere1, struct 
     }
 
     unsigned int i = collision->num_contacts;
-    vec_mul1f(midline, 1.0/size, collision->contact[i].normal);
+    vec_mul1f(midline, 1.0/size, collision->normal);
 
     Vec point;
     vec_mul1f(midline, 0.5, point);
@@ -75,7 +72,7 @@ unsigned int collide_sphere_sphere(struct ColliderSphere* const sphere1, struct 
     return 1;
 }
 
-unsigned int collide_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane, struct Collision* collision) {
+unsigned int contacts_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane, struct Collision* collision) {
     assert(sphere->collider.type == COLLIDER_SPHERE);
     assert(plane->collider.type == COLLIDER_PLANE);
 
@@ -99,7 +96,7 @@ unsigned int collide_sphere_plane(struct ColliderSphere* const sphere, struct Co
     }
 
     unsigned int i = collision->num_contacts;
-    vec_copy(plane->normal, collision->contact[i].normal);
+    vec_copy(plane->normal, collision->normal);
     collision->contact[i].penetration = -distance;
 
     vec_mul1f(plane->normal, -sphere->radius + distance, collision->contact[i].point);
@@ -110,22 +107,35 @@ unsigned int collide_sphere_plane(struct ColliderSphere* const sphere, struct Co
     return 1;
 }
 
-unsigned int collide_sphere_box(struct ColliderSphere* const sphere, struct ColliderBox* const box, struct Collision* collision) {
+unsigned int contacts_sphere_obb(struct ColliderSphere* const sphere, struct ColliderOBB* const obb, struct Collision* collision) {
     return 0;
 }
 
-unsigned int collide_generic(struct Collider* const a, struct Collider* const b, struct Collision* collision) {
+unsigned int contacts_obb_sphere(struct ColliderOBB* const obb, struct ColliderSphere* const sphere, struct Collision* collision) {
+    return 0;
+}
+
+unsigned int contacts_obb_plane(struct ColliderOBB* const obb, struct ColliderPlane* const plane, struct Collision* collision) {
+    return 0;
+}
+
+unsigned int contacts_obb_obb(struct ColliderOBB* const obb1, struct ColliderOBB* const obb2, struct Collision* collision) {
+    return 0;
+}
+
+
+unsigned int contacts_generic(struct Collider* const a, struct Collider* const b, struct Collision* collision) {
     switch( a->type ) {
         case COLLIDER_PLANE: break;
         case COLLIDER_SPHERE: {
             switch( b->type ) {
-                case COLLIDER_PLANE: return collide_sphere_plane((struct ColliderSphere*)a, (struct ColliderPlane*)b, collision);
-                case COLLIDER_SPHERE: return collide_sphere_sphere((struct ColliderSphere*)a, (struct ColliderSphere*)b, collision);
-                case COLLIDER_BOX: return collide_sphere_box((struct ColliderSphere*)a,(struct ColliderBox*)b,collision);
+                case COLLIDER_PLANE: return contacts_sphere_plane((struct ColliderSphere*)a, (struct ColliderPlane*)b, collision);
+                case COLLIDER_SPHERE: return contacts_sphere_sphere((struct ColliderSphere*)a, (struct ColliderSphere*)b, collision);
+                case COLLIDER_OBB: return contacts_sphere_obb((struct ColliderSphere*)a,(struct ColliderOBB*)b,collision);
                 default: break;
             }
         }
-        case COLLIDER_BOX: break;
+        case COLLIDER_OBB: break;
         default: break;
     }
 
@@ -136,9 +146,16 @@ void collisions_prepare(size_t n, struct Collision* collisions) {
     for( size_t i = 0; i < n; i++ ) {
         collisions[i].num_contacts = 0;
         for( int j = 0; j < MAX_CONTACTS; j++ ) {
-            vec_copy((Vec){0.0, 0.0, 0.0, 1.0}, collisions[i].contact[j].point);
-            vec_copy((Vec){0.0, 1.0, 0.0, 1.0}, collisions[i].contact[j].normal);
-            collisions[i].contact[j].penetration = 0.0;
+            if( collisions[i].lifetime >= COLLISION_LIFETIME ) {
+                collisions[i].num_contacts = 0;
+                collisions[i].lifetime = 0;
+                vec_copy((Vec){0.0, 1.0, 0.0, 1.0}, collisions[i].normal);
+
+                vec_copy((Vec){0.0, 0.0, 0.0, 1.0}, collisions[i].contact[j].point);
+                collisions[i].contact[j].penetration = 0.0;
+            } else {
+                collisions[i].lifetime += 1;
+            }
         }
     }
 }
@@ -172,7 +189,7 @@ size_t collisions_narrow(size_t self,
     for( size_t i = 0; i < candidates_size; i++ ) {
         size_t candidate = candidates[i];
 
-        if( candidate != self && collide_generic(world_colliders[self], world_colliders[candidate], &collisions[collisions_size]) > 0 ) {
+        if( candidate != self && contacts_generic(world_colliders[self], world_colliders[candidate], &collisions[collisions_size]) > 0 ) {
             bodies[collisions_size] = world_bodies[candidate];
             collisions_size++;
         }
@@ -181,11 +198,11 @@ size_t collisions_narrow(size_t self,
     return collisions_size;
 }
 
-void contact_world_transform(struct Contact contact, Mat transform) {
-    Vec y,z;
-    vec_basis(contact.normal, y, z);
-    vec_copy3fmat(contact.normal, y, z, transform);
-}
+/* void contact_world_transform(struct Contact contact, Mat transform) { */
+/*     Vec y,z; */
+/*     vec_basis(contact.normal, y, z); */
+/*     vec_copy3fmat(contact.normal, y, z, transform); */
+/* } */
 
 struct Physics collisions_resolve(struct Physics previous,
                                   struct Physics current,
@@ -196,16 +213,15 @@ struct Physics collisions_resolve(struct Physics previous,
 {
     for( size_t i = 0; i < collisions_size; i++ ) {
         for( size_t j = 0; j < collisions[i].num_contacts; j++ ) {
-            Vec* contact_normal = &collisions[i].contact[j].normal;
+            Vec* contact_normal = &collisions[i].normal;
             Vec* contact_point = &collisions[i].contact[j].point;
             float penetration = collisions[i].contact[j].penetration;
 
-            Mat contact_to_world = IDENTITY_MAT;
-            contact_world_transform(collisions[i].contact[j], contact_to_world);
+            /* Mat contact_to_world = IDENTITY_MAT; */
+            /* contact_world_transform(collisions[i].contact[j], contact_to_world); */
 
-            Mat world_to_contact = IDENTITY_MAT;
-            mat_transpose(contact_to_world, world_to_contact);
-
+            /* Mat world_to_contact = IDENTITY_MAT; */
+            /* mat_transpose(contact_to_world, world_to_contact); */
 
             /* Vec avoid = NULL_VEC; */
             /* vec_mul1f(collisions[i].contact[j].normal, collisions[i].contact[j].penetration+0.1, avoid); */
@@ -345,6 +361,7 @@ struct Physics collisions_resolve(struct Physics previous,
             //printf("%f\n", d);
 
             if( d < 0.0 ) {
+                /* linear component */
                 Vec offset;
                 vec_mul1f(*contact_normal, penetration, offset);
                 vec_add(current.pivot.position, offset, current.pivot.position);
@@ -355,6 +372,22 @@ struct Physics collisions_resolve(struct Physics previous,
                 Vec momentum_change;
                 vec_mul1f(*contact_normal, j, momentum_change);
                 vec_add(current.linear_momentum, momentum_change, current.linear_momentum);
+
+                /* angular component */
+                Vec torque_impulse;
+                vec_cross(*contact_point, *contact_normal, torque_impulse);
+
+                Vec rotation_impulse;
+                mat_mul_vec(current.inverse_inertia, torque_impulse, rotation_impulse);
+
+                Vec velocity_impulse;
+                vec_cross(rotation_impulse, *contact_point, velocity_impulse);
+
+                /* vec_print("point:", *contact_point); */
+                /* vec_print("normal:", *contact_normal); */
+                /* vec_print("torque:", torque_impulse); */
+                /* vec_print("rotation:", rotation_impulse); */
+                /* vec_print("velocity:", velocity_impulse); */
 
                 current = physics_simulate(current);
             }
