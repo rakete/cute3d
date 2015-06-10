@@ -163,6 +163,18 @@ void physics_sphere_inertia(float radius, float mass, Mat inertia) {
     inertia[10] = i;
 }
 
+void physics_box_inertia(float width, float height, float depth, float mass, Mat inertia) {
+    mat_identity(inertia);
+
+    float i = 1.0/12.0 * mass * (width*width + depth*depth);
+    float j = 1.0/12.0 * mass * (height*height + depth*depth);
+    float k = 1.0/12.0 * mass * (height*height + width*width);
+
+    inertia[0] = i;
+    inertia[5] = j;
+    inertia[10] = k;
+}
+
 void physics_inertia_transform(struct Physics physics, Mat r) {
     // r = transform * inertia * minvert(transform);
 

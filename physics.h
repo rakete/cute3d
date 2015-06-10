@@ -89,6 +89,8 @@ struct Physics physics_integrate(struct Physics state, float t, float dt, physic
 
 void physics_sphere_inertia(float size, float mass, Mat inertia);
 
+void physics_box_inertia(float width, float height, float depth, float mass, Mat inertia);
+
 void physics_inertia_transform(struct Physics physics, Mat r);
 
 #endif
