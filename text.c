@@ -78,7 +78,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
         }
     }
 
-    int32_t texture_size = power2 * power2;
+    int texture_size = power2 * power2;
     float* texture = (float*)calloc( texture_size * 4,  sizeof(float) );
     if( texture != NULL ) {
         /* for( int i = 0; i < texture_size; i++ ) { */
@@ -374,7 +374,7 @@ void text_overlay(const wchar_t* text, const struct Font* font, int size, struct
     float scale = (float)size/(float)camera.screen.height;
 
     glDisable(GL_DEPTH_TEST);
-     text_put(text, font, scale, ortho_projection, ortho_view, text_matrix);
+    text_put(text, font, scale, ortho_projection, ortho_view, text_matrix);
     glEnable(GL_DEPTH_TEST);
 }
 

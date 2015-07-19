@@ -73,6 +73,9 @@ void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter);
 void text_put(const wchar_t* text, const struct Font* font, float scale, const Mat projection_matrix, const Mat view_matrix, Mat model_matrix);
 void text_overlay(const wchar_t* text, const struct Font* font, int size, struct Camera camera, int x, int y);
 
+// something like this to append text to some kind of global state to render one big buffer instead of having a draw call for each character?
+void text_append(const wchar_t* text, const struct Font* font, int size);
+
 #ifndef SHOW_BUFSIZE
 #define SHOW_BUFSIZE 8192
 #endif
