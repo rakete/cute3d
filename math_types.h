@@ -41,6 +41,8 @@ typedef float Quat[4];
 
 typedef float Color[4];
 
+typedef float Texcoord[2];
+
 #define vec(v) vec4f(v)
 #define vecf(v) vec4f(v)
 #define vec3f(v) (Vec3f){(float)v[0], (float)v[1], (float)v[2]}
@@ -72,6 +74,6 @@ typedef float Color[4];
 #define Y_AXIS { 0, 1, 0, 1 }
 #define Z_AXIS { 0, 0, 1, 1 }
 
-#define EPSILON 0.00001f
+#define FLOAT_EPSILON 0.00001f
 
 #endif

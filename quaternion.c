@@ -222,7 +222,7 @@ void quat_invert(const Quat q, Quat r) {
 void quat_normalize(const Quat q, Quat r) {
     float norm;
     quat_magnitude(q, &norm);
-    if( norm < EPSILON ) {
+    if( norm < FLOAT_EPSILON ) {
         r[0] = 0;
         r[1] = 0;
         r[2] = 0;
@@ -283,7 +283,7 @@ void quat_axis_angle(const Quat p, Vec axis, float* angle) {
     *angle = 2.0 * acos(q[3]);
     double s = sqrt(1.0 - q[3] * q[3]); // assuming quaternion normalised then w is less than 1, so term always positive.
 
-    if( s < EPSILON ) { // test to avoid divide by zero, s is always positive due to sqrt
+    if( s < FLOAT_EPSILON ) { // test to avoid divide by zero, s is always positive due to sqrt
         // if s close to zero then direction of axis not important
         axis[0] = q[0]; // if it is important that axis is normalised then replace with x=1; y=z=0;
         axis[1] = q[1];
@@ -297,7 +297,7 @@ void quat_axis_angle(const Quat p, Vec axis, float* angle) {
     }
 
     float length = vlength(axis);
-    if( length < EPSILON ) {
+    if( length < FLOAT_EPSILON ) {
         *angle = 0.0f;
     }
 }
@@ -321,7 +321,7 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
     }
 
     Quat ua,ub;
-    if( (1 - cosine) < EPSILON ) {
+    if( (1 - cosine) < FLOAT_EPSILON ) {
         quat_mul1f(qa, t*flip, ua);
         quat_mul1f(qb, 1-t, ub);
         quat_add(ua, ub, r);
