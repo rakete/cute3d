@@ -24,24 +24,26 @@
 #include "matrix.h"
 
 struct Solid {
-    uint32_t size;
+    unsigned int size;
 
     float* vertices;
-    uint32_t* triangles;
+    unsigned int* elements;
+    unsigned int* triangles;
     float* colors;
     float* normals;
     float* texcoords;
 };
 
+void solid_create(unsigned int size, unsigned int* elements, float* vertices, unsigned int* triangles, float* normals, float* colors, float* texcoords, struct Solid* solid);
 void solid_normals(struct Solid* solid);
-
-void solid_colors(struct Solid* solid, float color[4]);
+void solid_color(struct Solid* solid, float color[4]);
 
 struct Tetrahedron {
     struct Solid solid;
 
     float vertices[36];
-    uint32_t triangles[12];
+    unsigned int elements[12];
+    unsigned int triangles[12];
     float colors[48];
     float normals[36];
     float texcoords[24];
@@ -53,7 +55,8 @@ struct Cube {
     struct Solid solid;
 
     float vertices[108];
-    uint32_t triangles[36];
+    unsigned int elements[36];
+    unsigned int triangles[36];
     float colors[144];
     float normals[108];
     float texcoords[72];
@@ -66,7 +69,8 @@ struct Sphere16 {
     struct Solid solid;
 
     float vertices[(16*6*2+16*2)*3*3];
-    uint32_t triangles[16*6*2*3+16*3*2];
+    unsigned int elements[16*6*2*3+16*3*2];
+    unsigned int triangles[16*6*2*3+16*3*2];
     float colors[(16*6*2+16*2)*4*3];
     float normals[(16*6*2+16*2)*3*3];
     float texcoords[(16*6*2+16*2)*2*3];
@@ -78,7 +82,8 @@ struct Sphere32 {
     struct Solid solid;
 
     float vertices[(32*14*2+32*2)*3*3];
-    uint32_t triangles[32*14*2*3+32*3*2];
+    unsigned int elements[32*14*2*3+32*3*2];
+    unsigned int triangles[32*14*2*3+32*3*2];
     float colors[(32*14*2+32*2)*4*3];
     float normals[(32*14*2+32*2)*3*3];
     float texcoords[(32*14*2+32*2)*2*3];

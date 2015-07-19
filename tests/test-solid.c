@@ -3,14 +3,14 @@
 #include "render.h"
 #include "sdl2.h"
 
-void mesh_from_solid(struct Solid* solid, float color[4], struct Mesh* mesh) {
+void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mesh) {
     solid_colors(solid,color);
     solid_normals(solid);
 
-    mesh_append(mesh, VERTEX_ARRAY, solid->vertices, solid->size);
-    mesh_append(mesh, NORMAL_ARRAY, solid->normals, solid->size);
-    mesh_append(mesh, COLOR_ARRAY, solid->colors, solid->size);
-    mesh_primitives(mesh, solid->triangles, solid->size);
+    vbomesh_append(mesh, VERTEX_ARRAY, solid->vertices, solid->size);
+    vbomesh_append(mesh, NORMAL_ARRAY, solid->normals, solid->size);
+    vbomesh_append(mesh, COLOR_ARRAY, solid->colors, solid->size);
+    vbomesh_primitives(mesh, solid->elements, solid->size);
 }
 
 int main(int argc, char *argv[]) {
@@ -23,6 +23,14 @@ int main(int argc, char *argv[]) {
 
     SDL_GLContext* context;
     sdl2_glcontext(window, &context);
+
+    if( ! init_ogl(800, 600, (Color){0.0f, 0.0f, 0.0f, 1.0f}) ) {
+        return 1;
+    }
+
+    if( ! init_shader() ) {
+        return 1;
+    }
 
     if( ! init_geometry() ) {
         return 1;
@@ -45,28 +53,28 @@ int main(int argc, char *argv[]) {
     solid_sphere16(1.0, &sphere16);
     solid_sphere32(1.0, &sphere32);
 
-    struct Mesh tetrahedron_mesh,hexahedron_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
+    struct VboMesh tetrahedron_mesh,hexahedron_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
 
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &tetrahedron_mesh);
-    mesh_from_solid((struct Solid*)&tetrahedron, (Color){1.0,0.0,0.0,1.0}, &tetrahedron_mesh);
+    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &tetrahedron_mesh);
+    vbomesh_from_solid((struct Solid*)&tetrahedron, (Color){1.0,0.0,0.0,1.0}, &tetrahedron_mesh);
 
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &hexahedron_mesh);
-    mesh_from_solid((struct Solid*)&hexahedron, (Color){0.0,1.0,0.0,1.0}, &hexahedron_mesh);
+    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &hexahedron_mesh);
+    vbomesh_from_solid((struct Solid*)&hexahedron, (Color){0.0,1.0,0.0,1.0}, &hexahedron_mesh);
 
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
-    mesh_from_solid((struct Solid*)&cube, (Color){1.0,0.0,1.0,1.0}, &cube_mesh);
+    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
+    vbomesh_from_solid((struct Solid*)&cube, (Color){1.0,0.0,1.0,1.0}, &cube_mesh);
 
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere16_mesh);
-    mesh_from_solid((struct Solid*)&sphere16, (Color){0.0,1.0,1.0,1.0}, &sphere16_mesh);
+    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere16_mesh);
+    vbomesh_from_solid((struct Solid*)&sphere16, (Color){0.0,1.0,1.0,1.0}, &sphere16_mesh);
 
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere32_mesh);
-    mesh_from_solid((struct Solid*)&sphere32, (Color){1.0,1.0,0.0,1.0}, &sphere32_mesh);
+    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere32_mesh);
+    vbomesh_from_solid((struct Solid*)&sphere32, (Color){1.0,1.0,0.0,1.0}, &sphere32_mesh);
 
     struct Shader shader;
     render_shader_flat(&shader);
 
     struct Camera camera;
-    sdl2_orbit_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, &camera);
+    sdl2_orbit_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &camera);
 
     while (true) {
         SDL_Event event;
@@ -107,11 +115,11 @@ int main(int argc, char *argv[]) {
         mat_translate(identity, (float[4]){ -1.5, 0.0, -2.0, 1.0 }, sphere16_transform);
         mat_translate(identity, (float[4]){ 1.5, 0.0, -2.0, 1.0 }, sphere32_transform);
 
-        render_mesh(&tetrahedron_mesh, &shader, &camera, tetrahedron_transform);
-        render_mesh(&hexahedron_mesh, &shader, &camera, hexahedron_transform);
-        render_mesh(&cube_mesh, &shader, &camera, cube_transform);
-        render_mesh(&sphere16_mesh, &shader, &camera, sphere16_transform);
-        render_mesh(&sphere32_mesh, &shader, &camera, sphere32_transform);
+        render_vbomesh(&tetrahedron_mesh, &shader, &camera, tetrahedron_transform);
+        render_vbomesh(&hexahedron_mesh, &shader, &camera, hexahedron_transform);
+        render_vbomesh(&cube_mesh, &shader, &camera, cube_transform);
+        render_vbomesh(&sphere16_mesh, &shader, &camera, sphere16_transform);
+        render_vbomesh(&sphere32_mesh, &shader, &camera, sphere32_transform);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
