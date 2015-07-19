@@ -23,11 +23,69 @@ void vec_copy(const Vec v, Vec r) {
     r[3] = v[3];
 }
 
+void vec_copy3f(const Vec v, Vec3f r) {
+    r[0] = v[0];
+    r[1] = v[1];
+    r[2] = v[2];
+}
+
 void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r) {
     r[0] = x[0];  r[4] = y[0];  r[8]  = z[0];  r[12] = 0.0;
     r[1] = x[1];  r[5] = y[1];  r[9]  = z[1];  r[13] = 0.0;
     r[2] = x[2];  r[6] = y[2];  r[10] = z[2];  r[14] = 0.0;
     r[3] = 0.0;   r[7] = 0.0;   r[11] = 0.0;   r[15] = 1.0;
+}
+
+void vec_equal(const Vec a, const Vec b, int* r) {
+    *r = 0;
+
+    if( fabs(a[0] - b[0]) <= FLOAT_EPSILON &&
+        fabs(a[1] - b[1]) <= FLOAT_EPSILON &&
+        fabs(a[2] - b[2]) <= FLOAT_EPSILON &&
+        fabs(a[3] - b[3]) <= FLOAT_EPSILON )
+    {
+        *r = 1;
+    }
+}
+
+int vequal(const Vec a, const Vec b) {
+    int r;
+    vec_equal(a,b,&r);
+    return r;
+}
+
+void vec_equal3f(const Vec a, const Vec3f b, int* r) {
+    *r = 0;
+
+    if( fabs(a[0] - b[0]) <= FLOAT_EPSILON &&
+        fabs(a[1] - b[1]) <= FLOAT_EPSILON &&
+        fabs(a[2] - b[2]) <= FLOAT_EPSILON )
+    {
+        *r = 1;
+    }
+}
+
+int vequal3f(const Vec a, const Vec3f b) {
+    int r;
+    vec_equal3f(a,b,&r);
+    return r;
+}
+
+void vec_equal3f3f(const Vec3f a, const Vec3f b, int* r) {
+    *r = 0;
+
+    if( fabs(a[0] - b[0]) <= FLOAT_EPSILON &&
+        fabs(a[1] - b[1]) <= FLOAT_EPSILON &&
+        fabs(a[2] - b[2]) <= FLOAT_EPSILON )
+    {
+        *r = 1;
+    }
+}
+
+int vequal3f3f(const Vec3f a, const Vec3f b) {
+    int r;
+    vec_equal3f3f(a,b,&r);
+    return r;
 }
 
 void vec_add(const Vec v, const Vec w, Vec r) {
@@ -177,7 +235,7 @@ VecP vcross(const Vec v, Vec w) {
 }
 
 void vec_length(const Vec v, float* r) {
-    if( fabs(v[0]) < EPSILON && fabs(v[1]) < EPSILON && fabs(v[2]) < EPSILON ) {
+    if( fabs(v[0]) < FLOAT_EPSILON && fabs(v[1]) < FLOAT_EPSILON && fabs(v[2]) < FLOAT_EPSILON ) {
         *r = 0.0f;
     } else {
         *r = sqrtf( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
