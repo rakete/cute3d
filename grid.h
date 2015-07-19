@@ -5,6 +5,7 @@
 #include "stdlib.h"
 
 #include "geometry.h"
+#include "solid.h"
 
 #ifndef Cell
 #define Cell uint64_t
@@ -36,7 +37,7 @@ struct GridPages {
     } size;
 
     uint64_t top; // top level containing largest cubes
-    
+
     Page* array;
 };
 
@@ -110,5 +111,20 @@ void grid_shift(struct Grid* grid, struct GridPages* pages, struct GridBox* box,
 
 void grid_pagein(struct Grid* grid, struct GridPages* pages, uint64_t page, int level, char** in);
 void grid_pageout(struct Grid* grid, struct GridPages* pages, uint64_t page, int level, char** out);
+
+void world_grid_create(struct Grid* grid,
+                       struct GridPages* pages,
+                       int level,
+                       float width,
+                       float height,
+                       float depth,
+                       struct Cube* cube,
+                       struct VboMesh* mesh);
+void world_grid_update(struct Grid* grid,
+                       struct GridPages* pages,
+                       int level,
+                       uint64_t page,
+                       struct Cube* cube,
+                       struct VboMesh* mesh);
 
 #endif

@@ -7,7 +7,6 @@ cute3d: *.c
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC transform.c -c -o transform.o
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC ascii.c -c -o ascii.o
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC grid.c -c -o grid.o
-	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC world.c -c -o world.o
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC geometry.c -c -o geometry.o -lGL -lGLEW
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC shader.c -c -o shader.o -lGL -lGLEW
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC render.c -c -o render.o -lGL -lGLEW

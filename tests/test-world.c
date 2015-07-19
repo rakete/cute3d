@@ -1,4 +1,4 @@
-#include "world.h"
+#include "grid.h"
 #include "sdl2.h"
 
 int main(int argc, char *argv[]) {
