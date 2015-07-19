@@ -36,7 +36,7 @@ void world_grid_create(struct Grid* grid,
                        float height,
                        float depth,
                        struct Cube* cube,
-                       struct Mesh* mesh)
+                       struct VboMesh* mesh)
 {
     struct GridSize size;
     grid_pagesize(pages, level, &size);
@@ -74,9 +74,9 @@ void world_grid_create(struct Grid* grid,
     }
 
 
-    mesh_append(mesh, VERTEX_ARRAY, vertices, n);
-    mesh_append(mesh, NORMAL_ARRAY, normals, n);
-    mesh_append(mesh, COLOR_ARRAY, colors, n);
+    vbomesh_append(mesh, VERTEX_ARRAY, vertices, n);
+    vbomesh_append(mesh, NORMAL_ARRAY, normals, n);
+    vbomesh_append(mesh, COLOR_ARRAY, colors, n);
 }
 
 void world_grid_update(struct Grid* grid,
@@ -84,7 +84,7 @@ void world_grid_update(struct Grid* grid,
                        int level,
                        uint64_t page,
                        struct Cube* cube,
-                       struct Mesh* mesh)
+                       struct VboMesh* mesh)
 {
 
     // first create _all_ vertices and normals in mesh needed for the grid, then just
@@ -107,7 +107,7 @@ void world_grid_update(struct Grid* grid,
     //    maybe add some kind of field to mesh to 'lock' a mesh to make clones
     //    non-modifyable
 
-    mesh_clear_primitives(mesh);
+    vbomesh_clear_primitives(mesh);
 
     struct GridBox box;
     grid_pagebox(grid, pages, page, level, &box);
@@ -131,5 +131,5 @@ void world_grid_update(struct Grid* grid,
         }
     }
 
-    mesh_primitives(mesh, triangles, n);
+    vbomesh_primitives(mesh, triangles, n);
 }

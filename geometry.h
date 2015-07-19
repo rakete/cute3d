@@ -19,6 +19,7 @@
 #include "stdint.h"
 #include "stdlib.h"
 #include "stdio.h"
+
 #include "string.h"
 #include "math.h"
 
@@ -79,15 +80,16 @@ struct Vbo {
     GLint reserved; // actual space used by meshes
 
     struct {
-        uint32_t phase;
-        int32_t dirty[NUM_PHASES];
+        unsigned int phase;
+        int dirty[NUM_PHASES];
         GLsync fence[NUM_PHASES];
         enum scheduling type;
         GLint offset;
     } scheduler;
 };
 
-void vbo_create(struct Vbo* p);
+int vbo_create(struct Vbo* p);
+int vbo_destroy(struct Vbo* p);
 
 void vbo_print(struct Vbo* vbo);
 
@@ -115,7 +117,7 @@ void vbo_sync(struct Vbo* vbo);
 // example might be made up of three vertices, normals, texcoords
 // since these come from the arrays that are stored in vbos, there is an additional type of buffer
 // called the index buffer that contains not components, but indices into the vbos
-struct Mesh {
+struct VboMesh {
     struct Vbo* vbo;
 
     GLint offset; // offset in vbo buffers
@@ -145,40 +147,41 @@ struct Mesh {
         struct IndexBuffer* buffer;
     } primitives;
 
-    int32_t garbage;
+    int garbage;
 };
 
-void mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct Mesh* p);
+int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* p);
+int vbomesh_destroy(struct Vbo* vbo, struct VboMesh* p);
 
-void mesh_print(struct Mesh* mesh);
+void vbomesh_print(struct VboMesh* mesh);
 
-GLint mesh_alloc(struct Mesh* mesh, GLint n);
-GLint mesh_alloc_vbo(struct Mesh* mesh, GLint n);
-GLint mesh_alloc_primitives(struct Mesh* mesh, GLint n);
+GLint vbomesh_alloc(struct VboMesh* mesh, GLint n);
+GLint vbomesh_alloc_vbo(struct VboMesh* mesh, GLint n);
+GLint vbomesh_alloc_primitives(struct VboMesh* mesh, GLint n);
 
-void mesh_append(struct Mesh* mesh, int i, void* data, GLint n);
-void mesh_append_generic(struct Mesh* mesh, int i, void* data, GLint n, GLint components_size, GLenum components_type);
+void vbomesh_append(struct VboMesh* mesh, int i, void* data, GLint n);
+void vbomesh_append_generic(struct VboMesh* mesh, int i, void* data, GLint n, GLint components_size, GLenum components_type);
 
-void mesh_clear_vbo(struct Mesh* mesh);
-void mesh_clear_primitives(struct Mesh* mesh);
+void vbomesh_clear_vbo(struct VboMesh* mesh);
+void vbomesh_clear_primitives(struct VboMesh* mesh);
 
-void* mesh_map(struct Mesh* mesh, GLint offset, GLint length, GLbitfield access);
-GLboolean mesh_unmap(struct Mesh* mesh);
+void* vbomesh_map(struct VboMesh* mesh, GLint offset, GLint length, GLbitfield access);
+GLboolean vbomesh_unmap(struct VboMesh* mesh);
 
-void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c);
-void mesh_primitives(struct Mesh* mesh, void* data, GLint n);
+void vbomesh_triangle(struct VboMesh* mesh, GLuint a, GLuint b, GLuint c);
+void vbomesh_primitives(struct VboMesh* mesh, void* data, GLint n);
 
-struct Mesh* mesh_clone(struct Mesh* mesh);
+struct VboMesh* vbomesh_clone(struct VboMesh* mesh);
 
 #endif
 
-/* void mesh_quad(struct mesh* mesh, GLuint a, GLuint b, GLuint c, GLuint d); */
+/* void vbomesh_quad(struct mesh* mesh, GLuint a, GLuint b, GLuint c, GLuint d); */
 
-/* void mesh_destroy(struct mesh* mesh); */
+/* void vbomesh_destroy(struct mesh* mesh); */
 
-/* struct mesh* mesh_union(struct mesh* a, struct mesh* b); */
+/* struct mesh* vbomesh_union(struct mesh* a, struct mesh* b); */
 
-/* struct mesh* mesh_copy(struct mesh* mesh, struct vbo* to_vbo, uint64_t to_offset); */
+/* struct mesh* vbomesh_copy(struct mesh* mesh, struct vbo* to_vbo, uint64_t to_offset); */
 
 // mesh operations
 // create:
@@ -227,9 +230,9 @@ struct Mesh* mesh_clone(struct Mesh* mesh);
 // 5 and 8 are mesh1->offset + mesh1->size and mesh2->offset + mesh2->size,
 //   they can only change for the last mesh in the buffer, when data is added
 //   that makes the used space grow beyond the meshes size
-// range 9-10 is returned by mesh_freespace(mesh1), it is equal to
+// range 9-10 is returned by vbomesh_freespace(mesh1), it is equal to
 //   mesh1->size - mesh1->used
-// range 11-10 is a special case, mesh_freespace(mesh2) should return the
+// range 11-10 is a special case, vbomesh_freespace(mesh2) should return the
 //   remaining space in the buffer since mesh2 is the last mesh,
 //   finding the last mesh can be done by going through all meshes of the
 //   buffer in reverse order (most likely the first test is going to be

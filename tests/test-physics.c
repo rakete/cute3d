@@ -12,7 +12,7 @@
 #include "physics.h"
 #include "gametime.h"
 
-void mesh_from_solid(struct Solid* solid, float color[4], struct Mesh* mesh) {
+void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mesh) {
     static struct Vbo vbo;
     static int vbo_initialized = 0;
     if( ! vbo_initialized ) {
@@ -26,11 +26,11 @@ void mesh_from_solid(struct Solid* solid, float color[4], struct Mesh* mesh) {
     solid_colors(solid,color);
     solid_normals(solid);
 
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, mesh);
-    mesh_append(mesh, VERTEX_ARRAY, solid->vertices, solid->size);
-    mesh_append(mesh, NORMAL_ARRAY, solid->normals, solid->size);
-    mesh_append(mesh, COLOR_ARRAY, solid->colors, solid->size);
-    mesh_primitives(mesh, solid->triangles, solid->size);
+    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, mesh);
+    vbomesh_append(mesh, VERTEX_ARRAY, solid->vertices, solid->size);
+    vbomesh_append(mesh, NORMAL_ARRAY, solid->normals, solid->size);
+    vbomesh_append(mesh, COLOR_ARRAY, solid->colors, solid->size);
+    vbomesh_primitives(mesh, solid->elements, solid->size);
 }
 
 /* man könnte vielleicht einfach ein array mit diesen components in ein struct
@@ -50,7 +50,7 @@ struct BouncingCube {
 
     /* Mesh */
     struct Cube solid;
-    struct Mesh mesh;
+    struct VboMesh mesh;
 };
 
 struct Ground {
@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
     /* Box */
     float size = 2.0f;
     solid_cube(size, &entity.solid);
-    mesh_from_solid((struct Solid*)&entity.solid, (Color){0.7, 0.1, 0.0, 1.0}, &entity.mesh);
+    vbomesh_from_solid((struct Solid*)&entity.solid, (Color){0.7, 0.1, 0.0, 1.0}, &entity.mesh);
 
     Mat inertia;
     float mass = 1;
@@ -266,7 +266,7 @@ int main(int argc, char *argv[]) {
         const double alpha = time.accumulator / time.dt;
         entity.current = physics_interpolate(entity.previous, entity.current, alpha);
 
-        render_mesh(&entity.mesh, &shader, &camera, entity.current.world_transform);
+        render_vbomesh(&entity.mesh, &shader, &camera, entity.current.world_transform);
         draw_normals_array(entity.solid.vertices,
                            entity.solid.normals,
                            entity.solid.solid.size,

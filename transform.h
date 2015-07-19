@@ -34,6 +34,4 @@ void pivot_lookat(struct Pivot* pivot, const Vec target);
 void pivot_world_transform(struct Pivot pivot, Mat world_transform);
 void pivot_local_transform(struct Pivot pivot, Mat local_transform);
 
-void pivot_transform(Mat transform, struct Pivot* pivot, ...);
-
 #endif

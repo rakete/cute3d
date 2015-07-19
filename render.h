@@ -22,7 +22,7 @@
 #include "shader.h"
 #include "geometry.h"
 
-void render_mesh(const struct Mesh* mesh, const struct Shader* shader, const struct Camera* camera, Mat model_matrix);
+void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, Mat model_matrix);
 
 //void render_sprite(struct Sprite* sprite, struct Shader* shader, struct Camera* camera, Mat model_matrix);
 

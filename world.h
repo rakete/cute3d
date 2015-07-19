@@ -9,12 +9,10 @@ void world_grid_create(struct Grid* grid,
                        float height,
                        float depth,
                        struct Cube* cube,
-                       struct Mesh* mesh);
+                       struct VboMesh* mesh);
 void world_grid_update(struct Grid* grid,
                        struct GridPages* pages,
                        int level,
                        uint64_t page,
                        struct Cube* cube,
-                       struct Mesh* mesh);
-
-
+                       struct VboMesh* mesh);

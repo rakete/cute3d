@@ -38,6 +38,18 @@ int main(int argc, char** argv) {
     SDL_GLContext* context;
     sdl2_glcontext(window, &context);
 
+    if( ! init_ogl(1600, 900, (Color){0.0f, 0.0f, 0.0f, 1.0f}) ) {
+        return 1;
+    }
+
+    if( ! init_shader() ) {
+        return 1;
+    }
+
+    if( ! init_geometry() ) {
+        return 1;
+    }
+
     float vertices1[9] = { -0.7, 0.0, 0.5,
                            -0.1, 0.0, -0.5,
                            -1.3, 0.0, -0.5 };
@@ -45,22 +57,20 @@ int main(int argc, char** argv) {
                          1.0, 0, 0, 1.0,
                          1.0, 0, 0, 1.0 };
 
-    init_geometry();
-
     struct Vbo vbo;
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, COLOR_ARRAY, 4, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
 
-    struct Mesh triangle_mesh;
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &triangle_mesh);
+    struct VboMesh triangle_mesh;
+    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &triangle_mesh);
 
-    mesh_append(&triangle_mesh, VERTEX_ARRAY, vertices1, 3);
-    mesh_append(&triangle_mesh, COLOR_ARRAY, colors, 3);
-    mesh_triangle(&triangle_mesh, 0, 1, 2);
+    vbomesh_append(&triangle_mesh, VERTEX_ARRAY, vertices1, 3);
+    vbomesh_append(&triangle_mesh, COLOR_ARRAY, colors, 3);
+    vbomesh_triangle(&triangle_mesh, 0, 1, 2);
 
-    mesh_print(&triangle_mesh);
+    vbomesh_print(&triangle_mesh);
 
     init_shader();
     struct Shader default_shader;
@@ -88,17 +98,17 @@ int main(int argc, char** argv) {
 
     struct Cube cube;
     solid_hexahedron(1.0, &cube);
-    solid_colors((struct Solid*)&cube, (float[4]){ 1.0, 0.0, 0.0, 1.0 });
+    solid_color((struct Solid*)&cube, (float[4]){ 1.0, 0.0, 0.0, 1.0 });
     solid_normals((struct Solid*)&cube);
 
-    struct Mesh cube_mesh;
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
-    mesh_append(&cube_mesh, VERTEX_ARRAY, cube.vertices, cube.solid.size);
-    mesh_append(&cube_mesh, COLOR_ARRAY, cube.colors, cube.solid.size);
-    mesh_append(&cube_mesh, NORMAL_ARRAY, cube.normals, cube.solid.size);
-    mesh_primitives(&cube_mesh, cube.triangles, cube.solid.size);
+    struct VboMesh cube_mesh;
+    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
+    vbomesh_append(&cube_mesh, VERTEX_ARRAY, cube.vertices, cube.solid.size);
+    vbomesh_append(&cube_mesh, COLOR_ARRAY, cube.colors, cube.solid.size);
+    vbomesh_append(&cube_mesh, NORMAL_ARRAY, cube.normals, cube.solid.size);
+    vbomesh_primitives(&cube_mesh, cube.elements, cube.solid.size);
 
-    mesh_print(&cube_mesh);
+    vbomesh_print(&cube_mesh);
 
     struct Character symbols[256];
     ascii_create(symbols);
@@ -157,7 +167,7 @@ int main(int argc, char** argv) {
 
         mat_translate(cube_transform, (Vec){ -2.0, 0.0, 0.0, 1.0 }, cube_transform);
 
-        render_mesh(&cube_mesh, &default_shader, &default_camera, cube_transform);
+        render_vbomesh(&cube_mesh, &default_shader, &default_camera, cube_transform);
         draw_normals_array(cube.vertices,
                            cube.normals,
                            cube.solid.size,

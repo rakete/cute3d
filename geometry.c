@@ -99,7 +99,7 @@ GLsizei sizeof_primitive(GLenum primitive) {
     return 0;
 }
 
-void vbo_create(struct Vbo* p) {
+int vbo_create(struct Vbo* p) {
     for( int i = 0; i < NUM_PHASES; i++ ) {
         for( int j = 0; j < NUM_BUFFERS; j++ ) {
             p->_internal_buffer[i][j].id = 0;
@@ -127,6 +127,7 @@ void vbo_create(struct Vbo* p) {
     p->scheduler.type = MANY_BUFFER;
     p->scheduler.offset = 0;
 
+    return 1;
 }
 
 void vbo_print(struct Vbo* vbo) {
@@ -280,7 +281,7 @@ GLboolean vbo_unmap(struct Vbo* vbo, int i) {
 }
 
 
-void mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct Mesh* p) {
+int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* p) {
     if( vbo ) {
         p->vbo = vbo;
 
@@ -308,10 +309,14 @@ void mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLen
         ogl_debug( glGenBuffers(1, &p->primitives.buffer->id) );
 
         p->garbage = 0;
+
+        return 1;
+    } else {
+        return 0;
     }
 }
 
-void mesh_print(struct Mesh* mesh) {
+void vbomesh_print(struct VboMesh* mesh) {
     vbo_print(mesh->vbo);
 
     printf("\n");
@@ -355,7 +360,7 @@ void mesh_print(struct Mesh* mesh) {
                     break;
                 }
                 case GL_INT: {
-                    printf("ERROR: GL_INT not implemented in mesh_print\n");
+                    printf("ERROR: GL_INT not implemented in vbomesh_print\n");
                     break;
                 }
             }
@@ -363,13 +368,13 @@ void mesh_print(struct Mesh* mesh) {
     }
 }
 
-GLint mesh_alloc(struct Mesh* mesh, GLint n) {
-    GLint v = mesh_alloc_vbo(mesh,n);
-    GLint p = mesh_alloc_primitives(mesh,n);
+GLint vbomesh_alloc(struct VboMesh* mesh, GLint n) {
+    GLint v = vbomesh_alloc_vbo(mesh,n);
+    GLint p = vbomesh_alloc_primitives(mesh,n);
     return v+p;
 }
 
-GLint mesh_alloc_vbo(struct Mesh* mesh, GLint n) {
+GLint vbomesh_alloc_vbo(struct VboMesh* mesh, GLint n) {
     if( mesh && mesh->offset + mesh->size == mesh->vbo->reserved ) {
         if( vbo_free_elements(mesh->vbo) < n ) {
             vbo_alloc(mesh->vbo, n);
@@ -386,7 +391,7 @@ GLint mesh_alloc_vbo(struct Mesh* mesh, GLint n) {
     return 0;
 }
 
-GLint mesh_alloc_primitives(struct Mesh* mesh, GLint n) {
+GLint vbomesh_alloc_primitives(struct VboMesh* mesh, GLint n) {
     if( mesh && mesh->primitives.buffer->id ) {
         GLsizei size_bytes = mesh->primitives.buffer->size * mesh->index.bytes;
         GLsizei alloc_bytes = n * mesh->index.bytes;
@@ -405,11 +410,11 @@ GLint mesh_alloc_primitives(struct Mesh* mesh, GLint n) {
     return 0;
 }
 
-void mesh_append(struct Mesh* mesh, int i, void* data, GLint n) {
-    mesh_append_generic(mesh, i, data, n, mesh->vbo->components[i].size, mesh->vbo->components[i].type);
+void vbomesh_append(struct VboMesh* mesh, int i, void* data, GLint n) {
+    vbomesh_append_generic(mesh, i, data, n, mesh->vbo->components[i].size, mesh->vbo->components[i].type);
 }
 
-void mesh_append_generic(struct Mesh* mesh, int i, void* data, GLint n, GLint components_size, GLenum components_type) {
+void vbomesh_append_generic(struct VboMesh* mesh, int i, void* data, GLint n, GLint components_size, GLenum components_type) {
     if( mesh && mesh->vbo->buffer[i].id ) {
         // only these depend on given size params => generic data append
         GLsizei attrib_bytes = components_size * sizeof_type(components_type);
@@ -433,7 +438,7 @@ void mesh_append_generic(struct Mesh* mesh, int i, void* data, GLint n, GLint co
         {
             // this does not work genericly, so we just do not allocate anything at all,
             // if num and type do not fit the stored values in vbo
-            mesh_alloc_vbo(mesh,n);
+            vbomesh_alloc_vbo(mesh,n);
 
             ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
                        glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
@@ -444,19 +449,19 @@ void mesh_append_generic(struct Mesh* mesh, int i, void* data, GLint n, GLint co
     }
 }
 
-void mesh_clear_vbo(struct Mesh* mesh) {
+void vbomesh_clear_vbo(struct VboMesh* mesh) {
     for( int i = 0; i < NUM_BUFFERS; i++ ) {
         mesh->uses[i] = 0;
     }
 }
 
-void mesh_clear_primitives(struct Mesh* mesh) {
+void vbomesh_clear_primitives(struct VboMesh* mesh) {
     for( int i = 0; i < NUM_PHASES; i++ ) {
         mesh->primitives._internal_buffer[i].used = 0;
     }
 }
 
-void* mesh_map(struct Mesh* mesh, GLint offset, GLint length, GLbitfield access) {
+void* vbomesh_map(struct VboMesh* mesh, GLint offset, GLint length, GLbitfield access) {
     if( mesh && mesh->primitives.buffer->id && offset < mesh->primitives.buffer->size ) {
         if( offset + length > mesh->primitives.buffer->size ) {
             GLint alloc = offset + length - mesh->primitives.buffer->size + 1;
@@ -489,7 +494,7 @@ void* mesh_map(struct Mesh* mesh, GLint offset, GLint length, GLbitfield access)
     return NULL;
 }
 
-GLboolean mesh_unmap(struct Mesh* mesh) {
+GLboolean vbomesh_unmap(struct VboMesh* mesh) {
     if( mesh && mesh->primitives.buffer->id ) {
         GLboolean result = 0;
         ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
@@ -502,7 +507,7 @@ GLboolean mesh_unmap(struct Mesh* mesh) {
     return 0;
 }
 
-void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c) {
+void vbomesh_triangle(struct VboMesh* mesh, GLuint a, GLuint b, GLuint c) {
     if( mesh && mesh->primitives.buffer->id && mesh->primitives.size == 3 ) {
         void* data = malloc(3 * mesh->index.bytes);
 
@@ -515,7 +520,7 @@ void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c) {
             ((GLushort*)data)[1] = (GLushort)b;
             ((GLushort*)data)[2] = (GLushort)c;
         } else {
-            printf("ERROR: this mesh->index.type not implemented in mesh_triangle\n");
+            printf("ERROR: this mesh->index.type not implemented in vbomesh_triangle\n");
         }
 
         GLsizei size_bytes = mesh->primitives.buffer->size * mesh->index.bytes;
@@ -543,7 +548,7 @@ void mesh_triangle(struct Mesh* mesh, GLuint a, GLuint b, GLuint c) {
     }
 }
 
-void mesh_primitives(struct Mesh* mesh, void* data, GLint n) {
+void vbomesh_primitives(struct VboMesh* mesh, void* data, GLint n) {
     if( mesh && mesh->primitives.buffer->id ) {
         GLsizei size_bytes = mesh->primitives.buffer->size * mesh->index.bytes;
 
