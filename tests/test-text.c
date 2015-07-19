@@ -1,6 +1,6 @@
 #include "quaternion.h"
 
-#include "text.h"
+#include "gui.h"
 #include "solid.h"
 #include "render.h"
 #include "sdl2.h"
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     sdl2_orbit_create(window, (Vec){12.0,16.0,-8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, &camera);
 
     struct Character symbols[256];
-    ascii_create(symbols);
+    default_font_create(symbols);
 
     struct Font font;
     font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, &font);

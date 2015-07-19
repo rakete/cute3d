@@ -3,7 +3,7 @@
 #include "sdl2.h"
 #include "ogl.h"
 
-#include "text.h"
+#include "gui.h"
 #include "solid.h"
 #include "draw.h"
 #include "render.h"
@@ -181,7 +181,7 @@ int main(int argc, char *argv[]) {
 
     /* Text */
     struct Character symbols[256];
-    ascii_create(symbols);
+    default_font_create(symbols);
 
     /* collision detection state */
     size_t world_size = 2;

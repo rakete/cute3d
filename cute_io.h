@@ -14,18 +14,20 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef RENDER_H
-#define RENDER_H
+#ifndef CUTE_IO_H
+#define CUTE_IO_H
 
-#include "render_ogl.h"
-#include "render_camera.h"
-#include "render_shader.h"
-#include "geometry_vbo.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
+#include "stdint.h"
+#include "limits.h"
 
-void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, Mat model_matrix);
 
-//void render_sprite(struct Sprite* sprite, struct Shader* shader, struct Camera* camera, Mat model_matrix);
+#define ENGINE_ROOT "/home/rakete/interactive/cute3d/"
 
-void render_shader_flat(struct Shader* shader);
+char* read_file(const char* filename, int32_t* length);
+
+size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char flag, unsigned char** output);
 
 #endif

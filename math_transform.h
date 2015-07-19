@@ -14,18 +14,24 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef RENDER_H
-#define RENDER_H
+#ifndef MATH_TRANSFORM_H
+#define MATH_TRANSFORM_H
 
-#include "render_ogl.h"
-#include "render_camera.h"
-#include "render_shader.h"
-#include "geometry_vbo.h"
+#include "math_types.h"
+#include "math_matrix.h"
 
-void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, Mat model_matrix);
+struct Pivot {
+    Vec position;
+    Quat orientation;
 
-//void render_sprite(struct Sprite* sprite, struct Shader* shader, struct Camera* camera, Mat model_matrix);
+    float zoom;
+    float eye_distance;
+};
 
-void render_shader_flat(struct Shader* shader);
+void pivot_create(struct Pivot* pivot);
+void pivot_lookat(struct Pivot* pivot, const Vec target);
+
+void pivot_world_transform(struct Pivot pivot, Mat world_transform);
+void pivot_local_transform(struct Pivot pivot, Mat local_transform);
 
 #endif

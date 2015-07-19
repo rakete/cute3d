@@ -1,8 +1,8 @@
-#include "halfedge.h"
-#include "shader.h"
-#include "sdl2.h"
-#include "vbo.h"
+#include "geometry_halfedgemesh.h"
 #include "render.h"
+#include "render_shader.h"
+#include "cute_sdl2.h"
+#include "geometry_vbo.h"
 
 void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
     assert(solid->elements != NULL);

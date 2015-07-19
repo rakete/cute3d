@@ -1,10 +1,10 @@
-#include "vbo.h"
-#include "solid.h"
+#include "geometry_vbo.h"
+#include "geometry_solid.h"
 #include "render.h"
-#include "sdl2.h"
+#include "cute_sdl2.h"
 
 void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mesh) {
-    solid_colors(solid,color);
+    solid_color(solid,color);
     solid_normals(solid);
 
     vbomesh_append(mesh, VERTEX_ARRAY, solid->vertices, solid->size);
