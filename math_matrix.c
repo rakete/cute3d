@@ -453,7 +453,6 @@ void mat_rotating(const Quat q, Mat r) {
 
 void mat_invert(const Mat m, double* det, Mat r) {
     double inv[16];
-    int i;
 
     inv[0] =
         m[5]  * m[10] * m[15] -

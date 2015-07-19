@@ -25,6 +25,7 @@
 #include "render.h"
 #include "geometry_solid.h"
 #include "gui.h"
+#include "gui_default_font.h"
 #include "cute_sdl2.h"
 
 int main(int argc, char** argv) {

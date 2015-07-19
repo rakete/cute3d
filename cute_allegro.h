@@ -1,7 +1,7 @@
-#ifndef ALLEGRO_H
-#define ALLEGRO_H
+#ifndef CUTE_ALLEGRO_H
+#define CUTE_ALLEGRO_H
 
-#include "geometry.h"
+#include "geometry_vbo.h"
 #include "render.h"
 #include "gui.h"
 

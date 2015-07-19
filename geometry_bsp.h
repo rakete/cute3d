@@ -14,18 +14,14 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "geometry.h"
+#ifndef GEOMETRY_BSP_H
+#define GEOMETRY_BSP_H
 
 // a bsp tree is not a geometrical structure itself, it is more
 // like a description of a mesh that can be used to, for example,
 // render or modify it efficiently
-struct Bsp {
-    struct Mesh* mesh
-};
 
 // triangles get put into binary branches by whether side of a leaf triangle they are of
 // so we need to construct all triangles from a vertex_buffer and element_buffer
-void bsp_create(struct Mesh* mesh,
-                struct Bsp* bsp);
 
-void bsp_traverse(struct Bsp* bsp);
+#endif

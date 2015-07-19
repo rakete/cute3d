@@ -27,52 +27,8 @@
 #include "render_ogl.h"
 #include "render_glsl.h"
 #include "render_camera.h"
-
-#ifndef FONT_SIZE
-#define FONT_SIZE 1024
-#endif
-
-struct Character {
-    int w;
-    int h;
-    const int* pixels;
-};
-
-struct Glyph {
-    int x;
-    int y;
-    int w;
-    int h;
-};
-
-struct Font {
-    struct Glyph glyphs[FONT_SIZE];
-    bool alphabet[FONT_SIZE];
-
-    bool unicode;
-
-    struct {
-        GLuint id;
-        GLsizei width;
-        GLsizei height;
-        GLenum type;
-        GLint format;
-        GLint min_filter;
-        GLint mag_filter;
-    } texture;
-
-    struct {
-        GLuint program;
-    } shader;
-
-    float kerning;
-    float linespacing;
-    Color color;
-};
-
-void font_create(const wchar_t* alphabet, bool unicode, struct Character* symbols, struct Font* font);
-
-void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter);
+#include "gui_font.h"
+#include "gui_default_font.h"
 
 void text_put(const wchar_t* text, const struct Font* font, float scale, const Mat projection_matrix, const Mat view_matrix, Mat model_matrix);
 void text_overlay(const wchar_t* text, const struct Font* font, int size, struct Camera camera, int x, int y);

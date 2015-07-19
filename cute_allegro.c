@@ -1,4 +1,4 @@
-#include "allegro.h"
+#include "cute_allegro.h"
 
 int init_allegro() {
     return al_init();
