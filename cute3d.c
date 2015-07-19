@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    if( ! init_geometry() ) {
+    if( ! init_vbo() ) {
         return 1;
     }
 

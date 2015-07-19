@@ -13,8 +13,8 @@
 
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
-#ifndef GEOMETRY_H
-#define GEOMETRY_H
+#ifndef VBO_H
+#define VBO_H
 
 #include "stdint.h"
 #include "stdlib.h"
@@ -29,7 +29,7 @@
 #define NUM_PHASES 1
 #endif
 
-int init_geometry();
+int init_vbo();
 
 GLsizei buffer_resize(GLuint* buffer, GLsizei old_nbytes, GLsizei new_nbytes);
 

@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     SDL_GLContext* context;
     sdl2_glcontext(window, &context);
 
-    if( ! init_geometry() ) {
+    if( ! init_vbo() ) {
         return 1;
     }
 

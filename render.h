@@ -20,7 +20,7 @@
 #include "ogl.h"
 #include "camera.h"
 #include "shader.h"
-#include "geometry.h"
+#include "vbo.h"
 
 void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, Mat model_matrix);
 

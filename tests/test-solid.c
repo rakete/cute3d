@@ -1,4 +1,4 @@
-#include "geometry.h"
+#include "vbo.h"
 #include "solid.h"
 #include "render.h"
 #include "sdl2.h"
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if( ! init_geometry() ) {
+    if( ! init_vbo() ) {
         return 1;
     }
 

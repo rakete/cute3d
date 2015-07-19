@@ -4,7 +4,7 @@
 #include "stdint.h"
 #include "stdlib.h"
 
-#include "geometry.h"
+#include "vbo.h"
 #include "solid.h"
 
 #ifndef Cell

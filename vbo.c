@@ -14,9 +14,9 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "geometry.h"
+#include "vbo.h"
 
-int init_geometry() {
+int init_vbo() {
     int ret = 1;
 
     glewInit();

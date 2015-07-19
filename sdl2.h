@@ -6,7 +6,7 @@
 
 #include "ogl.h"
 #include "text.h"
-#include "geometry.h"
+#include "vbo.h"
 #include "shader.h"
 
 #define sdl2_stringify(arg) #arg

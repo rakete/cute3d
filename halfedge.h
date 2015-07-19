@@ -1,3 +1,6 @@
+#ifndef HALFEDGE_H
+#define HALFEDGE_H
+
 #include "math_types.h"
 #include "solid.h"
 #include "limits.h"
@@ -97,3 +100,5 @@ int halfedgemesh_vertex_iterate(struct HalfEdgeMesh* mesh, unsigned int vertex_i
 void halfedgemesh_compress(struct HalfEdgeMesh* mesh);
 
 void halfedgemesh_verify(struct HalfEdgeMesh* mesh);
+
+#endif

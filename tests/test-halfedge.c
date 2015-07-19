@@ -1,7 +1,7 @@
 #include "halfedge.h"
 #include "shader.h"
 #include "sdl2.h"
-#include "geometry.h"
+#include "vbo.h"
 #include "render.h"
 
 void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if( ! init_geometry() ) {
+    if( ! init_vbo() ) {
         return 1;
     }
 
