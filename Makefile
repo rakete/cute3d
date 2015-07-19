@@ -18,6 +18,7 @@ cute3d: *.c
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC physics.c -c -o physics.o
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC collisions.c -c -o collisions.o
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC gametime.c -c -o gametime.o
+	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC halfedge.c -c -o halfedge.o
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC sdl2.c -c -o sdl2.o -lSDL2 -lSDL2main -lGL -lGLEW
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC cute3d.c -o cute3d *.o -lm -lSDL2 -lSDL2main -lGL -lGLEW -lglut
 
@@ -41,3 +42,6 @@ text: tests/test-text.c cute3d
 
 physics: tests/test-physics.c cute3d
 	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC -I. tests/test-physics.c -o physics *.o -lm -lSDL2 -lSDL2main -lGL -lGLEW
+
+halfedge: tests/test-halfedge.c cute3d
+	gcc -std=c99 -Wall -pedantic -g -DDEBUG -std=c99 -fPIC -I. tests/test-halfedge.c -o halfedge *.o -lm -lSDL2 -lSDL2main -lGL -lGLEW
