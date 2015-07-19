@@ -22,70 +22,18 @@
 #include "transform.h"
 #include "physics.h"
 
-// I need only collision detection that is sufficient for simple stuff, but I hope I can implement something
-// that should be flexible enough to 'scale' to colliding more complex shapes later on. the collision detection
-// process is seperated into two stages, a broad phase that only tests for potential collisions and returns
-// a list of possible candidates (there can be false positives, but there should not be any false negatives),
-// and a narrow phase that takes the list of potential collisions and finds the actual contact points of the
-// collisions
-
-// my plan is to concentrate only on the narrow phase first, implementing it so that it can be used without
-// needing any broad phase to be run before it if neccessary. that way I get something that works reasonably
-// quick, that can later be extended with a broad phase if neccessary to optimize the performance
-
 #define MAX_CONTACTS 4
 #define COLLISION_LIFETIME 5
 
-// the collision detection system deals exclusively with simplified geometry used as bounding volumes, any kind
-// of computation on the level of actual points, lines and triangles should be encapsulated in the computations
-// for the more higher level bounding volumes. reusing a mesh that is used for rendering as a bounding volume
-// should be an absolute exception
-
-// there are many types of bounding volumes that may be useful to have, but I want to implement only those that
-// I really need. the enum collider_type should give an overview of what I considered useful bounding volumes,
-// but even those may not all be implemented
-// the ones I am going to implement first are spheres, rays, planes and aabb's and/or obb's. those should be
-// enough for my immediate needs:
-// - spheres are nice and simple and testing for collisions between spheres should be very straightforward, making
-//   them an obvious choice for everything that is simple enough to be approximated by a sphere (I am thinking
-//   projectiles for example)
-// - rays are needed for picking, that makes the neccessary even if I don't know yet exactly if they are going
-//   to be difficult to implement
-// - planes make great boundaries for levels, I believe also terrain collision can be generalized in a way that
-//   it comes down to checking collisions against a few planes
-// - aabb are axis aligned bounding boxes
-// - obb are oriented bounding boxes, aabb and obb are both neccessary so that I can have something more complex
-//   than spheres, especially for testing angular collision responses, fitting aabb to the model is actually
-//   somewhat complex and must be done whenever the models orientation changes, so I will probably use obb's
-//   first and just align them manually
-
-// two other bounding volume types I consider very important, but plan to implement later:
-// - arbitrary convex shapes that can be tested for collisions with the gjk algorithm
-// - and bounding volume hierachies (bvh) that are tree like constructs consisting of multiple levels of bounding
-//   volumes. bvh's are probably more important than implementing the gjk algorithm, so I should do those first
-
-// one thing I have not really thought about too much is how spatial partitioning is going to fit in here later
-// I imagine it to be a seperate module that is mostly independent from the collision detection, but is used
-// to shrink the number of bounding volumes for testing, which is done somewhere outside of this module and than
-// used here
-// on the other hand something like an dynamic aabb tree which I found recently may actually have quiet a lot
-// of overlap with the functionality here, so spatial partitioning may not be as easily seperated from collision
-// detection as I think
 enum collider_type {
     COLLIDER_SPHERE = 0,
-    COLLIDER_RAY,
     COLLIDER_PLANE,
     COLLIDER_AABB,
     COLLIDER_OBB,
-    COLLIDER_CONVEX,
-    COLLIDER_BVH
+    COLLIDER_CAPSULE,
+    COLLIDER_CONVEX
 };
 
-// the data structures representing the bounding volumes have all the struct Collider in common which
-// contains a pointer to a pivot (of an entity probably) that should not be modified, its type, and a
-// position. since most bounding volumes have no need for an orientation, that is not part of the common
-// struct Collider data structure, but must be part of those bounding volume structs that require an
-// orientation (like an obb for example)
 struct Collider {
     const struct Pivot* pivot;
     enum collider_type type;
@@ -96,12 +44,6 @@ struct ColliderSphere {
     struct Collider collider;
 
     float radius;
-};
-
-struct ColliderRay {
-    struct Collider collider;
-
-    Vec ray;
 };
 
 struct ColliderPlane {
@@ -133,19 +75,26 @@ struct ColliderOBB {
     float depth;
 };
 
+struct ColliderCapsule {
+    struct Collider collider;
+
+    Vec point_a;
+    Vec point_b;
+    float radius;
+};
+
+// contact caching needs edge indices
 struct ColliderConvex {
     struct Collider collider;
 
+    Mat orientation;
+
     float* vertices;
-    size_t components;
-    size_t size;
-};
+    unsigned int* edges;
+    size_t num_edges;
 
-struct ColliderBVH {
-    struct Collider collider;
-
-    struct Collider* branches;
-    size_t size;
+    float* normals;
+    size_t num_normals;
 };
 
 // each supported bounding volume data structure should have a constructor to initialize it
