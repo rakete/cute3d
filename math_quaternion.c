@@ -37,13 +37,20 @@ QuatP qidentity(Quat q) {
     return q;
 }
 
-bool quat_rotating_axis(const Vec axis, const float angle, Quat q) {
-    if( ( axis[0] == 0.0 && axis[1] == 0.0 && axis[2] == 0.0 ) ||
-        angle == 0.0 )
+bool quat_from_axis_angle(const Vec axis, const float angle, Quat q) {
+    if( ( fabs(axis[0]) < FLOAT_EPSILON && fabs(axis[1]) < FLOAT_EPSILON && fabs(axis[2]) < FLOAT_EPSILON ) ||
+        fabs(angle) < FLOAT_EPSILON )
     {
         quat_identity(q);
-        return 0;
+        return 1;
     }
+
+    /* float half_angle = angle * .5f; */
+    /* float s = (float)sinf(half_angle); */
+    /* q[0] = axis[0] * s; */
+    /* q[1] = axis[1] * s; */
+    /* q[2] = axis[2] * s; */
+    /* q[3] = (float)cosf(half_angle); */
 
     Vec normed_axis;
     float norm = sqrt( axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2] );
@@ -60,70 +67,49 @@ bool quat_rotating_axis(const Vec axis, const float angle, Quat q) {
     return 1;
 }
 
-QuatP qrotating_axis(Vec axis, const float angle) {
-    quat_rotating_axis(axis, angle, axis);
+QuatP qfrom_axis_angle(Vec axis, const float angle) {
+    quat_from_axis_angle(axis, angle, axis);
     return axis;
 }
 
-bool quat_rotating_vec(const Vec a, const Vec b, Quat q) {
+bool quat_from_vec_pair(const Vec a, const Vec b, Quat q) {
     Vec axis;
     vec_cross(b,a,axis);
 
     float angle;
     vec_angle(b,a,&angle);
 
-    if( ( axis[0] == 0.0 && axis[1] == 0.0 && axis[2] == 0.0 ) ||
-        angle == 0.0 )
+    if( (fabs(axis[0]) < FLOAT_EPSILON && fabs(axis[1]) < FLOAT_EPSILON && fabs(axis[2]) < FLOAT_EPSILON) ||
+        fabs(angle) < FLOAT_EPSILON )
     {
         quat_identity(q);
-        return 0;
+        return 1;
     }
 
-    quat_rotating_axis(axis, angle, q);
+    quat_from_axis_angle(axis, angle, q);
 
     return 1;
 }
 
-QuatP qrotating_vec(const Vec a, Vec b) {
-    quat_rotating_vec(a,b,b);
+QuatP qfrom_vec_pair(const Vec a, Vec b) {
+    quat_from_vec_pair(a,b,b);
     return b;
 }
 
-bool quat_rotate_axis(const Quat q, const Vec axis, const float angle, Quat r) {
-    Quat rotation;
-    bool success = quat_rotating_axis(axis, angle, rotation);
-    quat_mul(q, rotation, r);
-    return success;
-}
+void quat_rotate_vec(const Vec vec, const Quat q, Vec r) {
+    Quat normed_q;
+    quat_normalize(q, normed_q);
 
-QuatP qrotate_axis(const Vec axis, const float angle, Quat q) {
-    quat_rotate_axis(q, axis, angle, q);
-    return q;
-}
-
-bool quat_rotate_vec(const Quat q, const Vec a, const Vec b, Quat r) {
-    Quat rotation;
-    bool success = quat_rotating_vec(a, b, rotation);
-    quat_mul(q, rotation, r);
-    return success;
-}
-
-QuatP qrotate_vec(const Vec a, const Vec b, Quat q) {
-    quat_rotate_vec(q, a, b, q);
-    return q;
-}
-
-void quat_apply_vec(const Quat q, const Vec vec, Vec r) {
     Quat product;
-    quat_mul(q, vec, product);
+    quat_mul(normed_q, vec, product);
 
     Quat conj;
-    quat_conjugate(q, conj);
+    quat_conjugate(normed_q, conj);
 
     quat_mul(product, conj, r);
 }
 
-void quat_apply_vec3f(const Quat q, const Vec3f vec, Vec3f r) {
+void quat_rotate_vec3f(const Vec3f vec, const Quat q, Vec3f r) {
     Vec result4f;
     Vec vec4f;
     vec4f[0] = vec[0];
@@ -131,11 +117,50 @@ void quat_apply_vec3f(const Quat q, const Vec3f vec, Vec3f r) {
     vec4f[2] = vec[2];
     vec4f[3] = 1.0;
 
-    quat_apply_vec(q,vec4f,result4f);
+    quat_rotate_vec(vec4f, q, result4f);
 
     r[0] = result4f[0];
     r[1] = result4f[1];
     r[2] = result4f[2];
+}
+
+bool quat_mul_axis_angle(const Quat q, const Vec axis, const float angle, Quat r) {
+    if( (fabs(axis[0]) < FLOAT_EPSILON && fabs(axis[1]) < FLOAT_EPSILON && fabs(axis[2]) < FLOAT_EPSILON) ||
+        fabs(angle) < FLOAT_EPSILON )
+    {
+        quat_copy(q, r);
+        return 1;
+    }
+
+    Quat rotation;
+    bool success = quat_from_axis_angle(axis, angle, rotation);
+    quat_mul(q, rotation, r);
+    return success;
+}
+
+QuatP qmul_axis_angle(const Vec axis, const float angle, Quat q) {
+    quat_mul_axis_angle(q, axis, angle, q);
+    return q;
+}
+
+bool quat_mul_vec_pair(const Quat q, const Vec a, const Vec b, Quat r) {
+    if( (fabs(a[0]) < FLOAT_EPSILON && fabs(a[1]) < FLOAT_EPSILON && fabs(a[2]) < FLOAT_EPSILON) ||
+        (fabs(b[0]) < FLOAT_EPSILON && fabs(b[1]) < FLOAT_EPSILON && fabs(b[2]) < FLOAT_EPSILON) ||
+        (fabs(a[0]- b[0]) < FLOAT_EPSILON && fabs(a[1] - b[1]) < FLOAT_EPSILON && fabs(a[2] - b[2]) < FLOAT_EPSILON) )
+    {
+        quat_copy(q, r);
+        return 1;
+    }
+
+    Quat rotation;
+    bool success = quat_from_vec_pair(a, b, rotation);
+    quat_mul(q, rotation, r);
+    return success;
+}
+
+QuatP qmul_vec_pair(const Vec a, const Vec b, Quat q) {
+    quat_mul_vec_pair(q, a, b, q);
+    return q;
 }
 
 void quat_mul(const Quat qa, const Quat qb, Quat r) {
@@ -251,7 +276,7 @@ float qmagnitude(const Quat q) {
     return magnitude;
 }
 
-void quat_mat(const Quat q, Mat r) {
+void quat_to_mat(const Quat q, Mat r) {
     float x,y,z,w;
     w = q[3]; x = q[0]; y = q[1]; z = q[2];
 
@@ -302,8 +327,8 @@ void quat_axis_angle(const Quat p, Vec axis, float* angle) {
     }
 }
 
-QuatP qmat(const Quat q, Mat m) {
-    quat_mat(q,m);
+QuatP qto_mat(const Quat q, Mat m) {
+    quat_to_mat(q,m);
     return m;
 }
 

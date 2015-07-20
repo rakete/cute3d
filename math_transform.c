@@ -32,43 +32,112 @@ void pivot_create(struct Pivot* pivot) {
 }
 
 void pivot_lookat(struct Pivot* pivot, const Vec target) {
-    // vektor wo er hinguckt
-    Vec looking_direction;
-    Vec forward = { 0.0, 0.0, 1.0, 1.0 };
-    quat_apply_vec(pivot->orientation, forward, looking_direction);
+    Vec right_axis = { 1.0, 0.0, 0.0, 1.0 };
+    Vec up_axis = { 0.0, 1.0, 0.0, 1.0 };
+    Vec forward_axis = { 0.0, 0.0, -1.0, 1.0 };
 
-    // vektor wo er hingucken soll
     Vec target_direction;
-    vec_sub(pivot->position, target, target_direction);
-
+    vec_sub(target, pivot->position, target_direction);
     vec_length(target_direction, &pivot->eye_distance);
-    vec_normalize(target_direction, target_direction);
+    vec_print("target_direction: ", target_direction);
 
-    // achse = cross product
-    Vec rotation_axis;
-    vec_cross(target_direction, looking_direction, rotation_axis);
-    if( vnullp(rotation_axis) ) {
-        vec_perpendicular(target_direction, rotation_axis);
-    }
+    float dot;
+    vec_dot(target_direction, forward_axis, &dot);
 
-    // winkel = dot product
-    float rotation_angle;
-    vec_angle(target_direction, looking_direction, &rotation_angle);
-    //printf("rotation_angle: %f\n", rotation_angle);
-    //vec_print("target_direction: ", target_direction);
-    //vec_print("rotation_axis: ", rotation_axis);
-
-    // quat das forward vektor auf den target punkt dreht
     Quat rotation;
-    quat_rotating_axis(rotation_axis, rotation_angle, rotation);
+    if( fabs(dot + 1.0f) < FLOAT_EPSILON ) {
+        printf("foo\n");
+        // vector a and b point exactly in the opposite direction,
+        // so it is a 180 degrees turn around the up-axis
+        quat_mul_axis_angle(pivot->orientation, up_axis, PI, rotation);
+    } else if( fabs(dot - (1.0f)) < FLOAT_EPSILON ) {
+        printf("bar\n");
+        // vector a and b point exactly in the same direction
+        // so we return the identity quaternion
+        quat_copy(pivot->orientation, rotation);
+    } else {
+        quat_identity(rotation);
+
+        Vec keep_up;
+        quat_rotate_vec(up_axis, pivot->orientation, keep_up);
+
+        Vec up_projection;
+        vec_mul1f(up_axis, vdot(target_direction, up_axis), up_projection);
+
+        Vec yaw_direction;
+        vec_sub(target_direction, up_projection, yaw_direction);
+
+        Vec yaw_axis;
+        vec_cross(yaw_direction, forward_axis, yaw_axis);
+        if( vnullp(yaw_axis) ) {
+            vec_copy(up_axis, yaw_axis);
+        }
+
+        vec_print("forward_axis2: ", forward_axis);
+        vec_print("yaw_direction: ", yaw_direction);
+
+        float yaw;
+        vec_angle(yaw_direction, forward_axis, &yaw);
+        /* if( yaw_axis[1] < 0.0 ) { */
+        /*     yaw = -yaw; */
+        /* } */
+        assert( ! isnan(yaw) );
+
+        printf("yaw: %f\n", yaw);
+
+        Quat yaw_rotation;
+        quat_from_axis_angle(yaw_axis, yaw, yaw_rotation);
+
+        Quat inverted_rotation;
+        quat_invert(yaw_rotation, inverted_rotation);
+        quat_rotate_vec(forward_axis, inverted_rotation, forward_axis);
+
+        vec_print("yaw_rotation: ", yaw_rotation);
+        vec_print("inverted_rotation: ", inverted_rotation);
+
+        Vec pitch_axis;
+        vec_cross(target_direction, forward_axis, pitch_axis);
+        if( vnullp(pitch_axis) ) {
+            vec_copy(right_axis, pitch_axis);
+        }
+
+        float pitch;
+        vec_angle(target_direction, forward_axis, &pitch);
+        /* if( pitch_axis[0] < 0.0 ) { */
+        /*     pitch = -pitch; */
+        /* } */
+        assert( ! isnan(pitch) );
+
+        vec_print("forward_axis3: ", forward_axis);
+        vec_print("pitch_axis: ", pitch_axis);
+        printf("pitch: %f\n", pitch);
+
+        quat_mul_axis_angle(yaw_rotation, pitch_axis, pitch, rotation);
+
+        Vec new_up;
+        quat_rotate_vec(up_axis, rotation, new_up);
+
+        float dot = vdot(keep_up, new_up);
+
+        vec_print("keep_up: ", keep_up);
+        vec_print("new_up: ", new_up);
+        printf("foo: %f\n", dot);
+
+        if( dot < 0.0f ) {
+            printf("LALALALALALALALALALALALALALALALALALALA\n");
+
+            Vec target_axis;
+            vec_normalize(target_direction, target_axis);
+            quat_mul_axis_angle(rotation, target_axis, PI, rotation);
+        }
+    }
 
     if( ! isnan(rotation[0]) &&
         ! isnan(rotation[1]) &&
         ! isnan(rotation[2]) &&
         ! isnan(rotation[3]) )
     {
-        // neue orientation
-        quat_mul(pivot->orientation, rotation, pivot->orientation);
+        quat_copy(rotation, pivot->orientation);
     }
 }
 
@@ -77,13 +146,14 @@ void pivot_world_transform(const struct Pivot pivot, Mat world_transform) {
     mat_translating(pivot.position, translation);
 
     Mat rotation;
-    quat_mat(pivot.orientation, rotation);
+    quat_to_mat(pivot.orientation, rotation);
 
     mat_mul(rotation, translation, world_transform);
 }
 
 void pivot_local_transform(const struct Pivot pivot, Mat local_transform) {
     Mat world_transform;
+    mat_identity(world_transform);
     pivot_world_transform(pivot, world_transform);
     mat_invert(world_transform, NULL, local_transform);
 }

@@ -262,7 +262,18 @@ VecP vnormalize(Vec v) {
 }
 
 void vec_angle(const Vec v, const Vec w, float* r) {
-    *r = acosf(vdot(v,w) / (vlength(v) * vlength(w)));
+    Vec normed_v, normed_w;
+    vec_normalize(v, normed_v);
+    vec_normalize(w, normed_w);
+
+    float dot = vdot(normed_v,normed_w);
+    if( fabs(dot + 1.0f) < FLOAT_EPSILON ) {
+        *r = PI;
+    } else if( fabs(dot - 1.0f) < FLOAT_EPSILON ) {
+        *r = 0.0f;
+    } else {
+        *r = acosf(dot);
+    }
 }
 
 float vangle(const Vec v, const Vec w) {
@@ -272,9 +283,9 @@ float vangle(const Vec v, const Vec w) {
 }
 
 void vec_nullp(const Vec v, bool* r) {
-    if( v[0] == 0.0 &&
-        v[1] == 0.0 &&
-        v[2] == 0.0 )
+    if( fabs(v[0]) < FLOAT_EPSILON &&
+        fabs(v[1]) < FLOAT_EPSILON &&
+        fabs(v[2]) < FLOAT_EPSILON )
     {
         *r = 1;
     } else {
@@ -309,29 +320,29 @@ void vec_sign(const Vec v, int* sign) {
 
     float sum = vsum(w);
     if( sum != 0.0f ) {
-        *sign = sum;
+        *sign = (int)sum;
         return;
     }
 
     float sum01 = v[0] + v[1];
     if( sum01 != 0.0f ) {
-        *sign = sum;
+        *sign = (int)sum;
         return;
     }
 
     float sum12 = v[1] + v[2];
     if( sum12 != 0.0f ) {
-        *sign = sum;
+        *sign = (int)sum;
         return;
     }
 
     float sum02 = v[0] + v[2];
     if( sum02 != 0.0f ) {
-        *sign = sum;
+        *sign = (int)sum;
         return;
     }
 
-    *sign = 0.0f;
+    *sign = 0;
 }
 
 int vsign(const Vec v) {
@@ -448,7 +459,7 @@ void mat_translating(const Vec v, Mat r) {
 }
 
 void mat_rotating(const Quat q, Mat r) {
-    quat_mat(q, r);
+    quat_to_mat(q, r);
 }
 
 void mat_invert(const Mat m, double* det, Mat r) {
@@ -721,7 +732,7 @@ void mat_translate(const Mat m, const Vec v, Mat r) {
 
 void mat_rotate(const Mat m, const Quat q, Mat r) {
     Mat n;
-    quat_mat(q,n);
+    quat_to_mat(q,n);
     mat_mul(m,n,r);
 }
 

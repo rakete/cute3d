@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    struct Sphere32 solid_in;
-    solid_sphere32(1.0, &solid_in);
+    struct Cube solid_in;
+    solid_cube(1.0, &solid_in);
     solid_normals((struct Solid*)&solid_in);
 
     struct HalfEdgeMesh hemesh;
@@ -93,7 +93,13 @@ int main(int argc, char *argv[]) {
     shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
     struct Camera camera;
-    sdl2_orbit_create(window, (Vec){4.0,4.0,4.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &camera);
+    sdl2_orbit_create(window, (Vec){0.0,0.0,-6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &camera);
+    //pivot_lookat(&camera.pivot, (Vec){0.0, 0.0, 0.0, 1.0});
+    //pivot_lookat(&camera.pivot, (Vec){0.0, 0.0, 0.0, 1.0});
+
+    Quat camera_rotation;
+    quat_identity(camera_rotation);
+    quat_from_axis_angle((Vec){0.0, 1.0, 0.0, 1.0}, PI/180, camera_rotation);
 
     while (true) {
         SDL_Event event;
@@ -116,6 +122,9 @@ int main(int argc, char *argv[]) {
         ogl_debug( glClearDepth(1.0f);
                    glClearColor(.0f, .0f, .0f, 1.0f);
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
+
+        quat_rotate_vec(camera.pivot.position, camera_rotation, camera.pivot.position);
+        pivot_lookat(&camera.pivot, (Vec){0.0, 0.0, 0.0, 1.0});
 
         Mat identity;
         mat_identity(identity);

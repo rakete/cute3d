@@ -253,8 +253,8 @@ void draw_arrow( const Vec v,
         vec_angle(v,z,&angle);
 
         Quat rotation;
-        quat_rotating_axis(axis, angle, rotation);
-        quat_mat(rotation, arrow_matrix);
+        quat_from_axis_angle(axis, angle, rotation);
+        quat_to_mat(rotation, arrow_matrix);
 
         mat_scale(arrow_matrix, (Vec){scale, scale, scale}, arrow_matrix);
 
@@ -389,8 +389,8 @@ void draw_vec( const Vec v,
         vec_angle(v,z,&angle);
 
         Quat rotation;
-        quat_rotating_axis(axis, angle, rotation);
-        quat_mat(rotation, arrow_matrix);
+        quat_from_axis_angle(axis, angle, rotation);
+        quat_to_mat(rotation, arrow_matrix);
 
         // mesh length is always 1.0f, so not only scale it with scale, but also scale it with the
         // actual length it should have
@@ -415,7 +415,7 @@ void draw_vec( const Vec v,
             glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, 0);
 
             Mat arrow_offset_matrix = IDENTITY_MAT;
-            quat_mat(rotation, arrow_offset_matrix);
+            quat_to_mat(rotation, arrow_offset_matrix);
             mat_scale(arrow_offset_matrix, (Vec){scale * length, scale * length, scale * length}, arrow_offset_matrix);
             mat_translate(arrow_offset_matrix, pos, arrow_offset_matrix);
 
@@ -472,7 +472,7 @@ void draw_quat( const Quat q,
     // draw two circles from 0 to angle, and from angle to 2*PI, so we'll get a full circle consisting
     // of two parts in different colors
     Quat circle_rotation;
-    quat_rotating_vec((Vec){0.0, 0.0, 1.0, 1.0}, axis, circle_rotation);
+    quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, axis, circle_rotation);
 
     Mat circle_transform;
     mat_rotating(circle_rotation, circle_transform);
@@ -791,22 +791,22 @@ void draw_contact( const Vec contact_point,
     draw_vec(contact_normal, (Vec)NULL_VEC, scale, 1.0f, (Color){0.1, 0.9, 0.7, 1.0}, projection_matrix, view_matrix, contact_matrix);
 
     Quat q = NULL_VEC;
-    quat_rotating_vec((Vec)Z_AXIS, (Vec)Y_AXIS, q);
-    quat_rotate_axis(q, (Vec)Y_AXIS, PI/4, q);
+    quat_from_vec_pair((Vec)Z_AXIS, (Vec)Y_AXIS, q);
+    quat_mul_axis_angle(q, (Vec)Y_AXIS, PI/4, q);
 
     Mat quad_matrix1;
     mat_rotating(q, quad_matrix1);
     mat_mul(quad_matrix1, contact_matrix, quad_matrix1);
     draw_color_quad(scale/2.0, (Color){0.1, 0.9, 0.7, 1.0}, projection_matrix, view_matrix, quad_matrix1);
 
-    quat_rotate_axis(q, (Vec)X_AXIS, PI/2, q);
+    quat_mul_axis_angle(q, (Vec)X_AXIS, PI/2, q);
 
     Mat quad_matrix2;
     mat_rotating(q, quad_matrix2);
     mat_mul(quad_matrix2, contact_matrix, quad_matrix2);
     draw_color_quad(scale/2.0, (Color){0.1, 0.9, 0.7, 1.0}, projection_matrix, view_matrix, quad_matrix2);
 
-    quat_rotate_axis(q, (Vec)Y_AXIS, PI/2, q);
+    quat_mul_axis_angle(q, (Vec)Y_AXIS, PI/2, q);
 
     Mat quad_matrix3;
     mat_rotating(q, quad_matrix3);
@@ -814,7 +814,7 @@ void draw_contact( const Vec contact_point,
     draw_color_quad(scale/2.0, (Color){0.1, 0.9, 0.7, 1.0}, projection_matrix, view_matrix, quad_matrix3);
 
     Quat reticle_rotation;
-    quat_rotating_vec((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, reticle_rotation);
+    quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, reticle_rotation);
     Mat reticle_transform;
     mat_rotating(reticle_rotation, reticle_transform);
     mat_mul(reticle_transform, contact_matrix, reticle_transform);

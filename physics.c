@@ -230,7 +230,7 @@ void physics_inertia_transform(struct Physics physics, Mat r) {
     /* mat_transpose(r, r); */
 
     Mat transform = IDENTITY_MAT;
-    quat_mat(physics.pivot.orientation, transform);
+    quat_to_mat(physics.pivot.orientation, transform);
 
     Mat inverted_transform = IDENTITY_MAT;
     mat_transpose(transform, inverted_transform);

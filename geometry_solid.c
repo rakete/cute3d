@@ -260,9 +260,9 @@ void solid_cube(float size, struct Cube* cube) {
     solid_hexahedron(size, cube);
 
     Quat q;
-    quat_rotating_axis((Vec){0.0,0.0,1.0,1.0}, PI/4, q);
+    quat_from_axis_angle((Vec){0.0,0.0,1.0,1.0}, PI/4, q);
     for( int i = 0; i < 108; i+=3 ) {
-        quat_apply_vec3f(q, cube->vertices+i, cube->vertices+i);
+        quat_rotate_vec3f(cube->vertices+i, q, cube->vertices+i);
     }
 }
 
