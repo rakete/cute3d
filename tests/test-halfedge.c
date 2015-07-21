@@ -55,9 +55,9 @@ int main(int argc, char *argv[]) {
     float colors[hemesh.size*4];
     solid_create(hemesh.size, elements, vertices, triangles, normals, colors, NULL, &solid_out);
 
-    halfedgemesh_verify(&hemesh);
-
     halfedgemesh_compress(&hemesh);
+
+    halfedgemesh_verify(&hemesh);
 
     halfedgemesh_flush(&hemesh, &solid_out);
 
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
     struct Camera camera;
-    sdl2_orbit_create(window, (Vec){0.0,0.0,-6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &camera);
+    sdl2_orbit_create(window, (Vec){0.0,3.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &camera);
     //pivot_lookat(&camera.pivot, (Vec){0.0, 0.0, 0.0, 1.0});
     //pivot_lookat(&camera.pivot, (Vec){0.0, 0.0, 0.0, 1.0});
 
