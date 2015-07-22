@@ -32,14 +32,12 @@ void pivot_create(struct Pivot* pivot) {
 }
 
 void pivot_lookat(struct Pivot* pivot, const Vec target) {
-    Vec right_axis = { 1.0, 0.0, 0.0, 1.0 };
     Vec up_axis = { 0.0, 1.0, 0.0, 1.0 };
     Vec forward_axis = { 0.0, 0.0, -1.0, 1.0 };
 
     Vec target_direction;
     vec_sub(target, pivot->position, target_direction);
     vec_length(target_direction, &pivot->eye_distance);
-    vec_print("target_direction: ", target_direction);
 
     float dot;
     vec_dot(target_direction, forward_axis, &dot);
@@ -56,76 +54,85 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
         // so we return the identity quaternion
         quat_copy(pivot->orientation, rotation);
     } else {
+        // - I look at the target by turning the pivot orientation using only
+        // yaw and pitch movement
+        // - I always rotate the pivot from its initial orientation (up and forward
+        // basis vectors like initialized above), so this does not incrementally
+        // advance the orientation
         quat_identity(rotation);
 
-        Vec keep_up;
-        quat_rotate_vec(up_axis, pivot->orientation, keep_up);
-
+        // - to find the amount of yaw I project the target_direction into the
+        //   up_axis plane, resulting in up_projection which is a vector that
+        // points from the up_axsi plane to the tip of the target_direction
         Vec up_projection;
         vec_mul1f(up_axis, vdot(target_direction, up_axis), up_projection);
 
+        // - so then by subtracting the up_projection from the target_direction,
+        //   I get a vector lying in the up_axis plane, pointing towards the target
         Vec yaw_direction;
         vec_sub(target_direction, up_projection, yaw_direction);
 
+        // - angle between yaw_direction and forward_axis is the amount of yaw we
+        //   need to point the forward_axis toward the target
+        float yaw;
+        vec_angle(yaw_direction, forward_axis, &yaw);
+        assert( ! isnan(yaw) );
+
+        // - I don't really understand why, but I can't just use up_axis as axis
+        //   for the yaw rotation, I have to compute the cross product between
+        //   yaw_direction and forward_axis and use the resulting yaw_axis
         Vec yaw_axis;
         vec_cross(yaw_direction, forward_axis, yaw_axis);
         if( vnullp(yaw_axis) ) {
             vec_copy(up_axis, yaw_axis);
         }
 
-        vec_print("forward_axis2: ", forward_axis);
-        vec_print("yaw_direction: ", yaw_direction);
-
-        float yaw;
-        vec_angle(yaw_direction, forward_axis, &yaw);
-        /* if( yaw_axis[1] < 0.0 ) { */
-        /*     yaw = -yaw; */
-        /* } */
-        assert( ! isnan(yaw) );
-
-        printf("yaw: %f\n", yaw);
-
+        // - compute the yaw rotation
         Quat yaw_rotation;
         quat_from_axis_angle(yaw_axis, yaw, yaw_rotation);
 
-        Quat inverted_rotation;
-        quat_invert(yaw_rotation, inverted_rotation);
-        quat_rotate_vec(forward_axis, inverted_rotation, forward_axis);
+        // - to compute, just as with the yaw, I want an axis that lies on the plane that
+        //   is spanned in this case by the right_axis, when the camera points toward the
+        //   target
+        // - I could compute an axis, but I already have a direction vector that points
+        //   toward the target, the yaw_direction, I just have to normalize it to make it
+        //   an axis (and put the result in forward_axis, since it now is the forward_axis
+        //   of the yaw turned camera)
+        vec_normalize(yaw_direction, forward_axis);
 
-        vec_print("yaw_rotation: ", yaw_rotation);
-        vec_print("inverted_rotation: ", inverted_rotation);
+        // - then use the new forward axis with the old target_direction to compute the angle
+        //   between those
+        float pitch;
+        vec_angle(target_direction, forward_axis, &pitch);
+        assert( ! isnan(pitch) );
 
+        // - and just as in the yaw case we compute an rotation pitch_axis
         Vec pitch_axis;
         vec_cross(target_direction, forward_axis, pitch_axis);
         if( vnullp(pitch_axis) ) {
+            Vec right_axis = { 1.0, 0.0, 0.0, 1.0 };
             vec_copy(right_axis, pitch_axis);
         }
 
-        float pitch;
-        vec_angle(target_direction, forward_axis, &pitch);
-        /* if( pitch_axis[0] < 0.0 ) { */
-        /*     pitch = -pitch; */
-        /* } */
-        assert( ! isnan(pitch) );
-
-        vec_print("forward_axis3: ", forward_axis);
-        vec_print("pitch_axis: ", pitch_axis);
-        printf("pitch: %f\n", pitch);
-
+        // - and finally compute the pitch rotation and combine it with the yaw_rotation
+        //   in the same step
         quat_mul_axis_angle(yaw_rotation, pitch_axis, pitch, rotation);
+
+        // - this is a hack
+        // - sometimes the camera flips over, I could not find the exact reason for that, so
+        //   I compute the keep_up, the up axis _before_ applying the new rotation, and new_up,
+        //   the up axis _after_ applying the new rotation
+        Vec keep_up;
+        quat_rotate_vec(up_axis, pivot->orientation, keep_up);
 
         Vec new_up;
         quat_rotate_vec(up_axis, rotation, new_up);
 
+        // - then check the dot product between keep_up and new_up and if they differ by
+        //   more then ~170 degree, I assume the camera flipped over and I flip it back
+        //   180 degree
         float dot = vdot(keep_up, new_up);
-
-        vec_print("keep_up: ", keep_up);
-        vec_print("new_up: ", new_up);
-        printf("foo: %f\n", dot);
-
-        if( dot < 0.0f ) {
-            printf("LALALALALALALALALALALALALALALALALALALA\n");
-
+        if( fabs(dot + 1.0f) < 0.1f ) {
             Vec target_axis;
             vec_normalize(target_direction, target_axis);
             quat_mul_axis_angle(rotation, target_axis, PI, rotation);
