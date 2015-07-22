@@ -1,7 +1,9 @@
 #include "geometry_halfedgemesh.h"
 #include "render.h"
 #include "render_shader.h"
+#include "render_draw.h"
 #include "cute_sdl2.h"
+#include "cute_arcball.h"
 #include "geometry_vbo.h"
 
 void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
@@ -92,14 +94,13 @@ int main(int argc, char *argv[]) {
     Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
     shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
-    struct Camera camera;
-    sdl2_orbit_create(window, (Vec){0.0,3.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &camera);
-    //pivot_lookat(&camera.pivot, (Vec){0.0, 0.0, 0.0, 1.0});
-    //pivot_lookat(&camera.pivot, (Vec){0.0, 0.0, 0.0, 1.0});
+    struct Arcball arcball;
+    arcball_create(window, (Vec){1.0,2.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
 
-    Quat camera_rotation;
-    quat_identity(camera_rotation);
-    quat_from_axis_angle((Vec){0.0, 1.0, 0.0, 1.0}, PI/180, camera_rotation);
+    Quat grid_rotation;
+    quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation);
+    Mat grid_transform;
+    quat_to_mat(grid_rotation, grid_transform);
 
     while (true) {
         SDL_Event event;
@@ -115,6 +116,8 @@ int main(int argc, char *argv[]) {
                     break;
                 }
             }
+
+            arcball_event(&arcball, window, event);
         }
 
         sdl2_debug( SDL_GL_SetSwapInterval(1) );
@@ -123,12 +126,13 @@ int main(int argc, char *argv[]) {
                    glClearColor(.0f, .0f, .0f, 1.0f);
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
 
-        quat_rotate_vec(camera.pivot.position, camera_rotation, camera.pivot.position);
-        pivot_lookat(&camera.pivot, (Vec){0.0, 0.0, 0.0, 1.0});
+        Mat projection_mat, view_mat;
+        camera_matrices(&arcball.camera, projection_mat, view_mat);
+        draw_grid(12.0f, 12.0f, 12, (Color){0.5, 0.5, 0.5, 1.0}, projection_mat, view_mat, grid_transform);
 
         Mat identity;
         mat_identity(identity);
-        render_vbomesh(&vbomesh, &shader, &camera, identity);
+        render_vbomesh(&vbomesh, &shader, &arcball.camera, identity);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }

@@ -31,9 +31,14 @@ void pivot_create(struct Pivot* pivot) {
     pivot->eye_distance = 1.0;
 }
 
-void pivot_lookat(struct Pivot* pivot, const Vec target) {
+void pivot_lookat(struct Pivot* pivot, const Vec target, Vec up) {
+    Vec right_axis = { 1.0, 0.0, 0.0, 1.0 };
     Vec up_axis = { 0.0, 1.0, 0.0, 1.0 };
     Vec forward_axis = { 0.0, 0.0, -1.0, 1.0 };
+
+    if( up != NULL ) {
+        vec_copy(up, up_axis);
+    }
 
     Vec target_direction;
     vec_sub(target, pivot->position, target_direction);
@@ -44,12 +49,10 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
 
     Quat rotation;
     if( fabs(dot + 1.0f) < FLOAT_EPSILON ) {
-        printf("foo\n");
         // vector a and b point exactly in the opposite direction,
         // so it is a 180 degrees turn around the up-axis
         quat_mul_axis_angle(pivot->orientation, up_axis, PI, rotation);
     } else if( fabs(dot - (1.0f)) < FLOAT_EPSILON ) {
-        printf("bar\n");
         // vector a and b point exactly in the same direction
         // so we return the identity quaternion
         quat_copy(pivot->orientation, rotation);
@@ -60,10 +63,18 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
         // basis vectors like initialized above), so this does not incrementally
         // advance the orientation
         quat_identity(rotation);
+        /* quat_copy(pivot->orientation, rotation); */
+
+        Quat inverted_orientation;
+        quat_invert(pivot->orientation, inverted_orientation);
+
+        /* quat_rotate_vec(right_axis, inverted_orientation, right_axis); */
+        /* quat_rotate_vec(up_axis, inverted_orientation, up_axis); */
+        /* quat_rotate_vec(forward_axis, inverted_orientation, forward_axis); */
 
         // - to find the amount of yaw I project the target_direction into the
         //   up_axis plane, resulting in up_projection which is a vector that
-        // points from the up_axsi plane to the tip of the target_direction
+        //   points from the up_axsi plane to the tip of the target_direction
         Vec up_projection;
         vec_mul1f(up_axis, vdot(target_direction, up_axis), up_projection);
 
@@ -110,33 +121,40 @@ void pivot_lookat(struct Pivot* pivot, const Vec target) {
         Vec pitch_axis;
         vec_cross(target_direction, forward_axis, pitch_axis);
         if( vnullp(pitch_axis) ) {
-            Vec right_axis = { 1.0, 0.0, 0.0, 1.0 };
             vec_copy(right_axis, pitch_axis);
         }
 
         // - and finally compute the pitch rotation and combine it with the yaw_rotation
         //   in the same step
-        quat_mul_axis_angle(yaw_rotation, pitch_axis, pitch, rotation);
+        Quat pitch_rotation;
+        quat_from_axis_angle(pitch_axis, pitch, pitch_rotation);
+
+        Quat yaw_pitch_rotation;
+        quat_mul(yaw_rotation, pitch_rotation, yaw_pitch_rotation);
 
         // - this is a hack
         // - sometimes the camera flips over, I could not find the exact reason for that, so
         //   I compute the keep_up, the up axis _before_ applying the new rotation, and new_up,
         //   the up axis _after_ applying the new rotation
-        Vec keep_up;
-        quat_rotate_vec(up_axis, pivot->orientation, keep_up);
-
-        Vec new_up;
-        quat_rotate_vec(up_axis, rotation, new_up);
+        Vec new_up_axis;
+        quat_rotate_vec(up_axis, inverted_orientation, new_up_axis);
+        quat_rotate_vec(new_up_axis, yaw_pitch_rotation, new_up_axis);
 
         // - then check the dot product between keep_up and new_up and if they differ by
         //   more then ~170 degree, I assume the camera flipped over and I flip it back
         //   180 degree
-        float dot = vdot(keep_up, new_up);
-        if( fabs(dot + 1.0f) < 0.1f ) {
-            Vec target_axis;
-            vec_normalize(target_direction, target_axis);
-            quat_mul_axis_angle(rotation, target_axis, PI, rotation);
+        float dot = vdot(up_axis, new_up_axis);
+
+        Vec target_axis;
+        vec_normalize(target_direction, target_axis);
+
+        if( dot < 0.0f ) {
+            printf("flip\n");
+            quat_mul_axis_angle(yaw_pitch_rotation, target_axis, PI, yaw_pitch_rotation);
         }
+
+        quat_mul(rotation, yaw_pitch_rotation, rotation);
+
     }
 
     if( ! isnan(rotation[0]) &&

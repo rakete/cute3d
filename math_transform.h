@@ -29,7 +29,7 @@ struct Pivot {
 };
 
 void pivot_create(struct Pivot* pivot);
-void pivot_lookat(struct Pivot* pivot, const Vec target);
+void pivot_lookat(struct Pivot* pivot, const Vec target, Vec up);
 
 void pivot_world_transform(struct Pivot pivot, Mat world_transform);
 void pivot_local_transform(struct Pivot pivot, Mat local_transform);
