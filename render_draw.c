@@ -635,7 +635,7 @@ void draw_circle( float radius,
     }
 }
 
-void draw_pivot( float scale,
+void draw_basis( float scale,
                  const Mat projection_matrix,
                  const Mat view_matrix,
                  const Mat model_matrix)

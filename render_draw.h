@@ -70,7 +70,7 @@ void draw_circle( float radius,
                   const Mat view_matrix,
                   const Mat model_matrix);
 
-void draw_pivot( float scale,
+void draw_basis( float scale,
                  const Mat projection_matrix,
                  const Mat view_matrix,
                  const Mat model_matrix);

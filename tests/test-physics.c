@@ -281,7 +281,7 @@ int main(int argc, char *argv[]) {
         Mat translation_mat;
         mat_translating(entity.current.pivot.position, translation_mat);
 
-        draw_pivot(1.0,
+        draw_basis(1.0,
                    projection_mat,
                    view_mat,
                    translation_mat);
