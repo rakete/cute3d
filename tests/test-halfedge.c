@@ -103,6 +103,7 @@ int main(int argc, char *argv[]) {
     quat_to_mat(grid_rotation, grid_transform);
 
     while (true) {
+
         SDL_Event event;
         while( SDL_PollEvent(&event) ) {
             switch (event.type) {
@@ -117,7 +118,7 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            arcball_event(&arcball, window, event);
+            arcball_event(&arcball, event, 1);
         }
 
         sdl2_debug( SDL_GL_SetSwapInterval(1) );
@@ -125,6 +126,7 @@ int main(int argc, char *argv[]) {
         ogl_debug( glClearDepth(1.0f);
                    glClearColor(.0f, .0f, .0f, 1.0f);
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
+
 
         Mat projection_mat, view_mat;
         camera_matrices(&arcball.camera, projection_mat, view_mat);
