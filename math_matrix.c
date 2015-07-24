@@ -16,6 +16,27 @@
 
 #include "math_matrix.h"
 
+void vec_x(Vec r) {
+    r[0] = 1.0;
+    r[1] = 0.0;
+    r[2] = 0.0;
+    r[3] = 1.0;
+}
+
+void vec_y(Vec r) {
+    r[0] = 0.0;
+    r[1] = 1.0;
+    r[2] = 0.0;
+    r[3] = 1.0;
+}
+
+void vec_z(Vec r) {
+    r[0] = 0.0;
+    r[1] = 0.0;
+    r[2] = 1.0;
+    r[3] = 1.0;
+}
+
 void vec_copy(const Vec v, Vec r) {
     r[0] = v[0];
     r[1] = v[1];

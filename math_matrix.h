@@ -25,6 +25,10 @@
 #include "math_quaternion.h"
 
 // vector
+void vec_x(Vec r);
+void vec_y(Vec r);
+void vec_z(Vec r);
+
 void vec_copy(const Vec v, Vec r);
 void vec_copy3f(const Vec v, Vec3f r);
 
