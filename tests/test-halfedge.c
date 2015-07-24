@@ -105,7 +105,11 @@ int main(int argc, char *argv[]) {
     while (true) {
 
         SDL_Event event;
+        unsigned int counter = 0;
         while( SDL_PollEvent(&event) ) {
+            /* show_printf(L"event %u\n", counter); */
+            /* counter++; */
+
             switch (event.type) {
                 case SDL_QUIT:
                     goto done;
@@ -118,7 +122,7 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            arcball_event(&arcball, event, 1);
+            arcball_event(&arcball, event);
         }
 
         sdl2_debug( SDL_GL_SetSwapInterval(1) );
@@ -127,7 +131,6 @@ int main(int argc, char *argv[]) {
                    glClearColor(.0f, .0f, .0f, 1.0f);
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
 
-
         Mat projection_mat, view_mat;
         camera_matrices(&arcball.camera, projection_mat, view_mat);
         draw_grid(12.0f, 12.0f, 12, (Color){0.5, 0.5, 0.5, 1.0}, projection_mat, view_mat, grid_transform);
@@ -135,6 +138,8 @@ int main(int argc, char *argv[]) {
         Mat identity;
         mat_identity(identity);
         render_vbomesh(&vbomesh, &shader, &arcball.camera, identity);
+
+        show_render(NULL, 10, arcball.camera);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
