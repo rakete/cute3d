@@ -46,21 +46,6 @@ void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context) {
         });
 }
 
-void sdl2_orbit_create(SDL_Window* window, Vec eye, Vec target, float near, float far, struct Camera* camera) {
-    int width,height;
-    sdl2_debug( SDL_GL_GetDrawableSize(window, &width, &height) );
-
-    camera_create(perspective, width, height, camera);
-    //camera_projection(camera, orthographic_zoom);
-    //camera_frustum(-0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f, camera);
-    float top = (1.0/width) * height/2.0;
-    float bottom = -top;
-    camera_frustum(-0.5f, 0.5f, bottom, top, near, far, camera);
-
-    vec_add3f(camera->pivot.position, eye, camera->pivot.position);
-    pivot_lookat(&camera->pivot, target);
-}
-
 double sdl2_time_delta() {
     static Uint64 then = 0;
 
