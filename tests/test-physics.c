@@ -1,16 +1,18 @@
-#include "quaternion.h"
+#include "math_quaternion.h"
 
-#include "sdl2.h"
-#include "ogl.h"
+#include "cute_sdl2.h"
+#include "cute_arcball.h"
 
 #include "gui.h"
-#include "solid.h"
-#include "draw.h"
+#include "geometry_solid.h"
+
+#include "render_ogl.h"
+#include "render_draw.h"
 #include "render.h"
 
-#include "collisions.h"
+#include "physics_collisions.h"
+#include "physics_time.h"
 #include "physics.h"
-#include "gametime.h"
 
 void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mesh) {
     static struct Vbo vbo;
@@ -23,7 +25,7 @@ void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mes
         vbo_initialized = 1;
     }
 
-    solid_colors(solid,color);
+    solid_color(solid,color);
     solid_normals(solid);
 
     vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, mesh);
@@ -168,8 +170,8 @@ int main(int argc, char *argv[]) {
     shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
     /* Matrices */
-    struct Camera camera;
-    sdl2_orbit_create(window, (Vec){0.0, 12.0, 32.0, 1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0f, 1000.0f, &camera);
+    struct Arcball arcball;
+    arcball_create(window, (Vec){0.0, 12.0, 32.0, 1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0f, 1000.0f, &arcball);
 
     SDL_Delay(100);
 
@@ -213,7 +215,7 @@ int main(int argc, char *argv[]) {
         }
 
         Mat projection_mat, view_mat;
-        camera_matrices(&camera, projection_mat, view_mat);
+        camera_matrices(&arcball.camera, projection_mat, view_mat);
 
         gametime_advance(sdl2_time_delta(), &time);
 
@@ -225,9 +227,9 @@ int main(int argc, char *argv[]) {
         Mat grid_transform = IDENTITY_MAT;
 
         Quat grid_rotation1;
-        quat_rotating_vec((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation1);
+        quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation1);
         Quat grid_rotation2;
-        quat_rotating_vec((Vec){0.0, 1.0, 0.0, 1.0}, ground.collider.normal, grid_rotation2);
+        quat_from_vec_pair((Vec){0.0, 1.0, 0.0, 1.0}, ground.collider.normal, grid_rotation2);
         mat_rotate(grid_transform, grid_rotation1, grid_transform);
         mat_rotate(grid_transform, grid_rotation2, grid_transform);
 
@@ -266,7 +268,7 @@ int main(int argc, char *argv[]) {
         const double alpha = time.accumulator / time.dt;
         entity.current = physics_interpolate(entity.previous, entity.current, alpha);
 
-        render_vbomesh(&entity.mesh, &shader, &camera, entity.current.world_transform);
+        render_vbomesh(&entity.mesh, &shader, &arcball.camera, entity.current.world_transform);
         draw_normals_array(entity.solid.vertices,
                            entity.solid.normals,
                            entity.solid.solid.size,
@@ -316,7 +318,7 @@ int main(int argc, char *argv[]) {
 
         glEnable(GL_DEPTH_TEST);
 
-        show_render(NULL, 10, camera);
+        show_render(NULL, 10, arcball.camera);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
