@@ -506,11 +506,11 @@ int halfedgemesh_vertex_iterate(struct HalfEdgeMesh* mesh, unsigned int vertex_i
     if( *i == 0 || *edge_i == UINT_MAX ) {
         *edge_i = mesh->vertices.array[vertex_i].edge;
         result = 1;
-    } else if( *i % 2 == 1 ) { // mesh->edges.array[*edge_i].vertex != vertex_i
+    } else if( *i % 2 == 1 ) {
         *edge_i = mesh->edges.array[*edge_i].other;
         assert( mesh->edges.array[*edge_i].vertex == vertex_i );
         result = -1;
-    } else if( *i % 2 == 0 ) { // mesh->edges.array[*edge_i].vertex == vertex_i
+    } else if( *i % 2 == 0 ) {
         *edge_i = mesh->edges.array[*edge_i].next;
         result = 1;
     }
@@ -642,6 +642,7 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
                     while( halfedgemesh_face_iterate(mesh, face_two_i, &iter_edge, &iter_edge_i, &iter_i) ) {
                         iter_edge->face = face_one_i;
                     }
+
                     // increase face size of face one by face size of face size, - 2 because we are deleting an
                     // edge (two halfedges, one from each face)
                     assert( mesh->faces.array[face_one_i].size > 2 && mesh->faces.array[face_two_i].size > 2 );
@@ -721,6 +722,7 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
     }
 
     for( unsigned int i = 0; i < mesh->vertices.reserved; i++ ) {
+        //printf("attached %u %u\n", i, attached_edges[i]);
         if( attached_edges[i] <= 0 ) {
             mesh->vertices.array[i].edge = UINT_MAX;
             removed_vertices[num_removed_vertices] = i;
@@ -757,7 +759,7 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
                 iter_removed_vertices++;
             }
 
-            if( gap_vertices > 0 && iter_removed_vertices < num_removed_vertices ) {
+            if( gap_vertices > 0 && iter_vertex < mesh->vertices.reserved ) {
                 unsigned int old_vertex_i = iter_vertex;
                 unsigned int new_vertex_i = iter_vertex - gap_vertices;
 
@@ -786,7 +788,7 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
             }
 
             // - go through all edges of face and update face index to new_face_i
-            if( gap_faces > 0 && iter_removed_faces < num_removed_faces ) {
+            if( gap_faces > 0 && iter_face < mesh->faces.reserved ) {
                 unsigned int old_face_i = iter_face;
                 unsigned int new_face_i = iter_face - gap_faces;
 
@@ -810,7 +812,10 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
                 iter_removed_edges++;
             }
 
-            if( gap_edges > 0 && iter_removed_edges < num_removed_edges ) {
+            if( gap_edges > 0 && iter_edge < mesh->edges.reserved ) {
+                //printf("iter_edge >= gap_edges: %u %u %u\n", iter_edge, gap_edges, iter_edge - gap_edges);
+                assert( iter_edge >= gap_edges );
+
                 unsigned old_edge_i = iter_edge;
                 unsigned new_edge_i = iter_edge - gap_edges;
 
@@ -864,6 +869,7 @@ void halfedgemesh_verify(struct HalfEdgeMesh* mesh) {
         struct HalfEdge* this = &mesh->edges.array[face->edge];
         unsigned int i = 0;
         while( (i == 0 || this->this != face->edge) && i <= face->size*2 ) {
+            //printf("this->face, face_i: %u %u\n", this->face, face_i);
             assert( this->face == face_i );
 
             seen_vertices[this->vertex] += 1;
@@ -874,19 +880,27 @@ void halfedgemesh_verify(struct HalfEdgeMesh* mesh) {
 
             assert( this->prev != this->this );
             assert( this->next != this->this );
+            //printf("this->prev != this->next: %u %u\n", this->prev, this->next);
             assert( this->prev != this->next );
 
             assert( other->prev != other->this );
             assert( other->next != other->this );
+            //printf("other->prev != other->next: %u %u\n", other->prev, other->next);
             assert( other->prev != other->next );
 
+            //printf("other->prev != this->this: %u %u\n", other->prev, this->this);
             assert( other->prev != this->this );
+            //printf("other->next != this->this: %u %u\n", other->next, this->this);
             assert( other->next != this->this );
             assert( other->prev != this->next );
 
+            //printf("this->prev != other->this: %u %u\n", this->prev, other->this);
             assert( this->prev != other->this );
+            //printf("this->next != other->this: %u %u\n", this->next, other->this);
             assert( this->next != other->this );
             assert( this->prev != other->next );
+
+            assert( this->other == this->this + 1 || this->other == this->this - 1 );
 
             // other prev vertex must be equal this vertex
             assert( mesh->edges.array[other->prev].vertex == this->vertex );
