@@ -105,7 +105,6 @@ int main(int argc, char *argv[]) {
     while (true) {
 
         SDL_Event event;
-        unsigned int counter = 0;
         while( SDL_PollEvent(&event) ) {
             /* show_printf(L"event %u\n", counter); */
             /* counter++; */

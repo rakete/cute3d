@@ -176,23 +176,11 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
                 mesh->vertices.array[vertex_i].position[2] = solid->vertices[solid_i+2];
                 mesh->vertices.array[vertex_i].position[3] = 1.0;
 
-                unsigned int k[3] = { 1, 2, 0 };
-                mesh->vertices.array[vertex_i].edge = edge_i+k[j];
+                mesh->vertices.array[vertex_i].edge = UINT_MAX;
 
                 vertex_i += 1;
             }
         }
-
-        // indices for the three new halfedges we'll create in the mesh
-        unsigned int ca_i = edge_i+0;
-        unsigned int ab_i = edge_i+1;
-        unsigned int bc_i = edge_i+2;
-
-        // before creating the halfedges the face gets set, this just as simple as it looks since the face
-        // contains nothing but an index to any of its halfedges
-        struct HalfEdgeFace* face_ptr = &mesh->faces.array[face_i];
-        face_ptr->size = 3;
-        face_ptr->edge = ca_i;
 
         // convience names for the three vertex indices from triangle that we'll use to represent the halfedges
         // a -> b, b -> c and c -> a
@@ -208,19 +196,57 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         // so we assert that halfedge index for the current halfedge has never been set in edges_map
         // and should still be UINT_MAX
         assert( edges_map[a][b] == UINT_MAX );
+        assert( edges_map[b][c] == UINT_MAX );
+        assert( edges_map[c][a] == UINT_MAX );
+
+        // indices for the three new halfedges we'll create in the mesh
+        unsigned int ca_i = UINT_MAX;
+        unsigned int ab_i = UINT_MAX;
+        unsigned int bc_i = UINT_MAX;
 
         // if we had already seen the current edge in a previous iteration, then with flipped indices (in this
         // a -> b case we would have seen b -> a previously), and we can check that by testing if edges_map[b][a]
         // has already been set to something other then UINT_MAX
         unsigned int ab_other_i = UINT_MAX;
         if( edges_map[b][a] != UINT_MAX ) {
-            // if true, we have already seen the current edge and can set the stored halfedge index from last time as
-            // this halfedges other index
             ab_other_i = edges_map[b][a];
-            // as well as this halfedges index as the other halfedges other index
+            ab_i = ab_other_i + 1;
             mesh->edges.array[ab_other_i].other = ab_i;
-            assert( mesh->edges.array[ab_other_i].vertex == unique_vertex_map[a] );
         }
+
+        unsigned int bc_other_i = UINT_MAX;
+        if( edges_map[c][b] != UINT_MAX ) {
+            bc_other_i = edges_map[c][b];
+            bc_i = bc_other_i + 1;
+            mesh->edges.array[bc_other_i].other = bc_i;
+        }
+
+        unsigned int ca_other_i = UINT_MAX;
+        if( edges_map[a][c] != UINT_MAX ) {
+            ca_other_i = edges_map[a][c];
+            ca_i = ca_other_i + 1;
+            mesh->edges.array[ca_other_i].other = ca_i;
+        }
+
+        unsigned int edge_i_inc = 0;
+        if( ca_i == UINT_MAX ) {
+            ca_i = edge_i + edge_i_inc;
+            edge_i_inc += 2;
+        }
+
+        if( ab_i == UINT_MAX ) {
+            ab_i = edge_i + edge_i_inc;
+            edge_i_inc += 2;
+        }
+
+        if( bc_i == UINT_MAX ) {
+            bc_i = edge_i + edge_i_inc;
+            edge_i_inc += 2;
+        }
+
+        assert( ab_i != UINT_MAX );
+        assert( bc_i != UINT_MAX );
+        assert( ca_i != UINT_MAX );
 
         // this could be in an else clause, but we'll just do it everytime even when it should be uneccessary half
         // the time
@@ -242,14 +268,8 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
             .other = ab_other_i
         };
 
-        // I explained the a -> b case, this is the same but for b -> c
-        assert( edges_map[b][c] == UINT_MAX );
-
-        unsigned int bc_other_i = UINT_MAX;
-        if( edges_map[c][b] != UINT_MAX ) {
-            bc_other_i = edges_map[c][b];
-            mesh->edges.array[bc_other_i].other = bc_i;
-            assert( mesh->edges.array[bc_other_i].vertex == unique_vertex_map[b] );
+        if( mesh->vertices.array[unique_vertex_map[a]].edge ) {
+            mesh->vertices.array[unique_vertex_map[a]].edge = ab_i;
         }
 
         edges_map[b][c] = bc_i;
@@ -267,14 +287,8 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
             .other = bc_other_i
         };
 
-        // same as above but for c -> a
-        assert( edges_map[c][a] == UINT_MAX );
-
-        unsigned int ca_other_i = UINT_MAX;
-        if( edges_map[a][c] != UINT_MAX ) {
-            ca_other_i = edges_map[a][c];
-            mesh->edges.array[ca_other_i].other = ca_i;
-            assert( mesh->edges.array[ca_other_i].vertex == unique_vertex_map[c] );
+        if( mesh->vertices.array[unique_vertex_map[b]].edge ) {
+            mesh->vertices.array[unique_vertex_map[b]].edge = bc_i;
         }
 
         edges_map[c][a] = ca_i;
@@ -292,11 +306,21 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
             .other = ca_other_i
         };
 
+        if( mesh->vertices.array[unique_vertex_map[c]].edge ) {
+            mesh->vertices.array[unique_vertex_map[c]].edge = ca_i;
+        }
+
+        // after creating the halfedges the face gets set, this just as simple as it looks since the face
+        // contains nothing but an index to any of its halfedges
+        struct HalfEdgeFace* face_ptr = &mesh->faces.array[face_i];
+        face_ptr->size = 3;
+        face_ptr->edge = ca_i;
+
         // we need to keep track about how many faces and edges we added to the mesh with
         // these index counters that indicate the position where we'll add the next face/edge
         // when the iteration continues to the next triangle
         face_i += 1;
-        edge_i += 3;
+        edge_i += edge_i_inc;
 
         mesh->size += 3;
 
@@ -322,6 +346,7 @@ void solid_triangulate(float* vertices, unsigned int n, unsigned int* triangles,
         triangles[2] = 2;
     }
 
+    // #YOLO
     if( n == 4 ) {
         triangles[3] = 2;
         triangles[4] = 3;
