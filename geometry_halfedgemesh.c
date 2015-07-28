@@ -176,6 +176,9 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
                 mesh->vertices.array[vertex_i].position[2] = solid->vertices[solid_i+2];
                 mesh->vertices.array[vertex_i].position[3] = 1.0;
 
+                // after I changed this function to put the halfedges in the array so that every
+                // second one belongs to an unique edge, I could not compute the edge index at this
+                // point, so this gets set to UINT_MAX and then I set it later
                 mesh->vertices.array[vertex_i].edge = UINT_MAX;
 
                 vertex_i += 1;
@@ -209,11 +212,20 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         // has already been set to something other then UINT_MAX
         unsigned int ab_other_i = UINT_MAX;
         if( edges_map[b][a] != UINT_MAX ) {
+            // restore the other index from the already seen edge
             ab_other_i = edges_map[b][a];
+            // I want to order the edges so that every second halfedge is from a unique edge, so since we have
+            // already seen the b -> a edge, we put this halfedge at an index that comes right after the index
+            // of the already seen halfedge
             ab_i = ab_other_i + 1;
+            // set the other index of the already seen halfedge, this is not strictly neccessary here, we could
+            // just set the other index to this + 1 when creating the first halfedge of an new edge, but I kept
+            // it this way so that if we ever get a mesh with holes in it, the other index will be UINT_MAX for
+            // some halfedges, indicating that there is no other halfedge
             mesh->edges.array[ab_other_i].other = ab_i;
         }
 
+        // these two are the same as the ab case above, but for bc and ca
         unsigned int bc_other_i = UINT_MAX;
         if( edges_map[c][b] != UINT_MAX ) {
             bc_other_i = edges_map[c][b];
@@ -228,33 +240,71 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
             mesh->edges.array[ca_other_i].other = ca_i;
         }
 
+        // the above set ab_i, bc_i and ca_i indices in case the edge was already seen, but if it is new
+        // I have to set the indices of the halfedges so that they are spaced out by 2, leaving space for
+        // the other halfedge to be added later
+        // now I may have a situation where all edges are new, but most likely one, two or all three of them
+        // are _not_ new, so I have to account for that and set only those indices to newly spaced indices
+        // that belong to actually new edges
         unsigned int edge_i_inc = 0;
         if( ca_i == UINT_MAX ) {
+            // when ca_i is UINT_MAX, it was not set in the if conditionals above, and therefore belongs
+            // to a new (unique) edge, so we set it to edge_i + edge_i_inc and then increase edge_i by 2
+            // so that we leave space for the other halfedge of ca_i to come later and fill that space
             ca_i = edge_i + edge_i_inc;
+            // edge_i_inc keeps track of how many new halfedges indices we added, it will be either 0,2,4 or 6
+            // depeding on if we added none, one, two or three new edges
             edge_i_inc += 2;
+
+            // it may be possible that we never actually set the other halfedge, so I am just goint
+            // to initialize the other halfedge with everything set to UINT_MAX just so that I can be
+            // sure that is does not actually look like a legit halfedge
+            struct HalfEdge* other = &mesh->edges.array[ca_i+1];
+            other->vertex = UINT_MAX;
+            other->face = UINT_MAX;
+            other->next = UINT_MAX;
+            other->this = UINT_MAX;
+            other->prev = UINT_MAX;
+            other->other = UINT_MAX;
         }
 
         if( ab_i == UINT_MAX ) {
             ab_i = edge_i + edge_i_inc;
             edge_i_inc += 2;
+
+            struct HalfEdge* other = &mesh->edges.array[ab_i+1];
+            other->vertex = UINT_MAX;
+            other->face = UINT_MAX;
+            other->next = UINT_MAX;
+            other->this = UINT_MAX;
+            other->prev = UINT_MAX;
+            other->other = UINT_MAX;
         }
 
         if( bc_i == UINT_MAX ) {
             bc_i = edge_i + edge_i_inc;
             edge_i_inc += 2;
+
+            struct HalfEdge* other = &mesh->edges.array[bc_i+1];
+            other->vertex = UINT_MAX;
+            other->face = UINT_MAX;
+            other->next = UINT_MAX;
+            other->this = UINT_MAX;
+            other->prev = UINT_MAX;
+            other->other = UINT_MAX;
         }
 
         assert( ab_i != UINT_MAX );
         assert( bc_i != UINT_MAX );
         assert( ca_i != UINT_MAX );
 
-        // this could be in an else clause, but we'll just do it everytime even when it should be uneccessary half
-        // the time
-        // we need to set this halfedges index in the edges_map so we can use it as other index when we'll see the
+        // we need to set the halfedges index in the edges_map so we can use it as other index when we'll see the
         // current edge again in the future
         edges_map[a][b] = ab_i;
+        edges_map[b][c] = bc_i;
+        edges_map[c][a] = ca_i;
 
-        // finally construct the halfedge for a -> b
+        // finally construct the halfedge for a -> b, b -> c and c -> a
         struct HalfEdge* ab_ptr = &mesh->edges.array[ab_i];
         *ab_ptr = (struct HalfEdge){
             .normal[0] = normals[3],
@@ -267,12 +317,6 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
             .prev = ca_i,
             .other = ab_other_i
         };
-
-        if( mesh->vertices.array[unique_vertex_map[a]].edge ) {
-            mesh->vertices.array[unique_vertex_map[a]].edge = ab_i;
-        }
-
-        edges_map[b][c] = bc_i;
 
         struct HalfEdge* bc_ptr = &mesh->edges.array[bc_i];
         *bc_ptr = (struct HalfEdge){
@@ -287,12 +331,6 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
             .other = bc_other_i
         };
 
-        if( mesh->vertices.array[unique_vertex_map[b]].edge ) {
-            mesh->vertices.array[unique_vertex_map[b]].edge = bc_i;
-        }
-
-        edges_map[c][a] = ca_i;
-
         struct HalfEdge* ca_ptr = &mesh->edges.array[ca_i];
         *ca_ptr = (struct HalfEdge){
             .normal[0] = normals[0],
@@ -305,6 +343,17 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
             .prev = bc_i,
             .other = ca_other_i
         };
+
+        // above I could not compute the neccessary edge index to set in the vertices array as outgoing,
+        // now I know it
+        // I only set it if the vertex has not yet an outgoing edge set
+        if( mesh->vertices.array[unique_vertex_map[a]].edge ) {
+            mesh->vertices.array[unique_vertex_map[a]].edge = ab_i;
+        }
+
+        if( mesh->vertices.array[unique_vertex_map[b]].edge ) {
+            mesh->vertices.array[unique_vertex_map[b]].edge = bc_i;
+        }
 
         if( mesh->vertices.array[unique_vertex_map[c]].edge ) {
             mesh->vertices.array[unique_vertex_map[c]].edge = ca_i;
@@ -320,9 +369,10 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         // these index counters that indicate the position where we'll add the next face/edge
         // when the iteration continues to the next triangle
         face_i += 1;
+        // edge_i needs to be only increased by the amount of new edges we added
         edge_i += edge_i_inc;
 
-        mesh->size += 3;
+        mesh->size += edge_i_inc;
 
         assert(vertex_i <= mesh->vertices.capacity);
         mesh->vertices.reserved = vertex_i;
@@ -362,15 +412,6 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
     unsigned int elements_offset = 0;
     unsigned int triangles_offset = 0;
 
-    /* for( unsigned int i = 0; i < mesh->size*3; i++ ) { */
-    /*     solid->vertices[i] = 0.0; */
-    /*     solid->normals[i] = 0.0; */
-    /*     if( i < mesh->size ) { */
-    /*         solid->elements[i] = 0; */
-    /*         solid->triangles[i] = 0; */
-    /*     } */
-    /* } */
-
     for( unsigned int i = 0; i < mesh->faces.reserved; i++ ) {
         struct HalfEdgeFace* face = &mesh->faces.array[i];
 
@@ -381,14 +422,6 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
         float face_vertices[face->size*3];
         float face_normals[face->size*3];
         unsigned int face_triangles[face->size];
-
-        /* for( unsigned int j = 0; j < face->size*3; j++ ) { */
-        /*     face_vertices[j] = 0.0; */
-        /*     face_normals[j] = 0.0; */
-        /*     if( j < face->size ) { */
-        /*         face_triangles[j] = 0; */
-        /*     } */
-        /* } */
 
         struct HalfEdge* current_edge = &mesh->edges.array[face->edge];
         for( unsigned int face_vertex_i = 0; face_vertex_i < face->size; face_vertex_i++ ) {
@@ -592,11 +625,6 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
                 normal_b[2] = face_normals[face_two_i*3+2];
 
                 if( vequal3f3f(normal_a, normal_b) ) {
-                    // a\  /b
-                    //   +i
-                    // 1 |e 2
-                    //   +j
-                    // c/  \d
                     assert( this->prev != this->this );
                     assert( this->next != this->this );
                     assert( this->prev != this->next );
@@ -624,6 +652,12 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
 
                     unsigned int halfedge_d_i = other->next;
                     struct HalfEdge* halfedge_d = &mesh->edges.array[halfedge_d_i];
+
+                    // a\  /b
+                    //   +i
+                    // 1 |e 2
+                    //   +j
+                    // c/  \d
 
                     // to mark an edge e for removal:
 
@@ -722,7 +756,6 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
     }
 
     for( unsigned int i = 0; i < mesh->vertices.reserved; i++ ) {
-        //printf("attached %u %u\n", i, attached_edges[i]);
         if( attached_edges[i] <= 0 ) {
             mesh->vertices.array[i].edge = UINT_MAX;
             removed_vertices[num_removed_vertices] = i;
@@ -813,7 +846,6 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
             }
 
             if( gap_edges > 0 && iter_edge < mesh->edges.reserved ) {
-                //printf("iter_edge >= gap_edges: %u %u %u\n", iter_edge, gap_edges, iter_edge - gap_edges);
                 assert( iter_edge >= gap_edges );
 
                 unsigned old_edge_i = iter_edge;
@@ -869,7 +901,6 @@ void halfedgemesh_verify(struct HalfEdgeMesh* mesh) {
         struct HalfEdge* this = &mesh->edges.array[face->edge];
         unsigned int i = 0;
         while( (i == 0 || this->this != face->edge) && i <= face->size*2 ) {
-            //printf("this->face, face_i: %u %u\n", this->face, face_i);
             assert( this->face == face_i );
 
             seen_vertices[this->vertex] += 1;
@@ -880,23 +911,17 @@ void halfedgemesh_verify(struct HalfEdgeMesh* mesh) {
 
             assert( this->prev != this->this );
             assert( this->next != this->this );
-            //printf("this->prev != this->next: %u %u\n", this->prev, this->next);
             assert( this->prev != this->next );
 
             assert( other->prev != other->this );
             assert( other->next != other->this );
-            //printf("other->prev != other->next: %u %u\n", other->prev, other->next);
             assert( other->prev != other->next );
 
-            //printf("other->prev != this->this: %u %u\n", other->prev, this->this);
             assert( other->prev != this->this );
-            //printf("other->next != this->this: %u %u\n", other->next, this->this);
             assert( other->next != this->this );
             assert( other->prev != this->next );
 
-            //printf("this->prev != other->this: %u %u\n", this->prev, other->this);
             assert( this->prev != other->this );
-            //printf("this->next != other->this: %u %u\n", this->next, other->this);
             assert( this->next != other->this );
             assert( this->prev != other->next );
 
