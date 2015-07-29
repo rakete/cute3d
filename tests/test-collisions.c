@@ -1,10 +1,15 @@
-#include "geometry_halfedgemesh.h"
+
+#include "cute_sdl2.h"
+#include "cute_arcball.h"
+
 #include "render.h"
 #include "render_shader.h"
 #include "render_draw.h"
-#include "cute_sdl2.h"
-#include "cute_arcball.h"
+
 #include "geometry_vbo.h"
+#include "geometry_halfedgemesh.h"
+
+#include "physics_collisions.h"
 
 void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
     assert(solid->elements != NULL);
@@ -16,6 +21,30 @@ void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
     vbomesh_append(mesh, NORMAL_ARRAY, solid->normals, solid->size);
     vbomesh_append(mesh, COLOR_ARRAY, solid->colors, solid->size);
     vbomesh_primitives(mesh, solid->elements, solid->size);
+}
+
+struct CollisionEntity {
+    struct Pivot pivot;
+    struct ColliderConvex collider;
+    struct HalfEdgeMesh hemesh;
+    struct Cube solid;
+    struct VboMesh vbomesh;
+};
+
+static void entity_create(Color color, struct Vbo* vbo, struct CollisionEntity* entity) {
+    pivot_create(&entity->pivot);
+
+    solid_cube(1.0, &entity->solid);
+    solid_normals((struct Solid*)&entity->solid);
+    solid_color((struct Solid*)&entity->solid, color);
+
+    halfedgemesh_create(&entity->hemesh);
+    halfedgemesh_append(&entity->hemesh, (struct Solid*)&entity->solid);
+
+    collider_convex(&entity->hemesh, &entity->pivot, &entity->collider);
+
+    vbomesh_create(vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &entity->vbomesh);
+    vbomesh_from_solid((struct Solid*)&entity->solid, &entity->vbomesh);
 }
 
 int main(int argc, char *argv[]) {
@@ -41,39 +70,21 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    struct Cube solid_in;
-    solid_cube(1.0, &solid_in);
-    solid_normals((struct Solid*)&solid_in);
-
-    struct HalfEdgeMesh hemesh;
-    halfedgemesh_create(&hemesh);
-    halfedgemesh_append(&hemesh, (struct Solid*)&solid_in);
-
-    struct Solid solid_out;
-    float vertices[hemesh.size*3];
-    unsigned int triangles[hemesh.size];
-    unsigned int elements[hemesh.size];
-    float normals[hemesh.size*3];
-    float colors[hemesh.size*4];
-    solid_create(hemesh.size, elements, vertices, triangles, normals, colors, NULL, &solid_out);
-
-    halfedgemesh_compress(&hemesh);
-
-    halfedgemesh_verify(&hemesh);
-
-    halfedgemesh_flush(&hemesh, &solid_out);
-
-    solid_color((struct Solid*)&solid_out, (Color){ 1.0, 0.0, 1.0, 1.0 });
-
     struct Vbo vbo;
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, COLOR_ARRAY, 4, GL_FLOAT, GL_STATIC_DRAW);
 
-    struct VboMesh vbomesh;
-    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &vbomesh);
-    vbomesh_from_solid(&solid_out, &vbomesh);
+    struct CollisionEntity entity_a;
+    entity_create((Color){ 1.0, 0.0, 0.0, 1.0 }, &vbo, &entity_a);
+    vec_add(entity_a.pivot.position, (Vec){0.70, 0.0, 0.0, 1.0}, entity_a.pivot.position);
+
+    struct CollisionEntity entity_b;
+    entity_create((Color){ 0.0, 1.0, 0.0, 1.0 }, &vbo, &entity_b);
+    vec_add(entity_b.pivot.position, (Vec){-0.70, 0.0, 0.0, 1.0}, entity_b.pivot.position);
+    quat_mul_axis_angle(entity_b.pivot.orientation, (Quat)Y_AXIS, PI/4, entity_b.pivot.orientation);
+    quat_mul_axis_angle(entity_b.pivot.orientation, (Quat)Z_AXIS, PI/4, entity_b.pivot.orientation);
 
     struct Shader shader;
     render_shader_flat(&shader);
@@ -126,7 +137,14 @@ int main(int argc, char *argv[]) {
 
         Mat identity;
         mat_identity(identity);
-        render_vbomesh(&vbomesh, &shader, &arcball.camera, identity);
+
+        Mat transform_a;
+        pivot_world_transform(entity_a.pivot, transform_a);
+        render_vbomesh(&entity_a.vbomesh, &shader, &arcball.camera, transform_a);
+
+        Mat transform_b;
+        pivot_world_transform(entity_b.pivot, transform_b);
+        render_vbomesh(&entity_b.vbomesh, &shader, &arcball.camera, transform_b);
 
         show_render(NULL, 10, arcball.camera);
 

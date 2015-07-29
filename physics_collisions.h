@@ -21,6 +21,7 @@
 #include "math_matrix.h"
 #include "math_transform.h"
 #include "physics.h"
+#include "geometry_halfedgemesh.h"
 
 #define MAX_CONTACTS 4
 #define COLLISION_LIFETIME 5
@@ -35,6 +36,9 @@ enum collider_type {
 };
 
 struct Collider {
+    // the idea with this const struct Pivot* pointer is that I attach a collider to
+    // some other objects pivot, thats also why I may have a seperate orientation for
+    // for the specific collider in addition to the orientation in pivot
     const struct Pivot* pivot;
     enum collider_type type;
     Vec position;
@@ -78,47 +82,41 @@ struct ColliderOBB {
 struct ColliderCapsule {
     struct Collider collider;
 
+    Mat orientation;
+
     Vec point_a;
     Vec point_b;
     float radius;
 };
 
-// contact caching needs edge indices
 struct ColliderConvex {
     struct Collider collider;
 
+    struct HalfEdgeMesh* mesh;
+
     Mat orientation;
-
-    float* vertices;
-    unsigned int* edges;
-    size_t num_edges;
-
-    float* normals;
-    size_t num_normals;
 };
 
 // each supported bounding volume data structure should have a constructor to initialize it
 void collider_plane(Vec normal, float offset, struct Pivot* pivot, struct ColliderPlane* plane);
-
 void collider_sphere(float radius, struct Pivot* pivot, struct ColliderSphere* sphere);
-
 void collider_obb(float width, float height, float depth, struct Pivot* pivot, struct ColliderOBB* obb);
+void collider_capsule(Vec point_a, Vec point_b, float radius, struct Pivot* pivot, struct ColliderCapsule* capsule);
+void collider_convex(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct ColliderConvex* convex);
 
-// collision detection itself is actually to seperate things: collision testing and contact generation, these should both
+// collision detection itself is actually two seperate things: collision testing and contact generation, these should both
 // be implemented here eventually, but first I am going to concentrate only on contact generation. this should be
 // sufficient since there will not be a real broad phase in the first implementation anyways, and the seperation in
 // collision testing and contact generation makes only sense because testing alone is computationally cheaper then
 // contact generation and is the only needed during broad phase
-// the contact generation by itself can double as collision detection because as soon as we'll get at least contact, we now
-// the a collision has taken place.
+// the contact generation by itself can double as collision detection because as soon as we'll get at least one contact, we
+// know the a collision has taken place.
 
 // later, I hope to eventually implement collision testing seperate to contact generation and an actual broad phase, function
 // prototypes for collision detection might be like these:
 bool collide_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2);
-
 bool collide_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane);
-
-bool collide_sphere_obb(struct ColliderSphere* const sphere, struct ColliderOBB* const obb);
+bool collide_sphere_convex(struct ColliderSphere* const sphere, struct ColliderConvex* const convex);
 
 struct Contact {
     Vec point;
@@ -134,17 +132,18 @@ struct Collision {
 
 /* Sphere */
 unsigned int contacts_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2, struct Collision* collision);
-
 unsigned int contacts_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane, struct Collision* collision);
+unsigned int contacts_sphere_convex(struct ColliderSphere* const sphere, struct ColliderConvex* const convex, struct Collision* collision);
 
-unsigned int contacts_sphere_obb(struct ColliderSphere* const sphere, struct ColliderOBB* const obb, struct Collision* collision);
+/* Plane */
+unsigned int contacts_plane_sphere(struct ColliderPlane* const plane, struct ColliderSphere* const sphere, struct Collision* collision);
+unsigned int contacts_plane_plane(struct ColliderPlane* const plane1, struct ColliderPlane* const plane2, struct Collision* collision);
+unsigned int contacts_plane_convex(struct ColliderPlane* const plane, struct ColliderConvex* const convex, struct Collision* collision);
 
-/* OBB */
-unsigned int contacts_obb_sphere(struct ColliderOBB* const obb, struct ColliderSphere* const sphere, struct Collision* collision);
-
-unsigned int contacts_obb_plane(struct ColliderOBB* const obb, struct ColliderPlane* const plane, struct Collision* collision);
-
-unsigned int contacts_obb_obb(struct ColliderOBB* const obb1, struct ColliderOBB* const obb2, struct Collision* collision);
+/* Convex */
+unsigned int contacts_convex_sphere(struct ColliderConvex* const convex, struct ColliderSphere* const sphere, struct Collision* collision);
+unsigned int contacts_convex_plane(struct ColliderConvex* const convex, struct ColliderPlane* const plane, struct Collision* collision);
+unsigned int contacts_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2, struct Collision* collision);
 
 /* Generic */
 unsigned int contacts_generic(struct Collider* const a, struct Collider* const b, struct Collision* collision);

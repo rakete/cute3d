@@ -14,8 +14,8 @@ void collider_unique_id(unsigned long* id) {
 
 void collider_plane(Vec normal, float offset, struct Pivot* pivot, struct ColliderPlane* plane) {
     plane->collider.type = COLLIDER_PLANE;
-    vec_copy((Vec)NULL_VEC, plane->collider.position);
     plane->collider.pivot = pivot;
+    vec_copy((Vec)NULL_VEC, plane->collider.position);
 
     vec_normalize(normal, normal);
     vec_copy(normal, plane->normal);
@@ -24,21 +24,44 @@ void collider_plane(Vec normal, float offset, struct Pivot* pivot, struct Collid
 
 void collider_sphere(float radius, struct Pivot* pivot, struct ColliderSphere* sphere) {
     sphere->collider.type = COLLIDER_SPHERE;
-    vec_copy((Vec)NULL_VEC, sphere->collider.position);
     sphere->collider.pivot = pivot;
+    vec_copy((Vec)NULL_VEC, sphere->collider.position);
 
     sphere->radius = radius;
 }
 
 void collider_obb(float width, float height, float depth, struct Pivot* pivot, struct ColliderOBB* obb) {
     obb->collider.type = COLLIDER_OBB;
-    vec_copy((Vec)NULL_VEC, obb->collider.position);
     obb->collider.pivot = pivot;
+    vec_copy((Vec)NULL_VEC, obb->collider.position);
 
-    mat_identity(obb->orientation);
     obb->width = width;
     obb->height = height;
     obb->depth = depth;
+
+    mat_identity(obb->orientation);
+}
+
+void collider_capsule(Vec point_a, Vec point_b, float radius, struct Pivot* pivot, struct ColliderCapsule* capsule) {
+    capsule->collider.type = COLLIDER_CAPSULE;
+    capsule->collider.pivot = pivot;
+    vec_copy((Vec)NULL_VEC, capsule->collider.position);
+
+    capsule->radius = radius;
+    vec_copy(point_a, capsule->point_a);
+    vec_copy(point_b, capsule->point_b);
+
+    mat_identity(capsule->orientation);
+}
+
+void collider_convex(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct ColliderConvex* convex) {
+    convex->collider.type = COLLIDER_CONVEX;
+    convex->collider.pivot = pivot;
+    vec_copy((Vec)NULL_VEC, convex->collider.position);
+
+    convex->mesh = mesh;
+
+    mat_identity(convex->orientation);
 }
 
 unsigned int contacts_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2, struct Collision* collision) {
