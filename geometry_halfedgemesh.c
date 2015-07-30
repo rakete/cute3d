@@ -365,6 +365,13 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         face_ptr->size = 3;
         face_ptr->edge = ca_i;
 
+        Vec vec_a, vec_b;
+        vec_sub(mesh->vertices.array[unique_vertex_map[a]].position, mesh->vertices.array[unique_vertex_map[b]].position, vec_a);
+        vec_sub(mesh->vertices.array[unique_vertex_map[b]].position, mesh->vertices.array[unique_vertex_map[c]].position, vec_b);
+        vec_normalize(vec_a, vec_a);
+        vec_normalize(vec_b, vec_b);
+        vec_cross3f(vec_a, vec_b, face_ptr->normal);
+
         // we need to keep track about how many faces and edges we added to the mesh with
         // these index counters that indicate the position where we'll add the next face/edge
         // when the iteration continues to the next triangle
@@ -420,7 +427,7 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
         }
 
         float face_vertices[face->size*3];
-        float face_normals[face->size*3];
+        float edge_normals[face->size*3];
         unsigned int face_triangles[face->size];
 
         struct HalfEdge* current_edge = &mesh->edges.array[face->edge];
@@ -429,9 +436,9 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
             face_vertices[face_vertex_i*3+1] = mesh->vertices.array[current_edge->vertex].position[1];
             face_vertices[face_vertex_i*3+2] = mesh->vertices.array[current_edge->vertex].position[2];
 
-            face_normals[face_vertex_i*3+0] = current_edge->normal[0];
-            face_normals[face_vertex_i*3+1] = current_edge->normal[1];
-            face_normals[face_vertex_i*3+2] = current_edge->normal[2];
+            edge_normals[face_vertex_i*3+0] = current_edge->normal[0];
+            edge_normals[face_vertex_i*3+1] = current_edge->normal[1];
+            edge_normals[face_vertex_i*3+2] = current_edge->normal[2];
 
             face_triangles[face_vertex_i] = current_edge->vertex;
 
@@ -453,9 +460,9 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
             solid->vertices[vertices_offset+2] = face_vertices[z];
             vertices_offset += 3;
 
-            solid->normals[normals_offset+0] = face_normals[x];
-            solid->normals[normals_offset+1] = face_normals[y];
-            solid->normals[normals_offset+2] = face_normals[z];
+            solid->normals[normals_offset+0] = edge_normals[x];
+            solid->normals[normals_offset+1] = edge_normals[y];
+            solid->normals[normals_offset+2] = edge_normals[z];
             normals_offset += 3;
 
             solid->elements[elements_offset] = elements_offset;
@@ -467,14 +474,14 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
     }
 }
 
-int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, unsigned int face_i, Vec3f equal_normal, Vec3f average_normal) {
+int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, unsigned int face_i, int all_edges, Vec3f equal_normal, Vec3f average_normal, Vec3f cross_normal) {
     assert(face_i <= mesh->faces.reserved);
-    assert(equal_normal != NULL || average_normal != NULL);
+    assert(equal_normal != NULL || average_normal != NULL || cross_normal != NULL);
 
     struct HalfEdgeFace* face = &mesh->faces.array[face_i];
 
     struct HalfEdge* first_edge = &mesh->edges.array[face->edge];
-    struct HalfEdge* second_edge = first_edge;
+    struct HalfEdge* current_edge = &mesh->edges.array[face->edge];
 
     int result = 0;
     if( equal_normal != NULL ) {
@@ -482,24 +489,61 @@ int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, unsigned int face_i, Vec
     }
 
     if( average_normal != NULL ) {
-        average_normal[0] = first_edge->normal[0] / face->size;
-        average_normal[1] = first_edge->normal[1] / face->size;
-        average_normal[2] = first_edge->normal[2] / face->size;
+        vec_copy3f(first_edge->normal, average_normal);
         result = 1;
     }
 
-    for( unsigned int i = 0; i < face->size-1; i++ ) {
-        second_edge = &mesh->edges.array[first_edge->next];
-        if( equal_normal != NULL && vequal3f(first_edge->normal, second_edge->normal) ) {
-            result = 1;
+    struct HalfEdge* prev_edge = &mesh->edges.array[current_edge->prev];
+    struct HalfEdge* next_edge = &mesh->edges.array[current_edge->next];
+    if( cross_normal != NULL ) {
+        Vec current_vec, next_vec;
+        vec_sub(mesh->vertices.array[prev_edge->vertex].position, mesh->vertices.array[current_edge->vertex].position, current_vec);
+        vec_sub(mesh->vertices.array[current_edge->vertex].position, mesh->vertices.array[next_edge->vertex].position, next_vec);
+        vec_cross3f(current_vec, next_vec, cross_normal);
+    }
+
+    if( all_edges && (equal_normal != NULL || average_normal != NULL || cross_normal != NULL) ) {
+        for( unsigned int i = 0; i < face->size-1; i++ ) {
+            if( equal_normal != NULL && vequal3f(first_edge->normal, current_edge->normal) ) {
+                result = 1;
+            }
+
+            if( average_normal != NULL ) {
+                average_normal[0] += current_edge->normal[0];
+                average_normal[1] += current_edge->normal[1];
+                average_normal[2] += current_edge->normal[2];
+            } else if( result == 0 ) {
+                break;
+            }
+
+            struct HalfEdge* prev_prev_edge = &mesh->edges.array[prev_edge->prev];
+            if( cross_normal != NULL ) {
+                Vec prev_vec, current_vec, next_vec;
+                vec_sub(mesh->vertices.array[prev_prev_edge->vertex].position, mesh->vertices.array[prev_edge->vertex].position, prev_vec);
+                vec_sub(mesh->vertices.array[prev_edge->vertex].position, mesh->vertices.array[current_edge->vertex].position, current_vec);
+                vec_sub(mesh->vertices.array[current_edge->vertex].position, mesh->vertices.array[next_edge->vertex].position, next_vec);
+                vec_normalize(prev_vec, prev_vec);
+                vec_normalize(current_vec, current_vec);
+                vec_normalize(next_vec, next_vec);
+
+                Vec3f normal_a, normal_b;
+                vec_cross3f(prev_vec, current_vec, normal_a);
+                vec_cross3f(current_vec, next_vec, normal_b);
+
+                if( vequal3f3f(normal_a, normal_b) ) {
+                    result = 1;
+                }
+            }
+
+            current_edge = &mesh->edges.array[current_edge->next];
+            prev_edge = &mesh->edges.array[current_edge->prev];
+            next_edge = &mesh->edges.array[current_edge->next];
         }
 
         if( average_normal != NULL ) {
-            average_normal[0] += second_edge->normal[0] / face->size;
-            average_normal[1] += second_edge->normal[1] / face->size;
-            average_normal[2] += second_edge->normal[2] / face->size;
-        } else if( result == 0 ) {
-            break;
+            average_normal[0] /= face->size;
+            average_normal[1] /= face->size;
+            average_normal[2] /= face->size;
         }
     }
 
@@ -601,11 +645,11 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
             unsigned int face_two_i = mesh->edges.array[other_i].face;
 
             if( ! face_has_normal[face_one_i] ) {
-                face_has_normal[face_one_i] = halfedgemesh_face_normal(mesh, face_one_i, face_normals+face_one_i*3, NULL);
+                face_has_normal[face_one_i] = halfedgemesh_face_normal(mesh, face_one_i, 1, face_normals+face_one_i*3, NULL, NULL);
             }
 
             if( ! face_has_normal[face_two_i] ) {
-                face_has_normal[face_two_i] = halfedgemesh_face_normal(mesh, face_two_i, face_normals+face_two_i*3, NULL);
+                face_has_normal[face_two_i] = halfedgemesh_face_normal(mesh, face_two_i, 1, face_normals+face_two_i*3, NULL, NULL);
             }
 
             struct HalfEdge* this = &mesh->edges.array[this_i];
@@ -926,6 +970,8 @@ void halfedgemesh_verify(struct HalfEdgeMesh* mesh) {
             assert( this->prev != other->next );
 
             assert( this->other == this->this + 1 || this->other == this->this - 1 );
+
+            assert( fabs(vdot(face->normal, this->normal)) - 1.0 < FLOAT_EPSILON );
 
             // other prev vertex must be equal this vertex
             assert( mesh->edges.array[other->prev].vertex == this->vertex );

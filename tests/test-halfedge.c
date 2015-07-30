@@ -41,8 +41,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    struct Cube solid_in;
-    solid_cube(1.0, &solid_in);
+    struct Sphere32 solid_in;
+    solid_sphere32(1.0, &solid_in);
     solid_normals((struct Solid*)&solid_in);
 
     struct HalfEdgeMesh hemesh;

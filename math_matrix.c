@@ -231,23 +231,19 @@ VecP vinvert(Vec v) {
 }
 
 
-void vec_dot(const Vec v, const Vec w, float* r) {
+void vec_dot(const Vec3f v, const Vec3f w, float* r) {
     *r = v[0]*w[0] + v[1]*w[1] + v[2]*w[2];
 }
 
-float vdot(const Vec v, const Vec w) {
+float vdot(const Vec3f v, const Vec3f w) {
     float r;
     vec_dot(v,w,&r);
     return r;
 }
 
 void vec_cross(const Vec v, const Vec w, Vec r) {
-    Vec t;
-    t[0] = v[1]*w[2] - v[2]*w[1];
-    t[1] = v[2]*w[0] - v[0]*w[2];
-    t[2] = v[0]*w[1] - v[1]*w[0];
-
-    r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; r[3] = 1.0;
+    vec_cross3f(v,w,r);
+    r[3] = 1.0;
 }
 
 VecP vcross(const Vec v, Vec w) {
@@ -255,7 +251,22 @@ VecP vcross(const Vec v, Vec w) {
     return w;
 }
 
-void vec_length(const Vec v, float* r) {
+void vec_cross3f(const Vec v, const Vec3f w, Vec3f r) {
+    Vec t;
+    t[0] = v[1]*w[2] - v[2]*w[1];
+    t[1] = v[2]*w[0] - v[0]*w[2];
+    t[2] = v[0]*w[1] - v[1]*w[0];
+
+    r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
+    vec_normalize3f(r, r);
+}
+
+VecP vcross3f(const Vec v, Vec3f w) {
+    vec_cross3f(v,w,w);
+    return w;
+}
+
+void vec_length(const Vec3f v, float* r) {
     if( fabs(v[0]) < FLOAT_EPSILON && fabs(v[1]) < FLOAT_EPSILON && fabs(v[2]) < FLOAT_EPSILON ) {
         *r = 0.0f;
     } else {
@@ -263,7 +274,7 @@ void vec_length(const Vec v, float* r) {
     }
 }
 
-float vlength(const Vec v) {
+float vlength(const Vec3f v) {
     float r;
     vec_length(v,&r);
     return r;
@@ -279,6 +290,18 @@ void vec_normalize(const Vec v, Vec r) {
 
 VecP vnormalize(Vec v) {
     vec_normalize(v,v);
+    return v;
+}
+
+void vec_normalize3f(const Vec3f v, Vec3f r) {
+    float norm = vlength(v);
+    r[0] = v[0] / norm;
+    r[1] = v[1] / norm;
+    r[2] = v[2] / norm;
+}
+
+VecP vnormalize3f(Vec3f v) {
+    vec_normalize3f(v,v);
     return v;
 }
 
@@ -412,6 +435,10 @@ void vec_basis(const Vec x, Vec y, Vec z) {
 
 void vec_print(const char* title, const Vec v) {
     printf("%s(%f %f %f %f)\n", title, v[0], v[1], v[2], v[3]);
+}
+
+void vec_print3f(const char* title, const Vec3f v) {
+    printf("%s(%f %f %f)\n", title, v[0], v[1], v[2]);
 }
 
 void mat_copy(const Mat m, Mat r) {

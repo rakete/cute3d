@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
     shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
     struct Arcball arcball;
-    arcball_create(window, (Vec){1.0,2.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
+    arcball_create(window, (Vec){-1.0,2.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
 
     Quat grid_rotation;
     quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation);

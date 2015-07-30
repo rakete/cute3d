@@ -28,12 +28,13 @@ struct HalfEdgeVertex {
 };
 
 struct HalfEdgeFace {
+    Vec3f normal;
     unsigned int size;
     unsigned int edge;
 };
 
 struct HalfEdge {
-    Vec normal;
+    Vec3f normal;
     Texcoord texcoord;
     Color color;
 
@@ -87,7 +88,7 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid);
 // hold renderables
 void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid);
 
-int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, unsigned int face_i, Vec3f equal_normal, Vec3f average_normal);
+int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, unsigned int face_i, int all_edges, Vec3f equal_normal, Vec3f average_normal, Vec3f cross_normal);
 int halfedgemesh_face_iterate(struct HalfEdgeMesh* mesh, unsigned int face_i, struct HalfEdge** edge, unsigned int* edge_i, unsigned int* i);
 int halfedgemesh_vertex_iterate(struct HalfEdgeMesh* mesh, unsigned int vertex_i, struct HalfEdge** edge, unsigned int* edge_i, unsigned int* i);
 

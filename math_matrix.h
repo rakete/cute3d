@@ -73,17 +73,23 @@ VecP vmul3f1f(Vec v, float w);
 void vec_invert(const Vec v, Vec r);
 VecP vinvert(Vec v);
 
-void vec_dot(const Vec v, const Vec w, float* r);
-float vdot(const Vec v, const Vec w);
+void vec_dot(const Vec3f v, const Vec3f w, float* r);
+float vdot(const Vec3f v, const Vec3f w);
 
 void vec_cross(const Vec v, const Vec w, Vec r);
 VecP vcross(const Vec v, Vec w);
 
-void vec_length(const Vec v, float* r);
-float vlength(const Vec v);
+void vec_cross3f(const Vec v, const Vec3f w, Vec3f r);
+VecP vcross3f(const Vec v, Vec3f w);
+
+void vec_length(const Vec3f v, float* r);
+float vlength(const Vec3f v);
 
 void vec_normalize(const Vec v, Vec r);
 VecP vnormalize(Vec v);
+
+void vec_normalize3f(const Vec3f v, Vec3f r);
+VecP vnormalize3f(Vec3f v);
 
 void vec_angle(const Vec v, const Vec w, float* r);
 float vangle(const Vec v, const Vec w);
@@ -103,6 +109,7 @@ VecP vperpendicular(const Vec v);
 void vec_basis(const Vec x, Vec y, Vec z);
 
 void vec_print(const char* title, const Vec v);
+void vec_print3f(const char* title, const Vec3f v);
 
 // matrix creation
 void mat_copy(const Mat m, Mat r);
