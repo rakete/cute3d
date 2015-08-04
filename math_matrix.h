@@ -35,9 +35,13 @@ void vec_axisz(Vec r);
 VecP vaxisz(Vec r);
 
 void vec_copy(const Vec v, Vec r);
-void vec_copy3f(const Vec v, Vec3f r);
+VecP vcopy(const Vec v, Vec r);
+
+void vec_copy3f(const Vec3f v, Vec3f r);
+VecP vcopy3f(const Vec3f v, Vec3f r);
 
 void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
+MatP vcopy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
 
 void vec_equal(const Vec a, const Vec b, int* r);
 int vequal(const Vec a, const Vec b);
@@ -45,17 +49,17 @@ int vequal(const Vec a, const Vec b);
 void vec_equal3f(const Vec3f a, const Vec3f b, int* r);
 int vequal3f(const Vec3f a, const Vec3f b);
 
-void vec_add(const Vec v, const Vec w, Vec r);
+void vec_add(const Vec v, const Vec3f w, Vec r);
 VecP vadd(const Vec v, Vec w);
 
-void vec_add3f(const Vec v, const Vec3f w, Vec r);
-VecP vadd3f(const Vec v, Vec w);
+void vec_add3f(const Vec3f v, const Vec3f w, Vec3f r);
+VecP vadd3f(const Vec3f v, Vec3f w);
 
-void vec_add3f3f(const Vec3f v, const Vec3f w, Vec3f r);
-//VecP v3fadd3f(const Vec3f v, Vec w3f);
-
-void vec_sub(const Vec v, const Vec w, Vec r);
+void vec_sub(const Vec v, const Vec3f w, Vec r);
 VecP vsub(const Vec v, Vec w);
+
+void vec_sub3f(const Vec3f v, const Vec3f w, Vec3f r);
+VecP vsub3f(const Vec3f v, Vec3f w);
 
 void vec_sub1f(const Vec v, float w, Vec r);
 VecP vsub1f(Vec v, float w);
@@ -63,8 +67,8 @@ VecP vsub1f(Vec v, float w);
 void vec_mul(const Vec v, const Vec w, Mat m);
 VecP vmul(const Vec v, Mat w);
 
-void vec_mul1f(const Vec v, float w, Vec r);
-VecP vmul1f(Vec v, float w);
+void vec_mul1f(const Vec3f v, float w, Vec r);
+VecP vmul1f(Vec3f v, float w);
 
 void vec_mul4f1f(const Vec v, float w, Vec r);
 VecP vmul4f1f(Vec v, float w);
@@ -78,11 +82,11 @@ VecP vinvert(Vec v);
 void vec_dot(const Vec3f v, const Vec3f w, float* r);
 float vdot(const Vec3f v, const Vec3f w);
 
-void vec_cross(const Vec v, const Vec w, Vec r);
+void vec_cross(const Vec v, const Vec3f w, Vec r);
 VecP vcross(const Vec v, Vec w);
 
-void vec_cross3f(const Vec v, const Vec3f w, Vec3f r);
-VecP vcross3f(const Vec v, Vec3f w);
+void vec_cross3f(const Vec3f v, const Vec3f w, Vec3f r);
+VecP vcross3f(const Vec3f v, Vec3f w);
 
 void vec_length(const Vec3f v, float* r);
 float vlength(const Vec3f v);
@@ -93,8 +97,8 @@ VecP vnormalize(Vec v);
 void vec_normalize3f(const Vec3f v, Vec3f r);
 VecP vnormalize3f(Vec3f v);
 
-void vec_angle(const Vec v, const Vec w, float* r);
-float vangle(const Vec v, const Vec w);
+void vec_angle(const Vec3f v, const Vec3f w, float* r);
+float vangle(const Vec3f v, const Vec3f w);
 
 void vec_nullp(const Vec v, bool* r);
 bool vnullp(const Vec v);

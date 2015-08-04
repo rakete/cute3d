@@ -59,10 +59,20 @@ void vec_copy(const Vec v, Vec r) {
     r[3] = v[3];
 }
 
+VecP vcopy(const Vec v, Vec r) {
+    vec_copy(v,r);
+    return r;
+}
+
 void vec_copy3f(const Vec v, Vec3f r) {
     r[0] = v[0];
     r[1] = v[1];
     r[2] = v[2];
+}
+
+VecP vcopy3f(const Vec v, Vec3f r) {
+    vec_copy3f(v,r);
+    return r;
 }
 
 void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r) {
@@ -70,6 +80,11 @@ void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r) {
     r[1] = x[1];  r[5] = y[1];  r[9]  = z[1];  r[13] = 0.0;
     r[2] = x[2];  r[6] = y[2];  r[10] = z[2];  r[14] = 0.0;
     r[3] = 0.0;   r[7] = 0.0;   r[11] = 0.0;   r[15] = 1.0;
+}
+
+MatP vcopy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r) {
+    vec_copy3fmat(x,y,z,r);
+    return r;
 }
 
 void vec_equal(const Vec a, const Vec b, int* r) {
@@ -119,25 +134,18 @@ VecP vadd(const Vec v, Vec w) {
     return w;
 }
 
-void vec_add3f(const Vec v, const Vec3f w, Vec r) {
+void vec_add3f(const Vec3f v, const Vec3f w, Vec3f r) {
     r[0] = v[0] + w[0];
     r[1] = v[1] + w[1];
     r[2] = v[2] + w[2];
-    r[3] = v[3];
 }
 
-VecP vadd3f(const Vec v, Vec w) {
-    vec_add3f3f(v,w,w);
+VecP vadd3f(const Vec3f v, Vec3f w) {
+    vec_add3f(v,w,w);
     return w;
 }
 
-void vec_add3f3f(const Vec3f v, const Vec3f w, Vec3f r) {
-    r[0] = v[0] + w[0];
-    r[1] = v[1] + w[1];
-    r[2] = v[2] + w[2];
-}
-
-void vec_sub(const Vec v, const Vec w, Vec r) {
+void vec_sub(const Vec v, const Vec3f w, Vec r) {
     r[0] = v[0] - w[0];
     r[1] = v[1] - w[1];
     r[2] = v[2] - w[2];
@@ -146,6 +154,17 @@ void vec_sub(const Vec v, const Vec w, Vec r) {
 
 VecP vsub(const Vec v, Vec w) {
     vec_sub(v,w,w);
+    return w;
+}
+
+void vec_sub3f(const Vec3f v, const Vec3f w, Vec3f r) {
+    r[0] = v[0] - w[0];
+    r[1] = v[1] - w[1];
+    r[2] = v[2] - w[2];
+}
+
+VecP vsub3f(const Vec3f v, Vec3f w) {
+    vec_sub3f(v,w,w);
     return w;
 }
 
@@ -177,14 +196,14 @@ VecP vmul(const Vec v, Mat w) {
 }
 
 
-void vec_mul1f(const Vec v, float w, Vec r) {
+void vec_mul1f(const Vec3f v, float w, Vec r) {
     r[0] = v[0]*w;
     r[1] = v[1]*w;
     r[2] = v[2]*w;
     r[3] = 1.0;
 }
 
-VecP vmul1f(Vec v, float w) {
+VecP vmul1f(Vec3f v, float w) {
     vec_mul1f(v,w,v);
     return v;
 }
@@ -234,9 +253,14 @@ float vdot(const Vec3f v, const Vec3f w) {
     return r;
 }
 
-void vec_cross(const Vec v, const Vec w, Vec r) {
-    vec_cross3f(v,w,r);
-    r[3] = 1.0;
+void vec_cross(const Vec v, const Vec3f w, Vec r) {
+    Vec t;
+    t[0] = v[1]*w[2] - v[2]*w[1];
+    t[1] = v[2]*w[0] - v[0]*w[2];
+    t[2] = v[0]*w[1] - v[1]*w[0];
+
+    r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; r[3] = 1.0;
+    vec_normalize(r, r);
 }
 
 VecP vcross(const Vec v, Vec w) {
@@ -244,7 +268,7 @@ VecP vcross(const Vec v, Vec w) {
     return w;
 }
 
-void vec_cross3f(const Vec v, const Vec3f w, Vec3f r) {
+void vec_cross3f(const Vec3f v, const Vec3f w, Vec3f r) {
     Vec t;
     t[0] = v[1]*w[2] - v[2]*w[1];
     t[1] = v[2]*w[0] - v[0]*w[2];
@@ -254,7 +278,7 @@ void vec_cross3f(const Vec v, const Vec3f w, Vec3f r) {
     vec_normalize3f(r, r);
 }
 
-VecP vcross3f(const Vec v, Vec3f w) {
+VecP vcross3f(const Vec3f v, Vec3f w) {
     vec_cross3f(v,w,w);
     return w;
 }
@@ -298,10 +322,10 @@ VecP vnormalize3f(Vec3f v) {
     return v;
 }
 
-void vec_angle(const Vec v, const Vec w, float* r) {
-    Vec normed_v, normed_w;
-    vec_normalize(v, normed_v);
-    vec_normalize(w, normed_w);
+void vec_angle(const Vec3f v, const Vec3f w, float* r) {
+    Vec3f normed_v, normed_w;
+    vec_normalize3f(v, normed_v);
+    vec_normalize3f(w, normed_w);
 
     float dot = vdot(normed_v,normed_w);
     if( fabs(dot + 1.0f) < FLOAT_EPSILON ) {
@@ -313,7 +337,7 @@ void vec_angle(const Vec v, const Vec w, float* r) {
     }
 }
 
-float vangle(const Vec v, const Vec w) {
+float vangle(const Vec3f v, const Vec3f w) {
     float r;
     vec_angle(v,w,&r);
     return r;
