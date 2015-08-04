@@ -154,6 +154,9 @@ MatP mmul(const Mat m, Mat n);
 void mat_mul_vec(const Mat m, const Vec v, Vec r);
 MatP mmul_vec(const Mat m, Vec v);
 
+void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r);
+MatP mmul_vec3f(const Mat m, Vec3f v);
+
 void mat_translate(const Mat m, const Vec v, Mat r);
 //MatP mtranslate(const Vec v, Mat m);
 

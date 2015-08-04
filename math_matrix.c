@@ -799,6 +799,25 @@ MatP mmul_vec(const Mat m, Vec v) {
     return v;
 }
 
+void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r) {
+    Vec t;
+    /* t[0] = m[0]*v[0] + m[1]*v[1] + m[2]*v[2] + m[3]*v[3]; */
+    /* t[1] = m[4]*v[0] + m[5]*v[1] + m[6]*v[2] + m[7]*v[3]; */
+    /* t[2] = m[8]*v[0] + m[9]*v[1] + m[10]*v[2] + m[11]*v[3]; */
+    /* t[3] = m[12]*v[0] + m[13]*v[1] + m[14]*v[2] + m[15]*v[3]; */
+
+    t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2];
+    t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2];
+    t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2];
+
+    r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
+}
+
+MatP mmul_vec3f(const Mat m, Vec3f v) {
+    mat_mul_vec3f(m,v,v);
+    return v;
+}
+
 void mat_translate(const Mat m, const Vec v, Mat r) {
     Mat n;
     n[0] = 1.0f; n[4] = 0.0f;  n[8]  = 0.0f; n[12] = v[0];
