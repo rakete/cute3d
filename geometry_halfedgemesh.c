@@ -530,7 +530,7 @@ int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, unsigned int face_i, int
                 vec_cross3f(prev_vec, current_vec, normal_a);
                 vec_cross3f(current_vec, next_vec, normal_b);
 
-                if( vequal3f3f(normal_a, normal_b) ) {
+                if( vequal3f(normal_a, normal_b) ) {
                     result = 1;
                 }
             }
@@ -668,7 +668,7 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
                 normal_b[1] = face_normals[face_two_i*3+1];
                 normal_b[2] = face_normals[face_two_i*3+2];
 
-                if( vequal3f3f(normal_a, normal_b) ) {
+                if( vequal3f(normal_a, normal_b) ) {
                     assert( this->prev != this->this );
                     assert( this->next != this->this );
                     assert( this->prev != this->next );

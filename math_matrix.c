@@ -75,7 +75,7 @@ int vequal(const Vec a, const Vec b) {
     return r;
 }
 
-void vec_equal3f(const Vec a, const Vec3f b, int* r) {
+void vec_equal3f(const Vec3f a, const Vec3f b, int* r) {
     *r = 0;
 
     if( fabs(a[0] - b[0]) <= FLOAT_EPSILON &&
@@ -86,39 +86,17 @@ void vec_equal3f(const Vec a, const Vec3f b, int* r) {
     }
 }
 
-int vequal3f(const Vec a, const Vec3f b) {
+int vequal3f(const Vec3f a, const Vec3f b) {
     int r;
     vec_equal3f(a,b,&r);
     return r;
 }
 
-void vec_equal3f3f(const Vec3f a, const Vec3f b, int* r) {
-    *r = 0;
-
-    if( fabs(a[0] - b[0]) <= FLOAT_EPSILON &&
-        fabs(a[1] - b[1]) <= FLOAT_EPSILON &&
-        fabs(a[2] - b[2]) <= FLOAT_EPSILON )
-    {
-        *r = 1;
-    }
-}
-
-int vequal3f3f(const Vec3f a, const Vec3f b) {
-    int r;
-    vec_equal3f3f(a,b,&r);
-    return r;
-}
-
-void vec_add(const Vec v, const Vec w, Vec r) {
+void vec_add(const Vec v, const Vec3f w, Vec r) {
     r[0] = v[0] + w[0];
     r[1] = v[1] + w[1];
     r[2] = v[2] + w[2];
-    float w3 = v[3] + w[3];
-    if( w3 > 1.0f ) {
-        r[3] = 1.0f;
-    } else {
-        r[3] = w3;
-    }
+    r[3] = v[3];
 }
 
 VecP vadd(const Vec v, Vec w) {

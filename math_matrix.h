@@ -37,11 +37,8 @@ void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
 void vec_equal(const Vec a, const Vec b, int* r);
 int vequal(const Vec a, const Vec b);
 
-void vec_equal3f(const Vec a, const Vec3f b, int* r);
-int vequal3f(const Vec a, const Vec3f b);
-
-void vec_equal3f3f(const Vec3f a, const Vec3f b, int* r);
-int vequal3f3f(const Vec3f a, const Vec3f b);
+void vec_equal3f(const Vec3f a, const Vec3f b, int* r);
+int vequal3f(const Vec3f a, const Vec3f b);
 
 void vec_add(const Vec v, const Vec w, Vec r);
 VecP vadd(const Vec v, Vec w);
