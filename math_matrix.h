@@ -103,6 +103,9 @@ float vangle(const Vec3f v, const Vec3f w);
 void vec_nullp(const Vec v, bool* r);
 bool vnullp(const Vec v);
 
+void vec_unitp(const Vec v, bool* r);
+bool vunitp(const Vec v);
+
 void vec_sum(const Vec v, float* sum);
 float vsum(const Vec v);
 

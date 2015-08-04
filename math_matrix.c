@@ -360,6 +360,20 @@ bool vnullp(const Vec v) {
     return r;
 }
 
+void vec_unitp(const Vec v, bool* r) {
+    if( fabs(vlength(v) - 1.0f) < FLOAT_EPSILON ) {
+        *r = 1;
+    } else {
+        *r = 0;
+    }
+}
+
+bool vunitp(const Vec v) {
+    bool r;
+    vec_unitp(v,&r);
+    return r;
+}
+
 void vec_sum(const Vec v, float* sum) {
     *sum = v[0] + v[1] + v[2];
 }
