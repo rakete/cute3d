@@ -16,25 +16,40 @@
 
 #include "math_matrix.h"
 
-void vec_x(Vec r) {
+void vec_axisx(Vec r) {
     r[0] = 1.0;
     r[1] = 0.0;
     r[2] = 0.0;
     r[3] = 1.0;
 }
 
-void vec_y(Vec r) {
+VecP vaxisx(Vec r) {
+    vec_axisx(r);
+    return r;
+}
+
+void vec_axisy(Vec r) {
     r[0] = 0.0;
     r[1] = 1.0;
     r[2] = 0.0;
     r[3] = 1.0;
 }
 
-void vec_z(Vec r) {
+VecP vaxisy(Vec r) {
+    vec_axisy(r);
+    return r;
+}
+
+void vec_axisz(Vec r) {
     r[0] = 0.0;
     r[1] = 0.0;
     r[2] = 1.0;
     r[3] = 1.0;
+}
+
+VecP vaxisz(Vec r) {
+    vec_axisz(r);
+    return r;
 }
 
 void vec_copy(const Vec v, Vec r) {
