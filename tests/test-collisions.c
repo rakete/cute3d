@@ -34,7 +34,7 @@ struct CollisionEntity {
 static void entity_create(Color color, struct Vbo* vbo, struct CollisionEntity* entity) {
     pivot_create(&entity->pivot);
 
-    solid_cube(1.0, &entity->solid);
+    solid_cube(1.0f, &entity->solid);
     solid_normals((struct Solid*)&entity->solid);
     solid_color((struct Solid*)&entity->solid, color);
 
@@ -78,13 +78,15 @@ int main(int argc, char *argv[]) {
 
     struct CollisionEntity entity_a;
     entity_create((Color){ 1.0, 0.0, 0.0, 1.0 }, &vbo, &entity_a);
-    vec_add(entity_a.pivot.position, (Vec){0.70, 0.0, 0.0, 1.0}, entity_a.pivot.position);
+    printf("size_a: %u %u %u\n", entity_a.hemesh.vertices.reserved, entity_a.hemesh.faces.reserved, entity_a.hemesh.edges.reserved);
+    vec_add(entity_a.pivot.position, (Vec){0.0, 0.0, 0.0, 1.0}, entity_a.pivot.position);
+    quat_mul_axis_angle(entity_a.pivot.orientation, (Vec)Y_AXIS, PI/4, entity_a.pivot.orientation);
 
     struct CollisionEntity entity_b;
     entity_create((Color){ 0.0, 1.0, 0.0, 1.0 }, &vbo, &entity_b);
-    vec_add(entity_b.pivot.position, (Vec){-0.70, 0.0, 0.0, 1.0}, entity_b.pivot.position);
-    quat_mul_axis_angle(entity_b.pivot.orientation, (Quat)Y_AXIS, PI/4, entity_b.pivot.orientation);
-    quat_mul_axis_angle(entity_b.pivot.orientation, (Quat)Z_AXIS, PI/4, entity_b.pivot.orientation);
+    /* quat_mul_axis_angle(entity_b.pivot.orientation, (Vec)Y_AXIS, PI/4, entity_b.pivot.orientation); */
+    quat_mul_axis_angle(entity_b.pivot.orientation, pivot_local_axis(&entity_b.pivot, (Vec)Z_AXIS), PI/4, entity_b.pivot.orientation);
+    vec_add(entity_b.pivot.position, (Vec){-1.5, 0.0, 0.0, 1.0}, entity_b.pivot.position);
 
     struct Shader shader;
     render_shader_flat(&shader);
@@ -139,12 +141,14 @@ int main(int argc, char *argv[]) {
         mat_identity(identity);
 
         Mat transform_a;
-        pivot_world_transform(entity_a.pivot, transform_a);
+        pivot_world_transform(&entity_a.pivot, transform_a);
         render_vbomesh(&entity_a.vbomesh, &shader, &arcball.camera, transform_a);
 
         Mat transform_b;
-        pivot_world_transform(entity_b.pivot, transform_b);
+        pivot_world_transform(&entity_b.pivot, transform_b);
         render_vbomesh(&entity_b.vbomesh, &shader, &arcball.camera, transform_b);
+
+        collide_convex_convex(&entity_a.collider, &entity_b.collider);
 
         show_render(NULL, 10, arcball.camera);
 

@@ -22,6 +22,7 @@
 #include "math_transform.h"
 #include "physics.h"
 #include "geometry_halfedgemesh.h"
+#include "render_draw.h"
 
 #define MAX_CONTACTS 4
 #define COLLISION_LIFETIME 5
@@ -68,11 +69,7 @@ struct ColliderAABB {
 struct ColliderOBB {
     struct Collider collider;
 
-    // the realtime collision detection book recommends representing the orientation of an obb with
-    // local axis, instead of using a quaternion since that would need to be converted to an matrix
-    // for the neccessary computations
-    // so we could either use 3 vectors, or just a matrix anyways since that should be equivalent
-    Mat orientation;
+    Quat orientation;
 
     float width;
     float height;
@@ -82,7 +79,7 @@ struct ColliderOBB {
 struct ColliderCapsule {
     struct Collider collider;
 
-    Mat orientation;
+    Quat orientation;
 
     Vec point_a;
     Vec point_b;
@@ -92,9 +89,9 @@ struct ColliderCapsule {
 struct ColliderConvex {
     struct Collider collider;
 
-    struct HalfEdgeMesh* mesh;
+    Quat orientation;
 
-    Mat orientation;
+    struct HalfEdgeMesh* mesh;
 };
 
 // each supported bounding volume data structure should have a constructor to initialize it
@@ -111,12 +108,17 @@ void collider_convex(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct Coll
 // contact generation and is the only needed during broad phase
 // the contact generation by itself can double as collision detection because as soon as we'll get at least one contact, we
 // know the a collision has taken place.
-
-// later, I hope to eventually implement collision testing seperate to contact generation and an actual broad phase, function
-// prototypes for collision detection might be like these:
 bool collide_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2);
 bool collide_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane);
 bool collide_sphere_convex(struct ColliderSphere* const sphere, struct ColliderConvex* const convex);
+
+bool collide_plane_sphere(struct ColliderPlane* const plane, struct ColliderSphere* const sphere);
+bool collide_plane_plane(struct ColliderPlane* const plane1, struct ColliderPlane* const plane2);
+bool collide_plane_convex(struct ColliderPlane* const plane, struct ColliderConvex* const convex);
+
+bool collide_convex_sphere(struct ColliderConvex* const convex, struct ColliderSphere* const sphere);
+bool collide_convex_plane(struct ColliderConvex* const convex, struct ColliderPlane* const plane);
+bool collide_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2);
 
 struct Contact {
     Vec point;

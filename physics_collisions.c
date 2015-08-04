@@ -39,7 +39,7 @@ void collider_obb(float width, float height, float depth, struct Pivot* pivot, s
     obb->height = height;
     obb->depth = depth;
 
-    mat_identity(obb->orientation);
+    quat_identity(obb->orientation);
 }
 
 void collider_capsule(Vec point_a, Vec point_b, float radius, struct Pivot* pivot, struct ColliderCapsule* capsule) {
@@ -51,7 +51,7 @@ void collider_capsule(Vec point_a, Vec point_b, float radius, struct Pivot* pivo
     vec_copy(point_a, capsule->point_a);
     vec_copy(point_b, capsule->point_b);
 
-    mat_identity(capsule->orientation);
+    quat_identity(capsule->orientation);
 }
 
 void collider_convex(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct ColliderConvex* convex) {
@@ -61,104 +61,348 @@ void collider_convex(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct Coll
 
     convex->mesh = mesh;
 
-    mat_identity(convex->orientation);
+    quat_identity(convex->orientation);
 }
 
-unsigned int contacts_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2, struct Collision* collision) {
+// collide
+bool collide_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2) {
     assert(sphere1->collider.type == COLLIDER_SPHERE);
     assert(sphere2->collider.type == COLLIDER_SPHERE);
-
-    if( collision->num_contacts >= MAX_CONTACTS ) {
-        return 0;
-    }
-
-    Vec midline;
-    vec_sub(sphere1->collider.pivot->position, sphere2->collider.pivot->position, midline);
-
-    float size = vlength(midline);
-
-    if( size == 0.0f || size >= sphere1->radius + sphere2->radius ) {
-        return 0;
-    }
-
-    unsigned int i = collision->num_contacts;
-    vec_mul1f(midline, 1.0/size, collision->normal);
-
-    Vec point;
-    vec_mul1f(midline, 0.5, point);
-    vec_add(sphere1->collider.pivot->position, point, collision->contact[i].point);
-
-    collision->contact[i].penetration = sphere1->radius + sphere2->radius - size;
-
-    collision->num_contacts++;
-
-    return 1;
+    assert("implementation" == false);
 }
 
-unsigned int contacts_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane, struct Collision* collision) {
+bool collide_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane) {
     assert(sphere->collider.type == COLLIDER_SPHERE);
     assert(plane->collider.type == COLLIDER_PLANE);
+    assert("implementation" == false);
+}
 
-    if( collision->num_contacts >= MAX_CONTACTS ) {
-        return 0;
+bool collide_sphere_convex(struct ColliderSphere* const sphere, struct ColliderConvex* const convex) {
+    assert(sphere->collider.type == COLLIDER_SPHERE);
+    assert(convex->collider.type == COLLIDER_CONVEX);
+    assert("implementation" == false);
+}
+
+bool collide_plane_sphere(struct ColliderPlane* const plane, struct ColliderSphere* const sphere) {
+    assert(plane->collider.type == COLLIDER_PLANE);
+    assert(sphere->collider.type == COLLIDER_SPHERE);
+    assert("implementation" == false);
+}
+
+bool collide_plane_plane(struct ColliderPlane* const plane1, struct ColliderPlane* const plane2) {
+    assert(plane1->collider.type == COLLIDER_PLANE);
+    assert(plane2->collider.type == COLLIDER_PLANE);
+    assert("implementation" == false);
+}
+
+bool collide_plane_convex(struct ColliderPlane* const plane, struct ColliderConvex* const convex) {
+    assert(plane->collider.type == COLLIDER_PLANE);
+    assert(convex->collider.type == COLLIDER_CONVEX);
+    assert("implementation" == false);
+}
+
+bool collide_convex_sphere(struct ColliderConvex* const convex, struct ColliderSphere* const sphere) {
+    assert(convex->collider.type == COLLIDER_CONVEX);
+    assert(sphere->collider.type == COLLIDER_SPHERE);
+    assert("implementation" == false);
+}
+
+bool collide_convex_plane(struct ColliderConvex* const convex, struct ColliderPlane* const plane) {
+    assert(convex->collider.type == COLLIDER_CONVEX);
+    assert(plane->collider.type == COLLIDER_PLANE);
+    assert("implementation" == false);
+}
+
+// helper to transform vertices from convex2 halfedgemesh into the coordinate system of convex1
+static void convex_local_transform(struct ColliderConvex* const convex1,
+                                   struct ColliderConvex* const convex2,
+                                   unsigned int size,
+                                   float transformed_vertices[])
+{
+    // I get both orientation and translation of both convex'es, but invert the ones from
+    // convex1, which means I have a local2->world transformation for convex2 named
+    // convex2_world_translation/orientation and a world->local1 transformation named
+    // convex1_local_translation/orientation
+    Quat convex1_local_orientation;
+    quat_copy(convex1->collider.pivot->orientation, convex1_local_orientation);
+    quat_mul(convex1_local_orientation, convex1->orientation, convex1_local_orientation);
+    quat_invert(convex1_local_orientation, convex1_local_orientation);
+
+    Vec3f convex1_local_translation;
+    vec_copy3f(convex1->collider.pivot->position, convex1_local_translation);
+    vec_add3f(convex1_local_translation, convex1->collider.position, convex1_local_translation);
+    vec_mul1f(convex1_local_translation, -1.0f, convex1_local_translation);
+
+    Quat convex2_world_orientation;
+    quat_copy(convex2->collider.pivot->orientation, convex2_world_orientation);
+    quat_mul(convex2_world_orientation, convex2->orientation, convex2_world_orientation);
+
+    Vec3f convex2_world_translation;
+    vec_copy3f(convex2->collider.pivot->position, convex2_world_translation);
+    vec_add3f(convex2_world_translation, convex2->collider.position, convex2_world_translation);
+
+    // both convex2_world_translation/orienation and convex1_local_translation/orientation
+    // combined are the final vertex_translation/orientation
+    Quat vertex_orientation;
+    quat_mul(convex2_world_orientation, convex1_local_orientation, vertex_orientation);
+
+    Vec3f vertex_translation;
+    vec_add3f(convex2_world_translation, convex1_local_translation, vertex_translation);
+
+    // the vertex_translation/orientation is then applied to every vertex of convex2->mesh resulting
+    // in a new array of vertices which coordinates are now relative to convex1
+    for( unsigned int i = 0; i < convex2->mesh->vertices.reserved && i*3 < size; i++ ) {
+        Vec3f vertex;
+        vec_copy3f(convex2->mesh->vertices.array[i].position, vertex);
+
+        quat_rotate_vec3f(vertex, vertex_orientation, vertex);
+        vec_add3f(vertex, vertex_translation, vertex);
+
+        transformed_vertices[i*3+0] = vertex[0];
+        transformed_vertices[i*3+1] = vertex[1];
+        transformed_vertices[i*3+2] = vertex[2];
+    }
+}
+
+// helper that does the face normal projection part of the sat collision test, this
+// is supposed to be called twice, one time with convex1 and convex2 flipped
+static void query_face_directions(struct ColliderConvex* const convex1,
+                                  struct ColliderConvex* const convex2,
+                                  Vec3f best_normal,
+                                  float* best_distance,
+                                  unsigned int* face_index,
+                                  unsigned int* vertex_index)
+{
+    struct HalfEdgeMesh* mesh1 = convex1->mesh;
+    struct HalfEdgeMesh* mesh2 = convex2->mesh;
+
+    // we'll do the projections in the coordinate system local to convex1, notice this
+    // means when this function is called with convex1 and convex2 flipped the best_normal
+    // (seperation axis) orientation will be in convex2 coordinates instead of convex1
+    // coordinates
+    unsigned int transformed_size = mesh2->vertices.reserved*3;
+    float transformed_vertices[transformed_size];
+    convex_local_transform(convex1, convex2, transformed_size, transformed_vertices);
+
+    // the algorithm is quite simple:
+    // for each face normal of mesh1:
+    // - find a support vertex in mesh2, which means finding the vertex of mesh2 which has the biggest
+    // projection on the current face_normal of mesh1
+    // - then compute distance of support vertex to face
+    // - keep track of largest distance found
+    for( unsigned int face_i = 0; face_i < mesh1->faces.reserved; face_i++ ) {
+        Vec3f face_normal;
+        vec_copy3f(mesh1->faces.array[face_i].normal, face_normal);
+
+        // make plane normal opposite direction of face normal so that we'll find a support
+        // point that is 'most inside' from our perspective
+        Vec3f plane_normal;
+        vec_mul1f(face_normal, -1.0f, plane_normal);
+
+        // projecting every vertex of mesh2 onto plane_normal and then using the one with the
+        // largest projection as support
+        Vec3f support;
+        unsigned int support_j;
+        float best_projection = -FLT_MAX;
+        for( unsigned int vertex_j = 0; vertex_j < mesh2->vertices.reserved; vertex_j++ ) {
+            Vec3f vertex;
+            vec_copy3f(transformed_vertices+vertex_j*3, vertex);
+
+            float projection = vdot(vertex, plane_normal);
+
+            if( projection > best_projection ) {
+                best_projection = projection;
+                vec_copy3f(vertex, support);
+                support_j = vertex_j;
+            }
+        }
+
+        // just the dot product is not enough, the face and therefore the plane we like to compute the
+        // distance to is orientated in 3d space so that is does not go through the origin (most likely),
+        // so we just use one of the face vertices as point on plane and then project the difference of
+        // support - point on the plane normal to compute the distance
+        // d = n . (s - p)
+        Vec3f plane_point;
+        unsigned int vertex_i = mesh1->edges.array[mesh1->faces.array[face_i].edge].vertex;
+        vec_copy3f(mesh1->vertices.array[vertex_i].position, plane_point);
+        vec_sub3f(support, plane_point, support);
+        float distance = vdot(support, face_normal);
+
+        // keep track of largest distance/penetration, the result should be the vertex face distance
+        // of the pair where the largest penetration into our mesh occurs
+        if( distance > *best_distance ) {
+            *best_distance = distance;
+            *face_index = face_i;
+            *vertex_index = support_j;
+            vec_copy3f(face_normal, best_normal);
+        }
+    }
+}
+
+// helper for the edge edge collisions, this thing is _slow_, I implemented the most
+// optimized version that I could find, namely the one outlined in these slides:
+// http://twvideo01.ubm-us.net/o1/vault/gdc2013/slides/822403Gregorius_Dirk_TheSeparatingAxisTest.pdf
+// but still, it is fine for small objects, but becomes unuseable pretty quickly once the number
+// of edges goes up (complexity should be O(n^2))
+static void query_edge_directions(struct ColliderConvex* const convex1,
+                                  struct ColliderConvex* const convex2,
+                                  Vec3f best_normal,
+                                  float* best_distance,
+                                  unsigned int* best_index1,
+                                  unsigned int* best_index2) {
+    struct HalfEdgeMesh* mesh1 = convex1->mesh;
+    struct HalfEdgeMesh* mesh2 = convex2->mesh;
+
+    unsigned int transformed_size = mesh2->vertices.reserved*3;
+    float transformed_vertices[transformed_size];
+    convex_local_transform(convex1, convex2, transformed_size, transformed_vertices);
+
+    Quat world_convex1_orientation;
+    quat_copy(convex1->collider.pivot->orientation, world_convex1_orientation);
+    quat_mul(world_convex1_orientation, convex1->orientation, world_convex1_orientation);
+    quat_invert(world_convex1_orientation, world_convex1_orientation);
+
+    Quat convex2_world_orientation;
+    quat_copy(convex2->collider.pivot->orientation, convex2_world_orientation);
+    quat_mul(convex2_world_orientation, convex2->orientation, convex2_world_orientation);
+
+    Quat convex2_normal_orientation;
+    quat_mul(convex2_world_orientation, world_convex1_orientation, convex2_normal_orientation);
+
+    // every face normal of the minowski sum of mesh1 and mesh2 is a potential sat,
+    // checking all these would be equivalent to check all cross products between all
+    // possible combinations of edges from mesh1 and mesh2, this is far too expensive
+    //
+    // so instead we use a gauss map as outlined in the slides I mention above to prune edge
+    // tests by deciding which edge combinations actually form a face on the minowski sum and which
+    // don't,
+    for( unsigned int i = 0; i < mesh1->edges.reserved; i += 2 ) {
+        struct HalfEdge* edge1 = &mesh1->edges.array[i];
+        struct HalfEdge* other1 = &mesh1->edges.array[edge1->other];
+        for( unsigned int j = 0; j < mesh2->edges.reserved; j += 2 ) {
+            struct HalfEdge* edge2 = &mesh2->edges.array[j];
+            struct HalfEdge* other2 = &mesh2->edges.array[edge2->other];
+
+            Vec3f a,b,c,d;
+            vec_copy3f(mesh1->faces.array[edge1->face].normal, a);
+            vec_copy3f(mesh1->faces.array[other1->face].normal, b);
+
+            vec_copy3f(mesh2->faces.array[edge2->face].normal, c);
+            vec_copy3f(mesh2->faces.array[other2->face].normal, d);
+
+            quat_rotate_vec3f(c, convex2_normal_orientation, c);
+            quat_rotate_vec3f(d, convex2_normal_orientation, d);
+
+            vec_mul3f1f(c, -1.0f, c);
+            vec_mul3f1f(d, -1.0f, d);
+
+            Vec3f edge1_direction, edge1_head;
+            vec_copy3f(mesh1->vertices.array[edge1->vertex].position, edge1_head);
+            vec_sub3f(mesh1->vertices.array[other1->vertex].position, edge1_head, edge1_direction);
+
+            Vec3f edge2_direction, edge2_head;
+            vec_copy3f(transformed_vertices+edge2->vertex*3, edge2_head);
+            vec_sub3f(transformed_vertices+other2->vertex*3, edge2_head, edge2_direction);
+
+            vec_normalize3f(edge1_direction, edge1_direction);
+            vec_normalize3f(edge2_direction, edge2_direction);
+
+            if( fabs(vdot(edge1_direction, edge2_direction)) >= 1.0f - FLOAT_EPSILON) {
+                continue;
+            }
+
+            // instead of cross product I should be able to just use the edges between a b and d c
+            Vec3f bxa, dxc;
+            /* vec_cross3f(b, a, bxa); */
+            /* vec_cross3f(d, c, dxc); */
+            vec_copy3f(edge1_direction, bxa);
+            vec_copy3f(edge2_direction, dxc);
+
+            float cba = vdot(c, bxa);
+            float dba = vdot(d, bxa);
+            float adc = vdot(a, dxc);
+            float bdc = vdot(b, dxc);
+
+            if( cba * dba < 0.0f && adc * bdc < 0.0f && cba * bdc > 0.0f ) {
+                // edge1 and edge2 form an minowski face
+                Vec3f center_direction;
+                vec_sub3f((Vec3f){0,0,0}, edge1_head, center_direction);
+                vec_normalize3f(center_direction, center_direction);
+
+                Vec3f plane_normal;
+                vec_cross3f(edge1_direction, edge2_direction, plane_normal);
+                if( vdot( center_direction, plane_normal ) > 0.0f ) {
+                    vec_mul3f1f(plane_normal, -1.0f, plane_normal);
+                }
+
+                Vec3f other_point;
+                vec_sub3f(edge2_head, edge1_head, other_point);
+                float distance = vdot(other_point, plane_normal);
+                if( distance > *best_distance ) {
+                    *best_distance = distance;
+                    *best_index1 = i;
+                    *best_index2 = j;
+                    vec_copy3f(plane_normal, best_normal);
+                }
+            }
+        }
+    }
+}
+
+bool collide_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2) {
+    assert(convex1->collider.type == COLLIDER_CONVEX);
+    assert(convex2->collider.type == COLLIDER_CONVEX);
+
+    float distance = -FLT_MAX;
+    unsigned int face_index1 = UINT_MAX;
+    unsigned int face_index2 = UINT_MAX;
+    unsigned int vertex_index1 = UINT_MAX;
+    unsigned int vertex_index2 = UINT_MAX;
+    unsigned int edge_index1 = UINT_MAX;
+    unsigned int edge_index2 = UINT_MAX;
+    Vec3f axis = {0.0, 0.0, 0.0};
+
+    query_face_directions(convex1, convex2, axis, &distance, &face_index1, &vertex_index1);
+    printf("distance1: %f\n", distance);
+    if( distance > 0.0f ) {
+        return false;
     }
 
-    // computing the distance between sphere and plane by projecting the plane normal on a vector between the
-    // sphere and the plane
-    Vec distance_vector;
-    vec_copy(sphere->collider.pivot->position, distance_vector);
-
-    // we need to account for the offset (and spheres radius), because if we'll just project without doing that,
-    // we'll compute the distance between spheres center and plane through origin
-    float distance = plane->offset + sphere->radius;
-    vec_dot(plane->normal, distance_vector, &distance);
-    distance -= plane->offset + sphere->radius;
-
-    if( distance >= 0.0f ) {
-        return 0;
+    query_face_directions(convex2, convex1, axis, &distance, &face_index2, &vertex_index2);
+    printf("distance2: %f\n", distance);
+    if( distance > 0.0f ) {
+        return false;
     }
 
-    unsigned int i = collision->num_contacts;
-    vec_copy(plane->normal, collision->normal);
-    collision->contact[i].penetration = -distance;
+    query_edge_directions(convex1, convex2, axis, &distance, &edge_index1, &edge_index2);
+    printf("distance3: %f\n", distance);
+    if( distance > 0.0f ) {
+        return false;
+    }
 
-    vec_mul1f(plane->normal, -sphere->radius + distance, collision->contact[i].point);
-    //vec_sub(sphere->collider.pivot->position, collision->contact[i].point, collision->contact[i].point);
-
-    collision->num_contacts++;
-
-    return 1;
+    return true;
 }
 
-unsigned int contacts_sphere_obb(struct ColliderSphere* const sphere, struct ColliderOBB* const obb, struct Collision* collision) {
-    return 0;
-}
-
-unsigned int contacts_obb_sphere(struct ColliderOBB* const obb, struct ColliderSphere* const sphere, struct Collision* collision) {
-    return 0;
-}
-
-unsigned int contacts_obb_plane(struct ColliderOBB* const obb, struct ColliderPlane* const plane, struct Collision* collision) {
-    return 0;
-}
-
-unsigned int contacts_obb_obb(struct ColliderOBB* const obb1, struct ColliderOBB* const obb2, struct Collision* collision) {
-    return 0;
+// contacts
+unsigned int contacts_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2, struct Collision* collision) {
+    assert(convex1->collider.type == COLLIDER_CONVEX);
+    assert(convex2->collider.type == COLLIDER_CONVEX);
+    assert("implementation" == false);
 }
 
 
 unsigned int contacts_generic(struct Collider* const a, struct Collider* const b, struct Collision* collision) {
     switch( a->type ) {
+        case COLLIDER_SPHERE: break;
         case COLLIDER_PLANE: break;
-        case COLLIDER_SPHERE: {
-            switch( b->type ) {
-                case COLLIDER_PLANE: return contacts_sphere_plane((struct ColliderSphere*)a, (struct ColliderPlane*)b, collision);
-                case COLLIDER_SPHERE: return contacts_sphere_sphere((struct ColliderSphere*)a, (struct ColliderSphere*)b, collision);
-                case COLLIDER_OBB: return contacts_sphere_obb((struct ColliderSphere*)a,(struct ColliderOBB*)b,collision);
+        case COLLIDER_CONVEX:
+            switch( b->type) {
+                case COLLIDER_SPHERE: break;
+                case COLLIDER_PLANE: break;
+                case COLLIDER_CONVEX: break;
                 default: break;
             }
-        }
-        case COLLIDER_OBB: break;
+            break;
         default: break;
     }
 
@@ -221,12 +465,6 @@ size_t collisions_narrow(size_t self,
     return collisions_size;
 }
 
-/* void contact_world_transform(struct Contact contact, Mat transform) { */
-/*     Vec y,z; */
-/*     vec_basis(contact.normal, y, z); */
-/*     vec_copy3fmat(contact.normal, y, z, transform); */
-/* } */
-
 struct Physics collisions_resolve(struct Physics previous,
                                   struct Physics current,
                                   size_t collisions_size,
@@ -239,181 +477,6 @@ struct Physics collisions_resolve(struct Physics previous,
             Vec* contact_normal = &collisions[i].normal;
             Vec* contact_point = &collisions[i].contact[j].point;
             float penetration = collisions[i].contact[j].penetration;
-
-            /* Mat contact_to_world = IDENTITY_MAT; */
-            /* contact_world_transform(collisions[i].contact[j], contact_to_world); */
-
-            /* Mat world_to_contact = IDENTITY_MAT; */
-            /* mat_transpose(contact_to_world, world_to_contact); */
-
-            /* Vec avoid = NULL_VEC; */
-            /* vec_mul1f(collisions[i].contact[j].normal, collisions[i].contact[j].penetration+0.1, avoid); */
-            /* vec_add(current.pivot.position, avoid, current.pivot.position); */
-
-            // stupid method
-            //vec_add(current.linear_momentum, collisions[i].contact[j].normal, current.linear_momentum);
-
-            // sort of gaffer method
-            /* float dot = 0.0; */
-            /* vec_dot(current.linear_momentum, collisions[i].contact[j].normal, &dot); */
-
-            /* float restitution = 1.5; // ~1.5 < restitution < ~2.5 */
-            /* float magnitude = fmax(-( 1 + restitution ) * dot, 0); */
-
-            /* printf("magnitude: %f\n", magnitude); */
-
-            /* Vec momentum = {0}; */
-            /* vec_mul1f(collisions[i].contact[j].normal, magnitude, momentum); */
-            /* vec_add(current.linear_momentum, momentum, current.linear_momentum); */
-
-            /* // calculate relative contact */
-            /* Vec relative_contact = NULL_VEC; */
-            /* vec_sub(current.pivot.position, *contact_point, relative_contact); */
-
-            /* vec_print("current.pivot.position: ", current.pivot.position); */
-            /* vec_print("contact_point: ", *contact_point); */
-            /* vec_print("relative_contact: ", relative_contact); */
-
-            /* vec_print("current.angular_velocity: ", current.angular_velocity); */
-            /* vec_print("current.linear_velocity: ", current.linear_velocity); */
-            /* vec_print("current.angular_momentum: ", current.angular_momentum); */
-            /* vec_print("current.linear_momentum: ", current.linear_momentum); */
-            /* mat_print("current.world_inverse_inertia: ", current.world_inverse_inertia); */
-
-            /* // calculate contact velocity */
-            /* Vec contact_velocity_world = NULL_VEC; */
-            /* vec_cross(current.angular_momentum, relative_contact, contact_velocity_world); */
-            /* mat_mul_vec(current.world_inverse_inertia, contact_velocity_world, contact_velocity_world); */
-            /* //mat_mul_vec(current.world_inverse_inertia, current.angular_momentum, contact_velocity_world); */
-
-            /* Vec current_velocity = NULL_VEC; */
-            /* vec_mul1f(current.linear_momentum, current.inverse_mass, current_velocity); */
-            /* vec_add(contact_velocity_world, current_velocity, contact_velocity_world); */
-
-            /* // Turn the velocity into contact-coordinates. */
-            /* Vec contact_velocity_local = NULL_VEC; */
-            /* mat_mul_vec(world_to_contact, contact_velocity_world, contact_velocity_local); */
-            /* vec_print("contact_velocity_local: ", contact_velocity_local); */
-            /* vec_print("contact_velocity_world: ", contact_velocity_world); */
-
-            /* // Calculate the ammount of velocity that is due to forces without */
-            /* // reactions. */
-            /* //Vec accVelocity = thisBody->getLastFrameAcceleration() * dt; */
-            /* Vec body_velocity_world = NULL_VEC; */
-            /* vec_mul1f(previous.linear_momentum, previous.inverse_mass * dt, body_velocity_world); */
-
-            /* // Calculate the velocity in contact-coordinates. */
-            /* //accVelocity = contactToWorld.transformTranspose(accVelocity); */
-            /* Vec body_velocity_local = NULL_VEC; */
-            /* mat_mul_vec(world_to_contact, body_velocity_world, body_velocity_local); */
-
-            /* // We ignore any component of acceleration in the contact normal */
-            /* // direction, we are only interested in planar acceleration */
-            /* //accVelocity.x = 0; */
-            /* body_velocity_local[0] = 0; */
-            /* vec_print("body_velocity_local: ", body_velocity_local); */
-            /* vec_print("body_velocity_world: ", body_velocity_world); */
-
-            /* // Add the planar velocities - if there's enough friction they will */
-            /* // be removed during velocity resolution */
-            /* //contactVelocity += accVelocity; */
-            /* vec_add(contact_velocity_local, body_velocity_local, contact_velocity_local); */
-
-            /* // calculate desired velocity */
-            /* // Calculate the acceleration induced velocity accumulated this frame */
-            /* float accum_velocity = 0; */
-            /* Vec accum = NULL_VEC; */
-            /* vec_mul1f(previous.linear_momentum, previous.inverse_mass * dt, accum); */
-            /* vec_dot(accum, *contact_normal, &accum_velocity); */
-            /* printf("accum_velocity: %f\n", accum_velocity); */
-
-            /* // If the velocity is very slow, limit the restitution */
-            /* const static float limit = 0.25; */
-            /* float restitution = 0.4; */
-            /* if( fabs(contact_velocity_local[0]) < limit) { */
-            /*     printf("FOOOOOOOOOOOOOOOOO\n"); */
-            /*     restitution = 0.0; */
-            /* } */
-
-            /* // Combine the bounce velocity with the removed acceleration velocity. */
-            /* float desired_d_velocity = -contact_velocity_local[0] - restitution * (contact_velocity_local[0] - accum_velocity); */
-            /* printf("desired_d_velocity: %f\n", desired_d_velocity); */
-
-            /* // calculate collision impulse */
-            /* Vec d_velocity_world = NULL_VEC; */
-            /* vec_cross(relative_contact, *contact_normal, d_velocity_world); */
-            /* vec_print("d_velocity_world: ", d_velocity_world); */
-            /* mat_mul_vec(current.world_inverse_inertia, d_velocity_world, d_velocity_world); */
-            /* vec_cross(d_velocity_world, relative_contact, d_velocity_world); */
-            /* vec_print("d_velocity_world: ", d_velocity_world); */
-
-            /* float d_velocity = 0.0; */
-            /* vec_dot(d_velocity_world, *contact_normal, &d_velocity); */
-
-            /* d_velocity += current.inverse_mass; */
-            /* printf("d_velocity: %f\n", d_velocity); */
-
-            /* Vec impulse_local = NULL_VEC; */
-            /* impulse_local[0] = desired_d_velocity / d_velocity; */
-
-            /* // apply change */
-            /* Vec impulse_world = NULL_VEC; */
-            /* mat_mul_vec(contact_to_world, impulse_local, impulse_world); */
-            /* vec_print("impulse_local: ", impulse_local); */
-            /* vec_print("impulse_world: ", impulse_world); */
-
-            /* // Split in the impulse into linear and rotational components */
-
-            /* // Apply the changes */
-            /* Vec impulse_torque = NULL_VEC; */
-            /* vec_cross(relative_contact, impulse_world, impulse_torque); */
-            /* mat_mul_vec(current.world_inverse_inertia, impulse_torque, impulse_torque); */
-            /* vec_print("impulse_torque: ", impulse_torque); */
-            /* vec_add(current.angular_momentum, impulse_torque, current.angular_momentum); */
-            /* vec_add(current.linear_momentum, impulse_world, current.linear_momentum); */
-
-            /* current = physics_simulate(current); */
-
-            /* vec_print("current.angular_velocity: ", current.angular_velocity); */
-            /* vec_print("current.linear_velocity: ", current.linear_velocity); */
-            /* vec_print("current.angular_momentum: ", current.angular_momentum); */
-            /* vec_print("current.linear_momentum: ", current.linear_momentum); */
-
-            float d = 0.0;
-            vec_dot(current.linear_momentum, *contact_normal, &d);
-            //printf("%f\n", d);
-
-            if( d < 0.0 ) {
-                /* linear component */
-                Vec offset;
-                vec_mul1f(*contact_normal, penetration, offset);
-                vec_add(current.pivot.position, offset, current.pivot.position);
-
-                float restitution = 0.3;
-                float j = fmax(-( 1 + restitution ) * d, 0);
-
-                Vec momentum_change;
-                vec_mul1f(*contact_normal, j, momentum_change);
-                vec_add(current.linear_momentum, momentum_change, current.linear_momentum);
-
-                /* angular component */
-                Vec torque_impulse;
-                vec_cross(*contact_point, *contact_normal, torque_impulse);
-
-                Vec rotation_impulse;
-                mat_mul_vec(current.inverse_inertia, torque_impulse, rotation_impulse);
-
-                Vec velocity_impulse;
-                vec_cross(rotation_impulse, *contact_point, velocity_impulse);
-
-                /* vec_print("point:", *contact_point); */
-                /* vec_print("normal:", *contact_normal); */
-                /* vec_print("torque:", torque_impulse); */
-                /* vec_print("rotation:", rotation_impulse); */
-                /* vec_print("velocity:", velocity_impulse); */
-
-                current = physics_simulate(current);
-            }
         }
     }
 
