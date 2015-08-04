@@ -161,19 +161,26 @@ int pivot_lookat(struct Pivot* pivot, const Vec target) {
     return result;
 }
 
-void pivot_world_transform(const struct Pivot pivot, Mat world_transform) {
-    Mat translation;
-    mat_translating(pivot.position, translation);
-
-    Mat rotation;
-    quat_to_mat(pivot.orientation, rotation);
-
-    mat_mul(rotation, translation, world_transform);
+VecP pivot_local_axis(struct Pivot* const pivot, Vec3f axis) {
+    quat_rotate_vec3f(axis, pivot->orientation, axis);
+    return axis;
 }
 
-void pivot_local_transform(const struct Pivot pivot, Mat local_transform) {
+MatP pivot_world_transform(struct Pivot* const pivot, Mat world_transform) {
+    Mat translation;
+    mat_translating(pivot->position, translation);
+
+    Mat rotation;
+    quat_to_mat(pivot->orientation, rotation);
+
+    mat_mul(rotation, translation, world_transform);
+    return world_transform;
+}
+
+MatP pivot_local_transform(struct Pivot* const pivot, Mat local_transform) {
     Mat world_transform;
     mat_identity(world_transform);
     pivot_world_transform(pivot, world_transform);
     mat_invert(world_transform, NULL, local_transform);
+    return local_transform;
 }

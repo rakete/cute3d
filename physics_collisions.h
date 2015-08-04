@@ -39,7 +39,7 @@ struct Collider {
     // the idea with this const struct Pivot* pointer is that I attach a collider to
     // some other objects pivot, thats also why I may have a seperate orientation for
     // for the specific collider in addition to the orientation in pivot
-    const struct Pivot* pivot;
+    struct Pivot* pivot;
     enum collider_type type;
     Vec position;
 };

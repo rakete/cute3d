@@ -82,8 +82,8 @@ struct Physics physics_simulate(struct Physics physics) {
 struct Physics physics_recalculate(struct Physics physics) {
     physics = physics_simulate(physics);
 
-    pivot_world_transform(physics.pivot, physics.world_transform);
-    pivot_local_transform(physics.pivot, physics.local_transform);
+    pivot_world_transform(&physics.pivot, physics.world_transform);
+    pivot_local_transform(&physics.pivot, physics.local_transform);
 
     physics_inertia_transform(physics, physics.world_inverse_inertia);
 
