@@ -29,20 +29,20 @@ void quat_copy(const Quat q, Quat r);
 void quat_identity(Quat q);
 QuatP qidentity(Quat q);
 
-bool quat_from_axis_angle(const Vec axis, const float angle, Quat q);
-QuatP qfrom_axis_angle(Vec axis, const float angle);
+bool quat_from_axis_angle(const Vec3f axis, const float angle, Quat q);
+QuatP qfrom_axis_angle(Vec3f axis, const float angle);
 
-bool quat_from_vec_pair(const Vec a, const Vec b, Quat q);
-QuatP qfrom_vec_pair(const Vec a, Vec b);
+bool quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q);
+QuatP qfrom_vec_pair(const Vec3f a, Vec3f b);
 
 void quat_rotate_vec(const Vec vec, const Quat q, Vec r);
 void quat_rotate_vec3f(const Vec3f vec, const Quat q, Vec3f r);
 
-bool quat_mul_axis_angle(const Quat q, const Vec axis, const float angle, Quat r);
-QuatP qmul_axis_angle(const Vec axis, const float angle, Quat q);
+bool quat_mul_axis_angle(const Quat q, const Vec3f axis, const float angle, Quat r);
+QuatP qmul_axis_angle(const Vec3f axis, const float angle, Quat q);
 
-bool quat_mul_vec_pair(const Quat q, const Vec a, const Vec b, Quat r);
-QuatP qmul_vec_pair(const Vec a, const Vec b, Quat q);
+bool quat_mul_vec_pair(const Quat q, const Vec3f a, const Vec3f b, Quat r);
+QuatP qmul_vec_pair(const Vec3f a, const Vec3f b, Quat q);
 
 void quat_mul(const Quat qa, const Quat qb, Quat r);
 QuatP qmul(const Quat qa, Quat qb);

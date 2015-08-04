@@ -37,7 +37,7 @@ QuatP qidentity(Quat q) {
     return q;
 }
 
-bool quat_from_axis_angle(const Vec axis, const float angle, Quat q) {
+bool quat_from_axis_angle(const Vec3f axis, const float angle, Quat q) {
     if( ( fabs(axis[0]) < FLOAT_EPSILON && fabs(axis[1]) < FLOAT_EPSILON && fabs(axis[2]) < FLOAT_EPSILON ) ||
         fabs(angle) < FLOAT_EPSILON )
     {
@@ -67,14 +67,14 @@ bool quat_from_axis_angle(const Vec axis, const float angle, Quat q) {
     return 1;
 }
 
-QuatP qfrom_axis_angle(Vec axis, const float angle) {
+QuatP qfrom_axis_angle(Vec3f axis, const float angle) {
     quat_from_axis_angle(axis, angle, axis);
     return axis;
 }
 
-bool quat_from_vec_pair(const Vec a, const Vec b, Quat q) {
+bool quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
     Vec axis;
-    vec_cross(b,a,axis);
+    vec_cross3f(b,a,axis);
 
     float angle;
     vec_angle(b,a,&angle);
@@ -91,7 +91,7 @@ bool quat_from_vec_pair(const Vec a, const Vec b, Quat q) {
     return 1;
 }
 
-QuatP qfrom_vec_pair(const Vec a, Vec b) {
+QuatP qfrom_vec_pair(const Vec3f a, Vec3f b) {
     quat_from_vec_pair(a,b,b);
     return b;
 }
@@ -124,7 +124,7 @@ void quat_rotate_vec3f(const Vec3f vec, const Quat q, Vec3f r) {
     r[2] = result4f[2];
 }
 
-bool quat_mul_axis_angle(const Quat q, const Vec axis, const float angle, Quat r) {
+bool quat_mul_axis_angle(const Quat q, const Vec3f axis, const float angle, Quat r) {
     if( (fabs(axis[0]) < FLOAT_EPSILON && fabs(axis[1]) < FLOAT_EPSILON && fabs(axis[2]) < FLOAT_EPSILON) ||
         fabs(angle) < FLOAT_EPSILON )
     {
@@ -138,12 +138,12 @@ bool quat_mul_axis_angle(const Quat q, const Vec axis, const float angle, Quat r
     return success;
 }
 
-QuatP qmul_axis_angle(const Vec axis, const float angle, Quat q) {
+QuatP qmul_axis_angle(const Vec3f axis, const float angle, Quat q) {
     quat_mul_axis_angle(q, axis, angle, q);
     return q;
 }
 
-bool quat_mul_vec_pair(const Quat q, const Vec a, const Vec b, Quat r) {
+bool quat_mul_vec_pair(const Quat q, const Vec3f a, const Vec3f b, Quat r) {
     if( (fabs(a[0]) < FLOAT_EPSILON && fabs(a[1]) < FLOAT_EPSILON && fabs(a[2]) < FLOAT_EPSILON) ||
         (fabs(b[0]) < FLOAT_EPSILON && fabs(b[1]) < FLOAT_EPSILON && fabs(b[2]) < FLOAT_EPSILON) ||
         (fabs(a[0]- b[0]) < FLOAT_EPSILON && fabs(a[1] - b[1]) < FLOAT_EPSILON && fabs(a[2] - b[2]) < FLOAT_EPSILON) )
@@ -158,7 +158,7 @@ bool quat_mul_vec_pair(const Quat q, const Vec a, const Vec b, Quat r) {
     return success;
 }
 
-QuatP qmul_vec_pair(const Vec a, const Vec b, Quat q) {
+QuatP qmul_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
     quat_mul_vec_pair(q, a, b, q);
     return q;
 }
