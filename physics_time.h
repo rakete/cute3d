@@ -12,6 +12,6 @@ void gametime_create(double dt, struct GameTime* time);
 
 void gametime_createx(double dt, double t, double frame, double max_frame, double accumulator, struct GameTime* time);
 
-void gametime_advance(double delta, struct GameTime* time);
+void gametime_advance(struct GameTime* time, double delta);
 
 int gametime_integrate(struct GameTime* time);

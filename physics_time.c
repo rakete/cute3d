@@ -18,7 +18,7 @@ void gametime_createx(double dt, double t, double frame, double max_frame, doubl
     time->accumulator = accumulator;
 }
 
-void gametime_advance(double delta, struct GameTime* time) {
+void gametime_advance(struct GameTime* time, double delta) {
     time->frame = delta;
     if( time->frame > time->max_frame ) {
         time->frame = time->max_frame;
