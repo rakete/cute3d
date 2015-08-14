@@ -1,7 +1,7 @@
 #include "geometry_vbo.h"
 #include "geometry_solid.h"
 #include "render.h"
-#include "cute_sdl2.h"
+#include "cute_arcball.h"
 
 void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mesh) {
     solid_color(solid,color);
@@ -73,8 +73,8 @@ int main(int argc, char *argv[]) {
     struct Shader shader;
     render_shader_flat(&shader);
 
-    struct Camera camera;
-    sdl2_orbit_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &camera);
+    struct Arcball arcball;
+    arcball_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
 
     while (true) {
         SDL_Event event;
@@ -115,11 +115,11 @@ int main(int argc, char *argv[]) {
         mat_translate(identity, (float[4]){ -1.5, 0.0, -2.0, 1.0 }, sphere16_transform);
         mat_translate(identity, (float[4]){ 1.5, 0.0, -2.0, 1.0 }, sphere32_transform);
 
-        render_vbomesh(&tetrahedron_mesh, &shader, &camera, tetrahedron_transform);
-        render_vbomesh(&hexahedron_mesh, &shader, &camera, hexahedron_transform);
-        render_vbomesh(&cube_mesh, &shader, &camera, cube_transform);
-        render_vbomesh(&sphere16_mesh, &shader, &camera, sphere16_transform);
-        render_vbomesh(&sphere32_mesh, &shader, &camera, sphere32_transform);
+        render_vbomesh(&tetrahedron_mesh, &shader, &arcball.camera, tetrahedron_transform);
+        render_vbomesh(&hexahedron_mesh, &shader, &arcball.camera, hexahedron_transform);
+        render_vbomesh(&cube_mesh, &shader, &arcball.camera, cube_transform);
+        render_vbomesh(&sphere16_mesh, &shader, &arcball.camera, sphere16_transform);
+        render_vbomesh(&sphere32_mesh, &shader, &arcball.camera, sphere32_transform);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
