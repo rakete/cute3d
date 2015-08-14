@@ -490,10 +490,10 @@ void mat_copy(const Mat m, Mat r) {
     r[3] = m[3];  r[7] = m[7];  r[11] = m[11]; r[15] = m[15];
 }
 
-void mat_copy3f(const Mat3f m, Mat r) {
-    r[0] = m[0];  r[3] = m[3];  r[6] = m[6];
-    r[1] = m[1];  r[4] = m[4];  r[7] = m[7];
-    r[2] = m[2];  r[5] = m[5];  r[8] = m[8];
+void mat_copy3f(const Mat m, Mat r) {
+    r[0] = m[0];  r[4] = m[4];  r[7] = m[7];
+    r[1] = m[1];  r[5] = m[5];  r[8] = m[8];
+    r[2] = m[2];  r[6] = m[6];  r[9] = m[9];
 }
 
 void mat_basis(const Vec x, Mat r) {
@@ -534,14 +534,14 @@ void mat_identity(Mat m) {
     m[3] = 0.0f; m[7] = 0.0f; m[11] = 0.0f; m[15] = 1.0f;
 }
 
-void mat_scaling(const Vec v, Mat r) {
-    r[0] = v[0]; r[4] = 0.0f;  r[8]  = 0.0f; r[12] = 0.0f;
-    r[1] = 0.0f; r[5] = v[1];  r[9]  = 0.0f; r[13] = 0.0f;
-    r[2] = 0.0f; r[6] = 0.0f;  r[10] = v[2]; r[14] = 0.0f;
+void mat_scaling(float s, Mat r) {
+    r[0] = s;    r[4] = 0.0f;  r[8]  = 0.0f; r[12] = 0.0f;
+    r[1] = 0.0f; r[5] = s;     r[9]  = 0.0f; r[13] = 0.0f;
+    r[2] = 0.0f; r[6] = 0.0f;  r[10] = s;    r[14] = 0.0f;
     r[3] = 0.0f; r[7] = 0.0f;  r[11] = 0.0f; r[15] = 1.0f;
 }
 
-void mat_translating(const Vec v, Mat r) {
+void mat_translating(const Vec3f v, Mat r) {
     r[0] = 1.0f; r[4] = 0.0f;  r[8]  = 0.0f; r[12] = v[0];
     r[1] = 0.0f; r[5] = 1.0f;  r[9]  = 0.0f; r[13] = v[1];
     r[2] = 0.0f; r[6] = 0.0f;  r[10] = 1.0f; r[14] = v[2];
@@ -692,13 +692,10 @@ void mat_invert(const Mat m, double* det, Mat r) {
 
     d = 1.0 / d;
 
-    // the above code assumes a row-major order, but we use column-major
-    // so because I don't want to change the above code, have to transpose
-    // the inversion when assigning the result
-    r[0] = inv[0] * d;  r[4] = inv[1] * d;  r[8]  = inv[2] * d;  r[12] = inv[3] * d;
-    r[1] = inv[4] * d;  r[5] = inv[5] * d;  r[9]  = inv[6] * d;  r[13] = inv[7] * d;
-    r[2] = inv[8] * d;  r[6] = inv[9] * d;  r[10] = inv[10] * d; r[14] = inv[11] * d;
-    r[3] = inv[12] * d; r[7] = inv[13] * d; r[11] = inv[14] * d; r[15] = inv[15] * d;
+    r[0] = inv[0] * d; r[4] = inv[4] * d; r[8]  = inv[8] * d;  r[12] = inv[12] * d;
+    r[1] = inv[1] * d; r[5] = inv[5] * d; r[9]  = inv[9] * d;  r[13] = inv[13] * d;
+    r[2] = inv[2] * d; r[6] = inv[6] * d; r[10] = inv[10] * d; r[14] = inv[14] * d;
+    r[3] = inv[3] * d; r[7] = inv[7] * d; r[11] = inv[11] * d; r[15] = inv[15] * d;
 
     if(det) *det = d;
 }
@@ -708,16 +705,16 @@ MatP minvert(Mat m, double* det) {
     return m;
 }
 
-void mat_invert3f(const Mat3f m, double* det, Mat3f r) {
-    // 00:0 10:3 20:6
-    // 01:1 11:4 21:7
-    // 02:2 12:5 22:8
+void mat_invert3f(const Mat m, double* det, Mat r) {
+    // 00:0:0 10:3:4 20:6:8
+    // 01:1:1 11:4:5 21:7:9
+    // 02:2:2 12:5:6 22:8:10
 
     // computes the inverse of a matrix m
     double d =
-        m[0] * (m[4] * m[8] - m[7] * m[5]) -
-        m[1] * (m[3] * m[8] - m[5] * m[6]) +
-        m[2] * (m[3] * m[7] - m[4] * m[6]);
+        m[0] * (m[5] * m[10] - m[9] * m[6]) -
+        m[1] * (m[4] * m[10] - m[6] * m[8]) +
+        m[2] * (m[4] * m[9] - m[5] * m[8]);
 
     if(det) *det = 0;
     if(d == 0) {
@@ -726,20 +723,30 @@ void mat_invert3f(const Mat3f m, double* det, Mat3f r) {
 
     double invdet = 1.0 / d;
 
-    r[0] = (m[4] * m[8] - m[7] * m[5]) * invdet;
-    r[1] = (m[2] * m[7] - m[1] * m[8]) * invdet;
-    r[2] = (m[1] * m[5] - m[2] * m[4]) * invdet;
-    r[3] = (m[5] * m[6] - m[3] * m[8]) * invdet;
-    r[4] = (m[0] * m[8] - m[2] * m[6]) * invdet;
-    r[5] = (m[3] * m[2] - m[0] * m[5]) * invdet;
-    r[6] = (m[3] * m[7] - m[6] * m[4]) * invdet;
-    r[7] = (m[6] * m[1] - m[0] * m[7]) * invdet;
-    r[8] = (m[0] * m[4] - m[3] * m[1]) * invdet;
+    r[0] = (m[5] * m[10] - m[9] * m[6]) * invdet;
+    r[1] = (m[2] * m[9] - m[1] * m[10]) * invdet;
+    r[2] = (m[1] * m[6] - m[2] * m[5]) * invdet;
+    r[3] = m[3];
+
+    r[4] = (m[6] * m[8] - m[4] * m[10]) * invdet;
+    r[5] = (m[0] * m[10] - m[2] * m[8]) * invdet;
+    r[6] = (m[4] * m[2] - m[0] * m[6]) * invdet;
+    r[7] = m[7];
+
+    r[8] = (m[4] * m[9] - m[8] * m[5]) * invdet;
+    r[9] = (m[8] * m[1] - m[0] * m[9]) * invdet;
+    r[10] = (m[0] * m[5] - m[4] * m[1]) * invdet;
+    r[11] = m[11];
+
+    r[12] = m[12];
+    r[13] = m[13];
+    r[14] = m[14];
+    r[15] = m[15];
 
     if(det) *det = d;
 }
 
-MatP minvert3f(Mat3f m, double* det) {
+MatP minvert3f(Mat m, double* det) {
     mat_invert3f(m,det,m);
     return m;
 }
@@ -792,11 +799,6 @@ MatP mmul(const Mat m, Mat n) {
 
 void mat_mul_vec(const Mat m, const Vec v, Vec r) {
     Vec t;
-    /* t[0] = m[0]*v[0] + m[1]*v[1] + m[2]*v[2] + m[3]*v[3]; */
-    /* t[1] = m[4]*v[0] + m[5]*v[1] + m[6]*v[2] + m[7]*v[3]; */
-    /* t[2] = m[8]*v[0] + m[9]*v[1] + m[10]*v[2] + m[11]*v[3]; */
-    /* t[3] = m[12]*v[0] + m[13]*v[1] + m[14]*v[2] + m[15]*v[3]; */
-
     t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]*v[3];
     t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]*v[3];
     t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]*v[3];
@@ -811,17 +813,21 @@ MatP mmul_vec(const Mat m, Vec v) {
 }
 
 void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r) {
+    /* Vec t; */
+    /* t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]; */
+    /* t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]; */
+    /* t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]; */
+
+    /* r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; */
+
+    Vec w;
+    vec_copy3f(v, w);
+    w[3] = 1.0f;
+
     Vec t;
-    /* t[0] = m[0]*v[0] + m[1]*v[1] + m[2]*v[2] + m[3]*v[3]; */
-    /* t[1] = m[4]*v[0] + m[5]*v[1] + m[6]*v[2] + m[7]*v[3]; */
-    /* t[2] = m[8]*v[0] + m[9]*v[1] + m[10]*v[2] + m[11]*v[3]; */
-    /* t[3] = m[12]*v[0] + m[13]*v[1] + m[14]*v[2] + m[15]*v[3]; */
+    mat_mul_vec(m, w, t);
 
-    t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2];
-    t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2];
-    t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2];
-
-    r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
+    vec_copy3f(t, r);
 }
 
 MatP mmul_vec3f(const Mat m, Vec3f v) {
@@ -829,7 +835,7 @@ MatP mmul_vec3f(const Mat m, Vec3f v) {
     return v;
 }
 
-void mat_translate(const Mat m, const Vec v, Mat r) {
+void mat_translate(const Mat m, const Vec3f v, Mat r) {
     Mat n;
     n[0] = 1.0f; n[4] = 0.0f;  n[8]  = 0.0f; n[12] = v[0];
     n[1] = 0.0f; n[5] = 1.0f;  n[9]  = 0.0f; n[13] = v[1];
@@ -850,11 +856,11 @@ MatP mrotate(Mat m, const Quat q) {
     return m;
 }
 
-void mat_scale(const Mat m, const Vec v, Mat r) {
+void mat_scale(const Mat m, float s, Mat r) {
     Mat n;
-    n[0] = v[0]; n[4] = 0.0f; n[8]  = 0.0f; n[12] = 0.0f;
-    n[1] = 0.0f; n[5] = v[1]; n[9]  = 0.0f; n[13] = 0.0f;
-    n[2] = 0.0f; n[6] = 0.0f; n[10] = v[2]; n[14] = 0.0f;
+    n[0] = s;    n[4] = 0.0f; n[8]  = 0.0f; n[12] = 0.0f;
+    n[1] = 0.0f; n[5] = s;    n[9]  = 0.0f; n[13] = 0.0f;
+    n[2] = 0.0f; n[6] = 0.0f; n[10] = s;    n[14] = 0.0f;
     n[3] = 0.0f; n[7] = 0.0f; n[11] = 0.0f; n[15] = 1.0f;
 
     mat_mul(m,n,r);
@@ -874,6 +880,46 @@ void mat_transpose(const Mat m, Mat r) {
 
 MatP mtranspose(Mat m) {
     mat_transpose(m, m);
+    return m;
+}
+
+void mat_transpose3f(const Mat m, Mat r) {
+    Mat t;
+    t[0] = m[0];  t[4] = m[1];  t[8]  = m[2];  t[12] = m[12];
+    t[1] = m[4];  t[5] = m[5];  t[9]  = m[6];  t[13] = m[13];
+    t[2] = m[8];  t[6] = m[9];  t[10] = m[10]; t[14] = m[14];
+    t[3] = m[3];  t[7] = m[7];  t[11] = m[11]; t[15] = m[15];
+
+    for(int i = 0; i < 16; i++) {
+        r[i] = t[i];
+    }
+}
+
+MatP mtranspose3f(Mat m) {
+    mat_transpose3f(m, m);
+    return m;
+}
+
+void mat_rotation(const Mat m, Mat r) {
+    float scale = sqrtf( m[0]*m[0] + m[4]*m[4] + m[8]*m[8] );
+
+    r[0] = m[0] / scale; r[4] = m[4] / scale; r[8] = m[8] / scale;   r[12] = 0.0;
+    r[1] = m[1] / scale; r[5] = m[5] / scale; r[9] = m[9] / scale;   r[13] = 0.0;
+    r[2] = m[2] / scale; r[6] = m[6] / scale; r[10] = m[10] / scale; r[14] = 0.0;
+    r[3] = 0.0;          r[7] = 0.0;          r[11] = 0.0;           r[15] = 1.0;
+}
+
+MatP mrotation(Mat m) {
+    mat_rotation(m, m);
+    return m;
+}
+
+void mat_translation(const Mat m, Mat r) {
+    mat_translating((Vec3f){m[12], m[13], m[14]}, r);
+}
+
+MatP mtranslation(Mat m) {
+    mat_translation(m, m);
     return m;
 }
 

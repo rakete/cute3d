@@ -256,7 +256,7 @@ void draw_arrow( const Vec v,
         quat_from_axis_angle(axis, angle, rotation);
         quat_to_mat(rotation, arrow_matrix);
 
-        mat_scale(arrow_matrix, (Vec){scale, scale, scale}, arrow_matrix);
+        mat_scale(arrow_matrix, scale, arrow_matrix);
 
         Vec translation;
         vec_mul1f(v, scale, translation);
@@ -396,7 +396,7 @@ void draw_vec( const Vec v,
         // actual length it should have
         float length = 1.0;
         vec_length(v, &length);
-        mat_scale(arrow_matrix, (Vec){scale * length, scale * length, scale * length}, arrow_matrix);
+        mat_scale(arrow_matrix, scale * length, arrow_matrix);
 
         mat_translate(arrow_matrix, pos, arrow_matrix);
         mat_mul(arrow_matrix, model_matrix, arrow_matrix);
@@ -416,7 +416,7 @@ void draw_vec( const Vec v,
 
             Mat arrow_offset_matrix = IDENTITY_MAT;
             quat_to_mat(rotation, arrow_offset_matrix);
-            mat_scale(arrow_offset_matrix, (Vec){scale * length, scale * length, scale * length}, arrow_offset_matrix);
+            mat_scale(arrow_offset_matrix, scale * length, arrow_offset_matrix);
             mat_translate(arrow_offset_matrix, pos, arrow_offset_matrix);
 
             // move the arrow along scaled vector down so that the value given in arrow will fit the
@@ -598,7 +598,7 @@ void draw_circle( float radius,
         // only the neccessary rotation and translation and without scalation for the arrow
         Mat circle_matrix = IDENTITY_MAT;
         Mat arrow_matrix = IDENTITY_MAT;
-        mat_scale(arrow_matrix, (Vec){radius, radius, radius}, circle_matrix);
+        mat_scale(arrow_matrix, radius, circle_matrix);
         mat_mul(circle_matrix, model_matrix, circle_matrix);
         mat_mul(arrow_matrix, model_matrix, arrow_matrix);
 
@@ -761,7 +761,7 @@ void draw_reticle(float scale,
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
 
         Mat reticle_matrix = IDENTITY_MAT;
-        mat_scale(reticle_matrix, (Vec){scale, scale, scale}, reticle_matrix);
+        mat_scale(reticle_matrix, scale, reticle_matrix);
         mat_mul(reticle_matrix, model_matrix, reticle_matrix);
 
         static GLint model_loc = -1;
@@ -845,17 +845,6 @@ void draw_normals_array( const float* vertices,
         draw_vec(normal, vertex, scale, 0.0f, color, projection_matrix, view_matrix, model_matrix);
     }
 
-}
-
-void draw_normals_buffer( GLuint vertices,
-                          GLuint normals,
-                          int n,
-                          float scale,
-                          const Color color,
-                          const Mat projection_matrix,
-                          const Mat view_matrix,
-                          const Mat model_matrix)
-{
 }
 
 void draw_texture_quad( float scale,
@@ -961,7 +950,7 @@ void draw_texture_quad( float scale,
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
 
         Mat quad_matrix = IDENTITY_MAT;
-        mat_scale(quad_matrix, (Vec){scale, scale, scale}, quad_matrix);
+        mat_scale(quad_matrix, scale, quad_matrix);
         mat_mul(quad_matrix, model_matrix, quad_matrix);
 
         static GLint model_loc = -1;
@@ -1072,7 +1061,7 @@ void draw_color_quad( float scale,
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
 
         Mat quad_matrix = IDENTITY_MAT;
-        mat_scale(quad_matrix, (Vec){scale, scale, scale}, quad_matrix);
+        mat_scale(quad_matrix, scale, quad_matrix);
         mat_mul(quad_matrix, model_matrix, quad_matrix);
 
         static GLint model_loc = -1;
@@ -1181,7 +1170,7 @@ void draw_line_quad( float scale,
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
 
         Mat quad_matrix = IDENTITY_MAT;
-        mat_scale(quad_matrix, (Vec){scale, scale, scale}, quad_matrix);
+        mat_scale(quad_matrix, scale, quad_matrix);
         mat_mul(quad_matrix, model_matrix, quad_matrix);
 
         static GLint model_loc = -1;

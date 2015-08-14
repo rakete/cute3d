@@ -92,7 +92,8 @@ void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, con
 
     if( (! free_model_matrix) && normal_loc > -1 ) {
         Mat normal_matrix;
-        mat_invert(model_matrix, NULL, normal_matrix);
+        //mat_invert(model_matrix, NULL, normal_matrix);
+        mat_copy(model_matrix, normal_matrix);
         ogl_debug( glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix) );
     }
 

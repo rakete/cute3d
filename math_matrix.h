@@ -125,7 +125,7 @@ void vec_print3f(const char* title, const Vec3f v);
 
 // matrix creation
 void mat_copy(const Mat m, Mat r);
-void mat_copy3f(const Mat3f m, Mat3f r);
+void mat_copy3f(const Mat m, Mat r);
 
 void mat_basis(const Vec x, Mat r);
 
@@ -135,10 +135,10 @@ void mat_orthographic(float left, float right, float top, float bottom, float zN
 void mat_identity(Mat m);
 MatP midentity(Mat m);
 
-void mat_scaling(const Vec v, Mat r);
+void mat_scaling(float s, Mat r);
 //MatP mscaling(Mat v);
 
-void mat_translating(const Vec v, Mat r);
+void mat_translating(const Vec3f v, Mat r);
 //MatP mtranslating(Mat v);
 
 void mat_rotating(const Quat q, Mat r);
@@ -148,8 +148,8 @@ void mat_rotating(const Quat q, Mat r);
 void mat_invert(const Mat m, double* det, Mat r);
 MatP minvert(Mat m, double* det);
 
-void mat_invert3f(const Mat3f m, double* det, Mat3f r);
-MatP minvert3f(Mat3f m, double* det);
+void mat_invert3f(const Mat m, double* det, Mat r);
+MatP minvert3f(Mat m, double* det);
 
 void mat_mul(const Mat m, const Mat n, Mat r);
 MatP mmul(const Mat m, Mat n);
@@ -160,17 +160,26 @@ MatP mmul_vec(const Mat m, Vec v);
 void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r);
 MatP mmul_vec3f(const Mat m, Vec3f v);
 
-void mat_translate(const Mat m, const Vec v, Mat r);
+void mat_translate(const Mat m, const Vec3f v, Mat r);
 //MatP mtranslate(const Vec v, Mat m);
 
 void mat_rotate(const Mat m, const Quat q, Mat r);
 MatP mrotate(Mat m, const Quat q);
 
-void mat_scale(const Mat m, const Vec v, Mat r);
-//MatP mscale(const Vec v, Mat m);
+void mat_scale(const Mat m, float s, Mat r);
+//MatP mscale(float s, Mat m);
 
 void mat_transpose(const Mat m, Mat r);
 MatP mtranspose(Mat m);
+
+void mat_transpose3f(const Mat m, Mat r);
+MatP mtranspose3f(Mat m);
+
+void mat_rotation(const Mat m, Mat r);
+MatP mrotation(Mat m);
+
+void mat_translation(const Mat m, Mat r);
+//MatP mtranslation(Mat m);
 
 void mat_print(const char* title, const Mat m);
 

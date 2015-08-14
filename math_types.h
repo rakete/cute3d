@@ -35,9 +35,7 @@ typedef int Vec3i[3];
 typedef int Vec4i[4];
 
 typedef float Mat[16];
-typedef float Mat3f[9];
 typedef float Mat4f[16];
-typedef float Mat3i[9];
 typedef float Mat4i[16];
 
 typedef float Quat[4];
@@ -58,14 +56,11 @@ typedef float Texcoord[2];
 
 #define matf(m) mat4x4f(m)
 #define mat4x4f(m)                                                      \
-    (Mat4f){(float)m[0], (float)m[1], (float)m[2], (float)m[3],         \
+    (Mat){(float)m[0], (float)m[1], (float)m[2], (float)m[3],           \
             (float)m[4], (float)m[5], (float)m[6], (float)m[7],         \
             (float)m[8], (float)m[9], (float)m[10], (float)m[11],       \
             (float)m[12], (float)m[13], (float)m[14], (float)m[15] }
-#define mat3x3f(m)                                  \
-    (Mat3f){(float)m[0], (float)m[1], (float)m[2],  \
-            (float)m[3], (float)m[4], (float)m[5],  \
-            (float)m[6], (float)m[7], (float)m[8] }
+
 
 #define NULL_VEC { 0, 0, 0, 1 }
 #define NULL_VEC3F { 0, 0, 0 }

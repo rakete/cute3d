@@ -98,15 +98,6 @@ void draw_normals_array( const float* vertices,
                          const Mat view_matrix,
                          const Mat model_matrix);
 
-void draw_normals_buffer( GLuint vertices,
-                          GLuint normals,
-                          int n,
-                          float scale,
-                          const Color color,
-                          const Mat projection_matrix,
-                          const Mat view_matrix,
-                          const Mat model_matrix);
-
 void draw_texture_quad( float scale,
                         GLuint texture_id,
                         const Mat projection_matrix,
