@@ -24,13 +24,13 @@ struct HalfEdgeVertex {
     // position looks like it would be nice in struct HalfEdge, but its here because it is more
     // convenient to be able to insert the vertices seperately from the edges
     Vec position;
-    unsigned int edge;
+    int edge;
 };
 
 struct HalfEdgeFace {
     Vec3f normal;
-    unsigned int size;
-    unsigned int edge;
+    int size;
+    int edge;
 };
 
 struct HalfEdge {
@@ -38,34 +38,34 @@ struct HalfEdge {
     Texcoord texcoord;
     Color color;
 
-    unsigned int vertex;
+    int vertex;
 
-    unsigned int face;
+    int face;
 
-    unsigned int next;
-    unsigned int this;
-    unsigned int prev;
-    unsigned int other;
+    int next;
+    int this;
+    int prev;
+    int other;
 };
 
 struct HalfEdgeMesh {
-    unsigned int size;
+    int size;
 
     struct {
-        unsigned int capacity;
-        unsigned int reserved;
+        int capacity;
+        int reserved;
         struct HalfEdgeVertex* array;
     } vertices;
 
     struct {
-        unsigned int capacity;
-        unsigned int reserved;
+        int capacity;
+        int reserved;
         struct HalfEdgeFace* array;
     } faces;
 
     struct {
-        unsigned int capacity;
-        unsigned int reserved;
+        int capacity;
+        int reserved;
         struct HalfEdge* array;
     } edges;
 };
@@ -75,9 +75,9 @@ int halfedgemesh_create(struct HalfEdgeMesh* mesh);
 int halfedgemesh_destroy(struct HalfEdgeMesh* mesh);
 
 // allocation functions, return allocated bytes or zero
-unsigned int halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, unsigned int n);
-unsigned int halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, unsigned int n);
-unsigned int halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, unsigned int n);
+int halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, int n);
+int halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, int n);
+int halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, int n);
 
 // appending a complete solid at once, that encodes the assumption that the input data is
 // in a certain format, so I choose to use only this instead of a more generic function
@@ -88,9 +88,9 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid);
 // hold renderables
 void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid);
 
-int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, unsigned int face_i, int all_edges, Vec3f equal_normal, Vec3f average_normal, Vec3f cross_normal);
-int halfedgemesh_face_iterate(struct HalfEdgeMesh* mesh, unsigned int face_i, struct HalfEdge** edge, unsigned int* edge_i, unsigned int* i);
-int halfedgemesh_vertex_iterate(struct HalfEdgeMesh* mesh, unsigned int vertex_i, struct HalfEdge** edge, unsigned int* edge_i, unsigned int* i);
+int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int face_i, int all_edges, Vec3f equal_normal, Vec3f average_normal, Vec3f cross_normal);
+int halfedgemesh_face_iterate(struct HalfEdgeMesh* mesh, int face_i, struct HalfEdge** edge, int* edge_i, int* i);
+int halfedgemesh_vertex_iterate(struct HalfEdgeMesh* mesh, int vertex_i, struct HalfEdge** edge, int* edge_i, int* i);
 
 // compress is supposed to look at faces and collapse smaller faces into a larger face with size face_size,
 // if the normals are equal. so for example a box made out of triangles could be compressed into a box of

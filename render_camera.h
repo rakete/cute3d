@@ -19,7 +19,7 @@
 
 #include "math_transform.h"
 
-enum Projection {
+enum CameraProjection {
     perspective = 0,
     orthographic,
     orthographic_zoom,
@@ -30,7 +30,7 @@ enum Projection {
 struct Camera {
     struct Pivot pivot;
 
-    enum Projection type;
+    enum CameraProjection type;
 
     struct {
         int width;
@@ -48,10 +48,10 @@ struct Camera {
     } frustum;
 };
 
-void camera_create(enum Projection type, int width, int height, struct Camera* camera);
+void camera_create(enum CameraProjection type, int width, int height, struct Camera* camera);
 
-void camera_frustum(float left, float right, float bottom, float top, float zNear, float zFar, struct Camera* camera);
+void camera_frustum(struct Camera* camera, float left, float right, float bottom, float top, float zNear, float zFar);
 
-void camera_matrices(const struct Camera* camera, Mat projection_mat, Mat view_mat);
+void camera_matrices(struct Camera* const camera, Mat projection_mat, Mat view_mat);
 
 #endif

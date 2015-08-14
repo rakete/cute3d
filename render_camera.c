@@ -1,6 +1,6 @@
 #include "render_camera.h"
 
-void camera_create(enum Projection type, int width, int height, struct Camera* camera) {
+void camera_create(enum CameraProjection type, int width, int height, struct Camera* camera) {
     pivot_create(&camera->pivot);
 
     camera->type = type;
@@ -16,7 +16,7 @@ void camera_create(enum Projection type, int width, int height, struct Camera* c
     camera->frustum.zFar = 100.0f;
 }
 
-void camera_frustum(float left, float right, float bottom, float top, float zNear, float zFar, struct Camera* camera) {
+void camera_frustum(struct Camera* camera, float left, float right, float bottom, float top, float zNear, float zFar) {
     camera->frustum.left = left;
     camera->frustum.right = right;
     camera->frustum.top = top;
@@ -25,7 +25,7 @@ void camera_frustum(float left, float right, float bottom, float top, float zNea
     camera->frustum.zFar = zFar;
 }
 
-void camera_matrices(const struct Camera* camera, Mat projection_mat, Mat view_mat) {
+void camera_matrices(struct Camera* const camera, Mat projection_mat, Mat view_mat) {
     if( camera ) {
         mat_identity(projection_mat);
 

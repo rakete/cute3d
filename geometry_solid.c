@@ -16,7 +16,7 @@
 
 #include "geometry_solid.h"
 
-void solid_create(unsigned int size, unsigned int* elements, float* vertices, unsigned int* triangles, float* normals, float* colors, float* texcoords, struct Solid* solid) {
+void solid_create(int size, int* elements, float* vertices, int* triangles, float* normals, float* colors, float* texcoords, struct Solid* solid) {
     solid->size = size;
     solid->vertices = vertices;
     solid->elements = elements;
@@ -71,8 +71,8 @@ void solid_color(struct Solid* solid, float color[4]) {
     assert(solid->colors != NULL);
 
     if( solid->vertices && solid->elements ) {
-        unsigned int n = solid->size;
-        for( unsigned int i = 0; i < n; i++ ) {
+        int n = solid->size;
+        for( int i = 0; i < n; i++ ) {
             solid->colors[i*4+0] = color[0];
             solid->colors[i*4+1] = color[1];
             solid->colors[i*4+2] = color[2];
@@ -310,7 +310,7 @@ void solid_sphere16(float radius, struct Sphere16* sphere) {
     // 6: 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 96
     //                               113
     //
-    /* unsigned int elements[16*6*2*3+16*3*2] = { 0,   1, 16, 17, 16,  1, //0-5 */
+    /* int elements[16*6*2*3+16*3*2] = { 0,   1, 16, 17, 16,  1, //0-5 */
     /*                                             1,   2, 17, 18, 17,  2, //6-11 */
     /*                                             2,   3, 18, 19, 18,  3, //12-17 */
     /*                                             3,   4, 19, 20, 19,  4, //18-23 */

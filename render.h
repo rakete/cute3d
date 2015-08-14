@@ -21,10 +21,9 @@
 #include "render_camera.h"
 #include "render_shader.h"
 #include "geometry_vbo.h"
+#include "math_transform.h"
 
 void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, Mat model_matrix);
-
-//void render_sprite(struct Sprite* sprite, struct Shader* shader, struct Camera* camera, Mat model_matrix);
 
 void render_shader_flat(struct Shader* shader);
 
