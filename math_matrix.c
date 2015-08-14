@@ -260,7 +260,7 @@ void vec_cross(const Vec v, const Vec3f w, Vec r) {
     t[2] = v[0]*w[1] - v[1]*w[0];
 
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; r[3] = 1.0;
-    vec_normalize(r, r);
+    //vec_normalize(r, r);
 }
 
 VecP vcross(const Vec v, Vec w) {
@@ -275,7 +275,7 @@ void vec_cross3f(const Vec3f v, const Vec3f w, Vec3f r) {
     t[2] = v[0]*w[1] - v[1]*w[0];
 
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
-    vec_normalize3f(r, r);
+    //vec_normalize3f(r, r);
 }
 
 VecP vcross3f(const Vec3f v, Vec3f w) {
