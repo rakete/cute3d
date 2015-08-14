@@ -88,6 +88,9 @@ VecP vcross(const Vec v, Vec w);
 void vec_cross3f(const Vec3f v, const Vec3f w, Vec3f r);
 VecP vcross3f(const Vec3f v, Vec3f w);
 
+void vec_squared(const Vec3f v, float* r);
+float vsquared(const Vec3f v);
+
 void vec_length(const Vec3f v, float* r);
 float vlength(const Vec3f v);
 

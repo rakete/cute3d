@@ -283,6 +283,17 @@ VecP vcross3f(const Vec3f v, Vec3f w) {
     return w;
 }
 
+void vec_squared(const Vec3f v, float* r) {
+    *r = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
+}
+
+float vsquared(const Vec3f v) {
+    float r;
+    vec_squared(v,&r);
+    return r;
+}
+
+
 void vec_length(const Vec3f v, float* r) {
     if( fabs(v[0]) < FLOAT_EPSILON && fabs(v[1]) < FLOAT_EPSILON && fabs(v[2]) < FLOAT_EPSILON ) {
         *r = 0.0f;
