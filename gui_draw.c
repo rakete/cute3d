@@ -14,7 +14,7 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "render_draw.h"
+#include "gui_draw.h"
 
 void draw_grid( float width,
                 float height,
