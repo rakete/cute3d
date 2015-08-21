@@ -101,8 +101,8 @@ void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, con
         free(model_matrix);
     }
 
-    GLint loc[NUM_GEOMETRY_BUFFERS];
-    for( int array_id = 0; array_id < NUM_GEOMETRY_BUFFERS; array_id++ ) {
+    GLint loc[NUM_VBO_BUFFERS];
+    for( int array_id = 0; array_id < NUM_VBO_BUFFERS; array_id++ ) {
         if( shader->attribute[array_id].location > -1 ) {
             loc[array_id] = shader->attribute[array_id].location;
         } else {
@@ -124,7 +124,7 @@ void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, con
     ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.buffer->id);
                glDrawElements(mesh->primitives.type, mesh->primitives.buffer->reserved, mesh->index.type, 0); );
 
-    for( int array_id = 0; array_id < NUM_GEOMETRY_BUFFERS; array_id++ ) {
+    for( int array_id = 0; array_id < NUM_VBO_BUFFERS; array_id++ ) {
         if( loc[array_id] > -1 ) {
             ogl_debug( glDisableVertexAttribArray(loc[array_id]) );
         }
@@ -138,9 +138,9 @@ void render_shader_flat(struct Shader* shader) {
     shader_create("shader/flat.vert", "shader/flat.frag", shader);
 
     // these guys could go into shader_create
-    shader_attribute(shader, VERTEX_ARRAY, "vertex");
-    shader_attribute(shader, COLOR_ARRAY, "color");
-    shader_attribute(shader, NORMAL_ARRAY, "normal");
+    shader_attribute(shader, VBO_VERTICES, "vertex");
+    shader_attribute(shader, VBO_COLORS, "color");
+    shader_attribute(shader, VBO_NORMALS, "normal");
 
     shader_uniform(shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
     shader_uniform(shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL);

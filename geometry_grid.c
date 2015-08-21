@@ -492,9 +492,9 @@ void world_grid_create(struct Grid* grid,
     }
 
 
-    vbomesh_append(mesh, VERTEX_ARRAY, vertices, n);
-    vbomesh_append(mesh, NORMAL_ARRAY, normals, n);
-    vbomesh_append(mesh, COLOR_ARRAY, colors, n);
+    vbomesh_append_attributes(mesh, VBO_VERTICES, vertices, n);
+    vbomesh_append_attributes(mesh, VBO_NORMALS, normals, n);
+    vbomesh_append_attributes(mesh, VBO_COLORS, colors, n);
 }
 
 void world_grid_update(struct Grid* grid,
@@ -549,5 +549,5 @@ void world_grid_update(struct Grid* grid,
         }
     }
 
-    vbomesh_primitives(mesh, triangles, n);
+    vbomesh_append_indices(mesh, triangles, n);
 }

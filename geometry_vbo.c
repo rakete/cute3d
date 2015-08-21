@@ -43,9 +43,14 @@ int init_vbo() {
     return ret;
 }
 
-GLsizei buffer_resize(GLuint* buffer, GLsizei old_bytes, GLsizei new_bytes) {
-    GLuint new_buffer;
-    GLuint old_buffer = *buffer;
+// a helper function to resize a vbo, it takes a buffer argument and the old size
+// of the buffer and the new size it should be resized to, returns either the amount
+// of bytes that were added to the buffer size or 0 if nothing was resized
+int buffer_resize(GLuint* buffer, int old_bytes, int new_bytes) {
+    assert( buffer != NULL );
+
+    unsigned int new_buffer;
+    unsigned int old_buffer = *buffer;
 
     if( new_bytes > old_bytes ) {
         ogl_debug( glGenBuffers(1, &new_buffer);
@@ -100,15 +105,15 @@ GLsizei sizeof_primitive(GLenum primitive) {
 }
 
 int vbo_create(struct Vbo* p) {
-    for( int i = 0; i < NUM_GEOMETRY_PHASES; i++ ) {
-        for( int j = 0; j < NUM_GEOMETRY_BUFFERS; j++ ) {
+    for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
+        for( int j = 0; j < NUM_VBO_BUFFERS; j++ ) {
             p->_internal_buffer[i][j].id = 0;
             p->_internal_buffer[i][j].usage = GL_STATIC_DRAW;
         }
     }
     p->buffer = p->_internal_buffer[0];
 
-    for( int i = 0; i < NUM_GEOMETRY_BUFFERS; i++ ) {
+    for( int i = 0; i < NUM_VBO_BUFFERS; i++ ) {
         p->_internal_components[i].size = 0;
         p->_internal_components[i].type = 0;
         p->_internal_components[i].bytes = 0;
@@ -118,11 +123,11 @@ int vbo_create(struct Vbo* p) {
     p->capacity = 0;
     p->reserved = 0;
 
-    for( int i = 0; i < NUM_GEOMETRY_PHASES; i++ ) {
+    for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
         p->scheduler.fence[i] = 0;
     }
     p->scheduler.phase = 0;
-    p->scheduler.type = MANY_BUFFER;
+    p->scheduler.type = VBO_MANY_BUFFER;
     p->scheduler.offset = 0;
 
     return 1;
@@ -135,11 +140,11 @@ void vbo_print(struct Vbo* vbo) {
 
 void vbo_add_buffer(struct Vbo* vbo,
                     int i,
-                    GLint component_n,
+                    int component_n,
                     GLenum component_t,
                     GLenum usage)
 {
-    if( vbo && i < NUM_GEOMETRY_BUFFERS ) {
+    if( vbo && i < NUM_VBO_BUFFERS ) {
         ogl_debug( glGenBuffers(1, &vbo->buffer[i].id) );
 
         vbo->buffer[i].usage = usage;
@@ -148,7 +153,7 @@ void vbo_add_buffer(struct Vbo* vbo,
         vbo->components[i].type = component_t;
         vbo->components[i].bytes = sizeof_type(component_t);
 
-        GLsizei nbytes = vbo->capacity * component_n * sizeof_type(component_t);
+        int nbytes = vbo->capacity * component_n * sizeof_type(component_t);
         ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
                    glBufferData(GL_ARRAY_BUFFER, nbytes, NULL, usage);
                    glBindBuffer(GL_ARRAY_BUFFER, 0); );
@@ -156,52 +161,58 @@ void vbo_add_buffer(struct Vbo* vbo,
     }
 }
 
-GLint vbo_alloc(struct Vbo* vbo, GLint n) {
+int vbo_alloc(struct Vbo* vbo, int n) {
+    assert( n > 0 );
+
     if( vbo ) {
+        // I set this to -1 so I can check in the for loop for != 0, so that I can decide afterwards if any
+        // buffer_resize failed (and returned 0), or if there were no existing vbos (which means resized_bytes
+        // is still -1 after the loop)
+        int resized_bytes = -1;
 
-        GLsizei resized_bytes = 1;
-        GLint alloc = n;
-
-        for( int i = 0; i < NUM_GEOMETRY_BUFFERS && resized_bytes > 0; i++ ) {
+        for( int i = 0; i < NUM_VBO_BUFFERS && resized_bytes != 0; i++ ) {
             if( vbo->buffer[i].id ) {
-                GLsizei new_bytes = (vbo->capacity + alloc) * vbo->components[i].size * vbo->components[i].bytes;
-                GLsizei old_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
+                int new_bytes = (vbo->capacity + n) * vbo->components[i].size * vbo->components[i].bytes;
+                int old_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
 
                 resized_bytes = buffer_resize(&vbo->buffer[i].id, old_bytes, new_bytes);
             }
         }
 
+        // - only increase capacity if all vbos were resized
+        // - resized_bytes is different per buffer, so just return n instead
         if( resized_bytes > 0 ) {
-            vbo->capacity += alloc;
+            vbo->capacity += n;
+            return n;
+        } else {
+            assert( resized_bytes == 0 );
         }
-
-        return resized_bytes;
     }
 
     return 0;
 }
 
-GLint vbo_free_elements(struct Vbo* vbo) {
-    GLint freespace = 0;
+int vbo_available_capacity(struct Vbo* vbo) {
+    int freespace = 0;
     if( vbo ) {
         freespace = vbo->capacity - vbo->reserved;
     }
     return freespace;
 }
 
-GLint vbo_free_bytes(struct Vbo* vbo, int i) {
-    GLint freespace = 0;
+int vbo_available_bytes(struct Vbo* vbo, int i) {
+    int freespace = 0;
     if( vbo && vbo->buffer[i].id ) {
-        freespace = vbo_free_elements(vbo) * vbo->components[i].size * vbo->components[i].bytes;
+        freespace = vbo_available_capacity(vbo) * vbo->components[i].size * vbo->components[i].bytes;
     }
     return freespace;
 }
 
-void vbo_fill_value(struct Vbo* vbo, int i, GLint offset_n, GLint size_n, float value) {
+void vbo_fill_value(struct Vbo* vbo, int i, int offset_n, int size_n, float value) {
     if( vbo && vbo->buffer[i].id && offset_n < vbo->capacity && size_n <= vbo->capacity ) {
         void* array = malloc( sizeof_type(vbo->components[i].type) * size_n );
-        GLint array_offset = offset_n * vbo->components[i].size;
-        GLint array_size = size_n * vbo->components[i].size;
+        int array_offset = offset_n * vbo->components[i].size;
+        int array_size = size_n * vbo->components[i].size;
 
         switch(vbo->components[i].type) {
             case GL_FLOAT: {
@@ -240,15 +251,15 @@ void vbo_fill_value(struct Vbo* vbo, int i, GLint offset_n, GLint size_n, float 
     }
 }
 
-void* vbo_map(struct Vbo* vbo, int i, GLint offset, GLint length, GLbitfield access) {
+void* vbo_map(struct Vbo* vbo, int i, int offset, int length, GLbitfield access) {
     if( vbo && vbo->buffer[i].id && offset < vbo->capacity ) {
         if( offset + length > vbo->capacity ) {
             vbo_alloc(vbo, offset + length - vbo->capacity);
         }
 
         if( offset + length <= vbo->capacity ) {
-            GLsizei offset_bytes = offset * vbo->components[i].size * vbo->components[i].bytes;
-            GLsizei length_bytes = length * vbo->components[i].size * vbo->components[i].bytes;
+            int offset_bytes = offset * vbo->components[i].size * vbo->components[i].bytes;
+            int length_bytes = length * vbo->components[i].size * vbo->components[i].bytes;
             if( length <= offset || length > vbo->capacity ) {
                 length_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
             }
@@ -284,10 +295,10 @@ int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GL
         p->vbo = vbo;
 
         p->offset = vbo->reserved;
-        p->size = 0;
+        p->capacity = 0;
 
-        for( int i = 0; i < NUM_GEOMETRY_BUFFERS; i++ ) {
-            p->uses[i] = 0;
+        for( int i = 0; i < NUM_VBO_BUFFERS; i++ ) {
+            p->reserved[i] = 0;
         }
 
         p->primitives.type = primitive_type;
@@ -296,7 +307,7 @@ int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GL
         p->index.type = index_type;
         p->index.bytes = sizeof_type(index_type);
 
-        for( int i = 0; i < NUM_GEOMETRY_PHASES; i++ ) {
+        for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
             p->primitives._internal_buffer[i].id = 0;
             p->primitives._internal_buffer[i].usage = usage;
             p->primitives._internal_buffer[i].capacity = 0;
@@ -318,7 +329,7 @@ void vbomesh_print(struct VboMesh* mesh) {
     printf("\n");
 
     printf("mesh->offset: %d\n", mesh->offset);
-    printf("mesh->size: %d\n", mesh->size);
+    printf("mesh->size: %d\n", mesh->capacity);
 
     printf("mesh->primitives.type: %d\n", mesh->primitives.type);
     printf("mesh->primitives.size: %d\n", mesh->primitives.size);
@@ -330,20 +341,20 @@ void vbomesh_print(struct VboMesh* mesh) {
 
     printf("\n");
 
-    for( int i = 0; i < NUM_GEOMETRY_PHASES; i++ ) {
-        for( int j = 0; j < NUM_GEOMETRY_BUFFERS-1; j++ ) {
-            printf("mesh->uses[%d]: %d\n", j, mesh->uses[j]);
+    for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
+        for( int j = 0; j < NUM_VBO_BUFFERS-1; j++ ) {
+            printf("mesh->uses[%d]: %d\n", j, mesh->reserved[j]);
             printf("mesh->vbo->buffer[%d][%d]:\n", i, j);
             switch(mesh->vbo->components[j].type) {
                 case GL_FLOAT: {
-                    GLfloat* array = (GLfloat*)vbo_map(mesh->vbo, j, mesh->offset, mesh->size, GL_MAP_READ_BIT);
+                    GLfloat* array = (GLfloat*)vbo_map(mesh->vbo, j, mesh->offset, mesh->capacity, GL_MAP_READ_BIT);
                     if( array ) {
-                        for( int k = 0; k < mesh->size; k++ ) {
+                        for( int k = 0; k < mesh->capacity; k++ ) {
                             GLfloat a = array[k*mesh->vbo->components[j].size+0];
                             GLfloat b = array[k*mesh->vbo->components[j].size+1];
                             GLfloat c = array[k*mesh->vbo->components[j].size+2];
                             printf("[%f %f %f]", a, b, c);
-                            if( k == mesh->size - 1 ) {
+                            if( k == mesh->capacity - 1 ) {
                                 printf("\n");
                             } else {
                                 printf(", ");
@@ -364,115 +375,196 @@ void vbomesh_print(struct VboMesh* mesh) {
     }
 }
 
-GLint vbomesh_alloc(struct VboMesh* mesh, GLint n) {
-    GLint v = vbomesh_alloc_vbo(mesh,n);
-    GLint p = vbomesh_alloc_primitives(mesh,n);
-    return v+p;
-}
+int vbomesh_alloc_attributes(struct VboMesh* mesh, int n) {
+    assert( n > 0 );
 
-GLint vbomesh_alloc_vbo(struct VboMesh* mesh, GLint n) {
-    if( mesh && mesh->offset + mesh->size == mesh->vbo->reserved ) {
-        if( vbo_free_elements(mesh->vbo) < n ) {
-            vbo_alloc(mesh->vbo, n);
-        }
+    if( mesh && mesh->offset + mesh->capacity == mesh->vbo->reserved ) {
+        int resized_n = vbo_alloc(mesh->vbo, n);
 
-        if( vbo_free_elements(mesh->vbo) >= n ) {
+        if( resized_n > 0 ) {
             mesh->vbo->reserved += n;
-            mesh->size += n;
-
-            return n;
+            mesh->capacity += n;
         }
+        return resized_n;
     }
 
     return 0;
 }
 
-GLint vbomesh_alloc_primitives(struct VboMesh* mesh, GLint n) {
+int vbomesh_alloc_indices(struct VboMesh* mesh, int n) {
+    assert( n > 0 );
+
     if( mesh && mesh->primitives.buffer->id ) {
-        GLsizei size_bytes = mesh->primitives.buffer->capacity * mesh->index.bytes;
-        GLsizei alloc_bytes = n * mesh->index.bytes;
-        GLsizei resized_bytes = alloc_bytes;
+        int size_bytes = mesh->primitives.buffer->capacity * mesh->index.bytes;
+        int alloc_bytes = n * mesh->index.bytes;
+        int resized_bytes = buffer_resize(&mesh->primitives.buffer->id, size_bytes, size_bytes + alloc_bytes);
 
-        if( mesh->primitives.buffer->reserved + n > mesh->primitives.buffer->capacity ) {
-            resized_bytes = buffer_resize(&mesh->primitives.buffer->id, size_bytes, size_bytes + alloc_bytes);
-        }
-
+        // - we could return resized_bytes, but all other alloc functions return the number
+        //   of elements allocated, so we just do the same here
         if( resized_bytes == alloc_bytes ) {
             mesh->primitives.buffer->capacity += n;
             return n;
+        } else {
+            assert( resized_bytes == 0 );
         }
     }
 
     return 0;
 }
 
-void vbomesh_append(struct VboMesh* mesh, int i, void* data, GLint n) {
-    vbomesh_append_generic(mesh, i, data, n, mesh->vbo->components[i].size, mesh->vbo->components[i].type);
+void vbomesh_clear_attributes(struct VboMesh* mesh) {
+    for( int i = 0; i < NUM_VBO_BUFFERS; i++ ) {
+        mesh->reserved[i] = 0;
+    }
 }
 
-void vbomesh_append_generic(struct VboMesh* mesh, int i, void* data, GLint n, GLint components_size, GLenum components_type) {
+void vbomesh_clear_primitives(struct VboMesh* mesh) {
+    for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
+        mesh->primitives._internal_buffer[i].reserved = 0;
+    }
+}
+
+void vbomesh_append_buffer_generic(struct VboMesh* mesh, int i, void* data, int n, int components_size, GLenum components_type) {
     if( mesh && mesh->vbo->buffer[i].id ) {
         // only these depend on given size params => generic data append
-        GLsizei attrib_bytes = components_size * sizeof_type(components_type);
-        GLsizei append_bytes = n * attrib_bytes;
+        int attrib_bytes = components_size * sizeof_type(components_type);
+        int append_bytes = n * attrib_bytes;
 
         // stuff that relies on vbo size values
-        GLsizei size_bytes = mesh->size * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
-        GLsizei used_bytes = mesh->uses[i] * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
-        GLsizei offset_bytes = (mesh->offset + mesh->uses[i]) * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
+        int capacity_bytes = mesh->capacity * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
+        int reserved_bytes = mesh->reserved[i] * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
+        int offset_bytes = (mesh->offset + mesh->reserved[i]) * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
 
-        if( used_bytes + append_bytes <= size_bytes ) {
+        if( reserved_bytes + append_bytes <= capacity_bytes ) {
             ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
                        glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
                        glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
 
-            mesh->uses[i] += n;
-        } else if( mesh->offset + mesh->size == mesh->vbo->reserved &&
+            mesh->reserved[i] += n;
+        } else if( mesh->offset + mesh->capacity == mesh->vbo->reserved &&
                    mesh->vbo->components[i].size == components_size &&
                    mesh->vbo->components[i].type == components_type )
         {
             // this does not work genericly, so we just do not allocate anything at all,
             // if num and type do not fit the stored values in vbo
-            vbomesh_alloc_vbo(mesh,n);
+            if( vbo_available_capacity(mesh->vbo) < n ) {
+                vbomesh_alloc_attributes(mesh,n);
+            }
 
             ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
                        glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
                        glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
-            mesh->uses[i] += n;
+            mesh->reserved[i] += n;
         }
     }
 }
 
-void vbomesh_clear_vbo(struct VboMesh* mesh) {
-    for( int i = 0; i < NUM_GEOMETRY_BUFFERS; i++ ) {
-        mesh->uses[i] = 0;
+void vbomesh_append_attributes(struct VboMesh* mesh, int i, void* data, int n) {
+    vbomesh_append_buffer_generic(mesh, i, data, n, mesh->vbo->components[i].size, mesh->vbo->components[i].type);
+}
+
+void vbomesh_append_line(struct VboMesh* mesh, unsigned int a, unsigned int b) {
+    if( mesh && mesh->primitives.buffer->id && mesh->primitives.size == 2 ) {
+        void* data = malloc(2 * mesh->index.bytes);
+
+        if( mesh->index.type == GL_UNSIGNED_INT ) {
+            ((GLuint*)data)[0] = a;
+            ((GLuint*)data)[1] = b;
+        } else if( mesh->index.type == GL_UNSIGNED_SHORT ) {
+            ((GLushort*)data)[0] = (GLushort)a;
+            ((GLushort*)data)[1] = (GLushort)b;
+        } else {
+            printf("ERROR: this mesh->index.type not implemented in vbomesh_line\n");
+        }
+
+        if( mesh->primitives.buffer->reserved + 2 > mesh->primitives.buffer->capacity ) {
+            int alloc = mesh->primitives.buffer->reserved - mesh->primitives.buffer->capacity + 2;
+            vbomesh_alloc_indices(mesh, alloc);
+        }
+
+        int line_bytes = 2 * mesh->index.bytes;
+        int offset_bytes = mesh->primitives.buffer->reserved * mesh->index.bytes;
+        if( mesh->primitives.buffer->reserved + 2 <= mesh->primitives.buffer->capacity ) {
+            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.buffer->id);
+                       glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset_bytes, line_bytes, data);
+                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
+
+            mesh->primitives.buffer->reserved += 2;
+        }
+
+        free(data);
     }
 }
 
-void vbomesh_clear_primitives(struct VboMesh* mesh) {
-    for( int i = 0; i < NUM_GEOMETRY_PHASES; i++ ) {
-        mesh->primitives._internal_buffer[i].reserved = 0;
+void vbomesh_append_triangle(struct VboMesh* mesh, unsigned int a, unsigned int b, unsigned int c) {
+    if( mesh && mesh->primitives.buffer->id && mesh->primitives.size == 3 ) {
+        void* data = malloc(3 * mesh->index.bytes);
+
+        if( mesh->index.type == GL_UNSIGNED_INT ) {
+            ((GLuint*)data)[0] = a;
+            ((GLuint*)data)[1] = b;
+            ((GLuint*)data)[2] = c;
+        } else if( mesh->index.type == GL_UNSIGNED_SHORT ) {
+            ((GLushort*)data)[0] = (GLushort)a;
+            ((GLushort*)data)[1] = (GLushort)b;
+            ((GLushort*)data)[2] = (GLushort)c;
+        } else {
+            printf("ERROR: this mesh->index.type not implemented in vbomesh_triangle\n");
+        }
+
+        if( mesh->primitives.buffer->reserved + 3 > mesh->primitives.buffer->capacity ) {
+            int alloc = mesh->primitives.buffer->reserved - mesh->primitives.buffer->capacity + 3;
+            vbomesh_alloc_indices(mesh, alloc);
+        }
+
+        int triangle_bytes = 3 * mesh->index.bytes;
+        int offset_bytes = mesh->primitives.buffer->reserved * mesh->index.bytes;
+        if( mesh->primitives.buffer->reserved + 3 <= mesh->primitives.buffer->capacity ) {
+            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.buffer->id);
+                       glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset_bytes, triangle_bytes, data);
+                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
+
+            mesh->primitives.buffer->reserved += 3;
+        }
+
+        free(data);
     }
 }
 
-void* vbomesh_map(struct VboMesh* mesh, GLint offset, GLint length, GLbitfield access) {
+void vbomesh_append_indices(struct VboMesh* mesh, void* data, int n) {
+    assert( n > 0 );
+
+    if( mesh && mesh->primitives.buffer->id ) {
+
+        if( mesh->primitives.buffer->reserved + n > mesh->primitives.buffer->capacity ) {
+            int alloc = mesh->primitives.buffer->reserved + n - mesh->primitives.buffer->capacity;
+            vbomesh_alloc_indices(mesh, alloc);
+        }
+
+        int append_bytes = n * mesh->index.bytes;
+        int offset_bytes = mesh->primitives.buffer->reserved * mesh->index.bytes;
+        if( mesh->primitives.buffer->reserved + n <= mesh->primitives.buffer->capacity ) {
+            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
+                       glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
+                       glBindBuffer(GL_ARRAY_BUFFER, 0); );
+
+            mesh->primitives.buffer->reserved += n;
+        }
+    }
+}
+
+void* vbomesh_map(struct VboMesh* mesh, int offset, int length, GLbitfield access) {
     if( mesh && mesh->primitives.buffer->id && offset < mesh->primitives.buffer->capacity ) {
         if( offset + length > mesh->primitives.buffer->capacity ) {
-            GLint alloc = offset + length - mesh->primitives.buffer->capacity + 1;
-
-            GLsizei size_bytes = mesh->primitives.buffer->capacity * mesh->index.bytes;
-            GLsizei alloc_bytes = alloc * mesh->index.bytes;
-            GLsizei resized_bytes = buffer_resize(&mesh->primitives.buffer->id, size_bytes, size_bytes + alloc_bytes);
-            if( resized_bytes == alloc_bytes ) {
-                mesh->primitives.buffer->capacity += alloc;
-            }
+            int alloc = offset + length - mesh->primitives.buffer->capacity + 1;
+            vbomesh_alloc_indices(mesh, alloc);
         }
 
         if( offset + length <= mesh->primitives.buffer->capacity ) {
-            GLsizei offset_bytes = offset * mesh->index.bytes;
-            GLsizei length_bytes = length * mesh->index.bytes;
+            int offset_bytes = offset * mesh->index.bytes;
+            int length_bytes = length * mesh->index.bytes;
             if( length <= offset ) {
                 length_bytes = mesh->primitives.buffer->capacity * mesh->index.bytes;
             }
@@ -501,111 +593,4 @@ GLboolean vbomesh_unmap(struct VboMesh* mesh) {
     }
 
     return 0;
-}
-
-void vbomesh_line(struct VboMesh* mesh, GLuint a, GLuint b) {
-    if( mesh && mesh->primitives.buffer->id && mesh->primitives.size == 2 ) {
-        void* data = malloc(2 * mesh->index.bytes);
-
-        if( mesh->index.type == GL_UNSIGNED_INT ) {
-            ((GLuint*)data)[0] = a;
-            ((GLuint*)data)[1] = b;
-        } else if( mesh->index.type == GL_UNSIGNED_SHORT ) {
-            ((GLushort*)data)[0] = (GLushort)a;
-            ((GLushort*)data)[1] = (GLushort)b;
-        } else {
-            printf("ERROR: this mesh->index.type not implemented in vbomesh_line\n");
-        }
-
-        GLsizei size_bytes = mesh->primitives.buffer->capacity * mesh->index.bytes;
-
-        if( mesh->primitives.buffer->reserved + 2 > mesh->primitives.buffer->capacity ) {
-            GLint alloc = mesh->primitives.buffer->reserved - mesh->primitives.buffer->capacity + 2;
-            GLsizei alloc_bytes = alloc * mesh->index.bytes;
-            GLsizei resized_bytes = buffer_resize(&mesh->primitives.buffer->id, size_bytes, size_bytes + alloc_bytes);
-            if( resized_bytes == alloc_bytes ) {
-                mesh->primitives.buffer->capacity += alloc;
-            }
-        }
-
-        GLsizei line_bytes = 2 * mesh->index.bytes;
-        GLsizei offset_bytes = mesh->primitives.buffer->reserved * mesh->index.bytes;
-        if( mesh->primitives.buffer->reserved + 2 <= mesh->primitives.buffer->capacity ) {
-            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.buffer->id);
-                       glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset_bytes, line_bytes, data);
-                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
-
-            mesh->primitives.buffer->reserved += 2;
-        }
-
-        free(data);
-    }
-}
-
-void vbomesh_triangle(struct VboMesh* mesh, GLuint a, GLuint b, GLuint c) {
-    if( mesh && mesh->primitives.buffer->id && mesh->primitives.size == 3 ) {
-        void* data = malloc(3 * mesh->index.bytes);
-
-        if( mesh->index.type == GL_UNSIGNED_INT ) {
-            ((GLuint*)data)[0] = a;
-            ((GLuint*)data)[1] = b;
-            ((GLuint*)data)[2] = c;
-        } else if( mesh->index.type == GL_UNSIGNED_SHORT ) {
-            ((GLushort*)data)[0] = (GLushort)a;
-            ((GLushort*)data)[1] = (GLushort)b;
-            ((GLushort*)data)[2] = (GLushort)c;
-        } else {
-            printf("ERROR: this mesh->index.type not implemented in vbomesh_triangle\n");
-        }
-
-        GLsizei size_bytes = mesh->primitives.buffer->capacity * mesh->index.bytes;
-
-        if( mesh->primitives.buffer->reserved + 3 > mesh->primitives.buffer->capacity ) {
-            GLint alloc = mesh->primitives.buffer->reserved - mesh->primitives.buffer->capacity + 3;
-            GLsizei alloc_bytes = alloc * mesh->index.bytes;
-            GLsizei resized_bytes = buffer_resize(&mesh->primitives.buffer->id, size_bytes, size_bytes + alloc_bytes);
-            if( resized_bytes == alloc_bytes ) {
-                mesh->primitives.buffer->capacity += alloc;
-            }
-        }
-
-        GLsizei triangle_bytes = 3 * mesh->index.bytes;
-        GLsizei offset_bytes = mesh->primitives.buffer->reserved * mesh->index.bytes;
-        if( mesh->primitives.buffer->reserved + 3 <= mesh->primitives.buffer->capacity ) {
-            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.buffer->id);
-                       glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset_bytes, triangle_bytes, data);
-                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
-
-            mesh->primitives.buffer->reserved += 3;
-        }
-
-        free(data);
-    }
-}
-
-void vbomesh_primitives(struct VboMesh* mesh, void* data, GLint n) {
-    if( mesh && mesh->primitives.buffer->id ) {
-        GLsizei size_bytes = mesh->primitives.buffer->capacity * mesh->index.bytes;
-
-        if( mesh->primitives.buffer->reserved + n > mesh->primitives.buffer->capacity ) {
-            GLint alloc = mesh->primitives.buffer->reserved + n - mesh->primitives.buffer->capacity;
-
-            GLsizei alloc_bytes = alloc * mesh->index.bytes;
-
-            GLsizei resized_bytes = buffer_resize(&mesh->primitives.buffer->id, size_bytes, size_bytes + alloc_bytes);
-            if( resized_bytes > 0 ) {
-                mesh->primitives.buffer->capacity += alloc;
-            }
-        }
-
-        GLsizei append_bytes = n * mesh->index.bytes;
-        GLsizei offset_bytes = mesh->primitives.buffer->reserved * mesh->index.bytes;
-        if( mesh->primitives.buffer->reserved + n <= mesh->primitives.buffer->capacity ) {
-            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
-                       glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
-                       glBindBuffer(GL_ARRAY_BUFFER, 0); );
-
-            mesh->primitives.buffer->reserved += n;
-        }
-    }
 }

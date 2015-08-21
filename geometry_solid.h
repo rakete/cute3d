@@ -27,14 +27,14 @@ struct Solid {
     unsigned int size;
 
     float* vertices;
-    int* elements;
+    int* indices;
     int* triangles;
     float* colors;
     float* normals;
     float* texcoords;
 };
 
-void solid_create(int size, int* elements, float* vertices, int* triangles, float* normals, float* colors, float* texcoords, struct Solid* solid);
+void solid_create(int size, int* indices, float* vertices, int* triangles, float* normals, float* colors, float* texcoords, struct Solid* solid);
 void solid_normals(struct Solid* solid);
 void solid_color(struct Solid* solid, float color[4]);
 
@@ -42,7 +42,7 @@ struct Tetrahedron {
     struct Solid solid;
 
     float vertices[36];
-    int elements[12];
+    int indices[12];
     int triangles[12];
     float colors[48];
     float normals[36];
@@ -55,7 +55,7 @@ struct Cube {
     struct Solid solid;
 
     float vertices[108];
-    int elements[36];
+    int indices[36];
     int triangles[36];
     float colors[144];
     float normals[108];
@@ -69,7 +69,7 @@ struct Sphere16 {
     struct Solid solid;
 
     float vertices[(16*6*2+16*2)*3*3];
-    int elements[16*6*2*3+16*3*2];
+    int indices[16*6*2*3+16*3*2];
     int triangles[16*6*2*3+16*3*2];
     float colors[(16*6*2+16*2)*4*3];
     float normals[(16*6*2+16*2)*3*3];
@@ -82,7 +82,7 @@ struct Sphere32 {
     struct Solid solid;
 
     float vertices[(32*14*2+32*2)*3*3];
-    int elements[32*14*2*3+32*3*2];
+    int indices[32*14*2*3+32*3*2];
     int triangles[32*14*2*3+32*3*2];
     float colors[(32*14*2+32*2)*4*3];
     float normals[(32*14*2+32*2)*3*3];

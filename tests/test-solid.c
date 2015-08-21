@@ -7,10 +7,10 @@ void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mes
     solid_color(solid,color);
     solid_normals(solid);
 
-    vbomesh_append(mesh, VERTEX_ARRAY, solid->vertices, solid->size);
-    vbomesh_append(mesh, NORMAL_ARRAY, solid->normals, solid->size);
-    vbomesh_append(mesh, COLOR_ARRAY, solid->colors, solid->size);
-    vbomesh_primitives(mesh, solid->elements, solid->size);
+    vbomesh_append_attributes(mesh, VBO_VERTICES, solid->vertices, solid->size);
+    vbomesh_append_attributes(mesh, VBO_NORMALS, solid->normals, solid->size);
+    vbomesh_append_attributes(mesh, VBO_COLORS, solid->colors, solid->size);
+    vbomesh_append_indices(mesh, solid->indices, solid->size);
 }
 
 int main(int argc, char *argv[]) {
@@ -38,9 +38,9 @@ int main(int argc, char *argv[]) {
 
     struct Vbo vbo;
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, COLOR_ARRAY, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, VBO_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, VBO_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, VBO_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
 
     struct Tetrahedron tetrahedron;
     struct Cube hexahedron;

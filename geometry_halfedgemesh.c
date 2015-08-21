@@ -72,7 +72,7 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
     assert( solid->size > 0 );
     assert( solid->size < INT_MAX/3 );
     assert( solid->vertices != NULL );
-    assert( solid->elements != NULL );
+    assert( solid->indices != NULL );
     assert( solid->triangles != NULL );
     assert( solid->normals != NULL );
 
@@ -416,7 +416,7 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
 
     int vertices_offset = 0;
     int normals_offset = 0;
-    int elements_offset = 0;
+    int indices_offset = 0;
     int triangles_offset = 0;
 
     for( int i = 0; i < mesh->faces.reserved; i++ ) {
@@ -465,8 +465,8 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
             solid->normals[normals_offset+2] = edge_normals[z];
             normals_offset += 3;
 
-            solid->elements[elements_offset] = elements_offset;
-            elements_offset += 1;
+            solid->indices[indices_offset] = indices_offset;
+            indices_offset += 1;
 
             solid->triangles[triangles_offset] = face_triangles[k];
             triangles_offset += 1;
