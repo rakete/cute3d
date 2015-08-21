@@ -158,7 +158,7 @@ void collisions_prepare(size_t n, struct Collision* collisions);
 // which may collide with self
 // candidates is pre allocated with world_size, the filled from beginning to end, then the number of candidate
 // indices in candidates is returned at the end (which is probably a lot smaller then world_size, therefore
-// wasting most of the space reserved in candidates)
+// wasting most of the space occupied in candidates)
 size_t collisions_broad(size_t self,
                         size_t world_size,
                         struct Collider** const world_colliders,

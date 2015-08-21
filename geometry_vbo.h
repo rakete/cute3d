@@ -77,7 +77,7 @@ struct Vbo {
     struct VboComponents* components;
 
     int capacity; // size of the whole buffer
-    int reserved; // actual space used by meshes
+    int occupied; // actual space used by meshes
 
     struct VboScheduler{
         unsigned int phase;
@@ -122,10 +122,10 @@ struct VboMesh {
 
     int offset; // offset in vbo buffers
 
-    // - capacity in vbomesh is reserved in vbo
-    // - reserved in vbomesh is the actual occupied space that has attributes in it
+    // - capacity in vbomesh is occupied in vbo
+    // - occupied in vbomesh is the actual occupied space that has attributes in it
     int capacity; // capacity of mesh in vbo
-    int reserved[NUM_VBO_BUFFERS]; // information about how many attributes are reserved by this mesh per buffer
+    int occupied[NUM_VBO_BUFFERS]; // information about how many attributes are occupied by this mesh per buffer
 
     // information about the index type used in the primitives buffer
     struct VboMeshIndex {
@@ -153,7 +153,7 @@ struct VboMesh {
             unsigned int id; // index buffer
             GLenum usage;
             int capacity; // size of the buffer
-            int reserved; // space already used
+            int occupied; // space already used
         } _internal_buffer[NUM_VBO_PHASES];
         struct VboMeshIndexBuffer* buffer;
     } primitives;
@@ -168,11 +168,11 @@ void vbomesh_print(struct VboMesh* mesh);
 int vbomesh_alloc_attributes(struct VboMesh* mesh, int n);
 int vbomesh_alloc_indices(struct VboMesh* mesh, int n);
 
-// clearing just resets the reserved counter to 0
+// clearing just resets the occupied counter to 0
 void vbomesh_clear_attributes(struct VboMesh* mesh);
 void vbomesh_clear_indices(struct VboMesh* mesh);
 
-// append adds new stuff at the end of reserved, allocates new capacity if neccessary
+// append adds new stuff at the end of occupied, allocates new capacity if neccessary
 void vbomesh_append_buffer_generic(struct VboMesh* mesh, int i, void* data, int n, int components_size, GLenum components_type);
 void vbomesh_append_attributes(struct VboMesh* mesh, int i, void* data, int n);
 
@@ -220,7 +220,7 @@ GLboolean vbomesh_unmap(struct VboMesh* mesh);
 
 // a buffer has a SIZE
 // space in a buffer is RESERVED for meshes
-// a mesh represents a certain SIZE of reserved buffer space
+// a mesh represents a certain SIZE of occupied buffer space
 // space is USED by actual geometry data
 
 // buffer: 0+++++++++++++++++++++++++++++++++++++++++1--------------------2
@@ -229,7 +229,7 @@ GLboolean vbomesh_unmap(struct VboMesh* mesh);
 // free  :            9-------10              11--------------------------12
 
 // 0 is just 0, it never changes
-// 1 is buffer->reserved, it changes when a new mesh is created,
+// 1 is buffer->occupied, it changes when a new mesh is created,
 //   the last meshs size grows, data is appended to the last mesh that
 //   is bigger then the remaining space in the last mesh
 // 2 is buffer->size, it changes when the buffer grows, the last mesh
@@ -248,4 +248,4 @@ GLboolean vbomesh_unmap(struct VboMesh* mesh);
 //   finding the last mesh can be done by going through all meshes of the
 //   buffer in reverse order (most likely the first test is going to be
 //   successful) and checking if mesh->offset + mesh->size equals
-//   buffer->reserved
+//   buffer->occupied

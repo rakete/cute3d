@@ -122,7 +122,7 @@ void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, con
     }
 
     ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.buffer->id);
-               glDrawElements(mesh->primitives.type, mesh->primitives.buffer->reserved, mesh->index.type, 0); );
+               glDrawElements(mesh->primitives.type, mesh->primitives.buffer->occupied, mesh->index.type, 0); );
 
     for( int array_id = 0; array_id < NUM_VBO_BUFFERS; array_id++ ) {
         if( loc[array_id] > -1 ) {

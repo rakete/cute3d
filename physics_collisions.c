@@ -151,7 +151,7 @@ static void convex_local_transform(struct ColliderConvex* const convex1,
 
     // the vertex_translation/orientation is then applied to every vertex of convex2->mesh resulting
     // in a new array of vertices which coordinates are now relative to convex1
-    for( unsigned int i = 0; i < convex2->mesh->vertices.reserved && i*3 < size; i++ ) {
+    for( unsigned int i = 0; i < convex2->mesh->vertices.occupied && i*3 < size; i++ ) {
         Vec3f vertex;
         vec_copy3f(convex2->mesh->vertices.array[i].position, vertex);
 
@@ -180,7 +180,7 @@ static void query_face_directions(struct ColliderConvex* const convex1,
     // means when this function is called with convex1 and convex2 flipped the best_normal
     // (seperation axis) orientation will be in convex2 coordinates instead of convex1
     // coordinates
-    unsigned int transformed_size = mesh2->vertices.reserved*3;
+    unsigned int transformed_size = mesh2->vertices.occupied*3;
     float transformed_vertices[transformed_size];
     convex_local_transform(convex1, convex2, transformed_size, transformed_vertices);
 
@@ -190,7 +190,7 @@ static void query_face_directions(struct ColliderConvex* const convex1,
     // projection on the current face_normal of mesh1
     // - then compute distance of support vertex to face
     // - keep track of largest distance found
-    for( unsigned int face_i = 0; face_i < mesh1->faces.reserved; face_i++ ) {
+    for( unsigned int face_i = 0; face_i < mesh1->faces.occupied; face_i++ ) {
         Vec3f face_normal;
         vec_copy3f(mesh1->faces.array[face_i].normal, face_normal);
 
@@ -204,7 +204,7 @@ static void query_face_directions(struct ColliderConvex* const convex1,
         Vec3f support;
         unsigned int support_j;
         float best_projection = -FLT_MAX;
-        for( unsigned int vertex_j = 0; vertex_j < mesh2->vertices.reserved; vertex_j++ ) {
+        for( unsigned int vertex_j = 0; vertex_j < mesh2->vertices.occupied; vertex_j++ ) {
             Vec3f vertex;
             vec_copy3f(transformed_vertices+vertex_j*3, vertex);
 
@@ -253,7 +253,7 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
     struct HalfEdgeMesh* mesh1 = convex1->mesh;
     struct HalfEdgeMesh* mesh2 = convex2->mesh;
 
-    unsigned int transformed_size = mesh2->vertices.reserved*3;
+    unsigned int transformed_size = mesh2->vertices.occupied*3;
     float transformed_vertices[transformed_size];
     convex_local_transform(convex1, convex2, transformed_size, transformed_vertices);
 
@@ -276,10 +276,10 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
     // so instead we use a gauss map as outlined in the slides I mention above to prune edge
     // tests by deciding which edge combinations actually form a face on the minowski sum and which
     // don't,
-    for( unsigned int i = 0; i < mesh1->edges.reserved; i += 2 ) {
+    for( unsigned int i = 0; i < mesh1->edges.occupied; i += 2 ) {
         struct HalfEdge* edge1 = &mesh1->edges.array[i];
         struct HalfEdge* other1 = &mesh1->edges.array[edge1->other];
-        for( unsigned int j = 0; j < mesh2->edges.reserved; j += 2 ) {
+        for( unsigned int j = 0; j < mesh2->edges.occupied; j += 2 ) {
             struct HalfEdge* edge2 = &mesh2->edges.array[j];
             struct HalfEdge* other2 = &mesh2->edges.array[edge2->other];
 

@@ -53,19 +53,19 @@ struct HalfEdgeMesh {
 
     struct {
         int capacity;
-        int reserved;
+        int occupied;
         struct HalfEdgeVertex* array;
     } vertices;
 
     struct {
         int capacity;
-        int reserved;
+        int occupied;
         struct HalfEdgeFace* array;
     } faces;
 
     struct {
         int capacity;
-        int reserved;
+        int occupied;
         struct HalfEdge* array;
     } edges;
 };
