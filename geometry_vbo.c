@@ -308,14 +308,14 @@ int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GL
         p->index.bytes = sizeof_type(index_type);
 
         for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
-            p->primitives._internal_buffer[i].id = 0;
-            p->primitives._internal_buffer[i].usage = usage;
-            p->primitives._internal_buffer[i].capacity = 0;
-            p->primitives._internal_buffer[i].occupied = 0;
+            p->primitives._internal_indices[i].id = 0;
+            p->primitives._internal_indices[i].usage = usage;
+            p->primitives._internal_indices[i].capacity = 0;
+            p->primitives._internal_indices[i].occupied = 0;
         }
-        p->primitives.buffer = &p->primitives._internal_buffer[0];
+        p->primitives.indices = &p->primitives._internal_indices[0];
 
-        ogl_debug( glGenBuffers(1, &p->primitives.buffer->id) );
+        ogl_debug( glGenBuffers(1, &p->primitives.indices->id) );
 
         return 1;
     } else {
@@ -336,8 +336,8 @@ void vbomesh_print(struct VboMesh* mesh) {
 
     printf("mesh->index.type: %d\n", mesh->index.type);
     printf("mesh->index.bytes: %d\n", mesh->index.bytes);
-    printf("mesh->primitives.buffer->size: %d\n", mesh->primitives.buffer->capacity);
-    printf("mesh->primitives.buffer->used: %d\n", mesh->primitives.buffer->occupied);
+    printf("mesh->primitives.indices->size: %d\n", mesh->primitives.indices->capacity);
+    printf("mesh->primitives.indices->used: %d\n", mesh->primitives.indices->occupied);
 
     printf("\n");
 
@@ -394,15 +394,15 @@ int vbomesh_alloc_attributes(struct VboMesh* mesh, int n) {
 int vbomesh_alloc_indices(struct VboMesh* mesh, int n) {
     assert( n > 0 );
 
-    if( mesh && mesh->primitives.buffer->id ) {
-        int size_bytes = mesh->primitives.buffer->capacity * mesh->index.bytes;
+    if( mesh && mesh->primitives.indices->id ) {
+        int size_bytes = mesh->primitives.indices->capacity * mesh->index.bytes;
         int alloc_bytes = n * mesh->index.bytes;
-        int resized_bytes = buffer_resize(&mesh->primitives.buffer->id, size_bytes, size_bytes + alloc_bytes);
+        int resized_bytes = buffer_resize(&mesh->primitives.indices->id, size_bytes, size_bytes + alloc_bytes);
 
         // - we could return resized_bytes, but all other alloc functions return the number
         //   of elements allocated, so we just do the same here
         if( resized_bytes == alloc_bytes ) {
-            mesh->primitives.buffer->capacity += n;
+            mesh->primitives.indices->capacity += n;
             return n;
         } else {
             assert( resized_bytes == 0 );
@@ -420,7 +420,7 @@ void vbomesh_clear_attributes(struct VboMesh* mesh) {
 
 void vbomesh_clear_primitives(struct VboMesh* mesh) {
     for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
-        mesh->primitives._internal_buffer[i].occupied = 0;
+        mesh->primitives._internal_indices[i].occupied = 0;
     }
 }
 
@@ -466,7 +466,7 @@ void vbomesh_append_attributes(struct VboMesh* mesh, int i, void* data, int n) {
 }
 
 void vbomesh_append_line(struct VboMesh* mesh, unsigned int a, unsigned int b) {
-    if( mesh && mesh->primitives.buffer->id && mesh->primitives.size == 2 ) {
+    if( mesh && mesh->primitives.indices->id && mesh->primitives.size == 2 ) {
         void* data = malloc(2 * mesh->index.bytes);
 
         if( mesh->index.type == GL_UNSIGNED_INT ) {
@@ -479,19 +479,19 @@ void vbomesh_append_line(struct VboMesh* mesh, unsigned int a, unsigned int b) {
             printf("ERROR: this mesh->index.type not implemented in vbomesh_line\n");
         }
 
-        if( mesh->primitives.buffer->occupied + 2 > mesh->primitives.buffer->capacity ) {
-            int alloc = mesh->primitives.buffer->occupied - mesh->primitives.buffer->capacity + 2;
+        if( mesh->primitives.indices->occupied + 2 > mesh->primitives.indices->capacity ) {
+            int alloc = mesh->primitives.indices->occupied - mesh->primitives.indices->capacity + 2;
             vbomesh_alloc_indices(mesh, alloc);
         }
 
         int line_bytes = 2 * mesh->index.bytes;
-        int offset_bytes = mesh->primitives.buffer->occupied * mesh->index.bytes;
-        if( mesh->primitives.buffer->occupied + 2 <= mesh->primitives.buffer->capacity ) {
-            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.buffer->id);
+        int offset_bytes = mesh->primitives.indices->occupied * mesh->index.bytes;
+        if( mesh->primitives.indices->occupied + 2 <= mesh->primitives.indices->capacity ) {
+            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.indices->id);
                        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset_bytes, line_bytes, data);
                        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
 
-            mesh->primitives.buffer->occupied += 2;
+            mesh->primitives.indices->occupied += 2;
         }
 
         free(data);
@@ -499,7 +499,7 @@ void vbomesh_append_line(struct VboMesh* mesh, unsigned int a, unsigned int b) {
 }
 
 void vbomesh_append_triangle(struct VboMesh* mesh, unsigned int a, unsigned int b, unsigned int c) {
-    if( mesh && mesh->primitives.buffer->id && mesh->primitives.size == 3 ) {
+    if( mesh && mesh->primitives.indices->id && mesh->primitives.size == 3 ) {
         void* data = malloc(3 * mesh->index.bytes);
 
         if( mesh->index.type == GL_UNSIGNED_INT ) {
@@ -514,19 +514,19 @@ void vbomesh_append_triangle(struct VboMesh* mesh, unsigned int a, unsigned int 
             printf("ERROR: this mesh->index.type not implemented in vbomesh_triangle\n");
         }
 
-        if( mesh->primitives.buffer->occupied + 3 > mesh->primitives.buffer->capacity ) {
-            int alloc = mesh->primitives.buffer->occupied - mesh->primitives.buffer->capacity + 3;
+        if( mesh->primitives.indices->occupied + 3 > mesh->primitives.indices->capacity ) {
+            int alloc = mesh->primitives.indices->occupied - mesh->primitives.indices->capacity + 3;
             vbomesh_alloc_indices(mesh, alloc);
         }
 
         int triangle_bytes = 3 * mesh->index.bytes;
-        int offset_bytes = mesh->primitives.buffer->occupied * mesh->index.bytes;
-        if( mesh->primitives.buffer->occupied + 3 <= mesh->primitives.buffer->capacity ) {
-            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.buffer->id);
+        int offset_bytes = mesh->primitives.indices->occupied * mesh->index.bytes;
+        if( mesh->primitives.indices->occupied + 3 <= mesh->primitives.indices->capacity ) {
+            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->primitives.indices->id);
                        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset_bytes, triangle_bytes, data);
                        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
 
-            mesh->primitives.buffer->occupied += 3;
+            mesh->primitives.indices->occupied += 3;
         }
 
         free(data);
@@ -536,41 +536,41 @@ void vbomesh_append_triangle(struct VboMesh* mesh, unsigned int a, unsigned int 
 void vbomesh_append_indices(struct VboMesh* mesh, void* data, int n) {
     assert( n > 0 );
 
-    if( mesh && mesh->primitives.buffer->id ) {
+    if( mesh && mesh->primitives.indices->id ) {
 
-        if( mesh->primitives.buffer->occupied + n > mesh->primitives.buffer->capacity ) {
-            int alloc = mesh->primitives.buffer->occupied + n - mesh->primitives.buffer->capacity;
+        if( mesh->primitives.indices->occupied + n > mesh->primitives.indices->capacity ) {
+            int alloc = mesh->primitives.indices->occupied + n - mesh->primitives.indices->capacity;
             vbomesh_alloc_indices(mesh, alloc);
         }
 
         int append_bytes = n * mesh->index.bytes;
-        int offset_bytes = mesh->primitives.buffer->occupied * mesh->index.bytes;
-        if( mesh->primitives.buffer->occupied + n <= mesh->primitives.buffer->capacity ) {
-            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
+        int offset_bytes = mesh->primitives.indices->occupied * mesh->index.bytes;
+        if( mesh->primitives.indices->occupied + n <= mesh->primitives.indices->capacity ) {
+            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.indices->id);
                        glBufferSubData(GL_ARRAY_BUFFER, offset_bytes, append_bytes, data);
                        glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
-            mesh->primitives.buffer->occupied += n;
+            mesh->primitives.indices->occupied += n;
         }
     }
 }
 
 void* vbomesh_map(struct VboMesh* mesh, int offset, int length, GLbitfield access) {
-    if( mesh && mesh->primitives.buffer->id && offset < mesh->primitives.buffer->capacity ) {
-        if( offset + length > mesh->primitives.buffer->capacity ) {
-            int alloc = offset + length - mesh->primitives.buffer->capacity + 1;
+    if( mesh && mesh->primitives.indices->id && offset < mesh->primitives.indices->capacity ) {
+        if( offset + length > mesh->primitives.indices->capacity ) {
+            int alloc = offset + length - mesh->primitives.indices->capacity + 1;
             vbomesh_alloc_indices(mesh, alloc);
         }
 
-        if( offset + length <= mesh->primitives.buffer->capacity ) {
+        if( offset + length <= mesh->primitives.indices->capacity ) {
             int offset_bytes = offset * mesh->index.bytes;
             int length_bytes = length * mesh->index.bytes;
             if( length <= offset ) {
-                length_bytes = mesh->primitives.buffer->capacity * mesh->index.bytes;
+                length_bytes = mesh->primitives.indices->capacity * mesh->index.bytes;
             }
 
             void* pointer = NULL;
-            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
+            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.indices->id);
                        pointer = glMapBufferRange(GL_ARRAY_BUFFER, offset_bytes, length_bytes, access);
                        glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
@@ -583,9 +583,9 @@ void* vbomesh_map(struct VboMesh* mesh, int offset, int length, GLbitfield acces
 }
 
 GLboolean vbomesh_unmap(struct VboMesh* mesh) {
-    if( mesh && mesh->primitives.buffer->id ) {
+    if( mesh && mesh->primitives.indices->id ) {
         GLboolean result = 0;
-        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.buffer->id);
+        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->primitives.indices->id);
                    result = glUnmapBuffer(GL_ARRAY_BUFFER);
                    glBindBuffer(GL_ARRAY_BUFFER, 0); );
 

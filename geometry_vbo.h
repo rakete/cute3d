@@ -123,7 +123,7 @@ struct VboMesh {
     int offset; // offset in vbo buffers
 
     // - capacity in vbomesh is occupied in vbo
-    // - occupied in vbomesh is the actual occupied space that has attributes in it
+    // - occupied in vbomesh is the actual used space that has attributes in it
     int capacity; // capacity of mesh in vbo
     int occupied[NUM_VBO_BUFFERS]; // information about how many attributes are occupied by this mesh per buffer
 
@@ -154,8 +154,8 @@ struct VboMesh {
             GLenum usage;
             int capacity; // size of the buffer
             int occupied; // space already used
-        } _internal_buffer[NUM_VBO_PHASES];
-        struct VboMeshIndexBuffer* buffer;
+        } _internal_indices[NUM_VBO_PHASES];
+        struct VboMeshIndexBuffer* indices;
     } primitives;
 };
 
