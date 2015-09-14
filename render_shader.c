@@ -44,12 +44,12 @@ void shader_create(const char* vertex_file, const char* fragment_file, struct Sh
         p->program = 0;
     }
 
-    for( int i = 0; i < SHADER_ATTRIBUTES; i++ ) {
+    for( int i = 0; i < NUM_OGL_ATTRIBUTES; i++ ) {
         strncpy(p->attribute[i].name, "\0", 1);
         p->attribute[i].location = -1;
     }
 
-    for( int i = 0; i < SHADER_UNIFORMS; i++ ) {
+    for( int i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
         strncpy(p->uniform[i].name, "\0", 1);
         p->uniform[i].location = -1;
     }
@@ -122,4 +122,18 @@ GLint shader_uniform(struct Shader* shader, int location_index, const char* name
         return id;
     }
     return -1;
+}
+
+void shader_flat(struct Shader* shader) {
+    shader_create("shader/flat.vert", "shader/flat.frag", shader);
+
+    // these guys could go into shader_create
+    shader_attribute(shader, OGL_VERTICES, "vertex");
+    shader_attribute(shader, OGL_COLORS, "color");
+    shader_attribute(shader, OGL_NORMALS, "normal");
+
+    shader_uniform(shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
+    shader_uniform(shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL);
+    shader_uniform(shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL);
+    shader_uniform(shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
 }

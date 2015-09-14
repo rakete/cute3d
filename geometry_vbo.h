@@ -37,14 +37,6 @@ GLsizei sizeof_type(GLenum type);
 
 GLsizei sizeof_primitive(GLenum primitive);
 
-enum VboBufferType {
-    VBO_VERTICES = 0,
-    VBO_NORMALS,
-    VBO_COLORS,
-    VBO_TEXCOORDS,
-    NUM_VBO_BUFFERS
-};
-
 enum VboScheduling {
     VBO_MANY_BUFFER = 0,
     VBO_BIG_BUFFER
@@ -66,16 +58,19 @@ struct Vbo {
     struct VboBuffer {
         GLuint id;
         GLenum usage;
-    } _internal_buffer[NUM_VBO_PHASES][NUM_VBO_BUFFERS];
+    } _internal_buffer[NUM_VBO_PHASES][NUM_OGL_ATTRIBUTES];
     struct VboBuffer* buffer;
 
     struct VboComponents {
         int size; // the number of components per element (eg a vertex3 element has three components)
         GLenum type; // the gl type of the individual components (probably GL_float)
         int bytes; // size of a single component (sizeof GL_float)
-    } _internal_components[NUM_VBO_BUFFERS];
-    struct VboComponents* components;
+    } components[NUM_OGL_ATTRIBUTES];
 
+    // - the units of these are in attributes, capacity is universally used for the different attribute buffers,
+    //   which may all have different numbers of components, so then these must indicate for example how many
+    //   vertices are in a buffer, and to get the actual buffer size, these must be multiplied by
+    //   components[buffer]->size
     int capacity; // size of the whole buffer
     int occupied; // actual space used by meshes
 
@@ -124,8 +119,9 @@ struct VboMesh {
 
     // - capacity in vbomesh is occupied in vbo
     // - occupied in vbomesh is the actual used space that has attributes in it
+    // - same unit as the ones in struct Vbo
     int capacity; // capacity of mesh in vbo
-    int occupied[NUM_VBO_BUFFERS]; // information about how many attributes are occupied by this mesh per buffer
+    int occupied[NUM_OGL_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer
 
     // information about the index type used in the primitives buffer
     struct VboMeshIndex {
@@ -137,26 +133,28 @@ struct VboMesh {
     struct VboMeshPrimitives {
         GLenum type; // something like GL_TRIANGLES
         int size; // how many attributes per primitive
-
-        // this is the buffer that contains the actual indices making up the primitives
-        // - I could put this into vbo instead, it is possible since glDrawElements can take an
-        // offset into a buffer as last argument, I don't remember why I originally put this
-        // in vbomesh instead, but I suspect because it made things somehow easier to implement
-        // - as of now, I decided against refactoring this part and putting the indices into
-        // vbo because the existing solution should be more flexible for meshes where I have
-        // a fixed amount of vertices and then change the indices to get dynamic geometry
-        // - of course, if I would instead stream my data every frame, this solution is not optimal
-        // because I would have to map/bind every index buffer for every mesh, instead of just
-        // mapping/binding one big index buffer once, as I could do with the attributes buffers
-        // in vbo
-        struct VboMeshIndexBuffer {
-            unsigned int id; // index buffer
-            GLenum usage;
-            int capacity; // size of the buffer
-            int occupied; // space already used
-        } _internal_indices[NUM_VBO_PHASES];
-        struct VboMeshIndexBuffer* indices;
     } primitives;
+
+    // this is the buffer that contains the actual indices making up the primitives
+    // - I could put this into vbo instead, it is possible since glDrawElements can take an
+    // offset into a buffer as last argument, I don't remember why I originally put this
+    // in vbomesh instead, but I suspect because it made things somehow easier to implement
+    // - as of now, I decided against refactoring this part and putting the indices into
+    // vbo because the existing solution should be more flexible for meshes where I have
+    // a fixed amount of vertices and then change the indices to get dynamic geometry
+    // - of course, if I would instead stream my data every frame, this solution is not optimal
+    // because I would have to map/bind every index buffer for every mesh, instead of just
+    // mapping/binding one big index buffer once, as I could do with the attributes buffers
+    // in vbo
+    struct VboMeshIndexBuffer {
+        unsigned int id; // index buffer
+        GLenum usage;
+
+        // the unit here is indices, not primitives
+        int capacity; // size of the buffer
+        int occupied; // space already used
+    } _internal_indices[NUM_VBO_PHASES];
+    struct VboMeshIndexBuffer* indices;
 };
 
 int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* p);

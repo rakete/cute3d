@@ -49,6 +49,14 @@
 #define ogl_debug(line) line
 #endif
 
+enum OglAttributeType {
+    OGL_VERTICES = 0,
+    OGL_NORMALS,
+    OGL_COLORS,
+    OGL_TEXCOORDS,
+    NUM_OGL_ATTRIBUTES
+};
+
 int init_ogl(int width, int height, const float clear_color[4]);
 
 #endif

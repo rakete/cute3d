@@ -22,11 +22,7 @@
 #include "render_ogl.h"
 #include "render_glsl.h"
 
-#ifndef SHADER_ATTRIBUTES
-#define SHADER_ATTRIBUTES 3
-#endif
-
-#define SHADER_UNIFORMS 256
+#define NUM_SHADER_UNIFORMS 256
 
 #define SHADER_MVP_MATRIX 127
 #define SHADER_MODEL_MATRIX 128
@@ -44,12 +40,12 @@ struct Shader {
     struct {
         GLint location;
         char name[256];
-    } attribute[SHADER_ATTRIBUTES];
+    } attribute[NUM_OGL_ATTRIBUTES];
 
     struct {
         GLint location;
         char name[256];
-    } uniform[SHADER_UNIFORMS];
+    } uniform[NUM_SHADER_UNIFORMS];
 };
 
 int init_shader();
@@ -58,5 +54,7 @@ void shader_create(const char* vertex_file, const char* fragment_file, struct Sh
 
 GLint shader_attribute(struct Shader* shader, int array_index, const char* name);
 GLint shader_uniform(struct Shader* shader, int location_index, const char* name, const char* type, void* data);
+
+void shader_flat(struct Shader* shader);
 
 #endif

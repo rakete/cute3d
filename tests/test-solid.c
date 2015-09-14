@@ -7,9 +7,9 @@ void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mes
     solid_color(solid,color);
     solid_normals(solid);
 
-    vbomesh_append_attributes(mesh, VBO_VERTICES, solid->vertices, solid->size);
-    vbomesh_append_attributes(mesh, VBO_NORMALS, solid->normals, solid->size);
-    vbomesh_append_attributes(mesh, VBO_COLORS, solid->colors, solid->size);
+    vbomesh_append_attributes(mesh, OGL_VERTICES, solid->vertices, solid->size);
+    vbomesh_append_attributes(mesh, OGL_NORMALS, solid->normals, solid->size);
+    vbomesh_append_attributes(mesh, OGL_COLORS, solid->colors, solid->size);
     vbomesh_append_indices(mesh, solid->indices, solid->size);
 }
 
@@ -38,9 +38,9 @@ int main(int argc, char *argv[]) {
 
     struct Vbo vbo;
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, VBO_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, VBO_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, VBO_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
 
     struct Tetrahedron tetrahedron;
     struct Cube hexahedron;
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     vbomesh_from_solid((struct Solid*)&sphere32, (Color){1.0,1.0,0.0,1.0}, &sphere32_mesh);
 
     struct Shader shader;
-    render_shader_flat(&shader);
+    shader_flat(&shader);
 
     struct Arcball arcball;
     arcball_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
