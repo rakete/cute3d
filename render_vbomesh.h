@@ -14,8 +14,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef RENDER_H
-#define RENDER_H
+#ifndef RENDER_VBOMESH_H
+#define RENDER_VBOMESH_H
 
 #include "driver_ogl.h"
 #include "render_camera.h"

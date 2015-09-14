@@ -1,6 +1,6 @@
 #include "geometry_vbo.h"
 #include "geometry_solid.h"
-#include "render.h"
+#include "render_vbomesh.h"
 #include "cute_arcball.h"
 
 void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mesh) {
