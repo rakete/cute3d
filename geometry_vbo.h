@@ -23,7 +23,7 @@
 #include "string.h"
 #include "math.h"
 
-#include "render_ogl.h"
+#include "driver_ogl.h"
 
 #ifndef NUM_VBO_PHASES
 #define NUM_VBO_PHASES 1

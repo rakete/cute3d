@@ -1,5 +1,5 @@
-#ifndef RENDER_OGL_H
-#define RENDER_OGL_H
+#ifndef DRIVER_OGL_H
+#define DRIVER_OGL_H
 
 #include "GL/glew.h"
 #include "GL/gl.h"

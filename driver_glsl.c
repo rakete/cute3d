@@ -14,7 +14,7 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "render_glsl.h"
+#include "driver_glsl.h"
 
 void glsl_debug_info_log( GLuint object,
                      PFNGLGETSHADERIVPROC glGet__iv,

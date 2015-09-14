@@ -17,7 +17,7 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-#include "render_ogl.h"
+#include "driver_ogl.h"
 #include "render_camera.h"
 #include "render_shader.h"
 #include "geometry_vbo.h"

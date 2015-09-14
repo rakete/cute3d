@@ -14,14 +14,14 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef RENDER_GLSL_H
-#define RENDER_GLSL_H
+#ifndef DRIVER_GLSL_H
+#define DRIVER_GLSL_H
 
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
 
-#include "render_ogl.h"
+#include "driver_ogl.h"
 #include "math_types.h"
 #include "math_matrix.h"
 #include "math_quaternion.h"

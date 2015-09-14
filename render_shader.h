@@ -19,8 +19,8 @@
 
 #include "stdio.h"
 
-#include "render_ogl.h"
-#include "render_glsl.h"
+#include "driver_ogl.h"
+#include "driver_glsl.h"
 
 #define NUM_SHADER_UNIFORMS 256
 

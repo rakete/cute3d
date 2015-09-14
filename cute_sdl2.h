@@ -4,7 +4,7 @@
 #include "SDL2/SDL.h"
 #include "assert.h"
 
-#include "render_ogl.h"
+#include "driver_ogl.h"
 #include "render_shader.h"
 #include "gui.h"
 #include "geometry_vbo.h"

@@ -1,4 +1,4 @@
-#include "render_ogl.h"
+#include "driver_ogl.h"
 
 int init_ogl(int width, int height, const float clear_color[4]) {
     ogl_debug({

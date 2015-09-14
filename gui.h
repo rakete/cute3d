@@ -24,8 +24,8 @@
 #include "wchar.h"
 
 #include "math_types.h"
-#include "render_ogl.h"
-#include "render_glsl.h"
+#include "driver_ogl.h"
+#include "driver_glsl.h"
 #include "render_camera.h"
 #include "gui_font.h"
 #include "gui_default_font.h"
