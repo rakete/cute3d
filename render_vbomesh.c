@@ -16,7 +16,12 @@
 
 #include "render_vbomesh.h"
 
-void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, Mat model_matrix) {
+void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, struct Camera* const camera, Mat const model_matrix) {
+    assert( mesh != NULL );
+    assert( shader != NULL );
+    assert( camera != NULL );
+    assert( model_matrix != NULL );
+
     glUseProgram(shader->program);
 
     Mat projection_matrix;
@@ -27,8 +32,6 @@ void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, con
     if( camera ) {
         camera_matrices(camera,projection_matrix,view_matrix);
     }
-
-    bool free_model_matrix = 0;
 
     GLint mvp_loc = -1;
     if( shader->uniform[SHADER_MVP_MATRIX].location > -1) {
@@ -72,12 +75,6 @@ void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, con
             ogl_debug( model_loc = glGetUniformLocation(shader->program, "model_matrix") );
         }
 
-        if( ! model_matrix ) {
-            model_matrix = malloc(sizeof(Mat));
-            mat_identity(model_matrix);
-            free_model_matrix = 1;
-        }
-
         if( model_loc > -1 ) {
             ogl_debug( glUniformMatrix4fv(model_loc, 1, GL_FALSE, model_matrix) );
         }
@@ -90,15 +87,10 @@ void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, con
         ogl_debug( normal_loc = glGetUniformLocation(shader->program, "normal_matrix") );
     }
 
-    if( (! free_model_matrix) && normal_loc > -1 ) {
+    if( normal_loc > -1 ) {
         Mat normal_matrix;
-        //mat_invert(model_matrix, NULL, normal_matrix);
         mat_copy(model_matrix, normal_matrix);
         ogl_debug( glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix) );
-    }
-
-    if( free_model_matrix ) {
-        free(model_matrix);
     }
 
     GLint loc[NUM_OGL_ATTRIBUTES];

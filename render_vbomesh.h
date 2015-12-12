@@ -23,6 +23,6 @@
 #include "geometry_vbo.h"
 #include "math_transform.h"
 
-void render_vbomesh(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, Mat model_matrix);
+void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, struct Camera* const camera, Mat const model_matrix);
 
 #endif
