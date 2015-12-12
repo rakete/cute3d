@@ -174,8 +174,6 @@ void vbomesh_clear_indices(struct VboMesh* mesh);
 void vbomesh_append_buffer_generic(struct VboMesh* mesh, int i, void* data, int n, int components_size, GLenum components_type);
 void vbomesh_append_attributes(struct VboMesh* mesh, int i, void* data, int n);
 
-void vbomesh_append_line(struct VboMesh* mesh, unsigned int a, unsigned int b);
-void vbomesh_append_triangle(struct VboMesh* mesh, unsigned int a, unsigned int b, unsigned int c);
 void vbomesh_append_indices(struct VboMesh* mesh, void* data, int n);
 
 // mapping whole mesh into host memory, probably untested
