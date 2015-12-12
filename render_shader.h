@@ -33,6 +33,7 @@
 #define SHADER_LIGHT_DIRECTION 140
 
 #define SHADER_AMBIENT_COLOR 150
+#define SHADER_DIFFUSE_COLOR 151
 
 struct Shader {
     GLuint vertex_shader, fragment_shader, program;
@@ -50,7 +51,8 @@ struct Shader {
 
 int init_shader();
 
-void shader_create(const char* vertex_file, const char* fragment_file, struct Shader* p);
+void shader_create_from_files(const char* vertex_file, const char* fragment_file, struct Shader* p);
+void shader_create_from_sources(const char* vertex_source, const char* fragment_source, struct Shader* p);
 
 GLint shader_attribute(struct Shader* shader, int array_index, const char* name);
 GLint shader_uniform(struct Shader* shader, int location_index, const char* name, const char* type, void* data);

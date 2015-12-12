@@ -29,7 +29,7 @@ int init_shader() {
     return ret;
 }
 
-void shader_create(const char* vertex_file, const char* fragment_file, struct Shader* p) {
+void shader_create_from_files(const char* vertex_file, const char* fragment_file, struct Shader* p) {
     if( vertex_file && fragment_file ) {
         p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, vertex_file);
         p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, fragment_file);
@@ -37,6 +37,30 @@ void shader_create(const char* vertex_file, const char* fragment_file, struct Sh
         p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, "shader/default.vert");
         p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, "shader/default.frag");
     }
+
+    if( p->vertex_shader > 0 && p->fragment_shader > 0 ) {
+        p->program = glsl_link_program(p->vertex_shader, p->fragment_shader);
+    } else {
+        p->program = 0;
+    }
+
+    for( int i = 0; i < NUM_OGL_ATTRIBUTES; i++ ) {
+        strncpy(p->attribute[i].name, "\0", 1);
+        p->attribute[i].location = -1;
+    }
+
+    for( int i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
+        strncpy(p->uniform[i].name, "\0", 1);
+        p->uniform[i].location = -1;
+    }
+}
+
+void shader_create_from_sources(const char* vertex_source, const char* fragment_source, struct Shader* p) {
+    assert( vertex_source );
+    assert( fragment_source );
+
+    p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, vertex_source, strlen(vertex_source));
+    p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source, strlen(fragment_source));
 
     if( p->vertex_shader > 0 && p->fragment_shader > 0 ) {
         p->program = glsl_link_program(p->vertex_shader, p->fragment_shader);
@@ -125,7 +149,7 @@ GLint shader_uniform(struct Shader* shader, int location_index, const char* name
 }
 
 void shader_flat(struct Shader* shader) {
-    shader_create("shader/flat.vert", "shader/flat.frag", shader);
+    shader_create_from_files("shader/flat.vert", "shader/flat.frag", shader);
 
     // these guys could go into shader_create
     shader_attribute(shader, OGL_VERTICES, "vertex");
@@ -136,4 +160,29 @@ void shader_flat(struct Shader* shader) {
     shader_uniform(shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL);
     shader_uniform(shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL);
     shader_uniform(shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
+}
+
+void shader_lines(struct Shader* shader) {
+    const char* vertex_source =
+        GLSL( uniform mat4 mvp_matrix;
+              in vec3 vertex;
+              uniform vec4 color;
+              out vec4 frag_color;
+              void main() {
+                  gl_Position = mvp_matrix * vec4(vertex,1.0);
+                  frag_color = color;
+              });
+
+    const char* fragment_source =
+        GLSL( in vec4 frag_color;
+              void main() {
+                  gl_FragColor = frag_color;
+              });
+
+    shader_create_from_sources(vertex_source, fragment_source, shader);
+
+    shader_attribute(shader, OGL_VERTICES, "vertex");
+
+    shader_uniform(shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
+    shader_uniform(shader, SHADER_DIFFUSE_COLOR, "color", NULL, NULL);
 }
