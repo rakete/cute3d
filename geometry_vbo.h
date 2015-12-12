@@ -157,8 +157,8 @@ struct VboMesh {
     struct VboMeshIndexBuffer* indices;
 };
 
-int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* p);
-int vbomesh_destroy(struct Vbo* vbo, struct VboMesh* p);
+int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh);
+int vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh);
 
 void vbomesh_print(struct VboMesh* mesh);
 

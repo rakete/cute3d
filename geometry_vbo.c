@@ -285,32 +285,32 @@ GLboolean vbo_unmap(struct Vbo* vbo, int i) {
 }
 
 
-int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* p) {
+int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh) {
     if( vbo ) {
-        p->vbo = vbo;
+        mesh->vbo = vbo;
 
-        p->offset = vbo->occupied;
-        p->capacity = 0;
+        mesh->offset = vbo->occupied;
+        mesh->capacity = 0;
 
         for( int i = 0; i < NUM_OGL_ATTRIBUTES; i++ ) {
-            p->occupied[i] = 0;
+            mesh->occupied[i] = 0;
         }
 
-        p->primitives.type = primitive_type;
-        p->primitives.size = sizeof_primitive(primitive_type);
+        mesh->primitives.type = primitive_type;
+        mesh->primitives.size = sizeof_primitive(primitive_type);
 
-        p->index.type = index_type;
-        p->index.bytes = sizeof_type(index_type);
+        mesh->index.type = index_type;
+        mesh->index.bytes = sizeof_type(index_type);
 
         for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
-            p->_internal_indices[i].id = 0;
-            p->_internal_indices[i].usage = usage;
-            p->_internal_indices[i].capacity = 0;
-            p->_internal_indices[i].occupied = 0;
+            mesh->_internal_indices[i].id = 0;
+            mesh->_internal_indices[i].usage = usage;
+            mesh->_internal_indices[i].capacity = 0;
+            mesh->_internal_indices[i].occupied = 0;
         }
-        p->indices = &p->_internal_indices[0];
+        mesh->indices = &mesh->_internal_indices[0];
 
-        ogl_debug( glGenBuffers(1, &p->indices->id) );
+        ogl_debug( glGenBuffers(1, &mesh->indices->id) );
 
         return 1;
     } else {
