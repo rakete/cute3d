@@ -1,21 +1,21 @@
 #include "geometry_halfedgemesh.h"
-#include "render.h"
+#include "render_vbomesh.h"
 #include "render_shader.h"
-#include "render_draw.h"
+#include "gui_draw.h"
 #include "cute_sdl2.h"
 #include "cute_arcball.h"
 #include "geometry_vbo.h"
 
 void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
-    assert(solid->elements != NULL);
+    assert(solid->indices != NULL);
     assert(solid->vertices != NULL);
     assert(solid->normals != NULL);
     assert(solid->colors != NULL);
 
-    vbomesh_append(mesh, VERTEX_ARRAY, solid->vertices, solid->size);
-    vbomesh_append(mesh, NORMAL_ARRAY, solid->normals, solid->size);
-    vbomesh_append(mesh, COLOR_ARRAY, solid->colors, solid->size);
-    vbomesh_primitives(mesh, solid->elements, solid->size);
+    vbomesh_append_attributes(mesh, OGL_VERTICES, solid->vertices, solid->size);
+    vbomesh_append_attributes(mesh, OGL_NORMALS, solid->normals, solid->size);
+    vbomesh_append_attributes(mesh, OGL_COLORS, solid->colors, solid->size);
+    vbomesh_append_indices(mesh, solid->indices, solid->size);
 }
 
 int main(int argc, char *argv[]) {
@@ -77,16 +77,16 @@ int main(int argc, char *argv[]) {
 
     struct Vbo vbo;
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, COLOR_ARRAY, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
 
     struct VboMesh vbomesh;
     vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &vbomesh);
     vbomesh_from_solid(&solid_out, &vbomesh);
 
     struct Shader shader;
-    render_shader_flat(&shader);
+    shader_flat(&shader);
 
     Vec light_direction = { 0.2, -0.5, -1.0 };
     shader_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
 
         Mat identity;
         mat_identity(identity);
-        render_vbomesh(&vbomesh, &shader, &arcball.camera, identity);
+        vbomesh_render(&vbomesh, &shader, &arcball.camera, identity);
 
         show_render(NULL, 10, arcball.camera);
 

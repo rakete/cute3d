@@ -115,11 +115,11 @@ int main(int argc, char *argv[]) {
         mat_translate(identity, (float[4]){ -1.5, 0.0, -2.0, 1.0 }, sphere16_transform);
         mat_translate(identity, (float[4]){ 1.5, 0.0, -2.0, 1.0 }, sphere32_transform);
 
-        render_vbomesh(&tetrahedron_mesh, &shader, &arcball.camera, tetrahedron_transform);
-        render_vbomesh(&hexahedron_mesh, &shader, &arcball.camera, hexahedron_transform);
-        render_vbomesh(&cube_mesh, &shader, &arcball.camera, cube_transform);
-        render_vbomesh(&sphere16_mesh, &shader, &arcball.camera, sphere16_transform);
-        render_vbomesh(&sphere32_mesh, &shader, &arcball.camera, sphere32_transform);
+        vbomesh_render(&tetrahedron_mesh, &shader, &arcball.camera, tetrahedron_transform);
+        vbomesh_render(&hexahedron_mesh, &shader, &arcball.camera, hexahedron_transform);
+        vbomesh_render(&cube_mesh, &shader, &arcball.camera, cube_transform);
+        vbomesh_render(&sphere16_mesh, &shader, &arcball.camera, sphere16_transform);
+        vbomesh_render(&sphere32_mesh, &shader, &arcball.camera, sphere32_transform);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
