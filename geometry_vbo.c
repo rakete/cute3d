@@ -132,6 +132,10 @@ int vbo_create(struct Vbo* p) {
     return 1;
 }
 
+int vbo_destroy(struct Vbo* p) {
+    assert( 0 == 1 );
+}
+
 void vbo_print(struct Vbo* vbo) {
     printf("vbo->capacity: %d\n", vbo->capacity);
     printf("vbo->occupied: %d\n", vbo->occupied);
@@ -316,6 +320,12 @@ int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GL
     } else {
         return 0;
     }
+}
+
+int vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
+    assert( vbo );
+    assert( mesh );
+    assert( 0 == 1 );
 }
 
 void vbomesh_print(struct VboMesh* mesh) {
