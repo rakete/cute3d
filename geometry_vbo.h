@@ -146,6 +146,11 @@ struct VboMesh {
     // because I would have to map/bind every index buffer for every mesh, instead of just
     // mapping/binding one big index buffer once, as I could do with the attributes buffers
     // in vbo
+    // - I just came back to this again thinking about putting the index buffer somehow into
+    // the vbo instead of here, the reason I wanted to do this is so that memory management
+    // becomes easier, without the index buffer, the meshes can just be treated like local stack
+    // variables, they'll deallocate automatically once they go out of scope, with the index
+    // buffer allocated on the gpu, I have to explicitly deconstruct every mesh
     struct VboMeshIndexBuffer {
         unsigned int id; // index buffer
         GLenum usage;
