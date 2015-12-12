@@ -24,8 +24,8 @@
 #include "math_types.h"
 #include "math_matrix.h"
 #include "math_quaternion.h"
-#include "render_ogl.h"
-#include "render_glsl.h"
+#include "driver_ogl.h"
+#include "driver_glsl.h"
 
 void draw_grid( float width,
                 float height,
