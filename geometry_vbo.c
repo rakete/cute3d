@@ -207,7 +207,7 @@ int vbo_available_bytes(struct Vbo* vbo, int i) {
     return freespace;
 }
 
-void vbo_fill_value(struct Vbo* vbo, int i, int offset_n, int size_n, float value) {
+void vbo_fill_value(struct Vbo* vbo, int i, int offset_n, int size_n, int value) {
     if( vbo && vbo->buffer[i].id && offset_n < vbo->capacity && size_n <= vbo->capacity ) {
         void* array = malloc( sizeof_type(vbo->components[i].type) * size_n );
         int array_offset = offset_n * vbo->components[i].size;
@@ -215,19 +215,15 @@ void vbo_fill_value(struct Vbo* vbo, int i, int offset_n, int size_n, float valu
 
         switch(vbo->components[i].type) {
             case GL_FLOAT: {
-                memset(array, value, array_size);
+                memset(array, (GLfloat)value, array_size);
                 break;
             }
             case GL_INT: {
-                memset(array, (GLint)ceil(value), array_size);
+                memset(array, value, array_size);
                 break;
             }
             case GL_UNSIGNED_INT: {
-                if( value < 0.0 ) {
-                    memset(array, 0.0, array_size);
-                } else {
-                    memset(array, (GLuint)ceil(value), array_size);
-                }
+                memset(array, (GLuint)value, array_size);
                 break;
             }
             case GL_SHORT: {

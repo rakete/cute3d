@@ -99,7 +99,7 @@ int vbo_alloc(struct Vbo* vbo, int n);
 int vbo_available_capacity(struct Vbo* vbo);
 int vbo_available_bytes(struct Vbo* vbo, int i);
 
-void vbo_fill_value(struct Vbo* vbo, int i, int offset_n, int size_n, float value);
+void vbo_fill_value(struct Vbo* vbo, int i, int offset_n, int size_n, int value);
 
 void* vbo_map(struct Vbo* vbo, int i, int offset, int length, GLbitfield access);
 GLboolean vbo_unmap(struct Vbo* vbo, int i);
