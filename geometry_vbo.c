@@ -460,7 +460,7 @@ void vbomesh_clear_attributes(struct VboMesh* mesh) {
     }
 }
 
-void vbomesh_clear_primitives(struct VboMesh* mesh) {
+void vbomesh_clear_indices(struct VboMesh* mesh) {
     for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
         mesh->_internal_indices[i].occupied = 0;
     }
