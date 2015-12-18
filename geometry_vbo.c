@@ -337,6 +337,50 @@ void vbomesh_print(struct VboMesh* mesh) {
     printf("mesh->offset: %d\n", mesh->offset);
     printf("mesh->capacity: %d\n", mesh->capacity);
 
+    for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
+        for( int j = 0; j < NUM_OGL_ATTRIBUTES; j++ ) {
+            if( mesh->occupied[j] > 0 ) {
+                printf("mesh->occupied[%d]: %d\n", j, mesh->occupied[j]);
+                printf("mesh->vbo->buffer[%d][%d]:\n", i, j);
+                switch(mesh->vbo->components[j].type) {
+                    case GL_FLOAT: {
+                        GLfloat* array = (GLfloat*)vbo_map(mesh->vbo, j, mesh->offset, mesh->capacity, GL_MAP_READ_BIT);
+                        if( array ) {
+                            for( int k = 0; k < mesh->capacity; k++ ) {
+                                if( mesh->vbo->components[j].size == 3 ) {
+                                    GLfloat a = array[k*mesh->vbo->components[j].size+0];
+                                    GLfloat b = array[k*mesh->vbo->components[j].size+1];
+                                    GLfloat c = array[k*mesh->vbo->components[j].size+2];
+                                    printf("[%.2f %.2f %.2f]", a, b, c);
+                                } else if( mesh->vbo->components[j].size == 4 ) {
+                                    GLfloat a = array[k*mesh->vbo->components[j].size+0];
+                                    GLfloat b = array[k*mesh->vbo->components[j].size+1];
+                                    GLfloat c = array[k*mesh->vbo->components[j].size+2];
+                                    GLfloat d = array[k*mesh->vbo->components[j].size+3];
+                                    printf("[%.2f %.2f %.2f %.2f]", a, b, c, d);
+                                }
+
+                                if( k == mesh->capacity - 1 ) {
+                                    printf("\n");
+                                } else {
+                                    printf(", ");
+                                }
+                            }
+                        } else {
+                            printf("NULL\n");
+                        }
+                        vbo_unmap(mesh->vbo, j);
+                        break;
+                    }
+                    case GL_INT: {
+                        printf("ERROR: GL_INT not implemented in vbomesh_print\n");
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     printf("mesh->primitives.type: %d\n", mesh->primitives.type);
     printf("mesh->primitives.size: %d\n", mesh->primitives.size);
 
@@ -345,38 +389,30 @@ void vbomesh_print(struct VboMesh* mesh) {
     printf("mesh->indices->capacity: %d\n", mesh->indices->capacity);
     printf("mesh->indices->occupied: %d\n", mesh->indices->occupied);
 
-    printf("\n");
-
-    for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
-        for( int j = 0; j < NUM_OGL_ATTRIBUTES-1; j++ ) {
-            printf("mesh->uses[%d]: %d\n", j, mesh->occupied[j]);
-            printf("mesh->vbo->buffer[%d][%d]:\n", i, j);
-            switch(mesh->vbo->components[j].type) {
-                case GL_FLOAT: {
-                    GLfloat* array = (GLfloat*)vbo_map(mesh->vbo, j, mesh->offset, mesh->capacity, GL_MAP_READ_BIT);
-                    if( array ) {
-                        for( int k = 0; k < mesh->capacity; k++ ) {
-                            GLfloat a = array[k*mesh->vbo->components[j].size+0];
-                            GLfloat b = array[k*mesh->vbo->components[j].size+1];
-                            GLfloat c = array[k*mesh->vbo->components[j].size+2];
-                            printf("[%f %f %f]", a, b, c);
-                            if( k == mesh->capacity - 1 ) {
-                                printf("\n");
-                            } else {
-                                printf(", ");
-                            }
+    printf("mesh->indices:\n");
+    switch(mesh->index.type) {
+        case GL_UNSIGNED_INT: {
+            GLuint* array = (GLuint*)vbomesh_map(mesh, 0, mesh->indices->capacity, GL_MAP_READ_BIT);
+            if( array ) {
+                int primitive_size = mesh->primitives.size;
+                for( int k = 0; k < mesh->indices->capacity; k+=primitive_size ) {
+                    printf("[");
+                    for( int l = 0; l < primitive_size; l++ ) {
+                        printf("%d", array[k+l]);
+                        if( l < primitive_size - 1 ) {
+                            printf(", ");
                         }
-                    } else {
-                        printf("NULL\n");
                     }
-                    vbo_unmap(mesh->vbo, j);
-                    break;
-                }
-                case GL_INT: {
-                    printf("ERROR: GL_INT not implemented in vbomesh_print\n");
-                    break;
+                    printf("]");
+                    if( k == mesh->indices->capacity - primitive_size ) {
+                        printf("\n");
+                    } else {
+                        printf(", ");
+                    }
                 }
             }
+            vbomesh_unmap(mesh);
+            break;
         }
     }
 }
