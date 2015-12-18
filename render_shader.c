@@ -148,7 +148,7 @@ GLint shader_uniform(struct Shader* shader, int location_index, const char* name
     return -1;
 }
 
-void shader_flat(struct Shader* shader) {
+void shader_flat_create(struct Shader* shader) {
     shader_create_from_files("shader/flat.vert", "shader/flat.frag", shader);
 
     // these guys could go into shader_create
@@ -162,11 +162,11 @@ void shader_flat(struct Shader* shader) {
     shader_uniform(shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
 }
 
-void shader_lines(struct Shader* shader) {
+void shader_lines_create(struct Shader* shader) {
     const char* vertex_source =
         GLSL( uniform mat4 mvp_matrix;
               in vec3 vertex;
-              uniform vec4 color;
+              in vec4 color;
               out vec4 frag_color;
               void main() {
                   gl_Position = mvp_matrix * vec4(vertex,1.0);
@@ -182,7 +182,8 @@ void shader_lines(struct Shader* shader) {
     shader_create_from_sources(vertex_source, fragment_source, shader);
 
     shader_attribute(shader, OGL_VERTICES, "vertex");
+    shader_attribute(shader, OGL_COLORS, "color");
 
     shader_uniform(shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
-    shader_uniform(shader, SHADER_DIFFUSE_COLOR, "color", NULL, NULL);
+    //shader_uniform(shader, SHADER_DIFFUSE_COLOR, "color", NULL, NULL);
 }
