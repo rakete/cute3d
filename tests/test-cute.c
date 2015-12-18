@@ -20,13 +20,14 @@
 #include "time.h"
 
 #include "math_types.h"
-#include "render_glsl.h"
-#include "render_draw.h"
-#include "render.h"
+#include "driver_glsl.h"
+#include "gui_draw.h"
+#include "render_vbomesh.h"
 #include "geometry_solid.h"
 #include "gui.h"
 #include "gui_default_font.h"
 #include "cute_sdl2.h"
+#include "cute_arcball.h"
 
 int main(int argc, char** argv) {
     if(! init_sdl2() ) {
@@ -60,42 +61,33 @@ int main(int argc, char** argv) {
 
     struct Vbo vbo;
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, COLOR_ARRAY, 4, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
 
     struct VboMesh triangle_mesh;
     vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &triangle_mesh);
 
-    vbomesh_append(&triangle_mesh, VERTEX_ARRAY, vertices1, 3);
-    vbomesh_append(&triangle_mesh, COLOR_ARRAY, colors, 3);
-    vbomesh_triangle(&triangle_mesh, 0, 1, 2);
+    vbomesh_append_attributes(&triangle_mesh, OGL_VERTICES, vertices1, 3);
+    vbomesh_append_attributes(&triangle_mesh, OGL_COLORS, colors, 3);
+    vbomesh_append_indices(&triangle_mesh, (unsigned int[3]){0, 1, 2}, 3);
 
     vbomesh_print(&triangle_mesh);
 
     init_shader();
     struct Shader default_shader;
-    shader_create("shader/flat.vert", "shader/flat.frag", &default_shader);
-    shader_attribute(&default_shader, VERTEX_ARRAY, "vertex");
-    shader_attribute(&default_shader, COLOR_ARRAY, "color");
-    shader_attribute(&default_shader, NORMAL_ARRAY, "normal");
+    shader_create_from_files("shader/flat.vert", "shader/flat.frag", &default_shader);
+    shader_attribute(&default_shader, OGL_VERTICES, "vertex");
+    shader_attribute(&default_shader, OGL_COLORS, "color");
+    shader_attribute(&default_shader, OGL_NORMALS, "normal");
 
     shader_uniform(&default_shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
     shader_uniform(&default_shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL);
     shader_uniform(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL);
     shader_uniform(&default_shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
 
-    struct Camera default_camera;
-    camera_create(perspective, 1600, 900, &default_camera);
-
-    printf("camera->projection: %d\n", default_camera.type);
-    /* camera_frustum(-0.5f, 0.5f, -0.28125f, 0.28125f, 1.0f, 200.0f, &default_camera); */
-    /* Vec translation = { 0.0, 4.0, -8.0 }; */
-    /* vec_add3f(default_camera.pivot.position, translation, default_camera.pivot.position); */
-    sdl2_orbit_create(window, (Vec){0.0, 4.0, 8.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, 1.0f, 200.0f, &default_camera);
-
-    /* Vec origin = { 0.0, 0.0, 0.0, 1.0 }; */
-    /* pivot_lookat(&default_camera.pivot, origin); */
+    struct Arcball arcball;
+    arcball_create(window, (Vec){0.0, 4.0, 8.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, 0.001, 1000.0, &arcball);
 
     struct Cube cube;
     solid_hexahedron(1.0, &cube);
@@ -104,10 +96,10 @@ int main(int argc, char** argv) {
 
     struct VboMesh cube_mesh;
     vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
-    vbomesh_append(&cube_mesh, VERTEX_ARRAY, cube.vertices, cube.solid.size);
-    vbomesh_append(&cube_mesh, COLOR_ARRAY, cube.colors, cube.solid.size);
-    vbomesh_append(&cube_mesh, NORMAL_ARRAY, cube.normals, cube.solid.size);
-    vbomesh_primitives(&cube_mesh, cube.elements, cube.solid.size);
+    vbomesh_append_attributes(&cube_mesh, OGL_VERTICES, cube.vertices, cube.solid.size);
+    vbomesh_append_attributes(&cube_mesh, OGL_COLORS, cube.colors, cube.solid.size);
+    vbomesh_append_attributes(&cube_mesh, OGL_NORMALS, cube.normals, cube.solid.size);
+    vbomesh_append_indices(&cube_mesh, cube.indices, cube.solid.size);
 
     vbomesh_print(&cube_mesh);
 
@@ -142,7 +134,7 @@ int main(int argc, char** argv) {
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
         Mat projection_mat, view_mat;
-        camera_matrices(&default_camera, projection_mat, view_mat);
+        camera_matrices(&arcball.camera, projection_mat, view_mat);
 
         Mat identity;
         mat_identity(identity);
@@ -158,17 +150,17 @@ int main(int argc, char** argv) {
 
         Quat cube_rotation;
         qidentity(cube_rotation);
-        quat_rotate_axis(cube_rotation, (float[]){ 0.0, 0.0, 1.0, 1.0 }, 45 * PI/180, cube_rotation);
-        quat_rotate_axis(cube_spinning, (float[]){ 0.0, 1.0, 0.0, 1.0 }, 1 * PI/180, cube_spinning);
+        quat_mul_axis_angle(cube_rotation, (float[]){ 0.0, 0.0, 1.0, 1.0 }, 45 * PI/180, cube_rotation);
+        quat_mul_axis_angle(cube_spinning, (float[]){ 0.0, 1.0, 0.0, 1.0 }, 1 * PI/180, cube_spinning);
         quat_mul(cube_rotation, cube_spinning, cube_rotation);
 
         printf("%f %f %f %f\n", cube_spinning[0], cube_spinning[1], cube_spinning[2], cube_spinning[3]);
 
-        qmat(cube_rotation, cube_transform);
+        qto_mat(cube_rotation, cube_transform);
 
         mat_translate(cube_transform, (Vec){ -2.0, 0.0, 0.0, 1.0 }, cube_transform);
 
-        render_vbomesh(&cube_mesh, &default_shader, &default_camera, cube_transform);
+        vbomesh_render(&cube_mesh, &default_shader, &arcball.camera, cube_transform);
         draw_normals_array(cube.vertices,
                            cube.normals,
                            cube.solid.size,

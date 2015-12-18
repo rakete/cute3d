@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     vbomesh_from_solid((struct Solid*)&sphere32, (Color){1.0,1.0,0.0,1.0}, &sphere32_mesh);
 
     struct Shader shader;
-    shader_flat(&shader);
+    shader_flat_create(&shader);
 
     struct Arcball arcball;
     arcball_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);

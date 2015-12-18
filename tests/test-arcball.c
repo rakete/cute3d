@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     }
 
     SDL_Window* window;
-    sdl2_window("test-halfedge", 0, 0, 800, 600, &window);
+    sdl2_window("test-arcball", 0, 0, 800, 600, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(window, &context);
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     vbomesh_from_solid(&solid_out, &vbomesh);
 
     struct Shader shader;
-    shader_flat(&shader);
+    shader_flat_create(&shader);
 
     Vec light_direction = { 0.2, -0.5, -1.0 };
     shader_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
     shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
     struct Arcball arcball;
-    arcball_create(window, (Vec){1.0,2.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
+    arcball_create(window, (Vec){1.0,2.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 0.001, 1000.0, &arcball);
 
     Quat grid_rotation;
     quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation);
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
         mat_identity(identity);
         vbomesh_render(&vbomesh, &shader, &arcball.camera, identity);
 
-        show_render(NULL, 10, arcball.camera);
+        //show_render(NULL, 10, arcball.camera);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
