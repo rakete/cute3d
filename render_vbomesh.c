@@ -117,8 +117,12 @@ void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, str
         }
     }
 
-    ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indices->id);
-               glDrawElements(mesh->primitives.type, mesh->indices->occupied, mesh->index.type, 0); );
+    if( mesh->indices->id ) {
+        ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indices->id);
+                   glDrawElementsBaseVertex(mesh->primitives.type, mesh->indices->occupied, mesh->index.type, 0, mesh->indices->base); );
+    } else {
+        ogl_debug( glDrawArrays(mesh->primitives.type, mesh->offset, mesh->occupied[OGL_VERTICES]); );
+    }
 
     for( int array_id = 0; array_id < NUM_OGL_ATTRIBUTES; array_id++ ) {
         if( loc[array_id] > -1 ) {
