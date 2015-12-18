@@ -145,7 +145,7 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
                     Mat glyph_matrix;
                     mat_identity(glyph_matrix);
                     mat_translate(glyph_matrix, cursor_vec, glyph_matrix);
-                    mat_scale(glyph_matrix, (Vec){ scale, scale, scale, 1.0 }, glyph_matrix);
+                    mat_scale(glyph_matrix, scale, glyph_matrix);
                     mat_mul(glyph_matrix, model_matrix, glyph_matrix);
 
                     if( glyph ) {
