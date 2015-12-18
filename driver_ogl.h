@@ -49,13 +49,28 @@
 #define ogl_debug(line) line
 #endif
 
+#define NUM_OGL_PRIMITIVES GL_TRIANGLE_FAN+1
+
+#ifndef NUM_OGL_ATTRIBUTES
 enum OglAttributeType {
     OGL_VERTICES = 0,
     OGL_NORMALS,
     OGL_COLORS,
     OGL_TEXCOORDS,
+    /* OGL_INTERLEAVED_VNCT, */
+    /* OGL_INTERLEAVED_NCT, */
+    /* OGL_INTERLEAVED_VCT, */
+    /* OGL_INTERLEAVED_VNT, */
+    /* OGL_INTERLEAVED_VNC, */
+    /* OGL_INTERLEAVED_VN, */
+    /* OGL_INTERLEAVED_VC, */
+    /* OGL_INTERLEAVED_VT, */
+    /* OGL_INTERLEAVED_NC, */
+    /* OGL_INTERLEAVED_NT, */
+    /* OGL_INTERLEAVED_CT, */
     NUM_OGL_ATTRIBUTES
 };
+#endif
 
 int init_ogl(int width, int height, const float clear_color[4]);
 
