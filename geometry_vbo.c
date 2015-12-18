@@ -447,12 +447,16 @@ void vbomesh_append_buffer_generic(struct VboMesh* mesh, int i, void* data, int 
 
 
             mesh->occupied[i] += n;
-        } else if( mesh->offset + mesh->capacity == mesh->vbo->occupied &&
+            return n;
+        } else if( // only when this mesh is the last mesh in the vbo can we append without overwriting
+                   // other meshes, we check if we are last buy checking if our offset + capacity is equal
+                   // to the vbo occupied counter
+                   mesh->offset + mesh->capacity == mesh->vbo->occupied &&
+                   // this does not work genericly, so we just do not allocate anything at all,
+                   // if num and type do not fit the stored values in vbo
                    mesh->vbo->components[i].size == components_size &&
                    mesh->vbo->components[i].type == components_type )
         {
-            // this does not work genericly, so we just do not allocate anything at all,
-            // if num and type do not fit the stored values in vbo
             if( vbo_available_capacity(mesh->vbo) < n ) {
                 vbomesh_alloc_attributes(mesh,n);
             }
@@ -462,15 +466,18 @@ void vbomesh_append_buffer_generic(struct VboMesh* mesh, int i, void* data, int 
                        glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
             mesh->occupied[i] += n;
+            return n;
         }
     }
+
+    return 0;
 }
 
-void vbomesh_append_attributes(struct VboMesh* mesh, int i, void* data, int n) {
-    vbomesh_append_buffer_generic(mesh, i, data, n, mesh->vbo->components[i].size, mesh->vbo->components[i].type);
+int vbomesh_append_attributes(struct VboMesh* mesh, int i, void* data, int n) {
+    return vbomesh_append_buffer_generic(mesh, i, data, n, mesh->vbo->components[i].size, mesh->vbo->components[i].type);
 }
 
-void vbomesh_append_indices(struct VboMesh* mesh, void* data, int n) {
+int vbomesh_append_indices(struct VboMesh* mesh, void* data, int n) {
     assert( n > 0 );
 
     if( mesh && mesh->indices->id ) {
@@ -488,8 +495,11 @@ void vbomesh_append_indices(struct VboMesh* mesh, void* data, int n) {
                        glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
             mesh->indices->occupied += n;
+            return n;
         }
     }
+
+    return 0;
 }
 
 void* vbomesh_map(struct VboMesh* mesh, int offset, int length, GLbitfield access) {
