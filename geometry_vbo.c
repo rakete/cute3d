@@ -327,6 +327,10 @@ int vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
     assert( vbo );
     assert( mesh );
     assert( 0 == 1 );
+
+    if( mesh->offset + mesh->capacity == mesh->vbo->occupied ) {
+        mesh->vbo->occupied = mesh->offset;
+    }
 }
 
 void vbomesh_print(struct VboMesh* mesh) {
