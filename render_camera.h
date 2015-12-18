@@ -20,11 +20,11 @@
 #include "math_transform.h"
 
 enum CameraProjection {
-    perspective = 0,
-    orthographic,
-    orthographic_zoom,
-    pixelperfect,
-    NUM_PROJECTION
+    CAMERA_PERSPECTIVE = 0,
+    CAMERA_ORTHOGRAPHIC,
+    CAMERA_ORTHOGRAPHIC_ZOOM,
+    CAMERA_PIXELPERFECT,
+    NUM_CAMERA_PROJECTION
 };
 
 struct Camera {

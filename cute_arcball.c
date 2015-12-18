@@ -5,10 +5,11 @@ void arcball_create(SDL_Window* window, Vec eye, Vec target, float near, float f
     int width,height;
     sdl2_debug( SDL_GL_GetDrawableSize(window, &width, &height) );
 
-    camera_create(perspective, width, height, &arcball->camera);
-    float top = (1.0/width) * height/2.0;
+    camera_create(CAMERA_PERSPECTIVE, width, height, &arcball->camera);
+    float top = (near/width) * height/2.0;
     float bottom = -top;
-    camera_frustum(&arcball->camera, -0.5f, 0.5f, bottom, top, near, far);
+    printf("%f %f\n", top, bottom);
+    camera_frustum(&arcball->camera, -near/2.0f, near/2.0f, bottom, top, near, far);
 
     vec_copy(eye, arcball->camera.pivot.position);
     arcball->flipped = pivot_lookat(&arcball->camera.pivot, target);

@@ -35,12 +35,12 @@ void camera_matrices(struct Camera* const camera, Mat projection_mat, Mat view_m
         float bottom = camera->frustum.bottom;
         float zNear = camera->frustum.zNear;
         float zFar = camera->frustum.zFar;
-        if( camera->type == perspective ) {
+        if( camera->type == CAMERA_PERSPECTIVE ) {
             mat_perspective(left, right, top, bottom, zNear, zFar, projection_mat);
-        } else if( camera->type == orthographic) {
+        } else if( camera->type == CAMERA_ORTHOGRAPHIC) {
             mat_orthographic(left, right, top, bottom, zNear, zFar, projection_mat);
-        } else if( camera->type == orthographic_zoom ||
-                   camera->type == pixelperfect )
+        } else if( camera->type == CAMERA_ORTHOGRAPHIC_ZOOM ||
+                   camera->type == CAMERA_PIXELPERFECT )
         {
             left *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
             right *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;

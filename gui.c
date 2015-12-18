@@ -163,7 +163,7 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
 }
 
 void text_overlay(const wchar_t* text, const struct Font* font, int size, struct Camera camera, int x, int y) {
-    camera.type = orthographic;
+    camera.type = CAMERA_ORTHOGRAPHIC;
     Mat ortho_projection, ortho_view;
     camera_matrices(&camera, ortho_projection, ortho_view);
 
