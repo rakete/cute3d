@@ -309,6 +309,7 @@ int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GL
         for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
             mesh->_internal_indices[i].id = 0;
             mesh->_internal_indices[i].usage = usage;
+            mesh->_internal_indices[i].base = 0;
             mesh->_internal_indices[i].capacity = 0;
             mesh->_internal_indices[i].occupied = 0;
         }

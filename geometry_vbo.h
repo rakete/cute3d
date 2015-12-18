@@ -154,6 +154,7 @@ struct VboMesh {
     struct VboMeshIndexBuffer {
         unsigned int id; // index buffer
         GLenum usage;
+        int base; // base vertex index
 
         // the unit here is indices, not primitives
         int capacity; // size of the buffer
