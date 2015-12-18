@@ -525,7 +525,7 @@ void world_grid_update(struct Grid* grid,
     //    maybe add some kind of field to mesh to 'lock' a mesh to make clones
     //    non-modifyable
 
-    vbomesh_clear_primitives(mesh);
+    vbomesh_clear_indices(mesh);
 
     struct GridBox box;
     grid_pagebox(grid, pages, page, level, &box);
