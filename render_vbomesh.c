@@ -95,6 +95,15 @@ void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, str
 
     GLint loc[NUM_OGL_ATTRIBUTES];
     for( int array_id = 0; array_id < NUM_OGL_ATTRIBUTES; array_id++ ) {
+        GLint c_num = mesh->vbo->components[array_id].size;
+        GLint c_type = mesh->vbo->components[array_id].type;
+        GLsizei c_bytes = mesh->vbo->components[array_id].bytes;
+        GLsizei offset = mesh->offset * c_num * c_bytes;
+        if( c_num == 0 || c_bytes == 0 ) {
+            loc[array_id] = -1;
+            continue;
+        }
+
         if( shader->attribute[array_id].location > -1 ) {
             loc[array_id] = shader->attribute[array_id].location;
         } else {
@@ -102,11 +111,6 @@ void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, str
         }
 
         if( mesh->vbo->buffer[array_id].id && loc[array_id] > -1 ) {
-            GLint c_num = mesh->vbo->components[array_id].size;
-            GLint c_type = mesh->vbo->components[array_id].type;
-            GLsizei c_bytes = mesh->vbo->components[array_id].bytes;
-            GLsizei offset = mesh->offset * c_num * c_bytes;
-
             ogl_debug( glEnableVertexAttribArray(loc[array_id]);
                        glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[array_id].id);
                        glVertexAttribPointer(loc[array_id], c_num, c_type, GL_FALSE, 0, (void*)(intptr_t)offset); );
