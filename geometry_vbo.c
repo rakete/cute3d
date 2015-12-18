@@ -420,13 +420,21 @@ void vbomesh_print(struct VboMesh* mesh) {
 int vbomesh_alloc_attributes(struct VboMesh* mesh, int n) {
     assert( n > 0 );
 
-    if( mesh && mesh->offset + mesh->capacity == mesh->vbo->occupied ) {
-        int resized_n = vbo_alloc(mesh->vbo, n);
+    if( mesh == NULL ) {
+        return 0;
+    }
 
+    if( mesh->capacity == 0 ) {
+        mesh->offset = mesh->vbo->occupied;
+    }
+
+    if( mesh->offset + mesh->capacity == mesh->vbo->occupied ) {
+        int resized_n = vbo_alloc(mesh->vbo, n);
         if( resized_n > 0 ) {
             mesh->vbo->occupied += n;
             mesh->capacity += n;
         }
+
         return resized_n;
     }
 
@@ -466,8 +474,14 @@ void vbomesh_clear_indices(struct VboMesh* mesh) {
     }
 }
 
-void vbomesh_append_buffer_generic(struct VboMesh* mesh, int i, void* data, int n, int components_size, GLenum components_type) {
+int vbomesh_append_buffer_generic(struct VboMesh* mesh, int i, void* data, int n, int components_size, GLenum components_type) {
+    assert( n > 0 );
+
     if( mesh && mesh->vbo->buffer[i].id ) {
+        if( mesh->capacity == 0 ) {
+            mesh->offset = mesh->vbo->occupied;
+        }
+
         // only these depend on given size params => generic data append
         int attrib_bytes = components_size * sizeof_type(components_type);
         int append_bytes = n * attrib_bytes;
