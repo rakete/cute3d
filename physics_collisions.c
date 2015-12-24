@@ -155,7 +155,7 @@ static void convex_local_transform(struct ColliderConvex* const convex1,
         Vec3f vertex;
         vec_copy3f(convex2->mesh->vertices.array[i].position, vertex);
 
-        quat_rotate_vec3f(vertex, vertex_orientation, vertex);
+        vec_rotate3f(vertex, vertex_orientation, vertex);
         vec_add3f(vertex, vertex_translation, vertex);
 
         transformed_vertices[i*3+0] = vertex[0];

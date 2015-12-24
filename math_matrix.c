@@ -354,6 +354,34 @@ float vangle(const Vec3f v, const Vec3f w) {
     return r;
 }
 
+void vec_rotate(const Vec vec, const Quat q, Vec r) {
+    Quat normed_q;
+    quat_normalize(q, normed_q);
+
+    Quat product;
+    quat_mul(normed_q, vec, product);
+
+    Quat conj;
+    quat_conjugate(normed_q, conj);
+
+    quat_mul(product, conj, r);
+}
+
+void vec_rotate3f(const Vec3f vec, const Quat q, Vec3f r) {
+    Vec result4f;
+    Vec vec4f;
+    vec4f[0] = vec[0];
+    vec4f[1] = vec[1];
+    vec4f[2] = vec[2];
+    vec4f[3] = 1.0;
+
+    vec_rotate(vec4f, q, result4f);
+
+    r[0] = result4f[0];
+    r[1] = result4f[1];
+    r[2] = result4f[2];
+}
+
 void vec_nullp(const Vec v, bool* r) {
     if( fabs(v[0]) < FLOAT_EPSILON &&
         fabs(v[1]) < FLOAT_EPSILON &&
@@ -532,24 +560,6 @@ void mat_identity(Mat m) {
     m[1] = 0.0f; m[5] = 1.0f; m[9]  = 0.0f; m[13] = 0.0f;
     m[2] = 0.0f; m[6] = 0.0f; m[10] = 1.0f; m[14] = 0.0f;
     m[3] = 0.0f; m[7] = 0.0f; m[11] = 0.0f; m[15] = 1.0f;
-}
-
-void mat_scaling(float s, Mat r) {
-    r[0] = s;    r[4] = 0.0f;  r[8]  = 0.0f; r[12] = 0.0f;
-    r[1] = 0.0f; r[5] = s;     r[9]  = 0.0f; r[13] = 0.0f;
-    r[2] = 0.0f; r[6] = 0.0f;  r[10] = s;    r[14] = 0.0f;
-    r[3] = 0.0f; r[7] = 0.0f;  r[11] = 0.0f; r[15] = 1.0f;
-}
-
-void mat_translating(const Vec3f v, Mat r) {
-    r[0] = 1.0f; r[4] = 0.0f;  r[8]  = 0.0f; r[12] = v[0];
-    r[1] = 0.0f; r[5] = 1.0f;  r[9]  = 0.0f; r[13] = v[1];
-    r[2] = 0.0f; r[6] = 0.0f;  r[10] = 1.0f; r[14] = v[2];
-    r[3] = 0.0f; r[7] = 0.0f;  r[11] = 0.0f; r[15] = 1.0f;
-}
-
-void mat_rotating(const Quat q, Mat r) {
-    quat_to_mat(q, r);
 }
 
 void mat_invert(const Mat m, double* det, Mat r) {
@@ -836,19 +846,36 @@ MatP mmul_vec3f(const Mat m, Vec3f v) {
 }
 
 void mat_translate(const Mat m, const Vec3f v, Mat r) {
-    Mat n;
-    n[0] = 1.0f; n[4] = 0.0f;  n[8]  = 0.0f; n[12] = v[0];
-    n[1] = 0.0f; n[5] = 1.0f;  n[9]  = 0.0f; n[13] = v[1];
-    n[2] = 0.0f; n[6] = 0.0f;  n[10] = 1.0f; n[14] = v[2];
-    n[3] = 0.0f; n[7] = 0.0f;  n[11] = 0.0f; n[15] = 1.0f;
+    if( m != NULL ) {
+        Mat n;
+        n[0] = 1.0f; n[4] = 0.0f;  n[8]  = 0.0f; n[12] = v[0];
+        n[1] = 0.0f; n[5] = 1.0f;  n[9]  = 0.0f; n[13] = v[1];
+        n[2] = 0.0f; n[6] = 0.0f;  n[10] = 1.0f; n[14] = v[2];
+        n[3] = 0.0f; n[7] = 0.0f;  n[11] = 0.0f; n[15] = 1.0f;
 
-    mat_mul(m,n,r);
+        mat_mul(m,n,r);
+    } else {
+        r[0] = 1.0f; r[4] = 0.0f;  r[8]  = 0.0f; r[12] = v[0];
+        r[1] = 0.0f; r[5] = 1.0f;  r[9]  = 0.0f; r[13] = v[1];
+        r[2] = 0.0f; r[6] = 0.0f;  r[10] = 1.0f; r[14] = v[2];
+        r[3] = 0.0f; r[7] = 0.0f;  r[11] = 0.0f; r[15] = 1.0f;
+    }
+}
+
+MatP mtranslate(const Vec v, Mat m) {
+    mat_translate(m,v,m);
+    return m;
 }
 
 void mat_rotate(const Mat m, const Quat q, Mat r) {
-    Mat n;
-    quat_to_mat(q,n);
-    mat_mul(m,n,r);
+    if( m != NULL ) {
+        Mat n;
+        quat_to_mat(q,n);
+
+        mat_mul(m,n,r);
+    } else {
+        quat_to_mat(q,r);
+    }
 }
 
 MatP mrotate(Mat m, const Quat q) {
@@ -857,13 +884,20 @@ MatP mrotate(Mat m, const Quat q) {
 }
 
 void mat_scale(const Mat m, float s, Mat r) {
-    Mat n;
-    n[0] = s;    n[4] = 0.0f; n[8]  = 0.0f; n[12] = 0.0f;
-    n[1] = 0.0f; n[5] = s;    n[9]  = 0.0f; n[13] = 0.0f;
-    n[2] = 0.0f; n[6] = 0.0f; n[10] = s;    n[14] = 0.0f;
-    n[3] = 0.0f; n[7] = 0.0f; n[11] = 0.0f; n[15] = 1.0f;
+    if( m != NULL ) {
+        Mat n;
+        n[0] = s;    n[4] = 0.0f; n[8]  = 0.0f; n[12] = 0.0f;
+        n[1] = 0.0f; n[5] = s;    n[9]  = 0.0f; n[13] = 0.0f;
+        n[2] = 0.0f; n[6] = 0.0f; n[10] = s;    n[14] = 0.0f;
+        n[3] = 0.0f; n[7] = 0.0f; n[11] = 0.0f; n[15] = 1.0f;
 
-    mat_mul(m,n,r);
+        mat_mul(m,n,r);
+    } else {
+        r[0] = s;    r[4] = 0.0f; r[8]  = 0.0f; r[12] = 0.0f;
+        r[1] = 0.0f; r[5] = s;    r[9]  = 0.0f; r[13] = 0.0f;
+        r[2] = 0.0f; r[6] = 0.0f; r[10] = s;    r[14] = 0.0f;
+        r[3] = 0.0f; r[7] = 0.0f; r[11] = 0.0f; r[15] = 1.0f;
+    }
 }
 
 void mat_transpose(const Mat m, Mat r) {
@@ -900,7 +934,7 @@ MatP mtranspose3f(Mat m) {
     return m;
 }
 
-void mat_rotation(const Mat m, Mat r) {
+void mat_get_rotation(const Mat m, Mat r) {
     float scale = sqrtf( m[0]*m[0] + m[4]*m[4] + m[8]*m[8] );
 
     r[0] = m[0] / scale; r[4] = m[4] / scale; r[8] = m[8] / scale;   r[12] = 0.0;
@@ -909,17 +943,17 @@ void mat_rotation(const Mat m, Mat r) {
     r[3] = 0.0;          r[7] = 0.0;          r[11] = 0.0;           r[15] = 1.0;
 }
 
-MatP mrotation(Mat m) {
-    mat_rotation(m, m);
+MatP mget_rotation(Mat m) {
+    mat_get_rotation(m, m);
     return m;
 }
 
-void mat_translation(const Mat m, Mat r) {
-    mat_translating((Vec3f){m[12], m[13], m[14]}, r);
+void mat_get_translation(const Mat m, Mat r) {
+    mat_translate(NULL, (Vec3f){m[12], m[13], m[14]}, r);
 }
 
-MatP mtranslation(Mat m) {
-    mat_translation(m, m);
+MatP mget_translation(Mat m) {
+    mat_get_translation(m, m);
     return m;
 }
 

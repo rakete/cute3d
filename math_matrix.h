@@ -24,7 +24,7 @@
 #include "math_types.h"
 #include "math_quaternion.h"
 
-// vector
+// vector creation
 void vec_axisx(Vec r);
 VecP vaxisx(Vec r);
 
@@ -43,12 +43,14 @@ VecP vcopy3f(const Vec3f v, Vec3f r);
 void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
 MatP vcopy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
 
+// vector comparison
 void vec_equal(const Vec a, const Vec b, int* r);
 int vequal(const Vec a, const Vec b);
 
 void vec_equal3f(const Vec3f a, const Vec3f b, int* r);
 int vequal3f(const Vec3f a, const Vec3f b);
 
+// vector arithmetic
 void vec_add(const Vec v, const Vec3f w, Vec r);
 VecP vadd(const Vec v, Vec w);
 
@@ -76,6 +78,7 @@ VecP vmul4f1f(Vec v, float w);
 void vec_mul3f1f(const Vec3f v, float w, Vec r);
 VecP vmul3f1f(Vec v, float w);
 
+// vector operations
 void vec_invert(const Vec v, Vec r);
 VecP vinvert(Vec v);
 
@@ -103,6 +106,10 @@ VecP vnormalize3f(Vec3f v);
 void vec_angle(const Vec3f v, const Vec3f w, float* r);
 float vangle(const Vec3f v, const Vec3f w);
 
+void vec_rotate(const Vec vec, const Quat q, Vec r);
+void vec_rotate3f(const Vec3f vec, const Quat q, Vec3f r);
+
+// vector tests
 void vec_nullp(const Vec v, bool* r);
 bool vnullp(const Vec v);
 
@@ -135,16 +142,7 @@ void mat_orthographic(float left, float right, float top, float bottom, float zN
 void mat_identity(Mat m);
 MatP midentity(Mat m);
 
-void mat_scaling(float s, Mat r);
-//MatP mscaling(Mat v);
-
-void mat_translating(const Vec3f v, Mat r);
-//MatP mtranslating(Mat v);
-
-void mat_rotating(const Quat q, Mat r);
-//MatP mrotating(Mat q);
-
-// matrix op
+// matrix operations
 void mat_invert(const Mat m, double* det, Mat r);
 MatP minvert(Mat m, double* det);
 
@@ -161,7 +159,7 @@ void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r);
 MatP mmul_vec3f(const Mat m, Vec3f v);
 
 void mat_translate(const Mat m, const Vec3f v, Mat r);
-//MatP mtranslate(const Vec v, Mat m);
+MatP mtranslate(const Vec v, Mat m);
 
 void mat_rotate(const Mat m, const Quat q, Mat r);
 MatP mrotate(Mat m, const Quat q);
@@ -175,11 +173,11 @@ MatP mtranspose(Mat m);
 void mat_transpose3f(const Mat m, Mat r);
 MatP mtranspose3f(Mat m);
 
-void mat_rotation(const Mat m, Mat r);
-MatP mrotation(Mat m);
+void mat_get_rotation(const Mat m, Mat r);
+MatP mget_rotation(Mat m);
 
-void mat_translation(const Mat m, Mat r);
-//MatP mtranslation(Mat m);
+void mat_get_translation(const Mat m, Mat r);
+MatP mget_translation(Mat m);
 
 void mat_print(const char* title, const Mat m);
 

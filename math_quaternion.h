@@ -24,20 +24,19 @@
 #include "math_types.h"
 #include "math_matrix.h"
 
+// quaternion creation
 void quat_copy(const Quat q, Quat r);
 
 void quat_identity(Quat q);
 QuatP qidentity(Quat q);
 
 bool quat_from_axis_angle(const Vec3f axis, const float angle, Quat q);
-QuatP qfrom_axis_angle(Vec3f axis, const float angle);
+QuatP qfrom_axis_angle(Quat axis, const float angle);
 
 bool quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q);
-QuatP qfrom_vec_pair(const Vec3f a, Vec3f b);
+QuatP qfrom_vec_pair(const Vec3f a, Quat b);
 
-void quat_rotate_vec(const Vec vec, const Quat q, Vec r);
-void quat_rotate_vec3f(const Vec3f vec, const Quat q, Vec3f r);
-
+// quaternion operations
 bool quat_mul_axis_angle(const Quat q, const Vec3f axis, const float angle, Quat r);
 QuatP qmul_axis_angle(const Vec3f axis, const float angle, Quat q);
 
@@ -68,12 +67,14 @@ float qmagnitude(const Quat q);
 void quat_normalize(const Quat q, Quat r);
 QuatP qnormalize(Quat q);
 
+// quaternion conversion
 void quat_to_mat(const Quat q, Mat r);
-QuatP qto_mat(const Quat q, Mat m);
+//QuatP qto_mat(const Quat q, Mat m);
 
 void quat_to_axis_angle(const Quat q, Vec axis, float* angle);
-//VecP qto_axis_angle(Quat q);
+//QuatP qto_axis_angle(Quat q);
 
+// quaternion interpolation
 void quat_slerp(const Quat qa, const Quat qb, float t, Quat r);
 QuatP qslerp(const Quat qa, Quat qb, float t);
 

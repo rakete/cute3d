@@ -2,6 +2,7 @@
 #define CUTE_ARCBALL_H
 
 #include "cute_sdl2.h"
+#include "render_camera.h"
 
 struct Arcball {
     struct Camera camera;

@@ -131,8 +131,8 @@ int pivot_lookat(struct Pivot* pivot, const Vec target) {
         //   flip_axis and then use the dot product between the flip_axis and up_axis
         //   to decide if I am flipped
         Vec flip_axis;
-        quat_rotate_vec(up_axis, inverted_orientation, flip_axis);
-        quat_rotate_vec(flip_axis, yaw_pitch_rotation, flip_axis);
+        vec_rotate(up_axis, inverted_orientation, flip_axis);
+        vec_rotate(flip_axis, yaw_pitch_rotation, flip_axis);
 
         float dot = vdot(up_axis, flip_axis);
 
@@ -162,13 +162,13 @@ int pivot_lookat(struct Pivot* pivot, const Vec target) {
 }
 
 VecP pivot_local_axis(struct Pivot* const pivot, Vec3f axis) {
-    quat_rotate_vec3f(axis, pivot->orientation, axis);
+    vec_rotate3f(axis, pivot->orientation, axis);
     return axis;
 }
 
 MatP pivot_world_transform(struct Pivot* const pivot, Mat world_transform) {
     Mat translation;
-    mat_translating(pivot->position, translation);
+    mat_translate(NULL, pivot->position, translation);
 
     Mat rotation;
     quat_to_mat(pivot->orientation, rotation);

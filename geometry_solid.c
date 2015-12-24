@@ -262,7 +262,7 @@ void solid_cube(float size, struct Cube* cube) {
     Quat q;
     quat_from_axis_angle((Vec){0.0,0.0,1.0,1.0}, PI/4, q);
     for( int i = 0; i < 108; i+=3 ) {
-        quat_rotate_vec3f(cube->vertices+i, q, cube->vertices+i);
+        vec_rotate3f(cube->vertices+i, q, cube->vertices+i);
     }
 }
 

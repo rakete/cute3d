@@ -67,7 +67,7 @@ bool quat_from_axis_angle(const Vec3f axis, const float angle, Quat q) {
     return 1;
 }
 
-QuatP qfrom_axis_angle(Vec3f axis, const float angle) {
+QuatP qfrom_axis_angle(Quat axis, const float angle) {
     quat_from_axis_angle(axis, angle, axis);
     return axis;
 }
@@ -91,37 +91,9 @@ bool quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
     return 1;
 }
 
-QuatP qfrom_vec_pair(const Vec3f a, Vec3f b) {
+QuatP qfrom_vec_pair(const Vec3f a, Quat b) {
     quat_from_vec_pair(a,b,b);
     return b;
-}
-
-void quat_rotate_vec(const Vec vec, const Quat q, Vec r) {
-    Quat normed_q;
-    quat_normalize(q, normed_q);
-
-    Quat product;
-    quat_mul(normed_q, vec, product);
-
-    Quat conj;
-    quat_conjugate(normed_q, conj);
-
-    quat_mul(product, conj, r);
-}
-
-void quat_rotate_vec3f(const Vec3f vec, const Quat q, Vec3f r) {
-    Vec result4f;
-    Vec vec4f;
-    vec4f[0] = vec[0];
-    vec4f[1] = vec[1];
-    vec4f[2] = vec[2];
-    vec4f[3] = 1.0;
-
-    quat_rotate_vec(vec4f, q, result4f);
-
-    r[0] = result4f[0];
-    r[1] = result4f[1];
-    r[2] = result4f[2];
 }
 
 bool quat_mul_axis_angle(const Quat q, const Vec3f axis, const float angle, Quat r) {
@@ -300,7 +272,12 @@ void quat_to_mat(const Quat q, Mat r) {
     r[3] = 0;                 r[7] = 0;                 r[11] =  0;                 r[15] = ww + xx + yy + zz;
 }
 
-void quat_axis_angle(const Quat p, Vec axis, float* angle) {
+QuatP qto_mat(const Quat q, Mat m) {
+    quat_to_mat(q,m);
+    return m;
+}
+
+void quat_to_axis_angle(const Quat p, Vec axis, float* angle) {
     Quat q;
     quat_copy(p, q);
     quat_normalize(q, q); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
@@ -325,11 +302,6 @@ void quat_axis_angle(const Quat p, Vec axis, float* angle) {
     if( length < FLOAT_EPSILON ) {
         *angle = 0.0f;
     }
-}
-
-QuatP qto_mat(const Quat q, Mat m) {
-    quat_to_mat(q,m);
-    return m;
 }
 
 void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
