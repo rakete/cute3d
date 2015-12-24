@@ -19,33 +19,79 @@
 /*     render->shader[i] = shader; */
 /* } */
 
-int canvas_render_create(struct Canvas* const canvas_pointer, int layer_i, GLenum primitive_type, struct Vbo* vbo, struct VboMesh* mesh) {
+int canvas_render_create_mesh(struct Canvas* const canvas, int layer_i, const char* shader_name, GLenum primitive_type, struct Vbo* vbo, struct VboMesh* mesh) {
     assert( layer_i >= 0 );
     assert( layer_i <= NUM_CANVAS_LAYER );
-
-    struct Canvas* canvas = canvas_pointer;
-    if( canvas_pointer == NULL ) {
-        canvas = &global_canvas;
-    }
-
     assert( canvas != NULL );
 
-    if( canvas->layer[layer_i].indices[primitive_type].occupied <= 0 || canvas->layer[layer_i].attributes.occupied <= 0 ) {
+    int shader_i = canvas_find_shader(canvas, shader_name);
+    if( shader_i == NUM_CANVAS_SHADER ) {
         return 0;
     }
 
-    int attributes_occupied = canvas->layer[layer_i].attributes.occupied;
-    void* vertex_array = canvas->layer[layer_i].attributes.array[OGL_VERTICES];
-    void* color_array = canvas->layer[layer_i].attributes.array[OGL_COLORS];
-    int indices_occupied = canvas->layer[layer_i].indices[primitive_type].occupied;
-    void* indices_array = canvas->layer[layer_i].indices[primitive_type].array;
+    if( canvas->layer[layer_i].indices[shader_i][primitive_type].occupied <= 0 ||
+        canvas->layer[layer_i].attributes[OGL_VERTICES].occupied <= 0 )
+    {
+        return 0;
+    }
+
+    int attributes_occupied = canvas->layer[layer_i].attributes[OGL_VERTICES].occupied;
+    void* vertex_array = canvas->layer[layer_i].attributes[OGL_VERTICES].array;
+    void* color_array = canvas->layer[layer_i].attributes[OGL_COLORS].array;
+
+    int indices_occupied = canvas->layer[layer_i].indices[shader_i][primitive_type].occupied;
+    void* indices_array = canvas->layer[layer_i].indices[shader_i][primitive_type].array;
 
     vbomesh_append_attributes(mesh, OGL_VERTICES, vertex_array, attributes_occupied);
     vbomesh_append_attributes(mesh, OGL_COLORS, color_array, attributes_occupied);
+    // NOT FINISHED
+
     return vbomesh_append_indices(mesh, indices_array, indices_occupied);
 }
 
-void canvas_render_layers(struct Canvas* const canvas_pointer, int layer_start, int layer_end, struct Shader* const shader, struct Camera* const camera, Mat const model_matrix) {
+int canvas_render_create_shader(struct Canvas* const canvas, const char* shader_name, struct Shader* shader) {
+    assert( shader != NULL );
+
+    int shader_i = canvas_find_shader(canvas, shader_name);
+    if( shader_i == NUM_CANVAS_SHADER ) {
+        return NUM_CANVAS_SHADER;
+    }
+
+    shader->vertex_shader = canvas->shader[shader_i].vertex_shader;
+    shader->fragment_shader = canvas->shader[shader_i].fragment_shader;
+    shader->program = canvas->shader[shader_i].program;
+
+    for( int i = 0; i < NUM_OGL_ATTRIBUTES; i++ ) {
+        strncpy(shader->attribute[i].name, canvas->shader[shader_i].attribute[i].name, strlen(canvas->shader[shader_i].attribute[i].name)+1);
+        shader->attribute[i].location = canvas->shader[shader_i].attribute[i].location;
+    }
+
+    for( int i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
+        strncpy(shader->uniform[i].name, "\0", 1);
+        shader->uniform[i].location = -1;
+    }
+
+    static int canvas_uniform_map[NUM_SHADER_UNIFORMS*2] = {
+        CANVAS_UNIFORM_MVP_MATRIX, SHADER_MVP_MATRIX,
+        CANVAS_UNIFORM_NORMAL_MATRIX, SHADER_NORMAL_MATRIX,
+        CANVAS_UNIFORM_AMBIENT_COLOR, SHADER_AMBIENT_COLOR,
+        CANVAS_UNIFORM_DIFFUSE_COLOR, SHADER_DIFFUSE_COLOR
+    };
+    static const int num_canvas_uniforms = 4;
+
+    for( int i = 0; i < num_canvas_uniforms*2; i += 2 ) {
+        int src = canvas_uniform_map[i+0];
+        int dst = canvas_uniform_map[i+1];
+        if( canvas->shader[shader_i].uniform[src].location > -1 ) {
+            strncpy(shader->uniform[dst].name, canvas->shader[shader_i].uniform[src].name, strlen(canvas->shader[shader_i].uniform[src].name)+1);
+            shader->uniform[dst].location = canvas->shader[shader_i].uniform[src].location;
+        }
+    }
+
+    return shader_i;
+}
+
+void canvas_render_layers(struct Canvas* const canvas, int layer_start, int layer_end, const char* shader_name, struct Camera* const camera, Mat const model_matrix, struct Shader* foo_shader) {
     if( layer_start == layer_end ) {
         layer_end += 1;
     }
@@ -53,17 +99,24 @@ void canvas_render_layers(struct Canvas* const canvas_pointer, int layer_start, 
     assert( layer_start >= 0 );
     assert( layer_end <= NUM_CANVAS_LAYER );
     assert( layer_start < layer_end );
+    assert( canvas != NULL );
 
-    struct Canvas* canvas = canvas_pointer;
-    if( canvas_pointer == NULL ) {
-        canvas = &global_canvas;
+    int shader_i = canvas_find_shader(canvas, shader_name);
+    if( shader_i == NUM_CANVAS_SHADER ) {
+        return;
     }
 
-    assert( canvas != NULL );
+    static int first_run = 1;
+
+    static struct Shader shader[NUM_CANVAS_SHADER];
+    if( first_run ) {
+        for( int i = 0; i < NUM_CANVAS_SHADER; i++ ) {
+            canvas_render_create_shader(canvas, shader_name, &shader[i]);
+        }
+    }
 
     static struct Vbo canvas_vbo;
     static struct VboMesh canvas_meshes[NUM_CANVAS_LAYER][NUM_OGL_PRIMITIVES];
-    static int first_run = 1;
 
     if( first_run ) {
         vbo_create(&canvas_vbo);
@@ -79,8 +132,8 @@ void canvas_render_layers(struct Canvas* const canvas_pointer, int layer_start, 
                 vbomesh_create(&canvas_vbo, primitive_j, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW, &canvas_meshes[layer_i][primitive_j]);
 
                 if( layer_i >= layer_start && layer_i < layer_end ) {
-                    if( canvas_render_create(canvas, layer_i, primitive_j, &canvas_vbo, &canvas_meshes[layer_i][primitive_j]) ) {
-                        vbomesh_render(&canvas_meshes[layer_i][primitive_j], shader, camera, model_matrix);
+                    if( canvas_render_create_mesh(canvas, layer_i, shader_name, primitive_j, &canvas_vbo, &canvas_meshes[layer_i][primitive_j]) ) {
+                        vbomesh_render(&canvas_meshes[layer_i][primitive_j], &shader[shader_i], camera, model_matrix);
                     }
                 }
             }
@@ -94,9 +147,9 @@ void canvas_render_layers(struct Canvas* const canvas_pointer, int layer_start, 
                 vbomesh_clear_indices(&canvas_meshes[layer_i][primitive_j]);
 
                 if( layer_i >= layer_start && layer_i < layer_end ) {
-                    if( canvas_render_create(canvas, layer_i, primitive_j, &canvas_vbo, &canvas_meshes[layer_i][primitive_j]) ) {
+                    if( canvas_render_create_mesh(canvas, layer_i, shader_name, primitive_j, &canvas_vbo, &canvas_meshes[layer_i][primitive_j]) ) {
                         //vbomesh_print(&canvas_meshes[layer_i][primitive_j]);
-                        vbomesh_render(&canvas_meshes[layer_i][primitive_j], shader, camera, model_matrix);
+                        vbomesh_render(&canvas_meshes[layer_i][primitive_j], &shader[shader_i], camera, model_matrix);
                     }
                 }
             }

@@ -14,12 +14,41 @@
 #define NUM_CANVAS_LAYER 32
 #endif
 
+#ifndef NUM_CANVAS_SHADER
+#define NUM_CANVAS_SHADER 8
+#endif
+
+#ifndef NUM_CANVAS_UNIFORMS
+#define NUM_CANVAS_UNIFORMS 16
+#endif
+
+#define CANVAS_UNIFORM_MVP_MATRIX 0
+#define CANVAS_UNIFORM_NORMAL_MATRIX 1
+#define CANVAS_UNIFORM_AMBIENT_COLOR 2
+#define CANVAS_UNIFORM_DIFFUSE_COLOR 3
+
 struct Canvas {
     struct CanvasComponents {
         int size;
         GLenum type;
         int bytes;
     } components[NUM_OGL_ATTRIBUTES];
+
+    struct CanvasShader {
+        char name[256];
+        GLuint vertex_shader, fragment_shader, program;
+
+        struct {
+            GLint location;
+            char name[256];
+        } attribute[NUM_OGL_ATTRIBUTES];
+
+        struct {
+            GLint location;
+            char name[256];
+        } uniform[NUM_CANVAS_UNIFORMS];
+
+    } shader[NUM_CANVAS_SHADER];
 
     struct CanvasLayer {
         // - so this mesh is just going to contain _everything_ for a layer, that means no individual meshes, but
@@ -32,18 +61,18 @@ struct Canvas {
         // when there is nothing cached (?), well, to reuse it so I don't have to recreate the buffers every time
         // I render (?)
         struct CanvasAttributes {
-            void* array[NUM_OGL_ATTRIBUTES];
+            void* array;
 
             int capacity;
             int occupied;
-        } attributes;
+        } attributes[NUM_OGL_ATTRIBUTES];
 
         struct CanvasIndices {
             unsigned int* array;
 
             int capacity;
             int occupied;
-        } indices[NUM_OGL_PRIMITIVES];
+        } indices[NUM_CANVAS_SHADER][NUM_OGL_PRIMITIVES];
 
         // set this to > 0 if I want to map this layer to screen
         float screen;
@@ -55,14 +84,21 @@ extern struct Canvas global_canvas;
 int init_canvas();
 
 void canvas_create(struct Canvas* canvas);
-void canvas_add_attributes(struct Canvas* canvas, int attribute, int size, GLenum type, int bytes);
+void canvas_add_attribute(struct Canvas* canvas, int attribute, int size, GLenum type, int bytes);
 
-int canvas_alloc_attributes(struct Canvas* canvas, int layer_i, int n);
-int canvas_alloc_indices(struct Canvas* canvas, int layer_i, int n, GLenum primitive_type);
+int canvas_append_shader_source(struct Canvas* canvas, const char* vertex_source, const char* fragment_source, const char* name);
+int canvas_append_shader_program(struct Canvas* canvas, GLuint vertex_shader, GLuint fragment_shader, GLuint program, const char* name);
+int canvas_find_shader(struct Canvas* canvas, const char* shader_name);
+
+int canvas_alloc_attributes(struct Canvas* canvas, int layer_i, int attribute_i, int n);
+int canvas_alloc_indices(struct Canvas* canvas, int layer_i, const char* shader_name, GLenum primitive_type, int n);
 
 void canvas_clear(struct Canvas* canvas, int layer_start, int layer_end);
 
-void canvas_append_attributes(struct Canvas* canvas, int layer_i, void* vertices, void* colors, void* normals, void* texcoords, int n);
-void canvas_append_indices(struct Canvas* canvas, int layer_i, int* indices, int n, GLenum primitive_type);
+int canvas_append_vertices(struct Canvas* canvas, int layer_i, void* vertices, int n, const Mat model_matrix);
+int canvas_append_colors(struct Canvas* canvas, int layer_i, void* colors, int n, const Color color);
+int canvas_append_normals(struct Canvas* canvas, int layer_i, void* normals, int n);
+int canvas_append_texcoords(struct Canvas* canvas, int layer_i, void* texcoords, int n);
+int canvas_append_indices(struct Canvas* canvas, int layer_i, const char* shader_name, GLenum primitive_type, unsigned int* indices, int n, int offset);
 
 #endif

@@ -16,13 +16,12 @@
 
 #include "render_vbomesh.h"
 
-void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, struct Camera* const camera, Mat const model_matrix) {
-    assert( mesh != NULL );
+void vbomesh_render_shader(struct Shader* const shader, struct Camera* const camera, Mat const model_matrix) {
     assert( shader != NULL );
     assert( camera != NULL );
     assert( model_matrix != NULL );
 
-    glUseProgram(shader->program);
+    ogl_debug( glUseProgram(shader->program); );
 
     Mat projection_matrix;
     Mat view_matrix;
@@ -93,6 +92,13 @@ void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, str
         ogl_debug( glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix) );
     }
 
+}
+
+void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, struct Camera* const camera, Mat const model_matrix) {
+    assert( mesh != NULL );
+
+    vbomesh_render_shader(shader, camera, model_matrix);
+
     GLint loc[NUM_OGL_ATTRIBUTES];
     for( int array_id = 0; array_id < NUM_OGL_ATTRIBUTES; array_id++ ) {
         GLint c_num = mesh->vbo->components[array_id].size;
@@ -118,8 +124,11 @@ void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, str
     }
 
     if( mesh->indices->id ) {
-        ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indices->id);
-                   glDrawElementsBaseVertex(mesh->primitives.type, mesh->indices->occupied, mesh->index.type, 0, mesh->indices->base); );
+        ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indices->id); );
+    }
+
+    if( mesh->indices->id ) {
+        ogl_debug( glDrawElementsBaseVertex(mesh->primitives.type, mesh->indices->occupied, mesh->index.type, 0, mesh->indices->base); );
     } else {
         ogl_debug( glDrawArrays(mesh->primitives.type, mesh->offset, mesh->occupied[OGL_VERTICES]); );
     }
@@ -131,5 +140,6 @@ void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, str
     }
 
     ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, 0);
-               glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
+               glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+               glUseProgram(0); );
 }

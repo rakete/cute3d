@@ -26,94 +26,95 @@
 #include "math_quaternion.h"
 #include "driver_ogl.h"
 #include "driver_glsl.h"
+#include "gui_canvas.h"
 
-void draw_grid( float width,
+void draw_grid( struct Canvas* canvas,
+                int layer,
+                float width,
                 float height,
                 int steps,
                 const Color color,
-                const Mat projection_matrix,
-                const Mat view_matrix,
-                const Mat model_matrix);
+                const Mat model_matrix );
 
-void draw_arrow( const Vec v,
+void draw_arrow( struct Canvas* canvas,
+                 int layer,
+                 const Vec v,
                  const Vec pos,
                  float scale,
                  float offset,
                  const Color color,
-                 const Mat projection_matrix,
-                 const Mat view_matrix,
-                 const Mat model_matrix);
+                 const Mat model_matrix );
 
-void draw_vec( const Vec v,
+void draw_vec( struct Canvas* canvas,
+               int layer,
+               const Vec v,
                const Vec pos,
                float scale,
                float arrow,
                const Color color,
-               const Mat projection_matrix,
-               const Mat view_matrix,
                const Mat model_matrix);
 
-void draw_quat( const Quat q,
+void draw_quat( struct Canvas* canvas,
+                int layer,
+                const Quat q,
                 float scale,
                 const Color color1,
                 const Color color2,
-                const Mat projection_matrix,
-                const Mat view_matrix,
                 const Mat model_matrix );
 
-void draw_circle( float radius,
+void draw_circle( struct Canvas* canvas,
+                  int layer,
+                  float radius,
                   float start,
                   float end,
                   float arrow,
                   const Color color,
-                  const Mat projection_matrix,
-                  const Mat view_matrix,
-                  const Mat model_matrix);
+                  const Mat model_matrix );
 
-void draw_basis( float scale,
-                 const Mat projection_matrix,
-                 const Mat view_matrix,
-                 const Mat model_matrix);
+void draw_basis( struct Canvas* canvas,
+                 int layer,
+                 float scale,
+                 const Mat model_matrix );
 
-void draw_reticle( float scale,
+void draw_reticle( struct Canvas* canvas,
+                   int layer,
+                   float scale,
                    const Color color,
-                   const Mat projection_matrix,
-                   const Mat view_matrix,
-                   const Mat model_matrix);
+                   const Mat model_matrix );
 
-void draw_contact( const Vec contact_point,
+void draw_contact( struct Canvas* canvas,
+                   int layer,
+                   const Vec contact_point,
                    const Vec contact_normal,
                    float contact_penetration,
                    float scale,
-                   const Mat projection_matrix,
-                   const Mat view_matrix,
-                   const Mat model_matrix);
+                   const Mat model_matrix );
 
-void draw_normals_array( const float* vertices,
+void draw_normals_array( struct Canvas* canvas,
+                         int layer,
+                         const float* vertices,
                          const float* normals,
                          int n,
                          float scale,
                          const Color color,
-                         const Mat projection_matrix,
-                         const Mat view_matrix,
                          const Mat model_matrix);
 
-void draw_texture_quad( float scale,
-                        GLuint texture_id,
-                        const Mat projection_matrix,
-                        const Mat view_matrix,
-                        const Mat model_matrix);
+/* void draw_texture_quad( float scale, */
+/*                         GLuint texture_id, */
+/*                         const Mat projection_matrix, */
+/*                         const Mat view_matrix, */
+/*                         const Mat model_matrix); */
 
-void draw_color_quad( float scale,
-                      const Color color,
-                      const Mat projection_matrix,
-                      const Mat view_matrix,
-                      const Mat model_matrix);
+/* void draw_color_quad( float scale, */
+/*                       const Color color, */
+/*                       const Mat projection_matrix, */
+/*                       const Mat view_matrix, */
+/*                       const Mat model_matrix); */
 
-void draw_line_quad( float scale,
-                     const Color color,
-                     const Mat projection_matrix,
-                     const Mat view_matrix,
-                     const Mat model_matrix);
+/* void draw_line_quad( float scale, */
+/*                      const Color color, */
+/*                      const Mat projection_matrix, */
+/*                      const Mat view_matrix, */
+/*                      const Mat model_matrix); */
 
 #endif
