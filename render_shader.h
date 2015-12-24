@@ -54,10 +54,12 @@ int init_shader();
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, struct Shader* p);
 void shader_create_from_sources(const char* vertex_source, const char* fragment_source, struct Shader* p);
 
-GLint shader_attribute(struct Shader* shader, int array_index, const char* name);
-GLint shader_uniform(struct Shader* shader, int location_index, const char* name, const char* type, void* data);
+GLint shader_add_attribute(struct Shader* shader, int attribute_index, const char* name);
+GLint shader_set_uniform(struct Shader* shader, int uniform_index, const char* name, const char* type, void* data);
 
-void shader_flat_create(struct Shader* shader);
-void shader_lines_create(struct Shader* shader);
+void shader_create_flat(struct Shader* shader);
+void shader_create_gl_lines(struct Shader* shader);
+
+void shader_print(struct Shader* const shader);
 
 #endif

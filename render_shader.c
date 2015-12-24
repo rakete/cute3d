@@ -79,90 +79,89 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     }
 }
 
-GLint shader_attribute(struct Shader* shader, int array_index, const char* name) {
-    if( strlen(name) < 256 ) {
-        GLint id = -1;
+GLint shader_add_attribute(struct Shader* shader, int attribute_index, const char* name) {
+    int name_length = strlen(name);
+    assert( name_length > 0 );
+    assert( name_length < 256 );
 
-        if( (! name) && strlen(shader->attribute[array_index].name) ) {
-            name = shader->attribute[array_index].name;
-        }
+    GLint id = -1;
 
-        if( ! name ) {
-            return -1;
-        }
-
-        if( shader->attribute[array_index].location > -1 ) {
-            id = shader->attribute[array_index].location;
-        } else {
-            ogl_debug( glUseProgram(shader->program);
-                       id = glGetAttribLocation(shader->program, name) );
-
-            if( id > -1 ) {
-                shader->attribute[array_index].location = id;
-                strncpy(shader->attribute[array_index].name, name, strlen(name)+1);
-            }
-        }
-
-        return id;
+    if( (! name) && strlen(shader->attribute[attribute_index].name) ) {
+        name = shader->attribute[attribute_index].name;
     }
 
-    return -1;
-}
-
-GLint shader_uniform(struct Shader* shader, int location_index, const char* name, const char* type, void* data) {
-    if( strlen(name) < 256 ) {
-
-        GLint id = -1;
-
-        if( (! name) && strlen(shader->uniform[location_index].name) ) {
-            name = shader->uniform[location_index].name;
-        }
-
-        if( ! name ) {
-            return -1;
-        }
-
-        if( shader->uniform[location_index].location > -1 ) {
-           id = shader->uniform[location_index].location;
-        } else {
-
-            ogl_debug( glUseProgram(shader->program);
-                      id = glGetUniformLocation(shader->program, name); );
-
-            if( id > -1 ) {
-                shader->uniform[location_index].location = id;
-                strncpy(shader->uniform[location_index].name, name, strlen(name)+1);
-            }
-        }
-
-        if( id > -1 && type && data ) {
-            glUseProgram(shader->program);
-            if( strcmp(type, "1f") == 0 ) { glUniform1f(id, ((float*)data)[0]); }
-            if( strcmp(type, "2f") == 0 ) { glUniform2f(id, ((float*)data)[0], ((float*)data)[1]); }
-            if( strcmp(type, "3f") == 0 ) { glUniform3f(id, ((float*)data)[0], ((float*)data)[1], ((float*)data)[2]); }
-            if( strcmp(type, "4f") == 0 ) { glUniform4f(id, ((float*)data)[0], ((float*)data)[1], ((float*)data)[2], ((float*)data)[3]); }
-        }
-
-        return id;
+    if( ! name ) {
+        return -1;
     }
-    return -1;
+
+    if( shader->attribute[attribute_index].location > -1 ) {
+        id = shader->attribute[attribute_index].location;
+    } else {
+        ogl_debug( glUseProgram(shader->program);
+                   id = glGetAttribLocation(shader->program, name) );
+
+        if( id > -1 ) {
+            shader->attribute[attribute_index].location = id;
+            strncpy(shader->attribute[attribute_index].name, name, strlen(name)+1);
+        }
+    }
+
+    return id;
 }
 
-void shader_flat_create(struct Shader* shader) {
+GLint shader_set_uniform(struct Shader* shader, int uniform_index, const char* name, const char* type, void* data) {
+    int name_length = strlen(name);
+    assert( name_length > 0 );
+    assert( name_length < 256 );
+
+    GLint id = -1;
+
+    if( (! name) && strlen(shader->uniform[uniform_index].name) ) {
+        name = shader->uniform[uniform_index].name;
+    }
+
+    if( ! name ) {
+        return -1;
+    }
+
+    if( shader->uniform[uniform_index].location > -1 ) {
+        id = shader->uniform[uniform_index].location;
+    } else {
+        ogl_debug( glUseProgram(shader->program);
+                   id = glGetUniformLocation(shader->program, name); );
+
+        if( id > -1 ) {
+            shader->uniform[uniform_index].location = id;
+            strncpy(shader->uniform[uniform_index].name, name, strlen(name)+1);
+        }
+    }
+
+    if( id > -1 && type && data ) {
+        glUseProgram(shader->program);
+        if( strcmp(type, "1f") == 0 ) { glUniform1f(id, ((float*)data)[0]); }
+        if( strcmp(type, "2f") == 0 ) { glUniform2f(id, ((float*)data)[0], ((float*)data)[1]); }
+        if( strcmp(type, "3f") == 0 ) { glUniform3f(id, ((float*)data)[0], ((float*)data)[1], ((float*)data)[2]); }
+        if( strcmp(type, "4f") == 0 ) { glUniform4f(id, ((float*)data)[0], ((float*)data)[1], ((float*)data)[2], ((float*)data)[3]); }
+    }
+
+    return id;
+}
+
+void shader_create_flat(struct Shader* shader) {
     shader_create_from_files("shader/flat.vert", "shader/flat.frag", shader);
 
     // these guys could go into shader_create
-    shader_attribute(shader, OGL_VERTICES, "vertex");
-    shader_attribute(shader, OGL_COLORS, "color");
-    shader_attribute(shader, OGL_NORMALS, "normal");
+    shader_add_attribute(shader, OGL_VERTICES, "vertex");
+    shader_add_attribute(shader, OGL_COLORS, "color");
+    shader_add_attribute(shader, OGL_NORMALS, "normal");
 
-    shader_uniform(shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
-    shader_uniform(shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL);
-    shader_uniform(shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL);
-    shader_uniform(shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
+    shader_set_uniform(shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
+    shader_set_uniform(shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL);
+    shader_set_uniform(shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL);
+    shader_set_uniform(shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
 }
 
-void shader_lines_create(struct Shader* shader) {
+void shader_create_gl_lines(struct Shader* shader) {
     const char* vertex_source =
         GLSL( uniform mat4 mvp_matrix;
               in vec3 vertex;
@@ -181,9 +180,29 @@ void shader_lines_create(struct Shader* shader) {
 
     shader_create_from_sources(vertex_source, fragment_source, shader);
 
-    shader_attribute(shader, OGL_VERTICES, "vertex");
-    shader_attribute(shader, OGL_COLORS, "color");
+    shader_add_attribute(shader, OGL_VERTICES, "vertex");
+    shader_add_attribute(shader, OGL_COLORS, "color");
 
-    shader_uniform(shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
-    //shader_uniform(shader, SHADER_DIFFUSE_COLOR, "color", NULL, NULL);
+    shader_set_uniform(shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
+    //shader_set_uniform(shader, SHADER_DIFFUSE_COLOR, "color", NULL, NULL);
+}
+
+void shader_print(struct Shader* const shader) {
+    printf("shader->vertex_shader: %d\n", shader->vertex_shader);
+    printf("shader->fragment_shader: %d\n", shader->fragment_shader);
+    printf("shader->program: %d\n", shader->program);
+
+    for( int i = 0; i < NUM_OGL_ATTRIBUTES; i++ ) {
+        if( strlen(shader->attribute[i].name) > 0 ) {
+            printf("shader->attribute[%d].name: %s\n", i, shader->attribute[i].name);
+            printf("shader->attribute[%d].location: %d\n", i, shader->attribute[i].location);
+        }
+    }
+
+    for( int i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
+        if( strlen(shader->uniform[i].name) > 0 ) {
+            printf("shader->uniform[%d].name: %s\n", i, shader->uniform[i].name);
+            printf("shader->uniform[%d].location: %d\n", i, shader->uniform[i].location);
+        }
+    }
 }
