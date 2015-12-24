@@ -14,19 +14,14 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef CUTE_IO_H
-#define CUTE_IO_H
+#ifndef IO_RLE_H
+#define IO_RLE_H
 
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
 #include "stdint.h"
 #include "limits.h"
-
-
-#define ENGINE_ROOT "/home/rakete/interactive/cute3d/"
-
-char* read_file(const char* filename, int32_t* length);
 
 size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char flag, unsigned char** output);
 

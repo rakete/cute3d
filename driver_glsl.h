@@ -22,10 +22,6 @@
 #include "string.h"
 
 #include "driver_ogl.h"
-#include "math_types.h"
-#include "math_matrix.h"
-#include "math_quaternion.h"
-#include "cute_io.h"
 
 void glsl_debug_info_log( GLuint object,
                           PFNGLGETSHADERIVPROC glGet__iv,

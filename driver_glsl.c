@@ -48,10 +48,25 @@ GLuint glsl_compile_source(GLenum type, const char* source, GLsizei length) {
 }
 
 GLuint glsl_compile_file(GLenum type, const char* filename) {
-    GLsizei length;
-    GLchar* source = read_file(filename, &length);
+    FILE* file = fopen(filename, "rb");
 
-    if(!source) return 0;
+    if( ! file ) {
+        return 0;
+    }
+
+    GLsizei length;
+    fseek(file, 0, SEEK_END);
+    length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    GLchar* source = malloc(length);
+    if( source == NULL ) {
+        fclose(file);
+        return 0;
+    } else {
+        fread(source, length, 1, file);
+        fclose(file);
+    }
 
     fprintf(stderr, "Compiling: %s\n", filename);
     GLuint id = glsl_compile_source(type, source, length);

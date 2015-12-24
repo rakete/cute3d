@@ -14,31 +14,7 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "cute_io.h"
-
-char* read_file(const char* filename, int32_t* length) {
-    FILE* file = fopen(filename, "rb");
-
-    if( ! file ) {
-        char* path = malloc(strlen(ENGINE_ROOT) + strlen(filename) + 1);
-        sprintf(path, "%s%s", ENGINE_ROOT, filename);
-        file = fopen(path, "rb");
-    }
-
-    if( ! file ) {
-        return NULL;
-    }
-
-    fseek(file, 0, SEEK_END);
-    *length = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    char* contents = malloc(*length);
-    fread(contents, *length, 1, file);
-    fclose(file);
-
-    return contents;
-}
+#include "io_rle.h"
 
 static void encode_packet(unsigned char* input,
                           size_t input_offset,
