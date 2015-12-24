@@ -30,7 +30,7 @@
 #include "cute_arcball.h"
 
 int main(int argc, char** argv) {
-    if(! init_sdl2() ) {
+    if( init_sdl2() ) {
         return 1;
     }
 
@@ -40,15 +40,15 @@ int main(int argc, char** argv) {
     SDL_GLContext* context;
     sdl2_glcontext(window, &context);
 
-    if( ! init_ogl(1600, 900, (Color){0.0f, 0.0f, 0.0f, 1.0f}) ) {
+    if( init_ogl(1600, 900, (Color){0.0f, 0.0f, 0.0f, 1.0f}) ) {
         return 1;
     }
 
-    if( ! init_shader() ) {
+    if( init_shader() ) {
         return 1;
     }
 
-    if( ! init_vbo() ) {
+    if( init_vbo() ) {
         return 1;
     }
 

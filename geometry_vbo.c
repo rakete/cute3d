@@ -17,26 +17,26 @@
 #include "geometry_vbo.h"
 
 int init_vbo() {
-    int ret = 1;
+    int ret = 0;
 
     glewInit();
     if( ! glewGetExtension("GL_ARB_copy_buffer") &&
         ! glewGetExtension("GL_EXT_copy_buffer") )
     {
         printf("ERROR: copy_buffer extension not found!\n");
-        ret = 0;
+        ret = 1;
     }
 
     if( ! glewGetExtension("GL_ARB_vertex_array_object") &&
         ! glewGetExtension("GL_EXT_vertex_array_object") )
     {
         printf("ERROR: vertex_array_object extension not found!\n");
-        ret = 0;
+        ret = 1;
     }
 
     /* if( ! glewGetExtension("GL_ARB_buffer_storage" ) ) { */
     /*     printf("ERROR: buffer_storage extension not found!\n"); */
-    /*     ret = 0; */
+    /*     ret = 1; */
     /* } */
 
 

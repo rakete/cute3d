@@ -5,9 +5,6 @@
 #include "assert.h"
 
 #include "driver_ogl.h"
-#include "render_shader.h"
-#include "gui.h"
-#include "geometry_vbo.h"
 
 #define sdl2_stringify(arg) #arg
 

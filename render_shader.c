@@ -17,13 +17,13 @@
 #include "render_shader.h"
 
 int init_shader() {
-    int ret = 1;
+    int ret = 0;
 
     glewInit();
     if( ! glewGetExtension("GL_ARB_uniform_buffer_object") )
     {
         printf("ERROR: uniform_buffer_object extension not found!\n");
-        ret = 0;
+        ret = 1;
     }
 
     return ret;

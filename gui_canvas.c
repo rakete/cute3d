@@ -6,7 +6,7 @@ struct Canvas global_canvas = {
 
 int init_canvas() {
     canvas_create(&global_canvas);
-    return 1;
+    return 0;
 }
 
 void canvas_create(struct Canvas* canvas) {

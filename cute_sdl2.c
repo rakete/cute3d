@@ -3,14 +3,14 @@
 int init_sdl2() {
     if( SDL_Init(SDL_INIT_EVERYTHING) < 0 ) {
         printf("SDL_Init failed: %s\n", SDL_GetError());
-        return 0;
+        return 1;
     }
 
     if( sdl2_time() > 0.0 || sdl2_time_delta() > 0.0 ) {
-        return 0;
+        return 1;
     }
 
-    return 1;
+    return 0;
 }
 
 void sdl2_window(const char* title, int x, int y, int width, int height, SDL_Window** window) {
