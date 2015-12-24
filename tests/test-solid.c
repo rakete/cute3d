@@ -71,7 +71,15 @@ int main(int argc, char *argv[]) {
     vbomesh_from_solid((struct Solid*)&sphere32, (Color){1.0,1.0,0.0,1.0}, &sphere32_mesh);
 
     struct Shader shader;
-    shader_flat_create(&shader);
+    shader_create_flat(&shader);
+    /* shader_add_attribute(&shader, OGL_VERTICES, "vertex"); */
+    /* shader_add_attribute(&shader, OGL_COLORS, "color"); */
+    /* shader_add_attribute(&shader, OGL_NORMALS, "normal"); */
+
+    /* shader_set_uniform(&shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL); */
+    /* shader_set_uniform(&shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL); */
+    /* shader_set_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL); */
+    /* shader_set_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL); */
 
     struct Arcball arcball;
     arcball_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
@@ -100,10 +108,10 @@ int main(int argc, char *argv[]) {
 
 
         Vec light_direction = { 0.2, -0.5, -1.0 };
-        shader_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
+        shader_set_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
 
         Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
-        shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
+        shader_set_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
         Mat identity;
         mat_identity(identity);

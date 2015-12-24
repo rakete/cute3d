@@ -77,14 +77,14 @@ int main(int argc, char** argv) {
     init_shader();
     struct Shader default_shader;
     shader_create_from_files("shader/flat.vert", "shader/flat.frag", &default_shader);
-    shader_attribute(&default_shader, OGL_VERTICES, "vertex");
-    shader_attribute(&default_shader, OGL_COLORS, "color");
-    shader_attribute(&default_shader, OGL_NORMALS, "normal");
+    shader_add_attribute(&default_shader, OGL_VERTICES, "vertex");
+    shader_add_attribute(&default_shader, OGL_COLORS, "color");
+    shader_add_attribute(&default_shader, OGL_NORMALS, "normal");
 
-    shader_uniform(&default_shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
-    shader_uniform(&default_shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL);
-    shader_uniform(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL);
-    shader_uniform(&default_shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
+    shader_set_uniform(&default_shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
+    shader_set_uniform(&default_shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL);
+    shader_set_uniform(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL);
+    shader_set_uniform(&default_shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
 
     struct Arcball arcball;
     arcball_create(window, (Vec){0.0, 4.0, 8.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, 0.001, 1000.0, &arcball);
@@ -140,10 +140,10 @@ int main(int argc, char** argv) {
         mat_identity(identity);
 
         Vec light_direction = { 0.4, -1.0, -0.2 };
-        shader_uniform(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
+        shader_set_uniform(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
 
         Color ambiance = { .1, .1, .3, 1.0 };
-        shader_uniform(&default_shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
+        shader_set_uniform(&default_shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
         Mat cube_transform;
         mat_identity(cube_transform);
@@ -156,19 +156,19 @@ int main(int argc, char** argv) {
 
         printf("%f %f %f %f\n", cube_spinning[0], cube_spinning[1], cube_spinning[2], cube_spinning[3]);
 
-        qto_mat(cube_rotation, cube_transform);
+        quat_to_mat(cube_rotation, cube_transform);
 
         mat_translate(cube_transform, (Vec){ -2.0, 0.0, 0.0, 1.0 }, cube_transform);
 
         vbomesh_render(&cube_mesh, &default_shader, &arcball.camera, cube_transform);
-        draw_normals_array(cube.vertices,
-                           cube.normals,
-                           cube.solid.size,
-                           0.5,
-                           (Color){ 1.0,0.0,1.0,1.0 },
-                           projection_mat,
-                           view_mat,
-                           cube_transform);
+        /* draw_normals_array(cube.vertices, */
+        /*                    cube.normals, */
+        /*                    cube.solid.size, */
+        /*                    0.5, */
+        /*                    (Color){ 1.0,0.0,1.0,1.0 }, */
+        /*                    projection_mat, */
+        /*                    view_mat, */
+        /*                    cube_transform); */
 
         Mat font_mat;
         mat_identity(font_mat);

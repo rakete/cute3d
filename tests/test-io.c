@@ -1,4 +1,4 @@
-#include "io.h"
+#include "io_rle.h"
 
 int main(int argc, char *argv[]) {
     unsigned char input[1024];

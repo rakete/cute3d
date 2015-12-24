@@ -281,7 +281,7 @@ int main(int argc, char *argv[]) {
         glDisable(GL_DEPTH_TEST);
 
         Mat translation_mat;
-        mat_translating(entity.current.pivot.position, translation_mat);
+        mat_translate(NULL, entity.current.pivot.position, translation_mat);
 
         draw_basis(1.0,
                    projection_mat,
