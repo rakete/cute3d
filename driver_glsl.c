@@ -68,10 +68,10 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
         fclose(file);
     }
 
-    fprintf(stderr, "Compiling: %s\n", filename);
+    log_info(stderr, __FILE__, __LINE__, "Compiling: %s\n", filename);
     GLuint id = glsl_compile_source(type, source, length);
     if( ! id ) {
-        fprintf(stderr, "Compilation failed in: %s\n", filename);
+        log_fail(stderr, __FILE__, __LINE__, "Compilation failed in: %s\n", filename);
     }
     return id;
 }

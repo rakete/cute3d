@@ -22,7 +22,7 @@ int init_shader() {
     glewInit();
     if( ! glewGetExtension("GL_ARB_uniform_buffer_object") )
     {
-        printf("ERROR: uniform_buffer_object extension not found!\n");
+        log_fail(stderr, __FILE__, __LINE__, "uniform_buffer_object extension not found!\n");
         ret = 1;
     }
 
@@ -187,22 +187,22 @@ void shader_create_gl_lines(struct Shader* shader) {
     //shader_set_uniform(shader, SHADER_DIFFUSE_COLOR, "color", NULL, NULL);
 }
 
-void shader_print(struct Shader* const shader) {
-    printf("shader->vertex_shader: %d\n", shader->vertex_shader);
-    printf("shader->fragment_shader: %d\n", shader->fragment_shader);
-    printf("shader->program: %d\n", shader->program);
+void shader_print(FILE* f, struct Shader* const shader) {
+    fprintf(f, "shader->vertex_shader: %d\n", shader->vertex_shader);
+    fprintf(f, "shader->fragment_shader: %d\n", shader->fragment_shader);
+    fprintf(f, "shader->program: %d\n", shader->program);
 
     for( int i = 0; i < NUM_OGL_ATTRIBUTES; i++ ) {
         if( strlen(shader->attribute[i].name) > 0 ) {
-            printf("shader->attribute[%d].name: %s\n", i, shader->attribute[i].name);
-            printf("shader->attribute[%d].location: %d\n", i, shader->attribute[i].location);
+            fprintf(f, "shader->attribute[%d].name: %s\n", i, shader->attribute[i].name);
+            fprintf(f, "shader->attribute[%d].location: %d\n", i, shader->attribute[i].location);
         }
     }
 
     for( int i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
         if( strlen(shader->uniform[i].name) > 0 ) {
-            printf("shader->uniform[%d].name: %s\n", i, shader->uniform[i].name);
-            printf("shader->uniform[%d].location: %d\n", i, shader->uniform[i].location);
+            fprintf(f, "shader->uniform[%d].name: %s\n", i, shader->uniform[i].name);
+            fprintf(f, "shader->uniform[%d].location: %d\n", i, shader->uniform[i].location);
         }
     }
 }

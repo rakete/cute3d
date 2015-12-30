@@ -1,5 +1,5 @@
 
-#include "cute_arcball.h"
+#include "math_arcball.h"
 
 void arcball_create(SDL_Window* window, Vec eye, Vec target, float near, float far, struct Arcball* arcball) {
     int width,height;

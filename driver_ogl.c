@@ -3,7 +3,7 @@
 int init_ogl(int width, int height, const float clear_color[4]) {
     ogl_debug({
             const char* gl_version = (const char*)glGetString(GL_VERSION);
-            printf("%s\n", gl_version);
+            log_info(stderr, __FILE__, __LINE__, "%s\n", gl_version);
 
             glViewport(0,0,width,height);
 

@@ -21,6 +21,7 @@
 #include "stdlib.h"
 #include "string.h"
 
+#include "driver_log.h"
 #include "driver_ogl.h"
 
 void glsl_debug_info_log( GLuint object,

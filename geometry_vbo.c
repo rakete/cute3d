@@ -23,14 +23,14 @@ int init_vbo() {
     if( ! glewGetExtension("GL_ARB_copy_buffer") &&
         ! glewGetExtension("GL_EXT_copy_buffer") )
     {
-        printf("ERROR: copy_buffer extension not found!\n");
+        log_fail(stderr, __FILE__, __LINE__, "copy_buffer extension not found!\n");
         ret = 1;
     }
 
     if( ! glewGetExtension("GL_ARB_vertex_array_object") &&
         ! glewGetExtension("GL_EXT_vertex_array_object") )
     {
-        printf("ERROR: vertex_array_object extension not found!\n");
+        log_fail(stderr, __FILE__, __LINE__, "vertex_array_object extension not found!\n");
         ret = 1;
     }
 
@@ -136,9 +136,9 @@ int vbo_destroy(struct Vbo* p) {
     assert( 0 == 1 );
 }
 
-void vbo_print(struct Vbo* vbo) {
-    printf("vbo->capacity: %d\n", vbo->capacity);
-    printf("vbo->occupied: %d\n", vbo->occupied);
+void vbo_print(FILE* f, struct Vbo* vbo) {
+    fprintf(f, "vbo->capacity: %d\n", vbo->capacity);
+    fprintf(f, "vbo->occupied: %d\n", vbo->occupied);
 }
 
 void vbo_add_buffer(struct Vbo* vbo,
@@ -333,19 +333,19 @@ int vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
     }
 }
 
-void vbomesh_print(struct VboMesh* mesh) {
-    vbo_print(mesh->vbo);
+void vbomesh_print(FILE* f, struct VboMesh* mesh) {
+    vbo_print(f, mesh->vbo);
 
-    printf("\n");
+    fprintf(f, "\n");
 
-    printf("mesh->offset: %d\n", mesh->offset);
-    printf("mesh->capacity: %d\n", mesh->capacity);
+    fprintf(f, "mesh->offset: %d\n", mesh->offset);
+    fprintf(f, "mesh->capacity: %d\n", mesh->capacity);
 
     for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
         for( int j = 0; j < NUM_OGL_ATTRIBUTES; j++ ) {
             if( mesh->occupied[j] > 0 ) {
-                printf("mesh->occupied[%d]: %d\n", j, mesh->occupied[j]);
-                printf("mesh->vbo->buffer[%d][%d]:\n", i, j);
+                fprintf(f, "mesh->occupied[%d]: %d\n", j, mesh->occupied[j]);
+                fprintf(f, "mesh->vbo->buffer[%d][%d]:\n", i, j);
                 switch(mesh->vbo->components[j].type) {
                     case GL_FLOAT: {
                         GLfloat* array = (GLfloat*)vbo_map(mesh->vbo, j, mesh->offset, mesh->capacity, GL_MAP_READ_BIT);
@@ -355,29 +355,29 @@ void vbomesh_print(struct VboMesh* mesh) {
                                     GLfloat a = array[k*mesh->vbo->components[j].size+0];
                                     GLfloat b = array[k*mesh->vbo->components[j].size+1];
                                     GLfloat c = array[k*mesh->vbo->components[j].size+2];
-                                    printf("[%.2f %.2f %.2f]", a, b, c);
+                                    fprintf(f, "[%.2f %.2f %.2f]", a, b, c);
                                 } else if( mesh->vbo->components[j].size == 4 ) {
                                     GLfloat a = array[k*mesh->vbo->components[j].size+0];
                                     GLfloat b = array[k*mesh->vbo->components[j].size+1];
                                     GLfloat c = array[k*mesh->vbo->components[j].size+2];
                                     GLfloat d = array[k*mesh->vbo->components[j].size+3];
-                                    printf("[%.2f %.2f %.2f %.2f]", a, b, c, d);
+                                    fprintf(f, "[%.2f %.2f %.2f %.2f]", a, b, c, d);
                                 }
 
                                 if( k == mesh->capacity - 1 ) {
-                                    printf("\n");
+                                    fprintf(f, "\n");
                                 } else {
-                                    printf(", ");
+                                    fprintf(f, ", ");
                                 }
                             }
                         } else {
-                            printf("NULL\n");
+                            fprintf(f, "NULL\n");
                         }
                         vbo_unmap(mesh->vbo, j);
                         break;
                     }
                     case GL_INT: {
-                        printf("ERROR: GL_INT not implemented in vbomesh_print\n");
+                        fprintf(f, "ERROR: GL_INT not implemented in vbomesh_print\n");
                         break;
                     }
                 }
@@ -385,15 +385,15 @@ void vbomesh_print(struct VboMesh* mesh) {
         }
     }
 
-    printf("mesh->primitives.type: %d\n", mesh->primitives.type);
-    printf("mesh->primitives.size: %d\n", mesh->primitives.size);
+    fprintf(f, "mesh->primitives.type: %d\n", mesh->primitives.type);
+    fprintf(f, "mesh->primitives.size: %d\n", mesh->primitives.size);
 
-    printf("mesh->index.type: %d\n", mesh->index.type);
-    printf("mesh->index.bytes: %d\n", mesh->index.bytes);
-    printf("mesh->indices->capacity: %d\n", mesh->indices->capacity);
-    printf("mesh->indices->occupied: %d\n", mesh->indices->occupied);
+    fprintf(f, "mesh->index.type: %d\n", mesh->index.type);
+    fprintf(f, "mesh->index.bytes: %d\n", mesh->index.bytes);
+    fprintf(f, "mesh->indices->capacity: %d\n", mesh->indices->capacity);
+    fprintf(f, "mesh->indices->occupied: %d\n", mesh->indices->occupied);
 
-    printf("mesh->indices:\n");
+    fprintf(f, "mesh->indices:\n");
     switch(mesh->index.type) {
         case GL_UNSIGNED_INT: {
             GLuint* array = (GLuint*)vbomesh_map(mesh, 0, mesh->indices->capacity, GL_MAP_READ_BIT);
@@ -402,16 +402,16 @@ void vbomesh_print(struct VboMesh* mesh) {
                 for( int k = 0; k < mesh->indices->capacity; k+=primitive_size ) {
                     printf("[");
                     for( int l = 0; l < primitive_size; l++ ) {
-                        printf("%d", array[k+l]);
+                        fprintf(f, "%d", array[k+l]);
                         if( l < primitive_size - 1 ) {
                             printf(", ");
                         }
                     }
-                    printf("]");
+                    fprintf(f, "]");
                     if( k == mesh->indices->capacity - primitive_size ) {
-                        printf("\n");
+                        fprintf(f, "\n");
                     } else {
-                        printf(", ");
+                        fprintf(f, ", ");
                     }
                 }
             }

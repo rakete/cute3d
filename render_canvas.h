@@ -18,7 +18,7 @@
 #define RENDER_CANVAS_H
 
 #include "gui_canvas.h"
-#include "render_camera.h"
+#include "math_camera.h"
 #include "render_shader.h"
 #include "render_vbomesh.h"
 #include "geometry_vbo.h"

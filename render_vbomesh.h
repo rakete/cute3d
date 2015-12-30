@@ -18,7 +18,7 @@
 #define RENDER_VBOMESH_H
 
 #include "driver_ogl.h"
-#include "render_camera.h"
+#include "math_camera.h"
 #include "render_shader.h"
 #include "geometry_vbo.h"
 #include "math_transform.h"

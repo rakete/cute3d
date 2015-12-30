@@ -14,8 +14,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef RENDER_CAMERA_H
-#define RENDER_CAMERA_H
+#ifndef MATH_CAMERA_H
+#define MATH_CAMERA_H
 
 #include "math_transform.h"
 

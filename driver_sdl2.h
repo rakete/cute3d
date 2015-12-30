@@ -1,9 +1,10 @@
-#ifndef CUTE_SDL2_H
-#define CUTE_SDL2_H
+#ifndef DRIVER_SDL2_H
+#define DRIVER_SDL2_H
 
 #include "SDL2/SDL.h"
 #include "assert.h"
 
+#include "driver_log.h"
 #include "driver_ogl.h"
 
 #define sdl2_stringify(arg) #arg

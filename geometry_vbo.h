@@ -23,6 +23,7 @@
 #include "string.h"
 #include "math.h"
 
+#include "driver_log.h"
 #include "driver_ogl.h"
 
 #ifndef NUM_VBO_PHASES
@@ -86,7 +87,7 @@ struct Vbo {
 int vbo_create(struct Vbo* p);
 int vbo_destroy(struct Vbo* p);
 
-void vbo_print(struct Vbo* vbo);
+void vbo_print(FILE* f, struct Vbo* vbo);
 
 void vbo_add_buffer(struct Vbo* vbo,
                     int i,
@@ -166,7 +167,7 @@ struct VboMesh {
 int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh);
 int vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh);
 
-void vbomesh_print(struct VboMesh* mesh);
+void vbomesh_print(FILE* f, struct VboMesh* mesh);
 
 // functions to allocate new space in a mesh
 int vbomesh_alloc_attributes(struct VboMesh* mesh, int n);

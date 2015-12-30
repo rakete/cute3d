@@ -1,8 +1,8 @@
-#include "cute_sdl2.h"
+#include "driver_sdl2.h"
 
 int init_sdl2() {
     if( SDL_Init(SDL_INIT_EVERYTHING) < 0 ) {
-        printf("SDL_Init failed: %s\n", SDL_GetError());
+        log_fail(stderr, __FILE__, __LINE__, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
     }
 

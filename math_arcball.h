@@ -1,8 +1,8 @@
-#ifndef CUTE_ARCBALL_H
-#define CUTE_ARCBALL_H
+#ifndef MATH_ARCBALL_H
+#define MATH_ARCBALL_H
 
-#include "cute_sdl2.h"
-#include "render_camera.h"
+#include "driver_sdl2.h"
+#include "math_camera.h"
 
 struct Arcball {
     struct Camera camera;

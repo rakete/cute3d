@@ -1,4 +1,4 @@
-#include "render_camera.h"
+#include "math_camera.h"
 
 void camera_create(enum CameraProjection type, int width, int height, struct Camera* camera) {
     pivot_create(&camera->pivot);

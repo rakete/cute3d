@@ -7,6 +7,8 @@
 #include "assert.h"
 #include "stdio.h"
 
+#include "driver_log.h"
+
 // hack to get rid of annoying clang warning
 #define ogl_stringify(arg) #arg
 
@@ -15,7 +17,7 @@
         line;                                                           \
         GLenum error = glGetError();                                    \
         while( error != GL_NO_ERROR ) {                                 \
-            printf("%s@%d:::::\n%s\n", __FILE__, __LINE__, ogl_stringify(line)); \
+            printf("%s:%d:::::\n%s\n", __FILE__, __LINE__, ogl_stringify(line)); \
             switch(error) {                                             \
                 case GL_NO_ERROR: break;                                \
                 case GL_INVALID_ENUM:                                   \
