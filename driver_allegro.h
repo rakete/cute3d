@@ -1,11 +1,12 @@
-#ifndef CUTE_ALLEGRO_H
-#define CUTE_ALLEGRO_H
-
-#include "geometry_vbo.h"
-#include "render.h"
-#include "gui.h"
+#ifndef DRIVER_ALLEGRO_H
+#define DRIVER_ALLEGRO_H
 
 #include "allegro5/allegro.h"
+
+#include "driver_ogl.h"
+#include "math_types.h"
+#include "math_camera.h"
+#include "math_matrix.h"
 
 int init_allegro();
 

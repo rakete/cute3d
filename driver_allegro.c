@@ -1,4 +1,4 @@
-#include "cute_allegro.h"
+#include "driver_allegro.h"
 
 int init_allegro() {
     return al_init();
@@ -39,9 +39,9 @@ void allegro_orbit_create(ALLEGRO_DISPLAY* display, Vec origin, Vec translation,
     int width = al_get_display_width(display);
     int height = al_get_display_height(display);
 
-    camera_create(perspective, width, height, camera);
+    camera_create(CAMERA_PERSPECTIVE, width, height, camera);
     //camera_projection(camera, orthographic_zoom);
-    camera_frustum(-0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f, camera);
+    camera_frustum(camera, -0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f);
 
     vec_add3f(camera->pivot.position, translation, camera->pivot.position);
     pivot_lookat(&camera->pivot, origin);
