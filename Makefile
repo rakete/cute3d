@@ -1,4 +1,4 @@
-src = $(filter-out cute_allegro.c, $(wildcard *.c))
+src = $(filter-out driver_allegro.c, $(wildcard *.c))
 obj = $(src:.c=.o)
 tests_src = $(wildcard tests/*.c)
 tests_bin = $(tests_src:tests/%.c=%)
