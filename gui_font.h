@@ -13,8 +13,8 @@
 #include "driver_glsl.h"
 #include "driver_shader.h"
 
-#ifndef FONT_SIZE
-#define FONT_SIZE 1024
+#ifndef NUM_FONT_GLYPHS
+#define NUM_FONT_GLYPHS 1024
 #endif
 
 struct Character {
@@ -31,8 +31,9 @@ struct Glyph {
 };
 
 struct Font {
-    struct Glyph glyphs[FONT_SIZE];
-    bool alphabet[FONT_SIZE];
+    char name[256];
+    struct Glyph glyphs[NUM_FONT_GLYPHS];
+    bool alphabet[NUM_FONT_GLYPHS];
 
     bool unicode;
 
@@ -46,16 +47,14 @@ struct Font {
         GLint mag_filter;
     } texture;
 
-    struct {
-        GLuint program;
-    } shader;
+    struct Shader shader;
 
     float kerning;
     float linespacing;
     Color color;
 };
 
-void font_create(const wchar_t* alphabet, bool unicode, struct Character* symbols, struct Font* font);
+void font_create(struct Font* font, const wchar_t* alphabet, bool unicode, struct Character* symbols, const char* name);
 
 void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter);
 

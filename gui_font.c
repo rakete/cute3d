@@ -1,6 +1,11 @@
 #include "gui_font.h"
 
-void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character* symbols, struct Font* font) {
+void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicode, struct Character* symbols, const char* name) {
+    int name_length = strlen(name);
+    assert( name_length > 0 );
+    assert( name_length < 256 );
+
+    strncpy(font->name, name, name_length+1);
     font->unicode = unicode;
     font->kerning = 0.2;
     font->linespacing = 0.2;
@@ -145,13 +150,12 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
                   uniform mat4 view_matrix;
                   in vec3 vertex;
                   in vec2 texcoord;
-                  uniform vec3 normal;
-                  uniform vec4 color;
+                  uniform vec4 diffuse_color;
                   out vec4 frag_color;
                   out vec2 frag_texcoord;
                   void main() {
                       gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex,1.0);
-                      frag_color = color;
+                      frag_color = diffuse_color;
                       frag_texcoord = texcoord;
                   });
 
@@ -171,8 +175,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
                       }
                   });
 
-
-        font->shader.program = glsl_make_program(vertex_source, fragment_source);
+        shader_create_from_sources(vertex_source, fragment_source, "font_shader", &font->shader);
     }
 }
 
