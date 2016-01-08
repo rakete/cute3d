@@ -19,7 +19,10 @@ void sdl2_window(const char* title, int x, int y, int width, int height, SDL_Win
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
 
-            *window = SDL_CreateWindow(title, x, y, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+            *window = SDL_CreateWindow(title, x, y, width, height,
+                                       SDL_WINDOW_OPENGL |
+                                       SDL_WINDOW_SHOWN |
+                                       SDL_WINDOW_RESIZABLE);
 
             // these can be set before creating an opengl context
             SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -84,4 +87,15 @@ double sdl2_time() {
     then = now;
 
     return t;
+}
+
+int sdl2_poll_event(SDL_Event* event) {
+    double t1 = sdl2_time();
+    int ret = SDL_PollEvent(event);
+    double t2 = sdl2_time();
+    double t = (t2 - t1) * 1000;
+    if( t > 0.5 ) {
+        log_warn(stderr, __FILE__, __LINE__, "SDL_PollEvent time: %.02fms\n", t);
+    }
+    return ret;
 }

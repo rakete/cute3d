@@ -31,4 +31,6 @@ void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context);
 double sdl2_time_delta();
 double sdl2_time();
 
+int sdl2_poll_event(SDL_Event* event);
+
 #endif
