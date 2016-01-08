@@ -40,6 +40,9 @@ VecP vcopy(const Vec v, Vec r);
 void vec_copy3f(const Vec3f v, Vec3f r);
 VecP vcopy3f(const Vec3f v, Vec3f r);
 
+void vec_copy2f(const Vec v, Vec2f r);
+VecP vcopy2f(const Vec v, Vec2f r);
+
 void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
 MatP vcopy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
 
@@ -127,8 +130,8 @@ VecP vperpendicular(const Vec v);
 
 void vec_basis(const Vec x, Vec y, Vec z);
 
-void vec_print(const char* title, const Vec v);
-void vec_print3f(const char* title, const Vec3f v);
+void vec_print(FILE* f, const char* title, const Vec v);
+void vec_print3f(FILE* f, const char* title, const Vec3f v);
 
 // matrix creation
 void mat_copy(const Mat m, Mat r);
@@ -179,6 +182,6 @@ MatP mget_rotation(Mat m);
 void mat_get_translation(const Mat m, Mat r);
 MatP mget_translation(Mat m);
 
-void mat_print(const char* title, const Mat m);
+void mat_print(FILE* f, const char* title, const Mat m);
 
 #endif

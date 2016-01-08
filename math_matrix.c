@@ -75,6 +75,16 @@ VecP vcopy3f(const Vec v, Vec3f r) {
     return r;
 }
 
+void vec_copy2f(const Vec v, Vec2f r) {
+    r[0] = v[0];
+    r[1] = v[1];
+}
+
+VecP vcopy2f(const Vec v, Vec2f r) {
+    vec_copy2f(v,r);
+    return r;
+}
+
 void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r) {
     r[0] = x[0];  r[4] = y[0];  r[8]  = z[0];  r[12] = 0.0;
     r[1] = x[1];  r[5] = y[1];  r[9]  = z[1];  r[13] = 0.0;
@@ -503,12 +513,12 @@ void vec_basis(const Vec x, Vec y, Vec z) {
     }
 }
 
-void vec_print(const char* title, const Vec v) {
-    printf("%s(%f %f %f %f)\n", title, v[0], v[1], v[2], v[3]);
+void vec_print(FILE* f, const char* title, const Vec v) {
+    fprintf(f, "%s(%f %f %f %f)\n", title, v[0], v[1], v[2], v[3]);
 }
 
-void vec_print3f(const char* title, const Vec3f v) {
-    printf("%s(%f %f %f)\n", title, v[0], v[1], v[2]);
+void vec_print3f(FILE* f, const char* title, const Vec3f v) {
+    fprintf(f, "%s(%f %f %f)\n", title, v[0], v[1], v[2]);
 }
 
 void mat_copy(const Mat m, Mat r) {
@@ -957,10 +967,10 @@ MatP mget_translation(Mat m) {
     return m;
 }
 
-void mat_print(const char* title, const Mat m) {
-    printf("%s\n", title);
-    printf("[%f %f %f %f]\n", m[0], m[4], m[8], m[12]);
-    printf("[%f %f %f %f]\n", m[1], m[5], m[9], m[13]);
-    printf("[%f %f %f %f]\n", m[2], m[6], m[10], m[14]);
-    printf("[%f %f %f %f]\n", m[3], m[7], m[11], m[15]);
+void mat_print(FILE* f, const char* title, const Mat m) {
+    fprintf(f, "%s\n", title);
+    fprintf(f, "[%f %f %f %f]\n", m[0], m[4], m[8], m[12]);
+    fprintf(f, "[%f %f %f %f]\n", m[1], m[5], m[9], m[13]);
+    fprintf(f, "[%f %f %f %f]\n", m[2], m[6], m[10], m[14]);
+    fprintf(f, "[%f %f %f %f]\n", m[3], m[7], m[11], m[15]);
 }

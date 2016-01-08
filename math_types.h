@@ -29,6 +29,7 @@ typedef float* MatP;
 typedef float* QuatP;
 
 typedef float Vec[4];
+typedef float Vec2f[2];
 typedef float Vec3f[3];
 typedef float Vec4f[4];
 typedef int Vec3i[3];
@@ -46,6 +47,7 @@ typedef float Texcoord[2];
 
 #define vec(v) vec4f(v)
 #define vecf(v) vec4f(v)
+#define vec2f(v) (Vec3f){(float)v[0], (float)v[1]}
 #define vec3f(v) (Vec3f){(float)v[0], (float)v[1], (float)v[2]}
 #define vec4f(v) (Vec4f){(float)v[0], (float)v[1], (float)v[2], (float)v[3]}
 
