@@ -9,8 +9,12 @@ void text_put_world(struct Canvas* canvas, int layer, const char* font_name, flo
     }
 
     int font_i = canvas_find_font(canvas, font_name);
+    if( font_i == NUM_CANVAS_FONTS ) {
+        return;
+    }
+
     struct Font* font = &canvas->fonts[font_i];
-    int canvas_offset = canvas->layer[layer].attributes[OGL_VERTICES].occupied;
+    int canvas_offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
 
     float vertices[text_length * 6 * 3];
     float colors[text_length * 6 * 4];
@@ -88,8 +92,34 @@ void text_put_world(struct Canvas* canvas, int layer, const char* font_name, flo
         indices[indices_offset+5] = canvas_offset + indices_offset + 0;
     }
 
-    canvas_append_vertices(canvas, layer, vertices, 3, GL_FLOAT, text_length*4, NULL);
-    canvas_append_colors(canvas, layer, colors, 4, GL_FLOAT, text_length*4, NULL);
-    canvas_append_texcoords(canvas, layer, texcoords, 2, GL_FLOAT, text_length*4);
-    canvas_append_text(canvas, layer, font_name, indices, text_length*6, 0);
+    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, text_length*4, NULL);
+    canvas_append_colors(canvas, colors, 4, GL_FLOAT, text_length*4, NULL);
+    canvas_append_texcoords(canvas, texcoords, 2, GL_FLOAT, text_length*4);
+    canvas_append_text(canvas, layer, 0, font_name, indices, text_length*6, 0);
+}
+
+void text_put_screen(struct Canvas* canvas, int layer, const char* font_name, float scale, const Color color, const wchar_t* text, int x, int y) {
+    /* camera.type = CAMERA_ORTHOGRAPHIC; */
+    /* Mat ortho_projection, ortho_view; */
+    /* camera_matrices(&camera, ortho_projection, ortho_view); */
+
+    Mat text_matrix;
+    mat_identity(text_matrix);
+
+    /* Vec translation; */
+    /* translation[0] = camera.frustum.left + fabs(camera.frustum.left - camera.frustum.right)/(float)camera.screen.width * (float)x; */
+    /* translation[1] = camera.frustum.top - fabs(camera.frustum.top - camera.frustum.bottom)/(float)camera.screen.height * (float)y; */
+    /* translation[2] = 0.0; */
+    /* translation[3] = 1.0; */
+    /* mat_translate(text_matrix, translation, text_matrix); */
+
+    /* mat_rotate(text_matrix, camera.pivot.orientation, text_matrix); */
+
+    // multiplying with zNear fixes text being too small or too big when
+    // zNear is set to something other then 1.0
+    /* float scale = (float)size / (float)camera.screen.height * camera.frustum.zNear; */
+
+    glDisable(GL_DEPTH_TEST);
+    /* text_put(text, font, scale, ortho_projection, ortho_view, text_matrix); */
+    glEnable(GL_DEPTH_TEST);
 }

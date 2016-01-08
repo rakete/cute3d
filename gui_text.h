@@ -30,7 +30,7 @@
 
 void text_put_world(struct Canvas* canvas, int layer, const char* font_name, float scale, const Color color, const wchar_t* text, Mat model_matrix);
 
-void text_put_screen(struct Canvas* canvas, int layer, const char* font_name, float scale, const Color color, const wchar_t* text, struct Camera camera, int x, int y);
+void text_put_screen(struct Canvas* canvas, int layer, const char* font_name, float scale, const Color color, const wchar_t* text, int x, int y);
 
 void text_printf(struct Canvas* canvas, int layer, const char* font_name, float scale, const Color color, const wchar_t* format, ...);
 
