@@ -1,3 +1,4 @@
+//CUTE
 #version 130
 #extension GL_ARB_uniform_buffer_object:require
 

@@ -1,3 +1,4 @@
+//CUTE
 #version 130
 
 void main() {

@@ -31,6 +31,19 @@ void glsl_debug_info_log( GLuint object,
 }
 
 GLuint glsl_compile_source(GLenum type, const char* source, GLsizei length) {
+    assert( strlen(source) > 0 );
+
+    if( ! (strlen(source) > 6 &&
+           source[0] == '/' &&
+           source[1] == '/' &&
+           source[2] == 'C' &&
+           source[3] == 'U' &&
+           source[4] == 'T' &&
+           source[5] == 'E') )
+    {
+        log_warn(stderr, __FILE__, __LINE__, "%s\n does not look like cute3d glsl code\n", source);
+    }
+
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, (const GLchar**)&source, &length);
     glCompileShader(shader);
@@ -38,7 +51,7 @@ GLuint glsl_compile_source(GLenum type, const char* source, GLsizei length) {
     GLint shader_ok;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_ok);
     if ( ! shader_ok ) {
-        fprintf(stderr, "Failed to compile: %s\n", source);
+        fprintf(stderr, "failed to compile: %s\n", source);
         glsl_debug_info_log(shader, glGetShaderiv, glGetShaderInfoLog);
         glDeleteShader(shader);
         return 0;
@@ -51,6 +64,7 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
     FILE* file = fopen(filename, "rb");
 
     if( ! file ) {
+        log_fail(stderr, __FILE__, __LINE__, "could not open file %s\n", filename);
         return 0;
     }
 
@@ -68,10 +82,10 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
         fclose(file);
     }
 
-    log_info(stderr, __FILE__, __LINE__, "Compiling: %s\n", filename);
+    log_info(stderr, __FILE__, __LINE__, "compiling: %s\n", filename);
     GLuint id = glsl_compile_source(type, source, length);
     if( ! id ) {
-        log_fail(stderr, __FILE__, __LINE__, "Compilation failed in: %s\n", filename);
+        log_fail(stderr, __FILE__, __LINE__, "compilation failed in: %s\n", filename);
     }
     return id;
 }

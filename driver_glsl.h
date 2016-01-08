@@ -28,7 +28,7 @@ void glsl_debug_info_log( GLuint object,
                           PFNGLGETSHADERIVPROC glGet__iv,
                           PFNGLGETSHADERINFOLOGPROC glGet__InfoLog );
 
-#define GLSL( source ) "#version 130\n#extension GL_ARB_uniform_buffer_object:require\n" #source "\0"
+#define GLSL( source ) "//CUTE\n#version 130\n#extension GL_ARB_uniform_buffer_object:require\n" #source "\0"
 
 GLuint glsl_compile_source(GLenum type, const char* source, GLsizei length);
 GLuint glsl_compile_file(GLenum type, const char* filename);
