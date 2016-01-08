@@ -23,10 +23,6 @@
 #include "render_vbomesh.h"
 #include "geometry_vbo.h"
 
-int canvas_render_create_mesh(struct Canvas* const canvas, int layer_i, const char* shader_name, GLenum primitive_type, struct Vbo* vbo, struct VboMesh* mesh);
-
-int canvas_render_create_shader(struct Canvas* const canvas, const char* shader_name, struct Shader* shader);
-
-void canvas_render_layers(struct Canvas* const canvas, int layer_start, int layer_end, const char* shader_name, struct Camera* const camera, Mat const model_matrix, struct Shader* foo_shader);
+void canvas_render_layers(struct Canvas* const canvas, int layer_start, int layer_end, struct Camera* const camera, Mat const model_matrix);
 
 #endif

@@ -26,61 +26,67 @@
 #define NUM_CANVAS_UNIFORMS 16
 #endif
 
-#define CANVAS_UNIFORM_MVP_MATRIX 0
-#define CANVAS_UNIFORM_NORMAL_MATRIX 1
-#define CANVAS_UNIFORM_AMBIENT_COLOR 2
-#define CANVAS_UNIFORM_DIFFUSE_COLOR 3
+#ifndef NUM_CANVAS_FONTS
+#define NUM_CANVAS_FONTS 8
+#endif
+
+#ifndef NUM_CANVAS_TEXTS
+#define NUM_CANVAS_TEXTS 2
+#endif
 
 struct Canvas {
     struct CanvasComponents {
         int size;
         GLenum type;
         int bytes;
-    } components[NUM_OGL_ATTRIBUTES];
+    } components[NUM_SHADER_ATTRIBUTES];
 
-    struct CanvasShader {
-        char name[256];
-        GLuint vertex_shader, fragment_shader, program;
+    struct CanvasAttributes {
+        void* array;
+        int capacity;
+        int occupied;
+    } attributes[NUM_SHADER_ATTRIBUTES];
 
-        struct {
-            GLint location;
-            char name[256];
-        } attribute[NUM_OGL_ATTRIBUTES];
+    struct CanvasBuffer {
+        GLuint id;
+        int capacity;
+        int occupied;
 
-        struct {
-            GLint location;
-            char name[256];
-        } uniform[NUM_CANVAS_UNIFORMS];
+        GLenum usage;
+    } buffer[NUM_SHADER_ATTRIBUTES];
 
-    } shader[NUM_CANVAS_SHADER];
+    struct Shader shader[NUM_CANVAS_SHADER];
 
+    struct Font fonts[NUM_CANVAS_FONTS];
+
+    // - so this mesh is just going to contain _everything_ for a layer, that means no individual meshes, but
+    // all vertices for all meshes of a layer with transformed vertices and normals etc so that it can just
+    // be rendered with the identity matrix as model_matrix and still comes out the way the user wants it
+    //struct VboMesh* mesh;
+
+    // - I don't want to bind the buffers in Vbo for every draw operation, so I cache the data in arrays here
+    // and then upload it in one go before rendering, I keep the Vbo/VboMesh around so that I can just render
+    // when there is nothing cached (?), well, to reuse it so I don't have to recreate the buffers every time
+    // I render (?)
     struct CanvasLayer {
-        // - so this mesh is just going to contain _everything_ for a layer, that means no individual meshes, but
-        // all vertices for all meshes of a layer with transformed vertices and normals etc so that it can just
-        // be rendered with the identity matrix as model_matrix and still comes out the way the user wants it
-        //struct VboMesh* mesh;
-
-        // - I don't want to bind the buffers in Vbo for every draw operation, so I cache the data in arrays here
-        // and then upload it in one go before rendering, I keep the Vbo/VboMesh around so that I can just render
-        // when there is nothing cached (?), well, to reuse it so I don't have to recreate the buffers every time
-        // I render (?)
-        struct CanvasAttributes {
-            void* array;
-
-            int capacity;
-            int occupied;
-        } attributes[NUM_OGL_ATTRIBUTES];
-
         struct CanvasIndices {
             unsigned int* array;
+            GLuint id;
 
             int capacity;
             int occupied;
         } indices[NUM_CANVAS_SHADER][NUM_OGL_PRIMITIVES];
 
-        // set this to > 0 if I want to map this layer to screen
-        float screen;
-    } layer[NUM_CANVAS_LAYER];
+        struct CanvasText {
+            unsigned int* array;
+            GLuint id;
+
+            int capacity;
+            int occupied;
+        } text[NUM_CANVAS_FONTS][NUM_CANVAS_TEXTS];
+
+        //int disable;
+    } layer[NUM_CANVAS_LAYERS];
 };
 
 extern struct Canvas global_canvas;
@@ -88,21 +94,27 @@ extern struct Canvas global_canvas;
 int init_canvas();
 
 void canvas_create(struct Canvas* canvas);
-void canvas_add_attribute(struct Canvas* canvas, int attribute, int size, GLenum type, int bytes);
+void canvas_add_attribute(struct Canvas* canvas, int attribute, int size, GLenum type);
 
 int canvas_append_shader_source(struct Canvas* canvas, const char* vertex_source, const char* fragment_source, const char* name);
-int canvas_append_shader_program(struct Canvas* canvas, GLuint vertex_shader, GLuint fragment_shader, GLuint program, const char* name);
+int canvas_append_shader_program(struct Canvas* canvas, struct Shader* const shader, const char* name);
 int canvas_find_shader(struct Canvas* canvas, const char* shader_name);
 
-int canvas_alloc_attributes(struct Canvas* canvas, int layer_i, int attribute_i, int n);
+int canvas_append_font(struct Canvas* canvas, struct Font font, const char* font_name);
+int canvas_find_font(struct Canvas* canvas, const char* font_name);
+
+int canvas_alloc_attributes(struct Canvas* canvas, int attribute_i, int n);
 int canvas_alloc_indices(struct Canvas* canvas, int layer_i, const char* shader_name, GLenum primitive_type, int n);
+int canvas_alloc_text(struct Canvas* canvas, int layer_i, int text_i, const char* font_name, int n);
 
 void canvas_clear(struct Canvas* canvas, int layer_start, int layer_end);
 
-int canvas_append_vertices(struct Canvas* canvas, int layer_i, void* vertices, int n, const Mat model_matrix);
-int canvas_append_colors(struct Canvas* canvas, int layer_i, void* colors, int n, const Color color);
-int canvas_append_normals(struct Canvas* canvas, int layer_i, void* normals, int n);
-int canvas_append_texcoords(struct Canvas* canvas, int layer_i, void* texcoords, int n);
+int canvas_append_vertices(struct Canvas* canvas, void* vertices, int size, GLenum type, int n, const Mat model_matrix);
+int canvas_append_colors(struct Canvas* canvas, void* colors, int size, GLenum type, int n, const Color color);
+int canvas_append_texcoords(struct Canvas* canvas, void* texcoords, int size, GLenum type, int n);
+int canvas_append_normals(struct Canvas* canvas, void* normals, int size, GLenum type, int n);
+
 int canvas_append_indices(struct Canvas* canvas, int layer_i, const char* shader_name, GLenum primitive_type, unsigned int* indices, int n, int offset);
+int canvas_append_text(struct Canvas* canvas, int layer_i, int text_i, const char* font_name, unsigned int* indices, int n, int offset);
 
 #endif
