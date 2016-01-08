@@ -29,7 +29,7 @@ void draw_grid( struct Canvas* canvas,
     float vertices[size * 3];
     float colors[size * 4];
     unsigned int elements[size];
-    unsigned int offset = canvas->layer[layer_i].attributes[OGL_VERTICES].occupied;
+    unsigned int offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
 
     // 1  5  9 10----11
     // |  |  |
@@ -61,9 +61,9 @@ void draw_grid( struct Canvas* canvas,
         elements[i * 4 + 3] = offset + i * 4 + 3;
     }
 
-    canvas_append_vertices(canvas, layer_i, vertices, size, NULL);
-    canvas_append_colors(canvas, layer_i, colors, size, NULL);
-    canvas_append_indices(canvas, layer_i, "default", GL_LINES, elements, size, 0);
+    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, size, NULL);
+    canvas_append_colors(canvas, colors, 4, GL_FLOAT, size, NULL);
+    canvas_append_indices(canvas, layer_i, "default_shader", GL_LINES, elements, size, 0);
 }
 
 void draw_arrow( struct Canvas* canvas,
@@ -131,9 +131,9 @@ void draw_arrow( struct Canvas* canvas,
           3, 4,
           4, 1 };
 
-    canvas_append_vertices(canvas, layer_i, vertices, 5, arrow_matrix);
-    canvas_append_colors(canvas, layer_i, colors, 5, color);
-    canvas_append_indices(canvas, layer_i, "default", GL_LINES, elements, 8*2, 0);
+    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 5, arrow_matrix);
+    canvas_append_colors(canvas, colors, 4, GL_FLOAT, 5, color);
+    canvas_append_indices(canvas, layer_i, "default_shader", GL_LINES, elements, 8*2, 0);
 }
 
 void draw_vec( struct Canvas* canvas,
@@ -201,10 +201,10 @@ void draw_vec( struct Canvas* canvas,
           4, 5,
           5, 2 };
 
-    unsigned int offset = canvas->layer[layer_i].attributes[OGL_VERTICES].occupied;
-    canvas_append_vertices(canvas, layer_i, vertices, 6, arrow_matrix);
-    canvas_append_colors(canvas, layer_i, NULL, 6, color);
-    canvas_append_indices(canvas, layer_i, "default", GL_LINES, elements, 9*2, offset);
+    unsigned int offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 6, arrow_matrix);
+    canvas_append_colors(canvas, NULL, 4, GL_FLOAT, 6, color);
+    canvas_append_indices(canvas, layer_i, "default_shader", GL_LINES, elements, 9*2, offset);
 }
 
 void draw_quat( struct Canvas* canvas,
@@ -336,9 +336,9 @@ void draw_circle( struct Canvas* canvas,
         draw_arrow(canvas, layer, v, a, radius/2.0, 0.0, color, arrow_matrix);
     }
 
-    canvas_append_vertices(canvas, layer, vertices, 360, arrow_matrix);
-    canvas_append_colors(canvas, layer, colors, 360, color);
-    canvas_append_indices(canvas, layer, "default", GL_LINES, elements, 360*2, 0);
+    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 360, arrow_matrix);
+    canvas_append_colors(canvas, colors, 4, GL_FLOAT, 360, color);
+    canvas_append_indices(canvas, layer, "default_shader", GL_LINES, elements, 360*2, 0);
 }
 
 void draw_basis( struct Canvas* canvas,
@@ -416,9 +416,9 @@ void draw_reticle( struct Canvas* canvas,
           4, 5,
           6, 7 };
 
-    canvas_append_vertices(canvas, layer, vertices, 8, reticle_matrix);
-    canvas_append_colors(canvas, layer, colors, 8, color);
-    canvas_append_indices(canvas, layer, "default", GL_LINES, elements, 4*2, 0);
+    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 8, reticle_matrix);
+    canvas_append_colors(canvas, colors, 4, GL_FLOAT, 8, color);
+    canvas_append_indices(canvas, layer, "default_shader", GL_LINES, elements, 4*2, 0);
 }
 
 void draw_contact( struct Canvas* canvas,
