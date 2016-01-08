@@ -22,21 +22,21 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
     static GLuint texcoords_id = 0;
     static GLuint elements_id = 0;
 
-    GLfloat vertices[6*3] =
+    static GLfloat vertices[6*3] =
         { -0.5, 0.5, 0.0,
           0.5, 0.5, 0.0,
           0.5, -0.5, 0.0,
           0.5, -0.5, 0.0,
           -0.5, -0.5, 0.0,
           -0.5, 0.5,  0.0 };
-    GLfloat texcoords[6*2] =
+    static GLfloat texcoords[6*2] =
         { 0.0, 0.0,
           1.0, 0.0,
           1.0, 1.0,
           1.0, 1.0,
           0.0, 1.0,
           0.0, 0.0 };
-    GLuint elements[6] =
+    static GLuint elements[6] =
         { 0, 2, 1,
           3, 5, 4 };
 
@@ -102,17 +102,16 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
             GLint model_loc = glGetUniformLocation(font->shader.program, "model_matrix");
 
             if( glyph_loc > -1 ) {
-                unsigned int length = wcslen(text);
-                char ascii[length + 1];
-                size_t textsize = wcstombs(ascii, text, length);
-                if( textsize >= length ) {
-                    ascii[length] = '\0';
+                unsigned int text_length = wcslen(text);
+                char ascii[text_length + 1];
+                size_t textsize = wcstombs(ascii, text, text_length);
+                if( textsize >= text_length ) {
+                    ascii[text_length] = '\0';
                 }
 
-                Vec4f cursor_vec = {0.0,0.0,0.0,1.0};
+                Vec4f cursor_translation = {0.0,0.0,0.0,1.0};
                 bool newline = 0;
-                for( unsigned int i = 0; i < length; i++ ) {
-
+                for( unsigned int i = 0; i < text_length; i++ ) {
                     const struct Glyph* glyph = NULL;
                     if( font->unicode ) {
                         wchar_t c = text[i];
@@ -134,17 +133,17 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
 
                     if( newline && i > 0 ) {
                         float y = 1.0 + font->linespacing;
-                        cursor_vec[0] = 0.0;
-                        cursor_vec[1] -= y;
+                        cursor_translation[0] = 0.0;
+                        cursor_translation[1] -= y;
                     } else if( ! newline && i > 0 ) {
                         float x = 1.0 - font->kerning;
-                        cursor_vec[0] += x;
+                        cursor_translation[0] += x;
                     }
                     newline = 0;
 
                     Mat glyph_matrix;
                     mat_identity(glyph_matrix);
-                    mat_translate(glyph_matrix, cursor_vec, glyph_matrix);
+                    mat_translate(glyph_matrix, cursor_translation, glyph_matrix);
                     mat_scale(glyph_matrix, scale, glyph_matrix);
                     mat_mul(glyph_matrix, model_matrix, glyph_matrix);
 
@@ -179,7 +178,9 @@ void text_overlay(const wchar_t* text, const struct Font* font, int size, struct
 
     mat_rotate(text_matrix, camera.pivot.orientation, text_matrix);
 
-    float scale = (float)size/(float)camera.screen.height;
+    // multiplying with zNear fixes text being too small or too big when
+    // zNear is set to something other then 1.0
+    float scale = (float)size / (float)camera.screen.height * camera.frustum.zNear;
 
     glDisable(GL_DEPTH_TEST);
     text_put(text, font, scale, ortho_projection, ortho_view, text_matrix);
@@ -245,7 +246,7 @@ void show_render(const struct Font* font, int size, struct Camera camera) {
         if( ! default_font_created ) {
             struct Character symbols[256];
             default_font_create(symbols);
-            font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;+-*/=()[]{}", false, symbols, &default_font);
+            font_create(&default_font, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;+-*/=()[]{}", false, symbols, "default");
             default_font_created = 1;
         }
 
