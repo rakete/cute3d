@@ -11,6 +11,7 @@
 #include "math_types.h"
 #include "driver_ogl.h"
 #include "driver_glsl.h"
+#include "driver_shader.h"
 
 #ifndef FONT_SIZE
 #define FONT_SIZE 1024

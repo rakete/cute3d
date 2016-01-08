@@ -43,77 +43,16 @@ int init_vbo() {
     return ret;
 }
 
-// a helper function to resize a vbo, it takes a buffer argument and the old size
-// of the buffer and the new size it should be resized to, returns either the amount
-// of bytes that were added to the buffer size or 0 if nothing was resized
-int buffer_resize(GLuint* buffer, int old_bytes, int new_bytes) {
-    assert( buffer != NULL );
-
-    unsigned int new_buffer;
-    unsigned int old_buffer = *buffer;
-
-    if( new_bytes > old_bytes ) {
-        ogl_debug( glGenBuffers(1, &new_buffer);
-                   glBindBuffer(GL_COPY_WRITE_BUFFER, new_buffer);
-                   glBufferData(GL_COPY_WRITE_BUFFER, new_bytes, NULL, GL_STATIC_COPY); );
-
-        if( old_bytes > 0 && old_buffer > 0 ) {
-            ogl_debug( glBindBuffer(GL_COPY_READ_BUFFER, old_buffer);
-                       glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, old_bytes); );
-        }
-
-        if( old_buffer ) {
-            ogl_debug( glDeleteBuffers(1, &old_buffer) );
-        }
-
-        *buffer = new_buffer;
-
-        if( old_bytes > 0 && old_buffer ) {
-            ogl_debug( glBindBuffer(GL_COPY_READ_BUFFER, 0) );
-        }
-        ogl_debug( glBindBuffer(GL_COPY_WRITE_BUFFER, 0) );
-
-        return new_bytes - old_bytes;
-    }
-
-    return 0;
-}
-
-GLsizei sizeof_type(GLenum type) {
-    switch(type) {
-        case GL_FLOAT: return sizeof(GLfloat);
-        case GL_INT: return sizeof(GLint);
-        case GL_UNSIGNED_INT: return sizeof(GLuint);
-        case GL_SHORT: return sizeof(GLshort);
-        case GL_UNSIGNED_SHORT: return sizeof(GLushort);
-        case GL_BYTE: return sizeof(GLbyte);
-        case GL_UNSIGNED_BYTE: return sizeof(GLubyte);
-        default: return 0;
-    }
-    return 0;
-}
-
-GLsizei sizeof_primitive(GLenum primitive) {
-    switch(primitive) {
-        case GL_POINTS: return 1;
-        case GL_LINES: return 2;
-        case GL_TRIANGLES: return 3;
-        case GL_PATCHES: return 4;
-        default: return 0;
-    }
-    return 0;
-}
-
 int vbo_create(struct Vbo* p) {
     for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
-        for( int j = 0; j < NUM_OGL_ATTRIBUTES; j++ ) {
+        for( int j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
             p->_internal_buffer[i][j].id = 0;
             p->_internal_buffer[i][j].usage = GL_STATIC_DRAW;
         }
     }
     p->buffer = p->_internal_buffer[0];
 
-    for( int i = 0; i < NUM_OGL_ATTRIBUTES; i++ ) {
+    for( int i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
         p->components[i].size = 0;
         p->components[i].type = 0;
         p->components[i].bytes = 0;
@@ -147,16 +86,16 @@ void vbo_add_buffer(struct Vbo* vbo,
                     GLenum component_t,
                     GLenum usage)
 {
-    if( vbo && i < NUM_OGL_ATTRIBUTES ) {
+    if( vbo && i < NUM_SHADER_ATTRIBUTES ) {
         ogl_debug( glGenBuffers(1, &vbo->buffer[i].id) );
 
         vbo->buffer[i].usage = usage;
 
         vbo->components[i].size = component_n;
         vbo->components[i].type = component_t;
-        vbo->components[i].bytes = sizeof_type(component_t);
+        vbo->components[i].bytes = ogl_sizeof_type(component_t);
 
-        int nbytes = vbo->capacity * component_n * sizeof_type(component_t);
+        int nbytes = vbo->capacity * component_n * ogl_sizeof_type(component_t);
         ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
                    glBufferData(GL_ARRAY_BUFFER, nbytes, NULL, usage);
                    glBindBuffer(GL_ARRAY_BUFFER, 0); );
@@ -173,12 +112,12 @@ int vbo_alloc(struct Vbo* vbo, int n) {
         // is still -1 after the loop)
         int resized_bytes = -1;
 
-        for( int i = 0; i < NUM_OGL_ATTRIBUTES && resized_bytes != 0; i++ ) {
+        for( int i = 0; i < NUM_SHADER_ATTRIBUTES && resized_bytes != 0; i++ ) {
             if( vbo->buffer[i].id ) {
                 int new_bytes = (vbo->capacity + n) * vbo->components[i].size * vbo->components[i].bytes;
                 int old_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
 
-                resized_bytes = buffer_resize(&vbo->buffer[i].id, old_bytes, new_bytes);
+                resized_bytes = ogl_buffer_resize(&vbo->buffer[i].id, old_bytes, new_bytes);
             }
         }
 
@@ -213,7 +152,7 @@ int vbo_available_bytes(struct Vbo* vbo, int i) {
 
 void vbo_fill_value(struct Vbo* vbo, int i, int offset_n, int size_n, int value) {
     if( vbo && vbo->buffer[i].id && offset_n < vbo->capacity && size_n <= vbo->capacity ) {
-        void* array = malloc( sizeof_type(vbo->components[i].type) * size_n );
+        void* array = malloc( ogl_sizeof_type(vbo->components[i].type) * size_n );
         int array_offset = offset_n * vbo->components[i].size;
         int array_size = size_n * vbo->components[i].size;
 
@@ -296,15 +235,15 @@ int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GL
         mesh->offset = vbo->occupied;
         mesh->capacity = 0;
 
-        for( int i = 0; i < NUM_OGL_ATTRIBUTES; i++ ) {
+        for( int i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
             mesh->occupied[i] = 0;
         }
 
         mesh->primitives.type = primitive_type;
-        mesh->primitives.size = sizeof_primitive(primitive_type);
+        mesh->primitives.size = ogl_sizeof_primitive(primitive_type);
 
         mesh->index.type = index_type;
-        mesh->index.bytes = sizeof_type(index_type);
+        mesh->index.bytes = ogl_sizeof_type(index_type);
 
         for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
             mesh->_internal_indices[i].id = 0;
@@ -342,7 +281,7 @@ void vbomesh_print(FILE* f, struct VboMesh* mesh) {
     fprintf(f, "mesh->capacity: %d\n", mesh->capacity);
 
     for( int i = 0; i < NUM_VBO_PHASES; i++ ) {
-        for( int j = 0; j < NUM_OGL_ATTRIBUTES; j++ ) {
+        for( int j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
             if( mesh->occupied[j] > 0 ) {
                 fprintf(f, "mesh->occupied[%d]: %d\n", j, mesh->occupied[j]);
                 fprintf(f, "mesh->vbo->buffer[%d][%d]:\n", i, j);
@@ -451,7 +390,7 @@ int vbomesh_alloc_indices(struct VboMesh* mesh, int n) {
     if( mesh && mesh->indices->id ) {
         int size_bytes = mesh->indices->capacity * mesh->index.bytes;
         int alloc_bytes = n * mesh->index.bytes;
-        int resized_bytes = buffer_resize(&mesh->indices->id, size_bytes, size_bytes + alloc_bytes);
+        int resized_bytes = ogl_buffer_resize(&mesh->indices->id, size_bytes, size_bytes + alloc_bytes);
 
         // - we could return resized_bytes, but all other alloc functions return the number
         //   of elements allocated, so we just do the same here
@@ -467,7 +406,7 @@ int vbomesh_alloc_indices(struct VboMesh* mesh, int n) {
 }
 
 void vbomesh_clear_attributes(struct VboMesh* mesh) {
-    for( int i = 0; i < NUM_OGL_ATTRIBUTES; i++ ) {
+    for( int i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
         mesh->occupied[i] = 0;
     }
 }
@@ -487,7 +426,7 @@ int vbomesh_append_buffer_generic(struct VboMesh* mesh, int i, void* data, int n
         }
 
         // only these depend on given size params => generic data append
-        int attrib_bytes = components_size * sizeof_type(components_type);
+        int attrib_bytes = components_size * ogl_sizeof_type(components_type);
         int append_bytes = n * attrib_bytes;
 
         // stuff that relies on vbo size values

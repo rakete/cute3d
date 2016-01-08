@@ -4,14 +4,18 @@
 #include "string.h"
 
 #include "driver_ogl.h"
+#include "driver_shader.h"
+#include "driver_log.h"
 #include "math_matrix.h"
+
+#include "gui_font.h"
 
 #ifndef DEFAULT_CANVAS_ALLOC
 #define DEFAULT_CANVAS_ALLOC 512
 #endif
 
-#ifndef NUM_CANVAS_LAYER
-#define NUM_CANVAS_LAYER 32
+#ifndef NUM_CANVAS_LAYERS
+#define NUM_CANVAS_LAYERS 32
 #endif
 
 #ifndef NUM_CANVAS_SHADER

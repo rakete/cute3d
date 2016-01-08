@@ -25,18 +25,13 @@
 
 #include "driver_log.h"
 #include "driver_ogl.h"
+#include "driver_shader.h"
 
 #ifndef NUM_VBO_PHASES
 #define NUM_VBO_PHASES 1
 #endif
 
 int init_vbo();
-
-int buffer_resize(GLuint* buffer, int old_nbytes, int new_nbytes);
-
-GLsizei sizeof_type(GLenum type);
-
-GLsizei sizeof_primitive(GLenum primitive);
 
 enum VboScheduling {
     VBO_MANY_BUFFER = 0,
@@ -59,14 +54,14 @@ struct Vbo {
     struct VboBuffer {
         GLuint id;
         GLenum usage;
-    } _internal_buffer[NUM_VBO_PHASES][NUM_OGL_ATTRIBUTES];
+    } _internal_buffer[NUM_VBO_PHASES][NUM_SHADER_ATTRIBUTES];
     struct VboBuffer* buffer;
 
     struct VboComponents {
         int size; // the number of components per element (eg a vertex3 element has three components)
         GLenum type; // the gl type of the individual components (probably GL_float)
         int bytes; // size of a single component (sizeof GL_float)
-    } components[NUM_OGL_ATTRIBUTES];
+    } components[NUM_SHADER_ATTRIBUTES];
 
     // - the units of these are in attributes, capacity is universally used for the different attribute buffers,
     //   which may all have different numbers of components, so then these must indicate for example how many
@@ -122,7 +117,7 @@ struct VboMesh {
     // - occupied in vbomesh is the actual used space that has attributes in it
     // - same unit as the ones in struct Vbo
     int capacity; // capacity of mesh in vbo
-    int occupied[NUM_OGL_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer
+    int occupied[NUM_SHADER_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer
 
     // information about the index type used in the primitives buffer
     struct VboMeshIndex {
