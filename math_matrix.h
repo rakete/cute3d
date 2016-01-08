@@ -48,10 +48,10 @@ MatP vcopy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
 
 // vector comparison
 void vec_equal(const Vec a, const Vec b, int* r);
-int vequal(const Vec a, const Vec b);
+int32_t vequal(const Vec a, const Vec b);
 
 void vec_equal3f(const Vec3f a, const Vec3f b, int* r);
-int vequal3f(const Vec3f a, const Vec3f b);
+int32_t vequal3f(const Vec3f a, const Vec3f b);
 
 // vector arithmetic
 void vec_add(const Vec v, const Vec3f w, Vec r);
@@ -123,7 +123,7 @@ void vec_sum(const Vec v, float* sum);
 float vsum(const Vec v);
 
 void vec_sign(const Vec v, int* sign);
-int vsign(const Vec v);
+int32_t vsign(const Vec v);
 
 void vec_perpendicular(const Vec v, Vec r);
 VecP vperpendicular(const Vec v);

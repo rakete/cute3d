@@ -16,8 +16,8 @@
 
 #include "driver_shader.h"
 
-int init_shader() {
-    int ret = 0;
+int32_t init_shader() {
+    int32_t ret = 0;
 
     glewInit();
     if( ! glewGetExtension("GL_ARB_uniform_buffer_object") )
@@ -35,19 +35,19 @@ void shader_create_empty(struct Shader* p) {
     p->vertex_shader = 0;
     p->fragment_shader = 0;
 
-    for( int j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
+    for( int32_t j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
         p->attribute[j].location = -1;
         p->attribute[j].name[0] = '\0';
     }
 
-    for( int j = 0; j < NUM_SHADER_UNIFORMS; j++ ) {
+    for( int32_t j = 0; j < NUM_SHADER_UNIFORMS; j++ ) {
         p->uniform[j].location = -1;
         p->uniform[j].name[0] = '\0';
     }
 }
 
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p) {
-    int name_length = strlen(name);
+    int32_t name_length = strlen(name);
     assert( name_length > 0 );
     assert( name_length < 256 );
 
@@ -67,19 +67,19 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
         p->program = 0;
     }
 
-    for( int i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
         p->attribute[i].name[0] = '\0';
         p->attribute[i].location = -1;
     }
 
-    for( int i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
+    for( int32_t i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
         p->uniform[i].name[0] = '\0';
         p->uniform[i].location = -1;
     }
 }
 
 void shader_create_from_sources(const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p) {
-    int name_length = strlen(name);
+    int32_t name_length = strlen(name);
     assert( name_length > 0 );
     assert( name_length < 256 );
 
@@ -97,12 +97,12 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
         p->program = 0;
     }
 
-    for( int i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
         p->attribute[i].name[0] = '\0';
         p->attribute[i].location = -1;
     }
 
-    for( int i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
+    for( int32_t i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
         p->uniform[i].name[0] = '\0';
         p->uniform[i].location = -1;
     }
@@ -112,7 +112,7 @@ void shader_copy(struct Shader* const src, struct Shader* dst) {
     assert( src != NULL );
     assert( dst != NULL );
 
-    int name_length = strlen(src->name);
+    int32_t name_length = strlen(src->name);
     assert( name_length >= 0 );
     assert( name_length < 256 );
     strncpy(dst->name, src->name, name_length+1);
@@ -121,16 +121,16 @@ void shader_copy(struct Shader* const src, struct Shader* dst) {
     dst->vertex_shader = src->vertex_shader;
     dst->fragment_shader = src->fragment_shader;
 
-    for( int i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
-        int attribute_name_length = strlen(src->attribute[i].name);
+    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+        int32_t attribute_name_length = strlen(src->attribute[i].name);
         assert( attribute_name_length >= 0 );
         assert( attribute_name_length < 256 );
         strncpy(dst->attribute[i].name, src->attribute[i].name, attribute_name_length+1);
         dst->attribute[i].location = src->attribute[i].location;
     }
 
-    for( int i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
-        int uniform_name_length = strlen(src->uniform[i].name);
+    for( int32_t i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
+        int32_t uniform_name_length = strlen(src->uniform[i].name);
         assert( uniform_name_length >= 0 );
         assert( uniform_name_length < 256 );
         strncpy(dst->uniform[i].name, src->uniform[i].name, uniform_name_length+1);
@@ -138,8 +138,8 @@ void shader_copy(struct Shader* const src, struct Shader* dst) {
     }
 }
 
-GLint shader_attribute(struct Shader* shader, int attribute_index, const char* name, int n, const char* type, void* data) {
-    int name_length = strlen(name);
+GLint shader_attribute(struct Shader* shader, int32_t attribute_index, const char* name, int32_t n, const char* type, void* data) {
+    int32_t name_length = strlen(name);
     assert( name_length > 0 );
     assert( name_length < 256 );
 
@@ -167,7 +167,7 @@ GLint shader_attribute(struct Shader* shader, int attribute_index, const char* n
 
     if( id > -1 && type && data ) {
         glUseProgram(shader->program);
-        int data_component_size = 0;
+        int32_t data_component_size = 0;
         GLenum data_component_type = GL_FLOAT;
         GLenum data_usage = GL_STATIC_DRAW;
         if( strncmp(type, "4f", 2) == 0 ) {
@@ -180,7 +180,7 @@ GLint shader_attribute(struct Shader* shader, int attribute_index, const char* n
             data_component_type = GL_FLOAT;
             data_component_size = 2;
         }
-        int data_bytes = n * data_component_size * ogl_sizeof_type(data_component_type);
+        int32_t data_bytes = n * data_component_size * ogl_sizeof_type(data_component_type);
 
         glBindBuffer(GL_ARRAY_BUFFER, id);
         glBufferData(GL_ARRAY_BUFFER, data_bytes, data, data_usage);
@@ -190,8 +190,8 @@ GLint shader_attribute(struct Shader* shader, int attribute_index, const char* n
     return id;
 }
 
-GLint shader_uniform(struct Shader* shader, int uniform_index, const char* name, const char* type, void* data) {
-    int name_length = strlen(name);
+GLint shader_uniform(struct Shader* shader, int32_t uniform_index, const char* name, const char* type, void* data) {
+    int32_t name_length = strlen(name);
     assert( name_length > 0 );
     assert( name_length < 256 );
 
@@ -273,14 +273,14 @@ void shader_print(FILE* f, struct Shader* const shader) {
     fprintf(f, "shader->fragment_shader: %d\n", shader->fragment_shader);
     fprintf(f, "shader->program: %d\n", shader->program);
 
-    for( int i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
         if( strlen(shader->attribute[i].name) > 0 ) {
             fprintf(f, "shader->attribute[%d].name: %s\n", i, shader->attribute[i].name);
             fprintf(f, "shader->attribute[%d].location: %d\n", i, shader->attribute[i].location);
         }
     }
 
-    for( int i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
+    for( int32_t i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
         if( strlen(shader->uniform[i].name) > 0 ) {
             fprintf(f, "shader->uniform[%d].name: %s\n", i, shader->uniform[i].name);
             fprintf(f, "shader->uniform[%d].location: %d\n", i, shader->uniform[i].location);

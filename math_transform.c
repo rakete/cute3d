@@ -31,8 +31,8 @@ void pivot_create(struct Pivot* pivot) {
     pivot->eye_distance = 1.0;
 }
 
-int pivot_lookat(struct Pivot* pivot, const Vec target) {
-    int result = -1;
+int32_t pivot_lookat(struct Pivot* pivot, const Vec target) {
+    int32_t result = -1;
 
     Vec right_axis = { 1.0, 0.0, 0.0, 1.0 };
     Vec up_axis = { 0.0, 1.0, 0.0, 1.0 };
@@ -47,11 +47,11 @@ int pivot_lookat(struct Pivot* pivot, const Vec target) {
 
     Quat rotation;
     if( fabs(dot + 1.0f) < FLOAT_EPSILON ) {
-        // vector a and b point exactly in the opposite direction,
+        // vector a and b point32_t exactly in the opposite direction,
         // so it is a 180 degrees turn around the up-axis
         quat_mul_axis_angle(pivot->orientation, up_axis, PI, rotation);
     } else if( fabs(dot - (1.0f)) < FLOAT_EPSILON ) {
-        // vector a and b point exactly in the same direction
+        // vector a and b point32_t exactly in the same direction
         // so we return the identity quaternion
         quat_copy(pivot->orientation, rotation);
     } else {
@@ -74,7 +74,7 @@ int pivot_lookat(struct Pivot* pivot, const Vec target) {
         vec_sub(target_direction, up_projection, yaw_direction);
 
         // - angle between yaw_direction and forward_axis is the amount of yaw we
-        //   need to point the forward_axis toward the target
+        //   need to point32_t the forward_axis toward the target
         float yaw;
         vec_angle(yaw_direction, forward_axis, &yaw);
         assert( ! isnan(yaw) );
@@ -124,7 +124,7 @@ int pivot_lookat(struct Pivot* pivot, const Vec target) {
         Quat inverted_orientation;
         quat_invert(pivot->orientation, inverted_orientation);
 
-        // - the int I want to return indicates the cameras 'flip' status, that is, it is
+        // - the int32_t I want to return indicates the cameras 'flip' status, that is, it is
         //   one when the camera angle was pitched so much that it flipped over and its
         //   up axis is now pointing downwards
         // - to find out if I am flipped over, I compute a the flipped up_axis called

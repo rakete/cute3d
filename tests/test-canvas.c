@@ -23,7 +23,7 @@ void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
     vbomesh_append_indices(mesh, solid->indices, solid->size);
 }
 
-int event_filter(void* p, SDL_Event* event) {
+int32_t event_filter(void* p, SDL_Event* event) {
     switch(event->type) {
         case SDL_QUIT:
         case SDL_WINDOWEVENT:
@@ -40,7 +40,7 @@ int event_filter(void* p, SDL_Event* event) {
     return 0;
 }
 
-int main(int argc, char *argv[]) {
+int32_t main(int32_t argc, char *argv[]) {
     if( init_sdl2() ) {
         return 1;
     }

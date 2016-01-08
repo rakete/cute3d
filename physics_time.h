@@ -1,3 +1,5 @@
+#include "stdint.h"
+
 struct GameTime {
     double t;
     double dt;
@@ -14,4 +16,4 @@ void gametime_createx(double dt, double t, double frame, double max_frame, doubl
 
 void gametime_advance(struct GameTime* time, double delta);
 
-int gametime_integrate(struct GameTime* time);
+int32_t gametime_integrate(struct GameTime* time);

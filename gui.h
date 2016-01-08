@@ -31,7 +31,7 @@
 #include "gui_default_font.h"
 
 void text_put(const wchar_t* text, const struct Font* font, float scale, const Mat projection_matrix, const Mat view_matrix, Mat model_matrix);
-void text_overlay(const wchar_t* text, const struct Font* font, int size, struct Camera camera, int x, int y);
+void text_overlay(const wchar_t* text, const struct Font* font, int32_t size, struct Camera camera, int32_t x, int32_t y);
 
 #ifndef SHOW_BUFSIZE
 #define SHOW_BUFSIZE 8192
@@ -45,6 +45,6 @@ void show_time(double time);
 
 void show_vec(const char* title, Vec v);
 
-void show_render(const struct Font* font, int size, struct Camera camera);
+void show_render(const struct Font* font, int32_t size, struct Camera camera);
 
 #endif

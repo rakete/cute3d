@@ -1,6 +1,6 @@
 #include "geometry_halfedgemesh.h"
 
-int halfedgemesh_create(struct HalfEdgeMesh* mesh) {
+int32_t halfedgemesh_create(struct HalfEdgeMesh* mesh) {
     mesh->size = 0;
 
     mesh->vertices.capacity = 0;
@@ -18,7 +18,7 @@ int halfedgemesh_create(struct HalfEdgeMesh* mesh) {
     return 0;
 }
 
-int halfedgemesh_destroy(struct HalfEdgeMesh* mesh) {
+int32_t halfedgemesh_destroy(struct HalfEdgeMesh* mesh) {
     free(mesh->vertices.array);
     free(mesh->faces.array);
     free(mesh->edges.array);
@@ -28,8 +28,8 @@ int halfedgemesh_destroy(struct HalfEdgeMesh* mesh) {
     return 0;
 }
 
-int halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, int n) {
-    int new_capacity = mesh->vertices.capacity + n;
+int32_t halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, int32_t n) {
+    int32_t new_capacity = mesh->vertices.capacity + n;
     struct HalfEdgeVertex* new_array = realloc(mesh->vertices.array, new_capacity * sizeof(struct HalfEdgeVertex));
 
     if( new_array ) {
@@ -41,8 +41,8 @@ int halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, int n) {
     return 0;
 }
 
-int halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, int n) {
-    int new_capacity = mesh->faces.capacity + n;
+int32_t halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, int32_t n) {
+    int32_t new_capacity = mesh->faces.capacity + n;
     struct HalfEdgeFace* new_array = realloc(mesh->faces.array, new_capacity * sizeof(struct HalfEdgeFace));
 
     if( new_array ) {
@@ -55,8 +55,8 @@ int halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, int n) {
 }
 
 
-int halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, int n) {
-    int new_capacity = mesh->edges.capacity + n;
+int32_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, int32_t n) {
+    int32_t new_capacity = mesh->edges.capacity + n;
     struct HalfEdge* new_array = realloc(mesh->edges.array, new_capacity * sizeof(struct HalfEdge));
 
     if( new_array ) {
@@ -97,9 +97,9 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
     // we also use this loop to find the largest vertex index from solid->triangles, since
     // each unique vertex should be represented by one unique index, the largest index + 1
     // should be the number of unique vertices
-    int unique_vertex_map[solid->size];
-    int num_unique_vertices = 0;
-    for( int i = 0; i < solid->size; i++ ) {
+    int32_t unique_vertex_map[solid->size];
+    int32_t num_unique_vertices = 0;
+    for( int32_t i = 0; i < solid->size; i++ ) {
         unique_vertex_map[i] = -1;
 
         if( solid->triangles[i] > num_unique_vertices || i == 0 ) {
@@ -111,12 +111,12 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
     // the edges_map is initialized like the unique_vertex_map and used in a similar way, to be used
     // later when we need to decide if an edge has already been seen so that we can set the
     // correct other indices
-    int num_triangles = solid->size/3;
-    int edges_map[num_unique_vertices][num_unique_vertices];
-    for( int i = 0; i < num_triangles; i++ ) {
-        int a = solid->triangles[i*3+0];
-        int b = solid->triangles[i*3+1];
-        int c = solid->triangles[i*3+2];
+    int32_t num_triangles = solid->size/3;
+    int32_t edges_map[num_unique_vertices][num_unique_vertices];
+    for( int32_t i = 0; i < num_triangles; i++ ) {
+        int32_t a = solid->triangles[i*3+0];
+        int32_t b = solid->triangles[i*3+1];
+        int32_t c = solid->triangles[i*3+2];
 
         edges_map[a][b] = -1;
         edges_map[a][c] = -1;
@@ -131,39 +131,39 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
     // we need to make sure that we'll have enough space occupied in the mesh for all
     // the data that we are going to add
     // this ist lacking error handling
-    int free_vertices_capacity = mesh->vertices.capacity - mesh->vertices.occupied;
+    int32_t free_vertices_capacity = mesh->vertices.capacity - mesh->vertices.occupied;
     if( free_vertices_capacity < num_unique_vertices ) {
         halfedgemesh_alloc_vertices(mesh, num_unique_vertices - free_vertices_capacity);
     }
 
-    int free_faces_capacity = mesh->faces.capacity - mesh->faces.occupied;
+    int32_t free_faces_capacity = mesh->faces.capacity - mesh->faces.occupied;
     if( free_faces_capacity < num_triangles ) {
         halfedgemesh_alloc_faces(mesh, num_triangles - free_faces_capacity);
     }
 
-    int free_edges_capacity = mesh->edges.capacity - mesh->edges.occupied;
+    int32_t free_edges_capacity = mesh->edges.capacity - mesh->edges.occupied;
     if( free_edges_capacity < num_triangles*3 ) {
         halfedgemesh_alloc_edges(mesh, num_triangles*3 - free_edges_capacity);
     }
 
-    int vertex_i = mesh->vertices.occupied;
-    int face_i = mesh->faces.occupied;
-    int edge_i = mesh->edges.occupied;
-    for( int i = 0; i < num_triangles; i++ ) {
+    int32_t vertex_i = mesh->vertices.occupied;
+    int32_t face_i = mesh->faces.occupied;
+    int32_t edge_i = mesh->edges.occupied;
+    for( int32_t i = 0; i < num_triangles; i++ ) {
 
         // mainloop iterates once over all triangles, then iterates over the vertices of a triangle,
         // collects each vertex normal, checks if the vertex is unique by looking up its triangle index in
         // unique_vertex_map, and if it is unique it adds it to the mesh and increases vertex_i, the
         // counter for vertices added to the mesh
         float normals[9] = { 0 };
-        int triangle[3] = {
+        int32_t triangle[3] = {
             solid->triangles[i*3+0],
             solid->triangles[i*3+1],
             solid->triangles[i*3+2]
         };
 
-        for( int j = 0; j < 3; j++ ) {
-            int solid_i = i*3*3+j*3;
+        for( int32_t j = 0; j < 3; j++ ) {
+            int32_t solid_i = i*3*3+j*3;
             normals[j*3+0] = solid->normals[solid_i+0];
             normals[j*3+1] = solid->normals[solid_i+1];
             normals[j*3+2] = solid->normals[solid_i+2];
@@ -187,9 +187,9 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
 
         // convience names for the three vertex indices from triangle that we'll use to represent the halfedges
         // a -> b, b -> c and c -> a
-        int a = triangle[0];
-        int b = triangle[1];
-        int c = triangle[2];
+        int32_t a = triangle[0];
+        int32_t b = triangle[1];
+        int32_t c = triangle[2];
         assert( a != b && b != c && c != a );
 
         // we assume each pair of vertex indices, representing an edge, gets seen once as a -> b and once again
@@ -203,14 +203,14 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         assert( edges_map[c][a] == -1 );
 
         // indices for the three new halfedges we'll create in the mesh
-        int ca_i = -1;
-        int ab_i = -1;
-        int bc_i = -1;
+        int32_t ca_i = -1;
+        int32_t ab_i = -1;
+        int32_t bc_i = -1;
 
         // if we had already seen the current edge in a previous iteration, then with flipped indices (in this
         // a -> b case we would have seen b -> a previously), and we can check that by testing if edges_map[b][a]
         // has already been set to something other then -1
-        int ab_other_i = -1;
+        int32_t ab_other_i = -1;
         if( edges_map[b][a] != -1 ) {
             // restore the other index from the already seen edge
             ab_other_i = edges_map[b][a];
@@ -226,14 +226,14 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         }
 
         // these two are the same as the ab case above, but for bc and ca
-        int bc_other_i = -1;
+        int32_t bc_other_i = -1;
         if( edges_map[c][b] != -1 ) {
             bc_other_i = edges_map[c][b];
             bc_i = bc_other_i + 1;
             mesh->edges.array[bc_other_i].other = bc_i;
         }
 
-        int ca_other_i = -1;
+        int32_t ca_other_i = -1;
         if( edges_map[a][c] != -1 ) {
             ca_other_i = edges_map[a][c];
             ca_i = ca_other_i + 1;
@@ -246,7 +246,7 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         // now I may have a situation where all edges are new, but most likely one, two or all three of them
         // are _not_ new, so I have to account for that and set only those indices to newly spaced indices
         // that belong to actually new edges
-        int edge_i_inc = 0;
+        int32_t edge_i_inc = 0;
         if( ca_i == -1 ) {
             // when ca_i is -1, it was not set in the if conditionals above, and therefore belongs
             // to a new (unique) edge, so we set it to edge_i + edge_i_inc and then increase edge_i by 2
@@ -392,7 +392,7 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
     }
 }
 
-void solid_triangulate(float* vertices, int n, int* triangles, int m) {
+void solid_triangulate(float* vertices, int32_t n, int32_t* triangles, int32_t m) {
     assert( n >= 3 );
     assert( n < INT_MAX/3 );
     assert( m <= 3 * n - 2);
@@ -414,12 +414,12 @@ void solid_triangulate(float* vertices, int n, int* triangles, int m) {
 void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
     assert(mesh->size == solid->size);
 
-    int vertices_offset = 0;
-    int normals_offset = 0;
-    int indices_offset = 0;
-    int triangles_offset = 0;
+    int32_t vertices_offset = 0;
+    int32_t normals_offset = 0;
+    int32_t indices_offset = 0;
+    int32_t triangles_offset = 0;
 
-    for( int i = 0; i < mesh->faces.occupied; i++ ) {
+    for( int32_t i = 0; i < mesh->faces.occupied; i++ ) {
         struct HalfEdgeFace* face = &mesh->faces.array[i];
 
         if( face->edge == -1 ) {
@@ -428,10 +428,10 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
 
         float face_vertices[face->size*3];
         float edge_normals[face->size*3];
-        int face_triangles[face->size];
+        int32_t face_triangles[face->size];
 
         struct HalfEdge* current_edge = &mesh->edges.array[face->edge];
-        for( int face_vertex_i = 0; face_vertex_i < face->size; face_vertex_i++ ) {
+        for( int32_t face_vertex_i = 0; face_vertex_i < face->size; face_vertex_i++ ) {
             face_vertices[face_vertex_i*3+0] = mesh->vertices.array[current_edge->vertex].position[0];
             face_vertices[face_vertex_i*3+1] = mesh->vertices.array[current_edge->vertex].position[1];
             face_vertices[face_vertex_i*3+2] = mesh->vertices.array[current_edge->vertex].position[2];
@@ -445,15 +445,15 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
             current_edge = &mesh->edges.array[current_edge->next];
         }
 
-        int tesselation_size = 3 * (face->size - 2);
-        int face_tesselation[tesselation_size];
+        int32_t tesselation_size = 3 * (face->size - 2);
+        int32_t face_tesselation[tesselation_size];
         solid_triangulate(face_vertices, face->size, face_tesselation, tesselation_size);
 
-        for( int j = 0; j < tesselation_size ; j++ ) {
-            int k = face_tesselation[j];
-            int x = k*3+0;
-            int y = k*3+1;
-            int z = k*3+2;
+        for( int32_t j = 0; j < tesselation_size ; j++ ) {
+            int32_t k = face_tesselation[j];
+            int32_t x = k*3+0;
+            int32_t y = k*3+1;
+            int32_t z = k*3+2;
 
             solid->vertices[vertices_offset+0] = face_vertices[x];
             solid->vertices[vertices_offset+1] = face_vertices[y];
@@ -474,7 +474,7 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
     }
 }
 
-int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int face_i, int all_edges, Vec3f equal_normal, Vec3f average_normal, Vec3f cross_normal) {
+int32_t halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int32_t face_i, int32_t all_edges, Vec3f equal_normal, Vec3f average_normal, Vec3f cross_normal) {
     assert(face_i <= mesh->faces.occupied);
     assert(equal_normal != NULL || average_normal != NULL || cross_normal != NULL);
 
@@ -483,7 +483,7 @@ int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int face_i, int all_edge
     struct HalfEdge* first_edge = &mesh->edges.array[face->edge];
     struct HalfEdge* current_edge = &mesh->edges.array[face->edge];
 
-    int result = 0;
+    int32_t result = 0;
     if( equal_normal != NULL ) {
         vec_copy3f(first_edge->normal, equal_normal);
     }
@@ -503,7 +503,7 @@ int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int face_i, int all_edge
     }
 
     if( all_edges && (equal_normal != NULL || average_normal != NULL || cross_normal != NULL) ) {
-        for( int i = 0; i < face->size-1; i++ ) {
+        for( int32_t i = 0; i < face->size-1; i++ ) {
             if( equal_normal != NULL && vequal3f(first_edge->normal, current_edge->normal) ) {
                 result = 1;
             }
@@ -550,7 +550,7 @@ int halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int face_i, int all_edge
     return result;
 }
 
-int halfedgemesh_face_iterate(struct HalfEdgeMesh* mesh, int face_i, struct HalfEdge** edge, int* edge_i, int* i) {
+int32_t halfedgemesh_face_iterate(struct HalfEdgeMesh* mesh, int32_t face_i, struct HalfEdge** edge, int32_t* edge_i, int32_t* i) {
     assert( face_i <= mesh->faces.occupied );
     assert( edge != NULL );
     assert( i != NULL );
@@ -573,13 +573,13 @@ int halfedgemesh_face_iterate(struct HalfEdgeMesh* mesh, int face_i, struct Half
     return 1;
 }
 
-int halfedgemesh_vertex_iterate(struct HalfEdgeMesh* mesh, int vertex_i, struct HalfEdge** edge, int* edge_i, int* i) {
+int32_t halfedgemesh_vertex_iterate(struct HalfEdgeMesh* mesh, int32_t vertex_i, struct HalfEdge** edge, int32_t* edge_i, int32_t* i) {
     assert( vertex_i <= mesh->vertices.occupied );
     assert( edge != NULL );
     assert( edge_i != NULL );
     assert( i != NULL );
 
-    int result = 0;
+    int32_t result = 0;
     if( *i == 0 || *edge_i == -1 ) {
         *edge_i = mesh->vertices.array[vertex_i].edge;
         result = 1;
@@ -607,42 +607,42 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
     //
     // after checking all edges, remove those edges marked for removal,
     // remove all faces marked for removal
-    int edge_check[mesh->edges.occupied];
-    for( int i = 0; i < mesh->edges.occupied; i++ ) {
+    int32_t edge_check[mesh->edges.occupied];
+    for( int32_t i = 0; i < mesh->edges.occupied; i++ ) {
         edge_check[i] = 1;
     }
 
-    int face_has_normal[mesh->size/3];
+    int32_t face_has_normal[mesh->size/3];
     float face_normals[mesh->size];
-    for( int i = 0; i < mesh->size; i++ ) {
+    for( int32_t i = 0; i < mesh->size; i++ ) {
         if( i < mesh->size/3 ) {
             face_has_normal[i] = 0;
         }
         face_normals[i] = 0.0f;
     }
 
-    int removed_faces[mesh->faces.occupied];
-    int num_removed_faces = 0;
+    int32_t removed_faces[mesh->faces.occupied];
+    int32_t num_removed_faces = 0;
 
-    int removed_edges[mesh->edges.occupied];
-    int num_removed_edges = 0;
+    int32_t removed_edges[mesh->edges.occupied];
+    int32_t num_removed_edges = 0;
 
-    int removed_vertices[mesh->vertices.occupied];
-    int num_removed_vertices = 0;
+    int32_t removed_vertices[mesh->vertices.occupied];
+    int32_t num_removed_vertices = 0;
 
-    int attached_edges[mesh->vertices.occupied];
-    for( int i = 0; i < mesh->vertices.occupied; i++ ) {
+    int32_t attached_edges[mesh->vertices.occupied];
+    for( int32_t i = 0; i < mesh->vertices.occupied; i++ ) {
         attached_edges[i] = 0;
     }
 
-    for( int this_i = 0; this_i < mesh->edges.occupied; this_i++ ) {
+    for( int32_t this_i = 0; this_i < mesh->edges.occupied; this_i++ ) {
         if( edge_check[this_i] > 0 ) {
-            int other_i = mesh->edges.array[this_i].other;
+            int32_t other_i = mesh->edges.array[this_i].other;
             edge_check[this_i] = 0;
             edge_check[other_i] = 0;
 
-            int face_one_i = mesh->edges.array[this_i].face;
-            int face_two_i = mesh->edges.array[other_i].face;
+            int32_t face_one_i = mesh->edges.array[this_i].face;
+            int32_t face_two_i = mesh->edges.array[other_i].face;
 
             if( ! face_has_normal[face_one_i] ) {
                 face_has_normal[face_one_i] = halfedgemesh_face_normal(mesh, face_one_i, 1, face_normals+face_one_i*3, NULL, NULL);
@@ -685,16 +685,16 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
                     assert( this->next != other->this );
                     assert( this->prev != other->next );
 
-                    int halfedge_a_i = this->next;
+                    int32_t halfedge_a_i = this->next;
                     struct HalfEdge* halfedge_a = &mesh->edges.array[halfedge_a_i];
 
-                    int halfedge_b_i = other->prev;
+                    int32_t halfedge_b_i = other->prev;
                     struct HalfEdge* halfedge_b = &mesh->edges.array[halfedge_b_i];
 
-                    int halfedge_c_i = this->prev;
+                    int32_t halfedge_c_i = this->prev;
                     struct HalfEdge* halfedge_c = &mesh->edges.array[halfedge_c_i];
 
-                    int halfedge_d_i = other->next;
+                    int32_t halfedge_d_i = other->next;
                     struct HalfEdge* halfedge_d = &mesh->edges.array[halfedge_d_i];
 
                     // a\  /b
@@ -715,8 +715,8 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
 
                     // - change all edges in face 2 so that they belong to 1,
                     struct HalfEdge* iter_edge = NULL;
-                    int iter_edge_i = -1;
-                    int iter_i = 0;
+                    int32_t iter_edge_i = -1;
+                    int32_t iter_i = 0;
                     while( halfedgemesh_face_iterate(mesh, face_two_i, &iter_edge, &iter_edge_i, &iter_i) ) {
                         iter_edge->face = face_one_i;
                     }
@@ -799,7 +799,7 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
         }
     }
 
-    for( int i = 0; i < mesh->vertices.occupied; i++ ) {
+    for( int32_t i = 0; i < mesh->vertices.occupied; i++ ) {
         if( attached_edges[i] <= 0 ) {
             mesh->vertices.array[i].edge = -1;
             removed_vertices[num_removed_vertices] = i;
@@ -811,17 +811,17 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
     // I need to actually delete those from the arrays in struct HalfEdgeMesh* mesh
     // to do that I need to go through all arrays, and fill all gaps left by deleted primitives
     // with the primitives after, that still exist
-    int iter_vertex = 0;
-    int iter_face = 0;
-    int iter_edge = 0;
+    int32_t iter_vertex = 0;
+    int32_t iter_face = 0;
+    int32_t iter_edge = 0;
 
-    int iter_removed_vertices = 0;
-    int iter_removed_faces = 0;
-    int iter_removed_edges = 0;
+    int32_t iter_removed_vertices = 0;
+    int32_t iter_removed_faces = 0;
+    int32_t iter_removed_edges = 0;
 
-    int gap_vertices = 0;
-    int gap_faces = 0;
-    int gap_edges = 0;
+    int32_t gap_vertices = 0;
+    int32_t gap_faces = 0;
+    int32_t gap_edges = 0;
 
     // this loop is bad and I don't like it, but it seems to work so it will stay like this anyways
     while( (num_removed_vertices && iter_vertex < mesh->vertices.occupied) ||
@@ -837,14 +837,14 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
             }
 
             if( gap_vertices > 0 && iter_vertex < mesh->vertices.occupied ) {
-                int old_vertex_i = iter_vertex;
-                int new_vertex_i = iter_vertex - gap_vertices;
+                int32_t old_vertex_i = iter_vertex;
+                int32_t new_vertex_i = iter_vertex - gap_vertices;
 
-                // - go through vertex neighborhood and update all 'other' edges that point to old_vertex_i
-                // so that they point to new_vertex_i
+                // - go through vertex neighborhood and update all 'other' edges that point32_t to old_vertex_i
+                // so that they point32_t to new_vertex_i
                 struct HalfEdge* edge;
-                int edge_i = -1;
-                int i = 0;
+                int32_t edge_i = -1;
+                int32_t i = 0;
                 while( halfedgemesh_vertex_iterate(mesh, old_vertex_i, &edge, &edge_i, &i) ) {
                     if( edge->vertex == old_vertex_i ) {
                         edge->vertex = new_vertex_i;
@@ -866,12 +866,12 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
 
             // - go through all edges of face and update face index to new_face_i
             if( gap_faces > 0 && iter_face < mesh->faces.occupied ) {
-                int old_face_i = iter_face;
-                int new_face_i = iter_face - gap_faces;
+                int32_t old_face_i = iter_face;
+                int32_t new_face_i = iter_face - gap_faces;
 
                 struct HalfEdge* edge;
-                int edge_i = -1;
-                int i = 0;
+                int32_t edge_i = -1;
+                int32_t i = 0;
                 while( halfedgemesh_face_iterate(mesh, old_face_i, &edge, &edge_i, &i) ) {
                     edge->face = new_face_i;
                 }
@@ -892,8 +892,8 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
             if( gap_edges > 0 && iter_edge < mesh->edges.occupied ) {
                 assert( iter_edge >= gap_edges );
 
-                int old_edge_i = iter_edge;
-                int new_edge_i = iter_edge - gap_edges;
+                int32_t old_edge_i = iter_edge;
+                int32_t new_edge_i = iter_edge - gap_edges;
 
                 struct HalfEdge* this = &mesh->edges.array[old_edge_i];
 
@@ -901,7 +901,7 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
                 // resulting in weird problems
                 this->this = new_edge_i;
 
-                // - I need to change the edges that point to this index, that means I have
+                // - I need to change the edges that point32_t to this index, that means I have
                 // to change this prevs edges next index, this next edges prev index and the other
                 // edges other index
                 mesh->edges.array[this->prev].next = new_edge_i;
@@ -931,19 +931,19 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
 }
 
 void halfedgemesh_verify(struct HalfEdgeMesh* mesh) {
-    for( int face_i = 0; face_i < mesh->faces.occupied; face_i++ ) {
+    for( int32_t face_i = 0; face_i < mesh->faces.occupied; face_i++ ) {
         struct HalfEdgeFace* face = &mesh->faces.array[face_i];
         if( face->edge == -1 ) {
             continue;
         }
 
-        int seen_vertices[mesh->vertices.occupied];
-        for( int i = 0; i < mesh->vertices.occupied; i++ ) {
+        int32_t seen_vertices[mesh->vertices.occupied];
+        for( int32_t i = 0; i < mesh->vertices.occupied; i++ ) {
             seen_vertices[i] = 0;
         }
 
         struct HalfEdge* this = &mesh->edges.array[face->edge];
-        int i = 0;
+        int32_t i = 0;
         while( (i == 0 || this->this != face->edge) && i <= face->size*2 ) {
             assert( this->face == face_i );
 
@@ -980,7 +980,7 @@ void halfedgemesh_verify(struct HalfEdgeMesh* mesh) {
 
             struct HalfEdgeVertex* vertex = &mesh->vertices.array[this->vertex];
             struct HalfEdge* iter_edge = &mesh->edges.array[vertex->edge];
-            int j = 0;
+            int32_t j = 0;
             while( j == 0 || iter_edge->this != vertex->edge ) {
                 if( iter_edge->vertex == this->vertex ) {
                     assert( j % 2 == 1 );

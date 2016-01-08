@@ -18,16 +18,16 @@
 #endif
 
 struct Character {
-    int w;
-    int h;
+    int32_t w;
+    int32_t h;
     const int* pixels;
 };
 
 struct Glyph {
-    int x;
-    int y;
-    int w;
-    int h;
+    int32_t x;
+    int32_t y;
+    int32_t w;
+    int32_t h;
 };
 
 struct Font {

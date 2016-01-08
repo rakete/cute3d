@@ -1,6 +1,6 @@
 #include "render_canvas.h"
 
-void canvas_render_layers(struct Canvas* const canvas, int layer_start, int layer_end, struct Camera* const camera, Mat const model_matrix) {
+void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int32_t layer_end, struct Camera* const camera, Mat const model_matrix) {
     if( layer_end < NUM_CANVAS_LAYERS ) {
         layer_end += 1;
     }
@@ -10,7 +10,7 @@ void canvas_render_layers(struct Canvas* const canvas, int layer_start, int laye
     assert( layer_start < layer_end );
     assert( canvas != NULL );
 
-    for( int shader_i = 0; shader_i < NUM_CANVAS_SHADER; shader_i++ ) {
+    for( int32_t shader_i = 0; shader_i < NUM_CANVAS_SHADER; shader_i++ ) {
         if( strlen(canvas->shader[shader_i].name) == 0 ) {
             continue;
         }
@@ -20,9 +20,9 @@ void canvas_render_layers(struct Canvas* const canvas, int layer_start, int laye
         shader_matrices(&canvas->shader[shader_i], camera, model_matrix);
 
         GLint loc[NUM_SHADER_ATTRIBUTES] = {0};
-        for( int attribute_i = 0; attribute_i < NUM_SHADER_ATTRIBUTES; attribute_i++ ) {
-            int occupied_attributes = canvas->attributes[attribute_i].occupied;
-            int occupied_buffer = canvas->buffer[attribute_i].occupied;
+        for( int32_t attribute_i = 0; attribute_i < NUM_SHADER_ATTRIBUTES; attribute_i++ ) {
+            int32_t occupied_attributes = canvas->attributes[attribute_i].occupied;
+            int32_t occupied_buffer = canvas->buffer[attribute_i].occupied;
 
             GLint c_num = canvas->components[attribute_i].size;
             GLint c_type = canvas->components[attribute_i].type;
@@ -56,7 +56,7 @@ void canvas_render_layers(struct Canvas* const canvas, int layer_start, int laye
                     continue;
                 }
 
-                int alloc_bytes = occupied_attributes * canvas->components[attribute_i].size * canvas->components[attribute_i].bytes;
+                int32_t alloc_bytes = occupied_attributes * canvas->components[attribute_i].size * canvas->components[attribute_i].bytes;
                 void* attributes_array = canvas->attributes[attribute_i].array;
                 if( loc[attribute_i] > -1 ) {
                     glEnableVertexAttribArray(loc[attribute_i]);
@@ -68,8 +68,8 @@ void canvas_render_layers(struct Canvas* const canvas, int layer_start, int laye
             }
         }
 
-        for( int layer_i = layer_start; layer_i < layer_end; layer_i++ ) {
-            for( int primitive_i = 0; primitive_i < NUM_OGL_PRIMITIVES; primitive_i++ ) {
+        for( int32_t layer_i = layer_start; layer_i < layer_end; layer_i++ ) {
+            for( int32_t primitive_i = 0; primitive_i < NUM_OGL_PRIMITIVES; primitive_i++ ) {
                 if( canvas->layer[layer_i].indices[shader_i][primitive_i].occupied == 0 ) {
                     continue;
                 }
@@ -79,8 +79,8 @@ void canvas_render_layers(struct Canvas* const canvas, int layer_start, int laye
                 }
 
                 GLenum indices_type = GL_UNSIGNED_INT;
-                int indices_occupied = canvas->layer[layer_i].indices[shader_i][primitive_i].occupied;
-                int indices_bytes = indices_occupied * ogl_sizeof_type(indices_type);
+                int32_t indices_occupied = canvas->layer[layer_i].indices[shader_i][primitive_i].occupied;
+                int32_t indices_bytes = indices_occupied * ogl_sizeof_type(indices_type);
                 void* indices_array = canvas->layer[layer_i].indices[shader_i][primitive_i].array;
 
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[shader_i][primitive_i].id);
@@ -91,7 +91,7 @@ void canvas_render_layers(struct Canvas* const canvas, int layer_start, int laye
             }
         }
 
-        for(int attribute_i = 0; attribute_i < NUM_SHADER_ATTRIBUTES; attribute_i++ ) {
+        for(int32_t attribute_i = 0; attribute_i < NUM_SHADER_ATTRIBUTES; attribute_i++ ) {
             if( loc[attribute_i] > -1 ) {
                 glDisableVertexAttribArray(loc[attribute_i]);
             }
@@ -102,7 +102,7 @@ void canvas_render_layers(struct Canvas* const canvas, int layer_start, int laye
     }
 }
 
-void canvas_render_text(struct Canvas* const canvas, int layer_start, int layer_end, struct Camera* const camera, Mat const model_matrix) {
+void canvas_render_text(struct Canvas* const canvas, int32_t layer_start, int32_t layer_end, struct Camera* const camera, Mat const model_matrix) {
     if( layer_end < NUM_CANVAS_LAYERS ) {
         layer_end += 1;
     }

@@ -22,12 +22,11 @@
 #include "math_transform.h"
 #include "physics.h"
 #include "geometry_halfedgemesh.h"
-#include "render_draw.h"
 
 #define MAX_CONTACTS 4
 #define COLLISION_LIFETIME 5
 
-enum collider_type {
+enum ColliderType {
     COLLIDER_SPHERE = 0,
     COLLIDER_PLANE,
     COLLIDER_AABB,
@@ -41,7 +40,7 @@ struct Collider {
     // some other objects pivot, thats also why I may have a seperate orientation for
     // for the specific collider in addition to the orientation in pivot
     struct Pivot* pivot;
-    enum collider_type type;
+    enum ColliderType type;
     Vec position;
 };
 
@@ -126,29 +125,29 @@ struct Contact {
 };
 
 struct Collision {
-    unsigned int num_contacts;
+    uint32_t num_contacts;
     struct Contact contact[MAX_CONTACTS];
     Vec normal;
-    unsigned int lifetime;
+    uint32_t lifetime;
 };
 
 /* Sphere */
-unsigned int contacts_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2, struct Collision* collision);
-unsigned int contacts_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane, struct Collision* collision);
-unsigned int contacts_sphere_convex(struct ColliderSphere* const sphere, struct ColliderConvex* const convex, struct Collision* collision);
+uint32_t contacts_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2, struct Collision* collision);
+uint32_t contacts_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane, struct Collision* collision);
+uint32_t contacts_sphere_convex(struct ColliderSphere* const sphere, struct ColliderConvex* const convex, struct Collision* collision);
 
 /* Plane */
-unsigned int contacts_plane_sphere(struct ColliderPlane* const plane, struct ColliderSphere* const sphere, struct Collision* collision);
-unsigned int contacts_plane_plane(struct ColliderPlane* const plane1, struct ColliderPlane* const plane2, struct Collision* collision);
-unsigned int contacts_plane_convex(struct ColliderPlane* const plane, struct ColliderConvex* const convex, struct Collision* collision);
+uint32_t contacts_plane_sphere(struct ColliderPlane* const plane, struct ColliderSphere* const sphere, struct Collision* collision);
+uint32_t contacts_plane_plane(struct ColliderPlane* const plane1, struct ColliderPlane* const plane2, struct Collision* collision);
+uint32_t contacts_plane_convex(struct ColliderPlane* const plane, struct ColliderConvex* const convex, struct Collision* collision);
 
 /* Convex */
-unsigned int contacts_convex_sphere(struct ColliderConvex* const convex, struct ColliderSphere* const sphere, struct Collision* collision);
-unsigned int contacts_convex_plane(struct ColliderConvex* const convex, struct ColliderPlane* const plane, struct Collision* collision);
-unsigned int contacts_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2, struct Collision* collision);
+uint32_t contacts_convex_sphere(struct ColliderConvex* const convex, struct ColliderSphere* const sphere, struct Collision* collision);
+uint32_t contacts_convex_plane(struct ColliderConvex* const convex, struct ColliderPlane* const plane, struct Collision* collision);
+uint32_t contacts_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2, struct Collision* collision);
 
 /* Generic */
-unsigned int contacts_generic(struct Collider* const a, struct Collider* const b, struct Collision* collision);
+uint32_t contacts_generic(struct Collider* const a, struct Collider* const b, struct Collision* collision);
 
 // this just initializes an array of collisions with zeros for now
 void collisions_prepare(size_t n, struct Collision* collisions);

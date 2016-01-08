@@ -1,10 +1,10 @@
 #include "driver_allegro.h"
 
-int init_allegro() {
+int32_t init_allegro() {
     return al_init();
 }
 
-void allegro_display(int width, int height, ALLEGRO_DISPLAY** display) {
+void allegro_display(int32_t width, int32_t height, ALLEGRO_DISPLAY** display) {
     al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
     al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
     al_set_new_display_option(ALLEGRO_DEPTH_SIZE, 24, ALLEGRO_REQUIRE);
@@ -36,8 +36,8 @@ void allegro_events(ALLEGRO_DISPLAY* display, ALLEGRO_EVENT_QUEUE** queue) {
 }
 
 void allegro_orbit_create(ALLEGRO_DISPLAY* display, Vec origin, Vec translation, struct Camera* camera) {
-    int width = al_get_display_width(display);
-    int height = al_get_display_height(display);
+    int32_t width = al_get_display_width(display);
+    int32_t height = al_get_display_height(display);
 
     camera_create(CAMERA_PERSPECTIVE, width, height, camera);
     //camera_projection(camera, orthographic_zoom);

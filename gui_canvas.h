@@ -36,21 +36,21 @@
 
 struct Canvas {
     struct CanvasComponents {
-        int size;
+        int32_t size;
         GLenum type;
-        int bytes;
+        int32_t bytes;
     } components[NUM_SHADER_ATTRIBUTES];
 
     struct CanvasAttributes {
         void* array;
-        int capacity;
-        int occupied;
+        int32_t capacity;
+        int32_t occupied;
     } attributes[NUM_SHADER_ATTRIBUTES];
 
     struct CanvasBuffer {
         GLuint id;
-        int capacity;
-        int occupied;
+        int32_t capacity;
+        int32_t occupied;
 
         GLenum usage;
     } buffer[NUM_SHADER_ATTRIBUTES];
@@ -70,51 +70,51 @@ struct Canvas {
     // I render (?)
     struct CanvasLayer {
         struct CanvasIndices {
-            unsigned int* array;
+            uint32_t* array;
             GLuint id;
 
-            int capacity;
-            int occupied;
+            int32_t capacity;
+            int32_t occupied;
         } indices[NUM_CANVAS_SHADER][NUM_OGL_PRIMITIVES];
 
         struct CanvasText {
-            unsigned int* array;
+            uint32_t* array;
             GLuint id;
 
-            int capacity;
-            int occupied;
+            int32_t capacity;
+            int32_t occupied;
         } text[NUM_CANVAS_FONTS][NUM_CANVAS_TEXTS];
 
-        //int disable;
+        //int32_t disable;
     } layer[NUM_CANVAS_LAYERS];
 };
 
 extern struct Canvas global_canvas;
 
-int init_canvas();
+int32_t init_canvas();
 
 void canvas_create(struct Canvas* canvas);
-void canvas_add_attribute(struct Canvas* canvas, int attribute, int size, GLenum type);
+void canvas_add_attribute(struct Canvas* canvas, int32_t attribute, int32_t size, GLenum type);
 
-int canvas_append_shader_source(struct Canvas* canvas, const char* vertex_source, const char* fragment_source, const char* name);
-int canvas_append_shader_program(struct Canvas* canvas, struct Shader* const shader, const char* name);
-int canvas_find_shader(struct Canvas* canvas, const char* shader_name);
+int32_t canvas_append_shader_source(struct Canvas* canvas, const char* vertex_source, const char* fragment_source, const char* name);
+int32_t canvas_append_shader_program(struct Canvas* canvas, struct Shader* const shader, const char* name);
+int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name);
 
-int canvas_append_font(struct Canvas* canvas, struct Font font, const char* font_name);
-int canvas_find_font(struct Canvas* canvas, const char* font_name);
+int32_t canvas_append_font(struct Canvas* canvas, struct Font font, const char* font_name);
+int32_t canvas_find_font(struct Canvas* canvas, const char* font_name);
 
-int canvas_alloc_attributes(struct Canvas* canvas, int attribute_i, int n);
-int canvas_alloc_indices(struct Canvas* canvas, int layer_i, const char* shader_name, GLenum primitive_type, int n);
-int canvas_alloc_text(struct Canvas* canvas, int layer_i, int text_i, const char* font_name, int n);
+int32_t canvas_alloc_attributes(struct Canvas* canvas, int32_t attribute_i, int32_t n);
+int32_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, const char* shader_name, GLenum primitive_type, int32_t n);
+int32_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i, const char* font_name, int32_t n);
 
-void canvas_clear(struct Canvas* canvas, int layer_start, int layer_end);
+void canvas_clear(struct Canvas* canvas, int32_t layer_start, int32_t layer_end);
 
-int canvas_append_vertices(struct Canvas* canvas, void* vertices, int size, GLenum type, int n, const Mat model_matrix);
-int canvas_append_colors(struct Canvas* canvas, void* colors, int size, GLenum type, int n, const Color color);
-int canvas_append_texcoords(struct Canvas* canvas, void* texcoords, int size, GLenum type, int n);
-int canvas_append_normals(struct Canvas* canvas, void* normals, int size, GLenum type, int n);
+int32_t canvas_append_vertices(struct Canvas* canvas, void* vertices, int32_t size, GLenum type, int32_t n, const Mat model_matrix);
+int32_t canvas_append_colors(struct Canvas* canvas, void* colors, int32_t size, GLenum type, int32_t n, const Color color);
+int32_t canvas_append_texcoords(struct Canvas* canvas, void* texcoords, int32_t size, GLenum type, int32_t n);
+int32_t canvas_append_normals(struct Canvas* canvas, void* normals, int32_t size, GLenum type, int32_t n);
 
-int canvas_append_indices(struct Canvas* canvas, int layer_i, const char* shader_name, GLenum primitive_type, unsigned int* indices, int n, int offset);
-int canvas_append_text(struct Canvas* canvas, int layer_i, int text_i, const char* font_name, unsigned int* indices, int n, int offset);
+int32_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, const char* shader_name, GLenum primitive_type, uint32_t* indices, int32_t n, int32_t offset);
+int32_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i, const char* font_name, uint32_t* indices, int32_t n, int32_t offset);
 
 #endif

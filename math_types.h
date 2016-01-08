@@ -19,6 +19,7 @@
 
 #include "float.h"
 #include "limits.h"
+#include "stdint.h"
 
 #define PI 3.14159265358979323846264338327
 #define PI_OVER_180 0.017453292519943295769236907684886
@@ -32,8 +33,8 @@ typedef float Vec[4];
 typedef float Vec2f[2];
 typedef float Vec3f[3];
 typedef float Vec4f[4];
-typedef int Vec3i[3];
-typedef int Vec4i[4];
+typedef int32_t Vec3i[3];
+typedef int32_t Vec4i[4];
 
 typedef float Mat[16];
 typedef float Mat4f[16];

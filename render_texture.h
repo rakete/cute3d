@@ -23,8 +23,8 @@ struct Texture {
     GLenum format;
 
     struct {
-        int w;
-        int h;
+        int32_t w;
+        int32_t h;
     } size;
 
     // struct {
@@ -39,7 +39,7 @@ struct Texture {
         bool enabled;
         float level;
     } anisotropy;
-    
+
     struct {
         GLuint base;
         GLuint max;
@@ -74,6 +74,6 @@ enum TextureReg {
     DeleteFont
 };
 
-int texture_registry(enum TextureReg op, int id, struct Texture** texture);
+int32_t texture_registry(enum TextureReg op, int32_t id, struct Texture** texture);
 
 #endif

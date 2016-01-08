@@ -47,7 +47,7 @@ static void entity_create(Color color, struct Vbo* vbo, struct CollisionEntity* 
     vbomesh_from_solid((struct Solid*)&entity->solid, &entity->vbomesh);
 }
 
-int main(int argc, char *argv[]) {
+int32_t main(int32_t argc, char *argv[]) {
     if( init_sdl2() ) {
         return 1;
     }

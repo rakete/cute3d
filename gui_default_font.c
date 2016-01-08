@@ -32,7 +32,9 @@ static float palette[1*8*3] = {
 };
 
 struct Character char_A() {
-    static int pixels[6*7] = {
+    // bitmap: char_A
+    // using: bnw
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -46,7 +48,7 @@ struct Character char_A() {
 }
 
 struct Character char_a() {
-    static int pixels[6*6] = {
+    static int32_t pixels[6*6] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -59,7 +61,7 @@ struct Character char_a() {
 }
 
 struct Character char_B() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -73,7 +75,7 @@ struct Character char_B() {
 }
 
 struct Character char_b() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 1, 0, 0, 0,
         0, 1, 0, 0, 0,
@@ -87,7 +89,7 @@ struct Character char_b() {
 }
 
 struct Character char_C() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 1, 0,
         0, 1, 0, 0, 0, 0,
@@ -101,7 +103,7 @@ struct Character char_C() {
 }
 
 struct Character char_c() {
-    static int pixels[5*6] = {
+    static int32_t pixels[5*6] = {
         0, 0, 0, 0, 0,
         0, 0, 1, 1, 0,
         0, 1, 0, 0, 0,
@@ -114,7 +116,7 @@ struct Character char_c() {
 }
 
 struct Character char_D() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -128,7 +130,7 @@ struct Character char_D() {
 }
 
 struct Character char_d() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 0, 1, 0,
         0, 0, 0, 1, 0,
@@ -142,7 +144,7 @@ struct Character char_d() {
 }
 
 struct Character char_E() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 1, 1, 1, 0,
         0, 1, 0, 0, 0,
@@ -156,7 +158,7 @@ struct Character char_E() {
 }
 
 struct Character char_e() {
-    static int pixels[5*6] = {
+    static int32_t pixels[5*6] = {
         0, 0, 0, 0, 0,
         0, 0, 1, 0, 0,
         0, 1, 1, 1, 0,
@@ -169,7 +171,7 @@ struct Character char_e() {
 }
 
 struct Character char_F() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 1, 1, 1, 0,
         0, 1, 0, 0, 0,
@@ -183,7 +185,7 @@ struct Character char_F() {
 }
 
 struct Character char_f() {
-    static int pixels[4*7] = {
+    static int32_t pixels[4*7] = {
         0, 0, 0, 0,
         0, 0, 1, 0,
         0, 1, 0, 0,
@@ -197,7 +199,7 @@ struct Character char_f() {
 }
 
 struct Character char_G() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 1, 0,
         0, 1, 0, 0, 0, 0,
@@ -211,7 +213,7 @@ struct Character char_G() {
 }
 
 struct Character char_g() {
-    static int pixels[5*6] = {
+    static int32_t pixels[5*6] = {
         0, 0, 0, 0, 0,
         0, 0, 1, 0, 0,
         0, 1, 0, 1, 0,
@@ -224,7 +226,7 @@ struct Character char_g() {
 }
 
 struct Character char_H() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 1, 0,
         0, 1, 0, 0, 1, 0,
@@ -238,7 +240,7 @@ struct Character char_H() {
 }
 
 struct Character char_h() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 1, 0, 0, 0,
         0, 1, 0, 0, 0,
@@ -252,7 +254,7 @@ struct Character char_h() {
 }
 
 struct Character char_I() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 1, 1, 1, 0,
         0, 0, 1, 0, 0,
@@ -266,7 +268,7 @@ struct Character char_I() {
 }
 
 struct Character char_i() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 1, 0, 0,
         0, 0, 0, 0, 0,
@@ -279,7 +281,7 @@ struct Character char_i() {
     return r;
 }
 struct Character char_J() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 1, 0,
         0, 0, 0, 0, 1, 0,
@@ -293,7 +295,7 @@ struct Character char_J() {
 }
 
 struct Character char_j() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 0, 1, 0,
         0, 0, 0, 0, 0,
@@ -307,7 +309,7 @@ struct Character char_j() {
 }
 
 struct Character char_K() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 1, 0,
         0, 1, 0, 1, 0, 0,
@@ -321,7 +323,7 @@ struct Character char_K() {
 }
 
 struct Character char_k() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 1, 0, 0, 0,
         0, 1, 0, 0, 0,
@@ -335,7 +337,7 @@ struct Character char_k() {
 }
 
 struct Character char_L() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 0, 0,
         0, 1, 0, 0, 0, 0,
@@ -349,7 +351,7 @@ struct Character char_L() {
 }
 
 struct Character char_l() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 1, 1, 0, 0,
         0, 0, 1, 0, 0,
@@ -363,7 +365,7 @@ struct Character char_l() {
 }
 
 struct Character char_M() {
-    static int pixels[7*7] = {
+    static int32_t pixels[7*7] = {
         0, 0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 0, 1, 0,
         0, 1, 1, 0, 1, 1, 0,
@@ -377,7 +379,7 @@ struct Character char_M() {
 }
 
 struct Character char_m() {
-    static int pixels[7*6] = {
+    static int32_t pixels[7*6] = {
         0, 0, 0, 0, 0, 0, 0,
         0, 1, 1, 0, 1, 0, 0,
         0, 1, 0, 1, 0, 1, 0,
@@ -390,7 +392,7 @@ struct Character char_m() {
 }
 
 struct Character char_N() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 1, 0,
         0, 1, 1, 0, 1, 0,
@@ -404,7 +406,7 @@ struct Character char_N() {
 }
 
 struct Character char_n() {
-    static int pixels[5*6] = {
+    static int32_t pixels[5*6] = {
         0, 0, 0, 0, 0,
         0, 1, 1, 0, 0,
         0, 1, 0, 1, 0,
@@ -417,7 +419,7 @@ struct Character char_n() {
 }
 
 struct Character char_O() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -431,7 +433,7 @@ struct Character char_O() {
 }
 
 struct Character char_o() {
-    static int pixels[6*6] = {
+    static int32_t pixels[6*6] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -444,7 +446,7 @@ struct Character char_o() {
 }
 
 struct Character char_P() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -458,7 +460,7 @@ struct Character char_P() {
 }
 
 struct Character char_p() {
-    static int pixels[5*6] = {
+    static int32_t pixels[5*6] = {
         0, 0, 0, 0, 0,
         0, 1, 1, 1, 0,
         0, 1, 0, 1, 0,
@@ -471,7 +473,7 @@ struct Character char_p() {
 }
 
 struct Character char_Q() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -485,7 +487,7 @@ struct Character char_Q() {
 }
 
 struct Character char_q() {
-    static int pixels[5*6] = {
+    static int32_t pixels[5*6] = {
         0, 0, 0, 0, 0,
         0, 1, 1, 1, 0,
         0, 1, 0, 1, 0,
@@ -498,7 +500,7 @@ struct Character char_q() {
 }
 
 struct Character char_R() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -512,7 +514,7 @@ struct Character char_R() {
 }
 
 struct Character char_r() {
-    static int pixels[5*6] = {
+    static int32_t pixels[5*6] = {
         0, 0, 0, 0, 0,
         0, 1, 0, 1, 0,
         0, 1, 1, 0, 0,
@@ -525,7 +527,7 @@ struct Character char_r() {
 }
 
 struct Character char_S() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 1, 0,
         0, 1, 0, 0, 0, 0,
@@ -539,7 +541,7 @@ struct Character char_S() {
 }
 
 struct Character char_s() {
-    static int pixels[5*6] = {
+    static int32_t pixels[5*6] = {
         0, 0, 0, 0, 0,
         0, 0, 1, 1, 0,
         0, 1, 1, 0, 0,
@@ -552,7 +554,7 @@ struct Character char_s() {
 }
 
 struct Character char_T() {
-    static int pixels[7*7] = {
+    static int32_t pixels[7*7] = {
         0, 0, 0, 0, 0, 0, 0,
         0, 1, 1, 1, 1, 1, 0,
         0, 0, 0, 1, 0, 0, 0,
@@ -566,7 +568,7 @@ struct Character char_T() {
 }
 
 struct Character char_t() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 1, 0, 0,
         0, 1, 1, 1, 0,
@@ -580,7 +582,7 @@ struct Character char_t() {
 }
 
 struct Character char_U() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 1, 0,
         0, 1, 0, 0, 1, 0,
@@ -594,7 +596,7 @@ struct Character char_U() {
 }
 
 struct Character char_u() {
-    static int pixels[6*6] = {
+    static int32_t pixels[6*6] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 1, 0,
         0, 1, 0, 0, 1, 0,
@@ -607,7 +609,7 @@ struct Character char_u() {
 }
 
 struct Character char_V() {
-    static int pixels[7*7] = {
+    static int32_t pixels[7*7] = {
         0, 0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 0, 1, 0,
         0, 1, 0, 0, 0, 1, 0,
@@ -621,7 +623,7 @@ struct Character char_V() {
 }
 
 struct Character char_v() {
-    static int pixels[7*6] = {
+    static int32_t pixels[7*6] = {
         0, 0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 0, 1, 0,
         0, 1, 0, 0, 0, 1, 0,
@@ -634,7 +636,7 @@ struct Character char_v() {
 }
 
 struct Character char_W() {
-    static int pixels[7*7] = {
+    static int32_t pixels[7*7] = {
         0, 0, 0, 0, 0, 0, 0,
         0, 1, 0, 1, 0, 1, 0,
         0, 1, 0, 1, 0, 1, 0,
@@ -648,7 +650,7 @@ struct Character char_W() {
 }
 
 struct Character char_w() {
-    static int pixels[7*6] = {
+    static int32_t pixels[7*6] = {
         0, 0, 0, 0, 0, 0, 0,
         0, 1, 0, 1, 0, 1, 0,
         0, 1, 0, 1, 0, 1, 0,
@@ -661,7 +663,7 @@ struct Character char_w() {
 }
 
 struct Character char_X() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 1, 0,
         0, 1, 0, 0, 1, 0,
@@ -675,7 +677,7 @@ struct Character char_X() {
 }
 
 struct Character char_x() {
-    static int pixels[7*6] = {
+    static int32_t pixels[7*6] = {
         0, 0, 0, 0, 0, 0, 0,
         0, 1, 1, 0, 1, 1, 0,
         0, 0, 0, 1, 0, 0, 0,
@@ -688,7 +690,7 @@ struct Character char_x() {
 }
 
 struct Character char_Y() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 1, 0,
         0, 1, 0, 0, 1, 0,
@@ -702,7 +704,7 @@ struct Character char_Y() {
 }
 
 struct Character char_y() {
-    static int pixels[6*6] = {
+    static int32_t pixels[6*6] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 1, 0,
         0, 1, 0, 0, 1, 0,
@@ -715,7 +717,7 @@ struct Character char_y() {
 }
 
 struct Character char_Z() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 1, 1, 1, 0,
         0, 0, 0, 0, 1, 0,
@@ -729,7 +731,7 @@ struct Character char_Z() {
 }
 
 struct Character char_z() {
-    static int pixels[5*6] = {
+    static int32_t pixels[5*6] = {
         0, 0, 0, 0, 0,
         0, 1, 1, 1, 0,
         0, 0, 0, 1, 0,
@@ -742,7 +744,7 @@ struct Character char_z() {
 }
 
 struct Character char_0() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,
         0, 1, 0, 1, 1, 0,
@@ -756,7 +758,7 @@ struct Character char_0() {
 }
 
 struct Character char_1() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 1, 0, 0,
         0, 1, 1, 0, 0,
@@ -770,7 +772,7 @@ struct Character char_1() {
 }
 
 struct Character char_2() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -784,7 +786,7 @@ struct Character char_2() {
 }
 
 struct Character char_3() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -798,7 +800,7 @@ struct Character char_3() {
 }
 
 struct Character char_4() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 1, 0,
         0, 0, 0, 1, 0, 0,
@@ -812,7 +814,7 @@ struct Character char_4() {
 }
 
 struct Character char_5() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 1, 1, 1, 0,
         0, 1, 0, 0, 0, 0,
@@ -826,7 +828,7 @@ struct Character char_5() {
 }
 
 struct Character char_6() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,
         0, 1, 0, 0, 0, 0,
@@ -840,7 +842,7 @@ struct Character char_6() {
 }
 
 struct Character char_7() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 1, 1, 1, 1, 0,
         0, 0, 0, 0, 1, 0,
@@ -854,7 +856,7 @@ struct Character char_7() {
 }
 
 struct Character char_8() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -868,7 +870,7 @@ struct Character char_8() {
 }
 
 struct Character char_9() {
-    static int pixels[6*7] = {
+    static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,
         0, 1, 0, 0, 1, 0,
@@ -882,7 +884,7 @@ struct Character char_9() {
 }
 
 struct Character char_period() {
-    static int pixels[4*7] = {
+    static int32_t pixels[4*7] = {
         0, 0, 0, 0,
         0, 0, 0, 0,
         0, 0, 0, 0,
@@ -896,7 +898,7 @@ struct Character char_period() {
 }
 
 struct Character char_comma() {
-    static int pixels[4*7] = {
+    static int32_t pixels[4*7] = {
         0, 0, 0, 0,
         0, 0, 0, 0,
         0, 0, 0, 0,
@@ -911,7 +913,7 @@ struct Character char_comma() {
 
 
 struct Character char_colon() {
-    static int pixels[4*7] = {
+    static int32_t pixels[4*7] = {
         0, 0, 0, 0,
         0, 0, 0, 0,
         0, 0, 0, 0,
@@ -925,7 +927,7 @@ struct Character char_colon() {
 }
 
 struct Character char_semicolon() {
-    static int pixels[4*7] = {
+    static int32_t pixels[4*7] = {
         0, 0, 0, 0,
         0, 0, 0, 0,
         0, 0, 0, 0,
@@ -939,7 +941,7 @@ struct Character char_semicolon() {
 }
 
 struct Character char_plus() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 0, 0, 0,
         0, 0, 1, 0, 0,
@@ -953,7 +955,7 @@ struct Character char_plus() {
 }
 
 struct Character char_minus() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 0, 0, 0,
         0, 0, 0, 0, 0,
@@ -967,7 +969,7 @@ struct Character char_minus() {
 }
 
 struct Character char_equal() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 0, 0, 0,
         0, 1, 1, 1, 0,
@@ -981,7 +983,7 @@ struct Character char_equal() {
 }
 
 struct Character char_asterisk() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 0, 0, 0,
         0, 1, 0, 1, 0,
@@ -995,7 +997,7 @@ struct Character char_asterisk() {
 }
 
 struct Character char_slash() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 0, 1, 0,
         0, 0, 0, 1, 0,
@@ -1009,7 +1011,7 @@ struct Character char_slash() {
 }
 
 struct Character char_open_paren() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 0, 1, 0,
         0, 0, 1, 0, 0,
@@ -1023,7 +1025,7 @@ struct Character char_open_paren() {
 }
 
 struct Character char_close_paren() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 1, 0, 0, 0,
         0, 0, 1, 0, 0,
@@ -1037,7 +1039,7 @@ struct Character char_close_paren() {
 }
 
 struct Character char_open_bracket() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 1, 1, 0,
         0, 0, 1, 0, 0,
@@ -1051,7 +1053,7 @@ struct Character char_open_bracket() {
 }
 
 struct Character char_close_bracket() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 1, 1, 0, 0,
         0, 0, 1, 0, 0,
@@ -1065,7 +1067,7 @@ struct Character char_close_bracket() {
 }
 
 struct Character char_open_brace() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 0, 0, 1, 0,
         0, 0, 1, 1, 0,
@@ -1079,7 +1081,7 @@ struct Character char_open_brace() {
 }
 
 struct Character char_close_brace() {
-    static int pixels[5*7] = {
+    static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
         0, 1, 0, 0, 0,
         0, 1, 1, 0, 0,

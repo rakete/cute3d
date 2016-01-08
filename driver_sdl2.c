@@ -1,6 +1,6 @@
 #include "driver_sdl2.h"
 
-int init_sdl2() {
+int32_t init_sdl2() {
     if( SDL_Init(SDL_INIT_EVERYTHING) < 0 ) {
         log_fail(stderr, __FILE__, __LINE__, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
@@ -13,7 +13,7 @@ int init_sdl2() {
     return 0;
 }
 
-void sdl2_window(const char* title, int x, int y, int width, int height, SDL_Window** window) {
+void sdl2_window(const char* title, int32_t x, int32_t y, int32_t width, int32_t height, SDL_Window** window) {
     sdl2_debug({
             // these must be set before creating a window
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -36,7 +36,7 @@ void sdl2_window(const char* title, int x, int y, int width, int height, SDL_Win
 
 void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context) {
 
-    int width,height;
+    int32_t width,height;
     sdl2_debug({
             *context = SDL_GL_CreateContext(window);
 
@@ -89,9 +89,9 @@ double sdl2_time() {
     return t;
 }
 
-int sdl2_poll_event(SDL_Event* event) {
+int32_t sdl2_poll_event(SDL_Event* event) {
     double t1 = sdl2_time();
-    int ret = SDL_PollEvent(event);
+    int32_t ret = SDL_PollEvent(event);
     double t2 = sdl2_time();
     double t = (t2 - t1) * 1000;
     if( t > 0.5 ) {

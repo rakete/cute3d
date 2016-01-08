@@ -18,7 +18,7 @@ void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
     vbomesh_append_indices(mesh, solid->indices, solid->size);
 }
 
-int main(int argc, char *argv[]) {
+int32_t main(int32_t argc, char *argv[]) {
     if( init_sdl2() ) {
         return 1;
     }
@@ -51,8 +51,8 @@ int main(int argc, char *argv[]) {
 
     struct Solid solid_out;
     float vertices[hemesh.size*3];
-    unsigned int triangles[hemesh.size];
-    unsigned int elements[hemesh.size];
+    uint32_t triangles[hemesh.size];
+    uint32_t elements[hemesh.size];
     float normals[hemesh.size*3];
     float colors[hemesh.size*4];
     solid_create(hemesh.size, elements, vertices, triangles, normals, colors, NULL, &solid_out);
@@ -63,13 +63,13 @@ int main(int argc, char *argv[]) {
 
     halfedgemesh_flush(&hemesh, &solid_out);
 
-    /* for( unsigned int i = 0; i < solid_out.size/3; i++ ) { */
+    /* for( uint32_t i = 0; i < solid_out.size/3; i++ ) { */
     /*     printf("%u: %d,%d,%d\n", i, solid_in.vertices[i*3+0] > 0, solid_in.vertices[i*3+1] > 0, solid_in.vertices[i*3+2] > 0); */
     /* } */
 
     /* printf("\n"); */
 
-    /* for( unsigned int i = 0; i < solid_out.size/3; i++ ) { */
+    /* for( uint32_t i = 0; i < solid_out.size/3; i++ ) { */
     /*     printf("%u: %d,%d,%d\n", i, solid_out.vertices[i*3+0] > 0, solid_out.vertices[i*3+1] > 0, solid_out.vertices[i*3+2] > 0); */
     /* } */
 
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
     while (true) {
 
         SDL_Event event;
-        unsigned int counter = 0;
+        uint32_t counter = 0;
         while( SDL_PollEvent(&event) ) {
             /* show_printf(L"event %u\n", counter); */
             /* counter++; */

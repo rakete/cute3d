@@ -13,7 +13,7 @@ void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mes
     vbomesh_append_indices(mesh, solid->indices, solid->size);
 }
 
-int main(int argc, char *argv[]) {
+int32_t main(int32_t argc, char *argv[]) {
     if( init_sdl2() ) {
         return 1;
     }

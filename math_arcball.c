@@ -2,7 +2,7 @@
 #include "math_arcball.h"
 
 void arcball_create(SDL_Window* window, Vec eye, Vec target, float near, float far, struct Arcball* arcball) {
-    int width,height;
+    int32_t width,height;
     sdl2_debug( SDL_GL_GetDrawableSize(window, &width, &height) );
 
     camera_create(CAMERA_PERSPECTIVE, width, height, &arcball->camera);
@@ -21,7 +21,7 @@ void arcball_create(SDL_Window* window, Vec eye, Vec target, float near, float f
 }
 
 void arcball_event(struct Arcball* arcball, SDL_Event event) {
-    static int mouse_down = 0;
+    static int32_t mouse_down = 0;
 
     // - arcball rotation is performed by dragging the mouse, so I just keep track of when
     //   a mouse button is pressed and released between calls to this function by setting a

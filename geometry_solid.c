@@ -16,7 +16,7 @@
 
 #include "geometry_solid.h"
 
-void solid_create(int size, int* indices, float* vertices, int* triangles, float* normals, float* colors, float* texcoords, struct Solid* solid) {
+void solid_create(int32_t size, int32_t* indices, float* vertices, int32_t* triangles, float* normals, float* colors, float* texcoords, struct Solid* solid) {
     solid->size = size;
     solid->vertices = vertices;
     solid->indices = indices;
@@ -30,11 +30,11 @@ void solid_normals(struct Solid* solid) {
     assert(solid->normals != NULL);
 
     if( solid->vertices && solid->indices ) {
-        int size = solid->size/3;
-        for( int i = 0; i < size; i++ ) {
-            int a = solid->indices[i*3+0];
-            int b = solid->indices[i*3+1];
-            int c = solid->indices[i*3+2];
+        int32_t size = solid->size/3;
+        for( int32_t i = 0; i < size; i++ ) {
+            int32_t a = solid->indices[i*3+0];
+            int32_t b = solid->indices[i*3+1];
+            int32_t c = solid->indices[i*3+2];
 
             Vec u;
             u[0] = solid->vertices[a*3+0] - solid->vertices[b*3+0];
@@ -71,8 +71,8 @@ void solid_color(struct Solid* solid, float color[4]) {
     assert(solid->colors != NULL);
 
     if( solid->vertices && solid->indices ) {
-        int n = solid->size;
-        for( int i = 0; i < n; i++ ) {
+        int32_t n = solid->size;
+        for( int32_t i = 0; i < n; i++ ) {
             solid->colors[i*4+0] = color[0];
             solid->colors[i*4+1] = color[1];
             solid->colors[i*4+2] = color[2];
@@ -111,17 +111,17 @@ void solid_tetrahedron(float radius, struct Tetrahedron* tet) {
     points[1] = 0.0;
     points[2] = r;
 
-    for(int i = 1; i < 4; i++) {
+    for(int32_t i = 1; i < 4; i++) {
         points[i*3+0] = r * cosf(the) * cosf(phia);
         points[i*3+1] = r * sinf(the) * cosf(phia);
         points[i*3+2] = r * sinf(phia);
         the = the + the120;
     }
 
-    for( int i = 0; i < 4; i++ ) {
-        int a = tet->triangles[i*3+0];
-        int b = tet->triangles[i*3+1];
-        int c = tet->triangles[i*3+2];
+    for( int32_t i = 0; i < 4; i++ ) {
+        int32_t a = tet->triangles[i*3+0];
+        int32_t b = tet->triangles[i*3+1];
+        int32_t c = tet->triangles[i*3+2];
 
         tet->vertices[i*9+0] = points[a*3+0];
         tet->vertices[i*9+1] = points[a*3+1];
@@ -194,27 +194,27 @@ void solid_hexahedron(float radius, struct Cube* cube) {
     float phib = -phia;
     float the90 = PI * 90.0 / 180.0;
     float the = 0.0;
-    for(int i = 0; i < 4; i++) {
+    for(int32_t i = 0; i < 4; i++) {
         points[i*3+0] = r * cosf(the) * cosf(phia);
         points[i*3+1] = r * sinf(the) * cosf(phia);
         points[i*3+2] = r * sinf(phia);
         the += the90;
     }
     the = 0.0;
-    for( int i = 4; i < 8; i++ ) {
+    for( int32_t i = 4; i < 8; i++ ) {
         points[i*3+0] = r * cosf(the) * cosf(phib);
         points[i*3+1] = r * sinf(the) * cosf(phib);
         points[i*3+2] = r * sinf(phib);
         the += the90;
     }
 
-    for( int i = 0; i < 6; i++ ) {
-        int a = cube->triangles[i*6+0];
-        int b = cube->triangles[i*6+1];
-        int c = cube->triangles[i*6+2];
-        int d = cube->triangles[i*6+3];
-        int e = cube->triangles[i*6+4];
-        int f = cube->triangles[i*6+5];
+    for( int32_t i = 0; i < 6; i++ ) {
+        int32_t a = cube->triangles[i*6+0];
+        int32_t b = cube->triangles[i*6+1];
+        int32_t c = cube->triangles[i*6+2];
+        int32_t d = cube->triangles[i*6+3];
+        int32_t e = cube->triangles[i*6+4];
+        int32_t f = cube->triangles[i*6+5];
 
         // triangle 1
         cube->vertices[i*18+0] = points[a*3+0];
@@ -261,7 +261,7 @@ void solid_cube(float size, struct Cube* cube) {
 
     Quat q;
     quat_from_axis_angle((Vec){0.0,0.0,1.0,1.0}, PI/4, q);
-    for( int i = 0; i < 108; i+=3 ) {
+    for( int32_t i = 0; i < 108; i+=3 ) {
         vec_rotate3f(cube->vertices+i, q, cube->vertices+i);
     }
 }
@@ -283,9 +283,9 @@ void solid_sphere16(float radius, struct Sphere16* sphere) {
     };
 
     float points[16*7*3+2*3];
-    for(int j = 0; j < 7; j++ ) {
+    for(int32_t j = 0; j < 7; j++ ) {
         float v = (float)(j+1) * (PI/8.0);
-        for( int i = 0; i < 16; i++ ) {
+        for( int32_t i = 0; i < 16; i++ ) {
             float u = (float)i * (2.0*PI/16.0);
             points[(i+j*16)*3+0] = radius*sinf(u)*sinf(v);
             points[(i+j*16)*3+1] = radius*cosf(u)*sinf(v);
@@ -310,7 +310,7 @@ void solid_sphere16(float radius, struct Sphere16* sphere) {
     // 6: 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 96
     //                               113
     //
-    /* int indices[16*6*2*3+16*3*2] = { 0,   1, 16, 17, 16,  1, //0-5 */
+    /* int32_t indices[16*6*2*3+16*3*2] = { 0,   1, 16, 17, 16,  1, //0-5 */
     /*                                             1,   2, 17, 18, 17,  2, //6-11 */
     /*                                             2,   3, 18, 19, 18,  3, //12-17 */
     /*                                             3,   4, 19, 20, 19,  4, //18-23 */
@@ -361,9 +361,9 @@ void solid_sphere16(float radius, struct Sphere16* sphere) {
     /*                                             112, 15, 14, 113, 110, 111, */
     /*                                             112, 0, 15, 113, 111, 96 }; */
 
-    int linebreak = 1;
-    for( int j = 0; j < 6; j++ ) {
-        for( int i = 0; i < 16; i++ ) {
+    int32_t linebreak = 1;
+    for( int32_t j = 0; j < 6; j++ ) {
+        for( int32_t i = 0; i < 16; i++ ) {
             if( i == 15 ) {
                 linebreak = -15;
             }
@@ -377,8 +377,8 @@ void solid_sphere16(float radius, struct Sphere16* sphere) {
         }
         linebreak = 1;
     }
-    int offset = (15+5*16)*6+5+1;
-    for( int i = 0; i < 16; i++ ) {
+    int32_t offset = (15+5*16)*6+5+1;
+    for( int32_t i = 0; i < 16; i++ ) {
         if( i == 15 ) {
             linebreak = -15;
         }
@@ -391,10 +391,10 @@ void solid_sphere16(float radius, struct Sphere16* sphere) {
         sphere->triangles[offset+i*6+5] = 6*16 + i + 1*linebreak;
     }
 
-    for( int i = 0; i < 16*6*2+16*2; i++ ) {
-        int a = sphere->triangles[i*3+0];
-        int b = sphere->triangles[i*3+1];
-        int c = sphere->triangles[i*3+2];
+    for( int32_t i = 0; i < 16*6*2+16*2; i++ ) {
+        int32_t a = sphere->triangles[i*3+0];
+        int32_t b = sphere->triangles[i*3+1];
+        int32_t c = sphere->triangles[i*3+2];
 
         sphere->vertices[i*9+0] = points[a*3+0];
         sphere->vertices[i*9+1] = points[a*3+1];
@@ -433,9 +433,9 @@ void solid_sphere32(float radius, struct Sphere32* sphere) {
     };
 
     float points[32*15*3+2*3];
-    for(int j = 0; j < 15; j++ ) {
+    for(int32_t j = 0; j < 15; j++ ) {
         float v = (float)(j+1) * (PI/16.0);
-        for( int i = 0; i < 32; i++ ) {
+        for( int32_t i = 0; i < 32; i++ ) {
             float u = (float)i * (2.0*PI/32.0);
             points[(i+j*32)*3+0] = radius*sinf(u)*sinf(v);
             points[(i+j*32)*3+1] = radius*cosf(u)*sinf(v);
@@ -450,9 +450,9 @@ void solid_sphere32(float radius, struct Sphere32* sphere) {
     points[(31+14*32)*3+3+4] = 0.0;
     points[(31+14*32)*3+3+5] = -radius;
 
-    int linebreak = 1;
-    for( int j = 0; j < 14; j++ ) {
-        for( int i = 0; i < 32; i++ ) {
+    int32_t linebreak = 1;
+    for( int32_t j = 0; j < 14; j++ ) {
+        for( int32_t i = 0; i < 32; i++ ) {
             if( i == 31 ) {
                 linebreak = -31;
             }
@@ -466,8 +466,8 @@ void solid_sphere32(float radius, struct Sphere32* sphere) {
         }
         linebreak = 1;
     }
-    int offset = (31+13*32)*6+5+1;
-    for( int i = 0; i < 32; i++ ) {
+    int32_t offset = (31+13*32)*6+5+1;
+    for( int32_t i = 0; i < 32; i++ ) {
         if( i == 31 ) {
             linebreak = -31;
         }
@@ -480,10 +480,10 @@ void solid_sphere32(float radius, struct Sphere32* sphere) {
         sphere->triangles[offset+i*6+5] = 14*32 + i + 1*linebreak;
     }
 
-    for( int i = 0; i < 32*14*2+32*2; i++ ) {
-        int a = sphere->triangles[i*3+0];
-        int b = sphere->triangles[i*3+1];
-        int c = sphere->triangles[i*3+2];
+    for( int32_t i = 0; i < 32*14*2+32*2; i++ ) {
+        int32_t a = sphere->triangles[i*3+0];
+        int32_t b = sphere->triangles[i*3+1];
+        int32_t c = sphere->triangles[i*3+2];
 
         sphere->vertices[i*9+0] = points[a*3+0];
         sphere->vertices[i*9+1] = points[a*3+1];

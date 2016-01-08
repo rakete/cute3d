@@ -1,29 +1,29 @@
 #include "gui_text.h"
 
-void text_put_world(struct Canvas* canvas, int layer, const char* font_name, float scale, const Color color, const wchar_t* text, Mat model_matrix) {
-    unsigned int text_length = wcslen(text);
+void text_put_world(struct Canvas* canvas, int32_t layer, const char* font_name, float scale, const Color color, const wchar_t* text, Mat model_matrix) {
+    uint32_t text_length = wcslen(text);
     char ascii[text_length + 1];
     size_t textsize = wcstombs(ascii, text, text_length);
     if( textsize >= text_length ) {
         ascii[text_length] = '\0';
     }
 
-    int font_i = canvas_find_font(canvas, font_name);
+    int32_t font_i = canvas_find_font(canvas, font_name);
     if( font_i == NUM_CANVAS_FONTS ) {
         return;
     }
 
     struct Font* font = &canvas->fonts[font_i];
-    int canvas_offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    int32_t canvas_offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
 
     float vertices[text_length * 6 * 3];
     float colors[text_length * 6 * 4];
     float texcoords[text_length * 6 * 2];
-    unsigned int indices[text_length * 6];
+    uint32_t indices[text_length * 6];
 
     Vec4f cursor_translation = {0.0,0.0,0.0};
     bool newline = 0;
-    for( unsigned int i = 0; i < text_length; i++ ) {
+    for( uint32_t i = 0; i < text_length; i++ ) {
         const struct Glyph* glyph = NULL;
         if( font->unicode ) {
             wchar_t c = text[i];
@@ -58,10 +58,10 @@ void text_put_world(struct Canvas* canvas, int layer, const char* font_name, flo
         mat_scale(glyph_matrix, scale, glyph_matrix);
         mat_mul(glyph_matrix, model_matrix, glyph_matrix);
 
-        int attributes_offset = i*4;
-        int vertex_size = 3;
-        int color_size = 4;
-        int texcoord_size = 2;
+        int32_t attributes_offset = i*4;
+        int32_t vertex_size = 3;
+        int32_t color_size = 4;
+        int32_t texcoord_size = 2;
         mat_mul_vec3f( glyph_matrix, (Vec3f){-0.5, 0.5, 0.0}, vertices + attributes_offset*vertex_size + 0*vertex_size );
         mat_mul_vec3f( glyph_matrix, (Vec3f){0.5, 0.5, 0.0}, vertices + attributes_offset*vertex_size + 1*vertex_size );
         mat_mul_vec3f( glyph_matrix, (Vec3f){0.5, -0.5, 0.0}, vertices + attributes_offset*vertex_size + 2*vertex_size );
@@ -83,7 +83,7 @@ void text_put_world(struct Canvas* canvas, int layer, const char* font_name, flo
         vec_copy2f( (Vec2f){u2, v2}, texcoords + attributes_offset*texcoord_size + 2*texcoord_size );
         vec_copy2f( (Vec2f){u1, v2}, texcoords + attributes_offset*texcoord_size + 4*texcoord_size );
 
-        int indices_offset = i*6;
+        int32_t indices_offset = i*6;
         indices[indices_offset+0] = canvas_offset + indices_offset + 0;
         indices[indices_offset+1] = canvas_offset + indices_offset + 2;
         indices[indices_offset+2] = canvas_offset + indices_offset + 1;
@@ -98,7 +98,7 @@ void text_put_world(struct Canvas* canvas, int layer, const char* font_name, flo
     canvas_append_text(canvas, layer, 0, font_name, indices, text_length*6, 0);
 }
 
-void text_put_screen(struct Canvas* canvas, int layer, const char* font_name, float scale, const Color color, const wchar_t* text, int x, int y) {
+void text_put_screen(struct Canvas* canvas, int32_t layer, const char* font_name, float scale, const Color color, const wchar_t* text, int32_t x, int32_t y) {
     /* camera.type = CAMERA_ORTHOGRAPHIC; */
     /* Mat ortho_projection, ortho_view; */
     /* camera_matrices(&camera, ortho_projection, ortho_view); */

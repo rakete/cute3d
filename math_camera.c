@@ -1,6 +1,6 @@
 #include "math_camera.h"
 
-void camera_create(enum CameraProjection type, int width, int height, struct Camera* camera) {
+void camera_create(enum CameraProjection type, int32_t width, int32_t height, struct Camera* camera) {
     pivot_create(&camera->pivot);
 
     camera->type = type;

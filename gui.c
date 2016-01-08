@@ -102,7 +102,7 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
             GLint model_loc = glGetUniformLocation(font->shader.program, "model_matrix");
 
             if( glyph_loc > -1 ) {
-                unsigned int text_length = wcslen(text);
+                uint32_t text_length = wcslen(text);
                 char ascii[text_length + 1];
                 size_t textsize = wcstombs(ascii, text, text_length);
                 if( textsize >= text_length ) {
@@ -111,7 +111,7 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
 
                 Vec4f cursor_translation = {0.0,0.0,0.0,1.0};
                 bool newline = 0;
-                for( unsigned int i = 0; i < text_length; i++ ) {
+                for( uint32_t i = 0; i < text_length; i++ ) {
                     const struct Glyph* glyph = NULL;
                     if( font->unicode ) {
                         wchar_t c = text[i];
@@ -161,7 +161,7 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
     }
 }
 
-void text_overlay(const wchar_t* text, const struct Font* font, int size, struct Camera camera, int x, int y) {
+void text_overlay(const wchar_t* text, const struct Font* font, int32_t size, struct Camera camera, int32_t x, int32_t y) {
     camera.type = CAMERA_ORTHOGRAPHIC;
     Mat ortho_projection, ortho_view;
     camera_matrices(&camera, ortho_projection, ortho_view);
@@ -199,7 +199,7 @@ void show_printf(const wchar_t* format, ...) {
 }
 
 void show_fps_counter(double delta) {
-    static int frames_done = 0;
+    static int32_t frames_done = 0;
     static double old_time = -1;
     static double game_time = 0;
     static double fps = 0;
@@ -221,10 +221,10 @@ void show_fps_counter(double delta) {
 }
 
 void show_time(double time) {
-    int hours = 0;
-    int minutes = 0;
-    int seconds = 0;
-    int milliseconds = 0;
+    int32_t hours = 0;
+    int32_t minutes = 0;
+    int32_t seconds = 0;
+    int32_t milliseconds = 0;
 
     hours = (int)floor(time) / 60 / 60;
     minutes = (int)floor(time) / 60 % 60;
@@ -238,9 +238,9 @@ void show_vec(const char* title, Vec v) {
     show_printf(L"%s(%f %f %f %f)\n", title, v[0], v[1], v[2], v[3]);
 }
 
-void show_render(const struct Font* font, int size, struct Camera camera) {
+void show_render(const struct Font* font, int32_t size, struct Camera camera) {
     if( font == NULL ) {
-        static int default_font_created = 0;
+        static int32_t default_font_created = 0;
         static struct Font default_font;
 
         if( ! default_font_created ) {

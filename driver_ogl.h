@@ -60,9 +60,9 @@
 /* }; */
 /* #endif */
 
-int init_ogl(int width, int height, const float clear_color[4]);
+int32_t init_ogl(int32_t width, int32_t height, const float clear_color[4]);
 
-int ogl_buffer_resize(GLuint* buffer, int old_nbytes, int new_nbytes);
+int32_t ogl_buffer_resize(GLuint* buffer, int32_t old_nbytes, int32_t new_nbytes);
 
 GLsizei ogl_sizeof_type(GLenum type);
 

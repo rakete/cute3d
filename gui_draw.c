@@ -17,26 +17,26 @@
 #include "gui_draw.h"
 
 void draw_grid( struct Canvas* canvas,
-                int layer_i,
+                int32_t layer_i,
                 float width,
                 float height,
-                int steps,
+                int32_t steps,
                 const Color color,
                 const Mat model_matrix )
 {
-    int size = (steps+1)*2 + (steps+1)*2;
+    int32_t size = (steps+1)*2 + (steps+1)*2;
 
     float vertices[size * 3];
     float colors[size * 4];
-    unsigned int elements[size];
-    unsigned int offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    uint32_t elements[size];
+    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
 
     // 1  5  9 10----11
     // |  |  |
     // |  |  | 6-----7
     // |  |  |
     // 0  4  8 2-----3
-    for( int i = 0; i < (steps+1); i++ ) {
+    for( int32_t i = 0; i < (steps+1); i++ ) {
 
         float xf = -width/2.0f + (float)i * (width / (float)steps);
         float yf = -height/2.0f + (float)i * (height / (float)steps);
@@ -67,7 +67,7 @@ void draw_grid( struct Canvas* canvas,
 }
 
 void draw_arrow( struct Canvas* canvas,
-                 int layer_i,
+                 int32_t layer_i,
                  const Vec v,
                  const Vec pos,
                  float scale,
@@ -121,7 +121,7 @@ void draw_arrow( struct Canvas* canvas,
           color[0], color[1], color[2], color[3],
           color[0], color[1], color[2], color[3] };
 
-    static unsigned int elements[16] =
+    static uint32_t elements[16] =
         { 0, 1,
           0, 2,
           0, 3,
@@ -137,7 +137,7 @@ void draw_arrow( struct Canvas* canvas,
 }
 
 void draw_vec( struct Canvas* canvas,
-               int layer_i,
+               int32_t layer_i,
                const Vec v,
                const Vec pos,
                float scale,
@@ -201,14 +201,14 @@ void draw_vec( struct Canvas* canvas,
           4, 5,
           5, 2 };
 
-    unsigned int offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 6, arrow_matrix);
     canvas_append_colors(canvas, NULL, 4, GL_FLOAT, 6, color);
     canvas_append_indices(canvas, layer_i, "default_shader", GL_LINES, elements, 9*2, offset);
 }
 
 void draw_quat( struct Canvas* canvas,
-                int layer_i,
+                int32_t layer_i,
                 const Quat q,
                 float scale,
                 const Color color1,
@@ -257,7 +257,7 @@ void draw_quat( struct Canvas* canvas,
 }
 
 void draw_circle( struct Canvas* canvas,
-                  int layer,
+                  int32_t layer,
                   float radius,
                   float start,
                   float end,
@@ -272,10 +272,10 @@ void draw_circle( struct Canvas* canvas,
         start = 0.0f;
     }
 
-    static int first_run = 1;
+    static int32_t first_run = 1;
     static GLfloat vertices[360*3];
     if( first_run ) {
-        for( int i = 0; i < 360; i++ ) {
+        for( int32_t i = 0; i < 360; i++ ) {
             float theta = -2.0 * PI * (float)i / (float)360;
             float x = cosf(theta);
             float y = sinf(theta);
@@ -289,7 +289,7 @@ void draw_circle( struct Canvas* canvas,
 
     GLuint elements[360*2];
     GLfloat colors[360*4];
-    for( int i = 0; i < 360; i++ ) {
+    for( int32_t i = 0; i < 360; i++ ) {
         elements[i*2+0] = 0;
         elements[i*2+1] = 0;
 
@@ -299,9 +299,9 @@ void draw_circle( struct Canvas* canvas,
         colors[i*4+3] = color[3];
     }
 
-    int start_index = (start * 360.0)/(2.0 * PI);
-    int end_index = (end * 360.0)/(2.0 * PI);
-    for( int i = 0; i < end_index - start_index; i++ ) {
+    int32_t start_index = (start * 360.0)/(2.0 * PI);
+    int32_t end_index = (end * 360.0)/(2.0 * PI);
+    for( int32_t i = 0; i < end_index - start_index; i++ ) {
         elements[i*2+0] = start_index + i;
         elements[i*2+1] = start_index + i + 1;
     }
@@ -316,7 +316,7 @@ void draw_circle( struct Canvas* canvas,
     mat_mul(arrow_matrix, model_matrix, arrow_matrix);
 
     if( arrow > 0.0 && end_index > 1 ) {
-        int arrow_index = end_index - start_index;
+        int32_t arrow_index = end_index - start_index;
 
         GLint i = elements[arrow_index*2-1];
         GLint j = elements[arrow_index*2-2];
@@ -342,7 +342,7 @@ void draw_circle( struct Canvas* canvas,
 }
 
 void draw_basis( struct Canvas* canvas,
-                 int layer,
+                 int32_t layer,
                  float scale,
                  const Mat model_matrix )
 {
@@ -352,14 +352,14 @@ void draw_basis( struct Canvas* canvas,
 }
 
 void draw_reticle( struct Canvas* canvas,
-                   int layer,
+                   int32_t layer,
                    float scale,
                    const Color color,
                    const Mat model_matrix )
 {
     // bitmap: reticle
     // using: bnw
-    /* static int reticle[16*16] = { */
+    /* static int32_t reticle[16*16] = { */
     /*     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, */
     /*     0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, */
     /*     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, */
@@ -422,7 +422,7 @@ void draw_reticle( struct Canvas* canvas,
 }
 
 void draw_contact( struct Canvas* canvas,
-                   int layer,
+                   int32_t layer,
                    const Vec contact_point,
                    const Vec contact_normal,
                    float contact_penetration,
@@ -472,15 +472,15 @@ void draw_contact( struct Canvas* canvas,
 }
 
 void draw_normals_array( struct Canvas* canvas,
-                         int layer,
+                         int32_t layer,
                          const float* vertices,
                          const float* normals,
-                         int n,
+                         int32_t n,
                          float scale,
                          const Color color,
                          const Mat model_matrix )
 {
-    for( int i = 0; i < n; i++ ) {
+    for( int32_t i = 0; i < n; i++ ) {
         Mat arrow_matrix;
         mat_identity(arrow_matrix);
 

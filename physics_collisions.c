@@ -116,7 +116,7 @@ bool collide_convex_plane(struct ColliderConvex* const convex, struct ColliderPl
 // helper to transform vertices from convex2 halfedgemesh into the coordinate system of convex1
 static void convex_local_transform(struct ColliderConvex* const convex1,
                                    struct ColliderConvex* const convex2,
-                                   unsigned int size,
+                                   uint32_t size,
                                    float transformed_vertices[])
 {
     // I get both orientation and translation of both convex'es, but invert the ones from
@@ -151,7 +151,7 @@ static void convex_local_transform(struct ColliderConvex* const convex1,
 
     // the vertex_translation/orientation is then applied to every vertex of convex2->mesh resulting
     // in a new array of vertices which coordinates are now relative to convex1
-    for( unsigned int i = 0; i < convex2->mesh->vertices.occupied && i*3 < size; i++ ) {
+    for( uint32_t i = 0; i < convex2->mesh->vertices.occupied && i*3 < size; i++ ) {
         Vec3f vertex;
         vec_copy3f(convex2->mesh->vertices.array[i].position, vertex);
 
@@ -170,8 +170,8 @@ static void query_face_directions(struct ColliderConvex* const convex1,
                                   struct ColliderConvex* const convex2,
                                   Vec3f best_normal,
                                   float* best_distance,
-                                  unsigned int* face_index,
-                                  unsigned int* vertex_index)
+                                  uint32_t* face_index,
+                                  uint32_t* vertex_index)
 {
     struct HalfEdgeMesh* mesh1 = convex1->mesh;
     struct HalfEdgeMesh* mesh2 = convex2->mesh;
@@ -180,7 +180,7 @@ static void query_face_directions(struct ColliderConvex* const convex1,
     // means when this function is called with convex1 and convex2 flipped the best_normal
     // (seperation axis) orientation will be in convex2 coordinates instead of convex1
     // coordinates
-    unsigned int transformed_size = mesh2->vertices.occupied*3;
+    uint32_t transformed_size = mesh2->vertices.occupied*3;
     float transformed_vertices[transformed_size];
     convex_local_transform(convex1, convex2, transformed_size, transformed_vertices);
 
@@ -190,21 +190,21 @@ static void query_face_directions(struct ColliderConvex* const convex1,
     // projection on the current face_normal of mesh1
     // - then compute distance of support vertex to face
     // - keep track of largest distance found
-    for( unsigned int face_i = 0; face_i < mesh1->faces.occupied; face_i++ ) {
+    for( uint32_t face_i = 0; face_i < mesh1->faces.occupied; face_i++ ) {
         Vec3f face_normal;
         vec_copy3f(mesh1->faces.array[face_i].normal, face_normal);
 
         // make plane normal opposite direction of face normal so that we'll find a support
-        // point that is 'most inside' from our perspective
+        // point32_t that is 'most inside' from our perspective
         Vec3f plane_normal;
         vec_mul1f(face_normal, -1.0f, plane_normal);
 
         // projecting every vertex of mesh2 onto plane_normal and then using the one with the
         // largest projection as support
         Vec3f support;
-        unsigned int support_j;
+        uint32_t support_j;
         float best_projection = -FLT_MAX;
-        for( unsigned int vertex_j = 0; vertex_j < mesh2->vertices.occupied; vertex_j++ ) {
+        for( uint32_t vertex_j = 0; vertex_j < mesh2->vertices.occupied; vertex_j++ ) {
             Vec3f vertex;
             vec_copy3f(transformed_vertices+vertex_j*3, vertex);
 
@@ -219,11 +219,11 @@ static void query_face_directions(struct ColliderConvex* const convex1,
 
         // just the dot product is not enough, the face and therefore the plane we like to compute the
         // distance to is orientated in 3d space so that is does not go through the origin (most likely),
-        // so we just use one of the face vertices as point on plane and then project the difference of
-        // support - point on the plane normal to compute the distance
+        // so we just use one of the face vertices as point32_t on plane and then project the difference of
+        // support - point32_t on the plane normal to compute the distance
         // d = n . (s - p)
         Vec3f plane_point;
-        unsigned int vertex_i = mesh1->edges.array[mesh1->faces.array[face_i].edge].vertex;
+        uint32_t vertex_i = mesh1->edges.array[mesh1->faces.array[face_i].edge].vertex;
         vec_copy3f(mesh1->vertices.array[vertex_i].position, plane_point);
         vec_sub3f(support, plane_point, support);
         float distance = vdot(support, face_normal);
@@ -248,14 +248,23 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
                                   struct ColliderConvex* const convex2,
                                   Vec3f best_normal,
                                   float* best_distance,
-                                  unsigned int* best_index1,
-                                  unsigned int* best_index2) {
-    struct HalfEdgeMesh* mesh1 = convex1->mesh;
-    struct HalfEdgeMesh* mesh2 = convex2->mesh;
+                                  uint32_t* best_index1,
+                                  uint32_t* best_index2) {
+    struct HalfEdgeMesh* const mesh1 = convex1->mesh;
+    struct HalfEdgeMesh* const mesh2 = convex2->mesh;
 
-    unsigned int transformed_size = mesh2->vertices.occupied*3;
+    uint32_t transformed_size = mesh2->vertices.occupied*3;
     float transformed_vertices[transformed_size];
     convex_local_transform(convex1, convex2, transformed_size, transformed_vertices);
+
+    Mat transform1;
+    pivot_local_transform(convex1->collider.pivot, transform1);
+
+    Mat transform2;
+    pivot_world_transform(convex2->collider.pivot, transform2);
+
+    Mat transform;
+    mat_mul(transform2, transform1, transform);
 
     Quat world_convex1_orientation;
     quat_copy(convex1->collider.pivot->orientation, world_convex1_orientation);
@@ -276,10 +285,10 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
     // so instead we use a gauss map as outlined in the slides I mention above to prune edge
     // tests by deciding which edge combinations actually form a face on the minowski sum and which
     // don't,
-    for( unsigned int i = 0; i < mesh1->edges.occupied; i += 2 ) {
+    for( uint32_t i = 0; i < mesh1->edges.occupied; i += 2 ) {
         struct HalfEdge* edge1 = &mesh1->edges.array[i];
         struct HalfEdge* other1 = &mesh1->edges.array[edge1->other];
-        for( unsigned int j = 0; j < mesh2->edges.occupied; j += 2 ) {
+        for( uint32_t j = 0; j < mesh2->edges.occupied; j += 2 ) {
             struct HalfEdge* edge2 = &mesh2->edges.array[j];
             struct HalfEdge* other2 = &mesh2->edges.array[edge2->other];
 
@@ -289,9 +298,8 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
 
             vec_copy3f(mesh2->faces.array[edge2->face].normal, c);
             vec_copy3f(mesh2->faces.array[other2->face].normal, d);
-
-            quat_rotate_vec3f(c, convex2_normal_orientation, c);
-            quat_rotate_vec3f(d, convex2_normal_orientation, d);
+            vec_rotate3f(c, convex2_normal_orientation, c);
+            vec_rotate3f(d, convex2_normal_orientation, d);
 
             vec_mul3f1f(c, -1.0f, c);
             vec_mul3f1f(d, -1.0f, d);
@@ -301,8 +309,13 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
             vec_sub3f(mesh1->vertices.array[other1->vertex].position, edge1_head, edge1_direction);
 
             Vec3f edge2_direction, edge2_head;
-            vec_copy3f(transformed_vertices+edge2->vertex*3, edge2_head);
-            vec_sub3f(transformed_vertices+other2->vertex*3, edge2_head, edge2_direction);
+            /* vec_copy3f(transformed_vertices+edge2->vertex*3, edge2_head); */
+            /* vec_sub3f(transformed_vertices+other2->vertex*3, edge2_head, edge2_direction); */
+            vec_copy3f(mesh2->vertices.array[edge2->vertex].position, edge2_head);
+            mat_mul_vec3f(transform, edge2_head, edge2_head);
+            Vec3f pos;
+            mat_mul_vec3f(transform, mesh2->vertices.array[other2->vertex].position, pos);
+            vec_sub3f(pos, edge2_head, edge2_direction);
 
             vec_normalize3f(edge1_direction, edge1_direction);
             vec_normalize3f(edge2_direction, edge2_direction);
@@ -348,18 +361,17 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
         }
     }
 }
-
 bool collide_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2) {
     assert(convex1->collider.type == COLLIDER_CONVEX);
     assert(convex2->collider.type == COLLIDER_CONVEX);
 
     float distance = -FLT_MAX;
-    unsigned int face_index1 = UINT_MAX;
-    unsigned int face_index2 = UINT_MAX;
-    unsigned int vertex_index1 = UINT_MAX;
-    unsigned int vertex_index2 = UINT_MAX;
-    unsigned int edge_index1 = UINT_MAX;
-    unsigned int edge_index2 = UINT_MAX;
+    uint32_t face_index1 = UINT_MAX;
+    uint32_t face_index2 = UINT_MAX;
+    uint32_t vertex_index1 = UINT_MAX;
+    uint32_t vertex_index2 = UINT_MAX;
+    uint32_t edge_index1 = UINT_MAX;
+    uint32_t edge_index2 = UINT_MAX;
     Vec3f axis = {0.0, 0.0, 0.0};
 
     query_face_directions(convex1, convex2, axis, &distance, &face_index1, &vertex_index1);
@@ -384,14 +396,14 @@ bool collide_convex_convex(struct ColliderConvex* const convex1, struct Collider
 }
 
 // contacts
-unsigned int contacts_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2, struct Collision* collision) {
+uint32_t contacts_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2, struct Collision* collision) {
     assert(convex1->collider.type == COLLIDER_CONVEX);
     assert(convex2->collider.type == COLLIDER_CONVEX);
     assert("implementation" == false);
 }
 
 
-unsigned int contacts_generic(struct Collider* const a, struct Collider* const b, struct Collision* collision) {
+uint32_t contacts_generic(struct Collider* const a, struct Collider* const b, struct Collision* collision) {
     switch( a->type ) {
         case COLLIDER_SPHERE: break;
         case COLLIDER_PLANE: break;
@@ -412,7 +424,7 @@ unsigned int contacts_generic(struct Collider* const a, struct Collider* const b
 void collisions_prepare(size_t n, struct Collision* collisions) {
     for( size_t i = 0; i < n; i++ ) {
         collisions[i].num_contacts = 0;
-        for( int j = 0; j < MAX_CONTACTS; j++ ) {
+        for( int32_t j = 0; j < MAX_CONTACTS; j++ ) {
             if( collisions[i].lifetime >= COLLISION_LIFETIME ) {
                 collisions[i].num_contacts = 0;
                 collisions[i].lifetime = 0;
@@ -482,3 +494,108 @@ struct Physics collisions_resolve(struct Physics previous,
 
     return current;
 }
+
+/* static void query_edge_directions(struct ColliderConvex* const convex1, */
+/*                                   struct ColliderConvex* const convex2, */
+/*                                   Vec3f best_normal, */
+/*                                   float* best_distance, */
+/*                                   uint32_t* best_index1, */
+/*                                   uint32_t* best_index2) { */
+/*     struct HalfEdgeMesh* const mesh1 = convex1->mesh; */
+/*     struct HalfEdgeMesh* const mesh2 = convex2->mesh; */
+
+/*     Mat transform1; */
+/*     pivot_world_transform(convex1->collider.pivot, transform1); */
+
+/*     Mat transform2; */
+/*     pivot_local_transform(convex2->collider.pivot, transform2); */
+
+/*     Mat transform; */
+/*     mat_mul(transform1, transform2, transform); */
+
+/*     Mat transform_rotation; */
+/*     mat_rotation(transform, transform_rotation); */
+
+/*     Vec3f center1; */
+/*     mat_mul_vec3f(transform, convex1->collider.pivot->position, center1); */
+
+/*     for( uint32_t i = 0; i < mesh1->edges.occupied; i+=2 ) { */
+/*         struct HalfEdge* const edge1 = &mesh1->edges.array[i+0]; */
+/* 		struct HalfEdge* const other1 = &mesh1->edges.array[i+1]; */
+/* 		assert( edge1->other == i + 1 && other1->other == i ); */
+
+/*         Vec3f p1, q1, e1; */
+/*         mat_mul_vec3f(transform, mesh1->vertices.array[other1->vertex].position, p1); */
+/*         mat_mul_vec3f(transform, mesh1->vertices.array[edge1->vertex].position, q1); */
+/*         vec_sub3f(q1, p1, e1); */
+
+/*         Vec3f u1, v1; */
+/*         mat_mul_vec3f(transform_rotation, mesh1->faces.array[edge1->face].normal, u1); */
+/*         mat_mul_vec3f(transform_rotation, mesh1->faces.array[other1->face].normal, v1); */
+
+/*         for( uint32_t j = 0; j < mesh2->edges.occupied; j+=2 ) { */
+/*             struct HalfEdge* const edge2 = &mesh2->edges.array[i+0]; */
+/*             struct HalfEdge* const other2 = &mesh2->edges.array[i+1]; */
+/*             assert( edge2->other == i+1 && other2->other == i ); */
+
+/*             Vec3f p2, q2, e2; */
+/*             vec_copy3f(mesh2->vertices.array[other2->vertex].position, p2); */
+/*             vec_copy3f(mesh2->vertices.array[edge2->vertex].position, q2); */
+/*             vec_sub3f(q2, p2, e2); */
+
+/*             Vec3f u2, v2; */
+/*             vec_copy3f(mesh2->faces.array[edge2->face].normal, u2); */
+/*             vec_copy3f(mesh2->faces.array[other2->face].normal, v2); */
+
+/*             Vec3f a,b,c,d; */
+/*             vec_mul1f(u1, 1.0f, a); */
+/*             vec_mul1f(v1, 1.0f, b); */
+/*             vec_mul1f(u2, -1.0f, c); */
+/*             vec_mul1f(v2, -1.0f, d); */
+
+/*             Vec3f bxa, dxc; */
+/*             vec_mul1f(e1, -1.0f, bxa); */
+/*             vec_mul1f(e2, -1.0f, dxc); */
+/*             vec_normalize3f(bxa, bxa); */
+/*             vec_normalize3f(dxc, dxc); */
+
+/*             float cba = vdot(c, bxa); */
+/*             float dba = vdot(d, bxa); */
+/*             float adc = vdot(a, dxc); */
+/*             float bdc = vdot(b, dxc); */
+
+/*             if ( cba * dba < 0.0f && adc * bdc < 0.0f && cba * bdc > 0.0f ) { */
+/*                 // Build search direction */
+/*                 Vec3f e1xe2; */
+/*                 vec_cross3f(e1, e2, e1xe2); */
+
+/*                 // Skip near parallel edges: |e1 x e2| = sin(alpha) * |e1| * |e2| */
+/*                 float length = vlength(e1xe2); */
+/*                 float distance = -FLT_MAX; */
+/*                 if( length >= FLOAT_EPSILON * sqrt(vsquared(e1) * vsquared(e2)) ) { */
+/*                     Vec3f normal; */
+/*                     vec_mul1f(e1xe2, 1.0f/length, normal); */
+
+/*                     Vec3f direction; */
+/*                     vec_sub3f(p1, center1, direction); */
+
+/*                     // Assure consistent normal orientation (here: Hull1 -> Hull2) */
+/*                     if( vdot( normal, direction ) < 0.0f ) { */
+/*                         vec_mul1f(normal, -1.0f, normal); */
+/*                     } */
+
+/*                     Vec3f projection; */
+/*                     vec_sub3f(p2, p1, projection); */
+
+/*                     distance = vdot(normal, projection); */
+/*                 } */
+
+/*                 if ( distance > *best_distance ) { */
+/*                     *best_index1 = i; */
+/*                     *best_index2 = j; */
+/*                     *best_distance = distance; */
+/*                 } */
+/*             } */
+/*         } */
+/*     } */
+/* } */

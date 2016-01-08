@@ -1,7 +1,7 @@
 #include "grid.h"
 #include "sdl2.h"
 
-int main(int argc, char *argv[]) {
+int32_t main(int32_t argc, char *argv[]) {
     if( init_sdl2() ) {
         return 1;
     }
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 
     struct GridSize size;
     uint64_t array_size = grid_levelsize(&grid, &pages, 0, &size)->array;
-    for( int i = 0; i < array_size; i++ ) {
+    for( int32_t i = 0; i < array_size; i++ ) {
         grid_index(&grid, &pages, NULL, i, &index);
     }
 

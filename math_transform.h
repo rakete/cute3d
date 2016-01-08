@@ -29,7 +29,7 @@ struct Pivot {
 };
 
 void pivot_create(struct Pivot* pivot);
-int pivot_lookat(struct Pivot* pivot, const Vec target);
+int32_t pivot_lookat(struct Pivot* pivot, const Vec target);
 
 VecP pivot_local_axis(struct Pivot* const pivot, Vec3f axis);
 

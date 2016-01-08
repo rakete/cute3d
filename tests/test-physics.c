@@ -16,7 +16,7 @@
 
 void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mesh) {
     static struct Vbo vbo;
-    static int vbo_initialized = 0;
+    static int32_t vbo_initialized = 0;
     if( ! vbo_initialized ) {
         vbo_create(&vbo);
         vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
@@ -103,13 +103,13 @@ void physics_forces(struct Physics state, float t, float dt, Vec force, Vec torq
     /* torque[2] -= 0.2f * state.angular_velocity[2]; */
 }
 
-int main(int argc, char *argv[]) {
+int32_t main(int32_t argc, char *argv[]) {
     if( init_sdl2() ) {
         return 1;
     }
 
-    int width = 1920;
-    int height = 1080;
+    int32_t width = 1920;
+    int32_t height = 1080;
 
     SDL_Window* window;
     sdl2_window("test-physics", 0, 0, width, height, &window);
@@ -306,10 +306,10 @@ int main(int argc, char *argv[]) {
                   translation_mat);
 
         /* draw contacts */
-        for( unsigned int i = 0; i < collisions_size; i++ ) {
-            for( unsigned int j = 0; j < collisions[i].num_contacts; j++ ) {
+        for( uint32_t i = 0; i < collisions_size; i++ ) {
+            for( uint32_t j = 0; j < collisions[i].num_contacts; j++ ) {
                 Vec* contact_normal = &collisions[i].normal;
-                Vec* contact_point = &collisions[i].contact[j].point;
+                Vec* contact_point32_t = &collisions[i].contact[j].point32_t;
                 float penetration = collisions[i].contact[j].penetration;
 
                 draw_contact(*contact_point, *contact_normal, penetration, 1.0, projection_mat, view_mat, translation_mat);

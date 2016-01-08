@@ -109,8 +109,8 @@ void vec_equal(const Vec a, const Vec b, int* r) {
     }
 }
 
-int vequal(const Vec a, const Vec b) {
-    int r;
+int32_t vequal(const Vec a, const Vec b) {
+    int32_t r;
     vec_equal(a,b,&r);
     return r;
 }
@@ -126,8 +126,8 @@ void vec_equal3f(const Vec3f a, const Vec3f b, int* r) {
     }
 }
 
-int vequal3f(const Vec3f a, const Vec3f b) {
-    int r;
+int32_t vequal3f(const Vec3f a, const Vec3f b) {
+    int32_t r;
     vec_equal3f(a,b,&r);
     return r;
 }
@@ -469,8 +469,8 @@ void vec_sign(const Vec v, int* sign) {
     *sign = 0;
 }
 
-int vsign(const Vec v) {
-    int sign;
+int32_t vsign(const Vec v) {
+    int32_t sign;
     vec_sign(v, &sign);
     return sign;
 }
@@ -773,14 +773,14 @@ MatP minvert3f(Mat m, double* det) {
 
 /* void mat_mul(const Mat m, const Mat n, Mat r) { */
 /*     Mat t; */
-/*     for(int i = 0; i < 4; i++){ */
+/*     for(int32_t i = 0; i < 4; i++){ */
 /*         t[i*4]   = m[i*4] * n[0] + m[i*4+1] * n[4] + m[i*4+2] * n[8]  + m[i*4+3] * n[12]; */
 /*         t[i*4+1] = m[i*4] * n[1] + m[i*4+1] * n[5] + m[i*4+2] * n[9]  + m[i*4+3] * n[13]; */
 /*         t[i*4+2] = m[i*4] * n[2] + m[i*4+1] * n[6] + m[i*4+2] * n[10] + m[i*4+3] * n[14]; */
 /*         t[i*4+3] = m[i*4] * n[3] + m[i*4+1] * n[7] + m[i*4+2] * n[11] + m[i*4+3] * n[15]; */
 /*     } */
 
-/*     for(int i = 0; i < 16; i++ ) { */
+/*     for(int32_t i = 0; i < 16; i++ ) { */
 /*         r[i] = t[i]; */
 /*     } */
 /* } */
@@ -807,7 +807,7 @@ void mat_mul(const Mat n, const Mat m, Mat r) {
     t[11] = m[3] * n[8] + m[7] * n[9] + m[11] * n[10] + m[15] * n[11];
     t[15] = m[3] * n[12] + m[7] * n[13] + m[11] * n[14] + m[15] * n[15];
 
-    for(int i = 0; i < 16; i++ ) {
+    for(int32_t i = 0; i < 16; i++ ) {
         r[i] = t[i];
     }
 }
@@ -917,7 +917,7 @@ void mat_transpose(const Mat m, Mat r) {
     t[2] = m[8];  t[6] = m[9];  t[10] = m[10]; t[14] = m[11];
     t[3] = m[12]; t[7] = m[13]; t[11] = m[14]; t[15] = m[15];
 
-    for(int i = 0; i < 16; i++) {
+    for(int32_t i = 0; i < 16; i++) {
         r[i] = t[i];
     }
 }
@@ -934,7 +934,7 @@ void mat_transpose3f(const Mat m, Mat r) {
     t[2] = m[8];  t[6] = m[9];  t[10] = m[10]; t[14] = m[14];
     t[3] = m[3];  t[7] = m[7];  t[11] = m[11]; t[15] = m[15];
 
-    for(int i = 0; i < 16; i++) {
+    for(int32_t i = 0; i < 16; i++) {
         r[i] = t[i];
     }
 }

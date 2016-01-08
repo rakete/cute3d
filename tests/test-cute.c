@@ -29,7 +29,7 @@
 #include "cute_sdl2.h"
 #include "cute_arcball.h"
 
-int main(int argc, char** argv) {
+int32_t main(int32_t argc, char** argv) {
     if( init_sdl2() ) {
         return 1;
     }
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 
     vbomesh_append_attributes(&triangle_mesh, OGL_VERTICES, vertices1, 3);
     vbomesh_append_attributes(&triangle_mesh, OGL_COLORS, colors, 3);
-    vbomesh_append_indices(&triangle_mesh, (unsigned int[3]){0, 1, 2}, 3);
+    vbomesh_append_indices(&triangle_mesh, (uint32_t[3]){0, 1, 2}, 3);
 
     vbomesh_print(&triangle_mesh);
 

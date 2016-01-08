@@ -24,7 +24,7 @@ void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, str
     shader_matrices(shader, camera, model_matrix);
 
     GLint loc[NUM_SHADER_ATTRIBUTES] = {0};
-    for( int array_id = 0; array_id < NUM_SHADER_ATTRIBUTES; array_id++ ) {
+    for( int32_t array_id = 0; array_id < NUM_SHADER_ATTRIBUTES; array_id++ ) {
         GLint c_num = mesh->vbo->components[array_id].size;
         GLint c_type = mesh->vbo->components[array_id].type;
         GLsizei c_bytes = mesh->vbo->components[array_id].bytes;
@@ -61,7 +61,7 @@ void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, str
         ogl_debug( glDrawArrays(mesh->primitives.type, mesh->offset, mesh->occupied[SHADER_ATTRIBUTE_VERTICES]); );
     }
 
-    for( int array_id = 0; array_id < NUM_SHADER_ATTRIBUTES; array_id++ ) {
+    for( int32_t array_id = 0; array_id < NUM_SHADER_ATTRIBUTES; array_id++ ) {
         if( loc[array_id] > -1 ) {
             ogl_debug( glDisableVertexAttribArray(loc[array_id]) );
         }

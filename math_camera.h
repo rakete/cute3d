@@ -33,8 +33,8 @@ struct Camera {
     enum CameraProjection type;
 
     struct {
-        int width;
-        int height;
+        int32_t width;
+        int32_t height;
     } screen;
 
     struct {
@@ -48,7 +48,7 @@ struct Camera {
     } frustum;
 };
 
-void camera_create(enum CameraProjection type, int width, int height, struct Camera* camera);
+void camera_create(enum CameraProjection type, int32_t width, int32_t height, struct Camera* camera);
 
 void camera_frustum(struct Camera* camera, float left, float right, float bottom, float top, float zNear, float zFar);
 

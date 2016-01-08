@@ -23,6 +23,6 @@
 #include "render_vbomesh.h"
 #include "geometry_vbo.h"
 
-void canvas_render_layers(struct Canvas* const canvas, int layer_start, int layer_end, struct Camera* const camera, Mat const model_matrix);
+void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int32_t layer_end, struct Camera* const camera, Mat const model_matrix);
 
 #endif

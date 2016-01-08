@@ -18,7 +18,7 @@ void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
     vbomesh_primitives(mesh, solid->elements, solid->size);
 }
 
-int main(int argc, char *argv[]) {
+int32_t main(int32_t argc, char *argv[]) {
     if( init_sdl2() ) {
         return 1;
     }
@@ -51,8 +51,8 @@ int main(int argc, char *argv[]) {
 
     struct Solid solid_out;
     float vertices[hemesh.size*3];
-    unsigned int triangles[hemesh.size];
-    unsigned int elements[hemesh.size];
+    uint32_t triangles[hemesh.size];
+    uint32_t elements[hemesh.size];
     float normals[hemesh.size*3];
     float colors[hemesh.size*4];
     solid_create(hemesh.size, elements, vertices, triangles, normals, colors, NULL, &solid_out);

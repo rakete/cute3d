@@ -8,10 +8,10 @@ struct Arcball {
     struct Camera camera;
 
     Vec target;
-    int flipped;
+    int32_t flipped;
 
-    int rotate_button;
-    int translate_button;
+    int32_t rotate_button;
+    int32_t translate_button;
 
     float translation_factor;
     float zoom_factor;

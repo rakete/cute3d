@@ -31,7 +31,7 @@
 #define NUM_VBO_PHASES 1
 #endif
 
-int init_vbo();
+int32_t init_vbo();
 
 enum VboScheduling {
     VBO_MANY_BUFFER = 0,
@@ -58,47 +58,47 @@ struct Vbo {
     struct VboBuffer* buffer;
 
     struct VboComponents {
-        int size; // the number of components per element (eg a vertex3 element has three components)
+        int32_t size; // the number of components per element (eg a vertex3 element has three components)
         GLenum type; // the gl type of the individual components (probably GL_float)
-        int bytes; // size of a single component (sizeof GL_float)
+        int32_t bytes; // size of a single component (sizeof GL_float)
     } components[NUM_SHADER_ATTRIBUTES];
 
     // - the units of these are in attributes, capacity is universally used for the different attribute buffers,
     //   which may all have different numbers of components, so then these must indicate for example how many
     //   vertices are in a buffer, and to get the actual buffer size, these must be multiplied by
     //   components[buffer]->size
-    int capacity; // size of the whole buffer
-    int occupied; // actual space used by meshes
+    int32_t capacity; // size of the whole buffer
+    int32_t occupied; // actual space used by meshes
 
     struct VboScheduler{
-        unsigned int phase;
-        int dirty[NUM_VBO_PHASES];
+        uint32_t phase;
+        int32_t dirty[NUM_VBO_PHASES];
         GLsync fence[NUM_VBO_PHASES];
         enum VboScheduling type;
-        int offset;
+        int32_t offset;
     } scheduler;
 };
 
-int vbo_create(struct Vbo* p);
-int vbo_destroy(struct Vbo* p);
+int32_t vbo_create(struct Vbo* p);
+int32_t vbo_destroy(struct Vbo* p);
 
 void vbo_print(FILE* f, struct Vbo* vbo);
 
 void vbo_add_buffer(struct Vbo* vbo,
-                    int i,
-                    int component_n,
+                    int32_t i,
+                    int32_t component_n,
                     GLenum component_t,
                     GLenum usage);
 
-int vbo_alloc(struct Vbo* vbo, int n);
+int32_t vbo_alloc(struct Vbo* vbo, int32_t n);
 
-int vbo_available_capacity(struct Vbo* vbo);
-int vbo_available_bytes(struct Vbo* vbo, int i);
+int32_t vbo_available_capacity(struct Vbo* vbo);
+int32_t vbo_available_bytes(struct Vbo* vbo, int32_t i);
 
-void vbo_fill_value(struct Vbo* vbo, int i, int offset_n, int size_n, int value);
+void vbo_fill_value(struct Vbo* vbo, int32_t i, int32_t offset_n, int32_t size_n, int32_t value);
 
-void* vbo_map(struct Vbo* vbo, int i, int offset, int length, GLbitfield access);
-GLboolean vbo_unmap(struct Vbo* vbo, int i);
+void* vbo_map(struct Vbo* vbo, int32_t i, int32_t offset, int32_t length, GLbitfield access);
+GLboolean vbo_unmap(struct Vbo* vbo, int32_t i);
 
 void vbo_wait(struct Vbo* vbo);
 void vbo_sync(struct Vbo* vbo);
@@ -111,24 +111,24 @@ void vbo_sync(struct Vbo* vbo);
 struct VboMesh {
     struct Vbo* vbo;
 
-    int offset; // offset in vbo buffers
+    int32_t offset; // offset in vbo buffers
 
     // - capacity in vbomesh is occupied in vbo
     // - occupied in vbomesh is the actual used space that has attributes in it
     // - same unit as the ones in struct Vbo
-    int capacity; // capacity of mesh in vbo
-    int occupied[NUM_SHADER_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer
+    int32_t capacity; // capacity of mesh in vbo
+    int32_t occupied[NUM_SHADER_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer
 
     // information about the index type used in the primitives buffer
     struct VboMeshIndex {
         GLenum type; // something GL_UNSIGNED_INT
-        int bytes; // sizeof type
+        int32_t bytes; // sizeof type
     } index;
 
     // the primitives (like triangles)
     struct VboMeshPrimitives {
         GLenum type; // something like GL_TRIANGLES
-        int size; // how many attributes per primitive
+        int32_t size; // how many attributes per primitive
     } primitives;
 
     // this is the buffer that contains the actual indices making up the primitives
@@ -148,45 +148,45 @@ struct VboMesh {
     // variables, they'll deallocate automatically once they go out of scope, with the index
     // buffer allocated on the gpu, I have to explicitly deconstruct every mesh
     struct VboMeshIndexBuffer {
-        unsigned int id; // index buffer
+        uint32_t id; // index buffer
         GLenum usage;
-        int base; // base vertex index
+        int32_t base; // base vertex index
 
         // the unit here is indices, not primitives
-        int capacity; // size of the buffer
-        int occupied; // space already used
+        int32_t capacity; // size of the buffer
+        int32_t occupied; // space already used
     } _internal_indices[NUM_VBO_PHASES];
     struct VboMeshIndexBuffer* indices;
 };
 
-int vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh);
-int vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh);
+int32_t vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh);
+int32_t vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh);
 
 void vbomesh_print(FILE* f, struct VboMesh* mesh);
 
 // functions to allocate new space in a mesh
-int vbomesh_alloc_attributes(struct VboMesh* mesh, int n);
-int vbomesh_alloc_indices(struct VboMesh* mesh, int n);
+int32_t vbomesh_alloc_attributes(struct VboMesh* mesh, int32_t n);
+int32_t vbomesh_alloc_indices(struct VboMesh* mesh, int32_t n);
 
 // clearing just resets the occupied counter to 0
 void vbomesh_clear_attributes(struct VboMesh* mesh);
 void vbomesh_clear_indices(struct VboMesh* mesh);
 
 // append adds new stuff at the end of occupied, allocates new capacity if neccessary
-int vbomesh_append_buffer_generic(struct VboMesh* mesh, int i, void* data, int n, int components_size, GLenum components_type);
-int vbomesh_append_attributes(struct VboMesh* mesh, int i, void* data, int n);
+int32_t vbomesh_append_buffer_generic(struct VboMesh* mesh, int32_t i, void* data, int32_t n, int32_t components_size, GLenum components_type);
+int32_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, void* data, int32_t n);
 
-int vbomesh_append_indices(struct VboMesh* mesh, void* data, int n);
+int32_t vbomesh_append_indices(struct VboMesh* mesh, void* data, int32_t n);
 
 // mapping whole mesh into host memory, probably untested
-void* vbomesh_map(struct VboMesh* mesh, int offset, int length, GLbitfield access);
+void* vbomesh_map(struct VboMesh* mesh, int32_t offset, int32_t length, GLbitfield access);
 GLboolean vbomesh_unmap(struct VboMesh* mesh);
 
 #endif
 
 /* struct VboMesh* vbomesh_clone(struct VboMesh* mesh); */
 
-/* void vbomesh_quad(struct mesh* mesh, unsigned int a, unsigned int b, unsigned int c, unsigned int d); */
+/* void vbomesh_quad(struct mesh* mesh, uint32_t a, uint32_t b, uint32_t c, uint32_t d); */
 
 /* struct mesh* vbomesh_union(struct mesh* a, struct mesh* b); */
 

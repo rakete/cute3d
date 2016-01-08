@@ -8,9 +8,9 @@
 #include "math_camera.h"
 #include "math_matrix.h"
 
-int init_allegro();
+int32_t init_allegro();
 
-void allegro_display(int width, int height, ALLEGRO_DISPLAY** display);
+void allegro_display(int32_t width, int32_t height, ALLEGRO_DISPLAY** display);
 void allegro_events(ALLEGRO_DISPLAY* display, ALLEGRO_EVENT_QUEUE** queue);
 
 void allegro_orbit_create(ALLEGRO_DISPLAY* display, Vec origin, Vec translation, struct Camera* camera);

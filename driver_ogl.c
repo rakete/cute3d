@@ -1,6 +1,6 @@
 #include "driver_ogl.h"
 
-int init_ogl(int width, int height, const float clear_color[4]) {
+int32_t init_ogl(int32_t width, int32_t height, const float clear_color[4]) {
     ogl_debug({
             const char* gl_version = (const char*)glGetString(GL_VERSION);
             log_info(stderr, __FILE__, __LINE__, "%s\n", gl_version);
@@ -26,11 +26,11 @@ int init_ogl(int width, int height, const float clear_color[4]) {
 // a helper function to resize a vbo, it takes a buffer argument and the old size
 // of the buffer and the new size it should be resized to, returns either the amount
 // of bytes that were added to the buffer size or 0 if nothing was resized
-int ogl_buffer_resize(GLuint* buffer, int old_bytes, int new_bytes) {
+int32_t ogl_buffer_resize(GLuint* buffer, int32_t old_bytes, int32_t new_bytes) {
     assert( buffer != NULL );
 
-    unsigned int new_buffer;
-    unsigned int old_buffer = *buffer;
+    uint32_t new_buffer;
+    uint32_t old_buffer = *buffer;
 
     if( new_bytes > old_bytes ) {
         ogl_debug( glGenBuffers(1, &new_buffer);
