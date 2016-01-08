@@ -78,15 +78,15 @@ int main(int argc, char *argv[]) {
 
     struct CollisionEntity entity_a;
     entity_create((Color){ 1.0, 0.0, 0.0, 1.0 }, &vbo, &entity_a);
-    printf("size_a: %u %u %u\n", entity_a.hemesh.vertices.reserved, entity_a.hemesh.faces.reserved, entity_a.hemesh.edges.reserved);
-    vec_add(entity_a.pivot.position, (Vec){0.0, 0.0, 0.0, 1.0}, entity_a.pivot.position);
+    printf("size_a: %u %u %u\n", entity_a.hemesh.vertices.occupied, entity_a.hemesh.faces.occupied, entity_a.hemesh.edges.occupied);
     quat_mul_axis_angle(entity_a.pivot.orientation, (Vec)Y_AXIS, PI/4, entity_a.pivot.orientation);
+    vec_add(entity_a.pivot.position, (Vec){0.0, 0.0, 0.0, 1.0}, entity_a.pivot.position);
 
     struct CollisionEntity entity_b;
     entity_create((Color){ 0.0, 1.0, 0.0, 1.0 }, &vbo, &entity_b);
-    /* quat_mul_axis_angle(entity_b.pivot.orientation, (Vec)Y_AXIS, PI/4, entity_b.pivot.orientation); */
+    quat_mul_axis_angle(entity_b.pivot.orientation, (Vec)Y_AXIS, PI/4, entity_b.pivot.orientation);
     quat_mul_axis_angle(entity_b.pivot.orientation, pivot_local_axis(&entity_b.pivot, (Vec)Z_AXIS), PI/4, entity_b.pivot.orientation);
-    vec_add(entity_b.pivot.position, (Vec){-1.5, 0.0, 0.0, 1.0}, entity_b.pivot.position);
+    vec_add(entity_b.pivot.position, (Vec){-1.0, 0.0, 0.0, 1.0}, entity_b.pivot.position);
 
     struct Shader shader;
     render_shader_flat(&shader);
@@ -104,6 +104,8 @@ int main(int argc, char *argv[]) {
     quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation);
     Mat grid_transform;
     quat_to_mat(grid_rotation, grid_transform);
+
+    Vec3f move = {-0.01, 0.0, 0.0};
 
     while (true) {
 
@@ -128,6 +130,14 @@ int main(int argc, char *argv[]) {
         }
 
         sdl2_debug( SDL_GL_SetSwapInterval(1) );
+
+        vec_add3f(entity_b.pivot.position, move, entity_b.pivot.position);
+        if( entity_b.pivot.position[0] < -2.0 ) {
+            move[0] = 0.01;
+        } else if( entity_b.pivot.position[0] > -1.0 ) {
+            move[0] = -0.01;
+        }
+
 
         ogl_debug( glClearDepth(1.0f);
                    glClearColor(.0f, .0f, .0f, 1.0f);

@@ -1,15 +1,15 @@
 #include "geometry_vbo.h"
 #include "geometry_solid.h"
 #include "render_vbomesh.h"
-#include "cute_arcball.h"
+#include "math_arcball.h"
 
 void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mesh) {
     solid_color(solid,color);
     solid_normals(solid);
 
-    vbomesh_append_attributes(mesh, OGL_VERTICES, solid->vertices, solid->size);
-    vbomesh_append_attributes(mesh, OGL_NORMALS, solid->normals, solid->size);
-    vbomesh_append_attributes(mesh, OGL_COLORS, solid->colors, solid->size);
+    vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, solid->vertices, solid->size);
+    vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, solid->normals, solid->size);
+    vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, solid->colors, solid->size);
     vbomesh_append_indices(mesh, solid->indices, solid->size);
 }
 
@@ -38,9 +38,9 @@ int main(int argc, char *argv[]) {
 
     struct Vbo vbo;
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
 
     struct Tetrahedron tetrahedron;
     struct Cube hexahedron;
@@ -71,10 +71,10 @@ int main(int argc, char *argv[]) {
     vbomesh_from_solid((struct Solid*)&sphere32, (Color){1.0,1.0,0.0,1.0}, &sphere32_mesh);
 
     struct Shader shader;
-    shader_create_flat(&shader);
-    /* shader_add_attribute(&shader, OGL_VERTICES, "vertex"); */
-    /* shader_add_attribute(&shader, OGL_COLORS, "color"); */
-    /* shader_add_attribute(&shader, OGL_NORMALS, "normal"); */
+    shader_create_flat("flat_shader", &shader);
+    /* shader_add_attribute(&shader, SHADER_ATTRIBUTE_VERTICES, "vertex"); */
+    /* shader_add_attribute(&shader, SHADER_ATTRIBUTE_COLORS, "color"); */
+    /* shader_add_attribute(&shader, SHADER_ATTRIBUTE_NORMALS, "normal"); */
 
     /* shader_set_uniform(&shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL); */
     /* shader_set_uniform(&shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL); */
@@ -108,10 +108,10 @@ int main(int argc, char *argv[]) {
 
 
         Vec light_direction = { 0.2, -0.5, -1.0 };
-        shader_set_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
+        shader_set_uniform(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
 
         Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
-        shader_set_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
+        shader_set_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
         Mat identity;
         mat_identity(identity);
