@@ -3,7 +3,7 @@ obj = $(src:.c=.o)
 tests_src = $(wildcard tests/*.c)
 tests_bin = $(tests_src:tests/%.c=%)
 
-CFLAGS=-std=c99 -Wall -pedantic -g -DDEBUG -fPIC
+CFLAGS=-std=c99 -Wall -pedantic -g -DDEBUG -fPIC -flto -march=native
 LDFLAGS=-lm -lSDL2 -lSDL2main -lGL -lGLEW
 
 # the default that make defines for every .c file is enough to compile all cute3d sources into .o's
