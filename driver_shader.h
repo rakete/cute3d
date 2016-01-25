@@ -3,7 +3,7 @@
 
 #include "stdio.h"
 
-#include "math_camera.h"
+#include "math_matrix.h"
 #include "driver_log.h"
 #include "driver_ogl.h"
 #include "driver_glsl.h"
@@ -106,6 +106,7 @@ void shader_create_gl_lines(const char* name, struct Shader* shader);
 
 void shader_print(FILE* f, struct Shader* const shader);
 
-void shader_matrices(struct Shader* const shader, struct Camera* const camera, Mat const model_matrix);
+void shader_uniform_matrices(struct Shader* const shader, Mat const projection_matrix, Mat const view_matrix, Mat const model_matrix);
+GLint shader_vertex_attribute_pointer(struct Shader* const shader, int32_t attribute_i, GLuint buffer, size_t n, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p);
 
 #endif

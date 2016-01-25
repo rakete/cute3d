@@ -28,11 +28,11 @@
 #include "driver_ogl.h"
 #include "gui_canvas.h"
 
-void text_put_world(struct Canvas* canvas, int32_t layer, const char* font_name, float scale, const Color color, const wchar_t* text, Mat model_matrix);
+void text_put(struct Canvas* canvas, Vec4f cursor, uint32_t layer, uint32_t projection, const char* font_name, float scale, const Color color, const wchar_t* unicode_text, const Mat model_matrix);
+void text_put_world(struct Canvas* canvas, Vec4f cursor, uint32_t layer, const char* font_name, float scale, const Color color, const wchar_t* unicode_text, const Mat model_matrix);
+void text_put_screen(struct Canvas* canvas, Vec4f cursor, uint32_t layer, const char* font_name, float scale, const Color color, const wchar_t* unicode_text, int32_t x, int32_t y);
 
-void text_put_screen(struct Canvas* canvas, int32_t layer, const char* font_name, float scale, const Color color, const wchar_t* text, int32_t x, int32_t y);
-
-void text_print32_tf(struct Canvas* canvas, int32_t layer, const char* font_name, float scale, const Color color, const wchar_t* format, ...);
+void text_printf(struct Canvas* canvas, int32_t layer, const char* font_name, float scale, const Color color, const wchar_t* format, ...);
 
 void text_show_fps(struct Canvas* canvas, int32_t layer, const char* font_name, float scale, const Color color, double delta);
 

@@ -30,7 +30,7 @@
 #include "gui_font.h"
 #include "gui_default_font.h"
 
-void text_put(const wchar_t* text, const struct Font* font, float scale, const Mat projection_matrix, const Mat view_matrix, Mat model_matrix);
+void text_put_old(const wchar_t* text, const struct Font* font, float scale, const Mat projection_matrix, const Mat view_matrix, Mat model_matrix);
 void text_overlay(const wchar_t* text, const struct Font* font, int32_t size, struct Camera camera, int32_t x, int32_t y);
 
 #ifndef SHOW_BUFSIZE

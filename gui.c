@@ -16,7 +16,7 @@
 
 #include "gui.h"
 
-void text_put(const wchar_t* text, const struct Font* font, float scale, const Mat projection_matrix, const Mat view_matrix, Mat model_matrix) {
+void text_put_old(const wchar_t* text, const struct Font* font, float scale, const Mat projection_matrix, const Mat view_matrix, Mat model_matrix) {
     static GLuint quad = 0;
     static GLuint vertices_id = 0;
     static GLuint texcoords_id = 0;
@@ -50,8 +50,10 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
         GLint vertex_position = glGetAttribLocation(font->shader.program, "vertex");
-        glEnableVertexAttribArray(vertex_position);
-        glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        assert( vertex_position >= 0 );
+
+        glEnableVertexAttribArray((GLuint)vertex_position);
+        glVertexAttribPointer((GLuint)vertex_position, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
         // texcoords
         glGenBuffers(1, &texcoords_id);
@@ -59,8 +61,10 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
         glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
 
         GLint texcoord_position = glGetAttribLocation(font->shader.program, "texcoord");
-        glEnableVertexAttribArray(texcoord_position);
-        glVertexAttribPointer(texcoord_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        assert( texcoord_position >= 0 );
+
+        glEnableVertexAttribArray((GLuint)texcoord_position);
+        glVertexAttribPointer((GLuint)texcoord_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
         // elements
         glGenBuffers(1, &elements_id);
@@ -89,7 +93,7 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
         GLint view_loc = glGetUniformLocation(font->shader.program, "view_matrix");
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix);
 
-        GLint diffuse_loc = glGetUniformLocation(font->shader.program, "diffuse");
+        GLint diffuse_loc = glGetUniformLocation(font->shader.program, "diffuse_texture");
 
         if( diffuse_loc > -1 ) {
             glUniform1i(diffuse_loc, 0);
@@ -162,9 +166,8 @@ void text_put(const wchar_t* text, const struct Font* font, float scale, const M
 }
 
 void text_overlay(const wchar_t* text, const struct Font* font, int32_t size, struct Camera camera, int32_t x, int32_t y) {
-    camera.type = CAMERA_ORTHOGRAPHIC;
     Mat ortho_projection, ortho_view;
-    camera_matrices(&camera, ortho_projection, ortho_view);
+    camera_matrices(&camera, CAMERA_ORTHOGRAPHIC, ortho_projection, ortho_view);
 
     Mat text_matrix;
     mat_identity(text_matrix);

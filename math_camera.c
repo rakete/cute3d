@@ -1,9 +1,7 @@
 #include "math_camera.h"
 
-void camera_create(enum CameraProjection type, int32_t width, int32_t height, struct Camera* camera) {
+void camera_create(int32_t width, int32_t height, struct Camera* camera) {
     pivot_create(&camera->pivot);
-
-    camera->type = type;
 
     camera->screen.width = width;
     camera->screen.height = height;
@@ -25,7 +23,7 @@ void camera_frustum(struct Camera* camera, float left, float right, float bottom
     camera->frustum.zFar = zFar;
 }
 
-void camera_matrices(struct Camera* const camera, Mat projection_mat, Mat view_mat) {
+void camera_matrices(struct Camera* const camera, enum CameraProjection type, Mat projection_mat, Mat view_mat) {
     if( camera ) {
         mat_identity(projection_mat);
 
@@ -35,17 +33,18 @@ void camera_matrices(struct Camera* const camera, Mat projection_mat, Mat view_m
         float bottom = camera->frustum.bottom;
         float zNear = camera->frustum.zNear;
         float zFar = camera->frustum.zFar;
-        if( camera->type == CAMERA_PERSPECTIVE ) {
+        if( type == CAMERA_PERSPECTIVE ) {
             mat_perspective(left, right, top, bottom, zNear, zFar, projection_mat);
-        } else if( camera->type == CAMERA_ORTHOGRAPHIC) {
+        } else if( type == CAMERA_ORTHOGRAPHIC) {
             mat_orthographic(left, right, top, bottom, zNear, zFar, projection_mat);
-        } else if( camera->type == CAMERA_ORTHOGRAPHIC_ZOOM ||
-                   camera->type == CAMERA_PIXELPERFECT )
+        } else if( type == CAMERA_ORTHOGRAPHIC_ZOOM ||
+                   type == CAMERA_PIXELPERFECT )
         {
             left *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
             right *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
             top *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
             bottom *= (camera->pivot.eye_distance * (1.0/zNear)) * camera->pivot.zoom;
+            printf("%f %f %f %f %f %f\n", left, right, top, bottom, zNear, zFar);
             mat_orthographic(left, right, top, bottom, zNear, zFar, projection_mat);
         }
 

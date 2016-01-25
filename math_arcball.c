@@ -5,8 +5,8 @@ void arcball_create(SDL_Window* window, Vec eye, Vec target, float near, float f
     int32_t width,height;
     sdl2_debug( SDL_GL_GetDrawableSize(window, &width, &height) );
 
-    camera_create(CAMERA_PERSPECTIVE, width, height, &arcball->camera);
-    float top = (near/width) * height/2.0;
+    camera_create(width, height, &arcball->camera);
+    float top = (near/width) * height/2.0f;
     float bottom = -top;
     camera_frustum(&arcball->camera, -near/2.0f, near/2.0f, bottom, top, near, far);
 
@@ -52,7 +52,7 @@ void arcball_event(struct Arcball* arcball, SDL_Event event) {
         if( mouse.xrel != 0 ) {
             // - then we'll just multiply the resulting axis with the mouse x relative movement, inversely
             //   scaled by how far we are away from what we are looking at (farer means faster, nearer
-            //   means slower), the translation_factor is just a value the felt good when this was implemented
+            //   means slower), the translation_factor is just a value that felt good when this was implemented
             Vec x_translation;
             vec_mul1f(right_axis, (float)mouse.xrel/arcball->translation_factor*eye_distance, x_translation);
 
@@ -61,7 +61,7 @@ void arcball_event(struct Arcball* arcball, SDL_Event event) {
             vec_add(arcball->camera.pivot.position, x_translation, arcball->camera.pivot.position);
         }
 
-        // - the z translation can't be done along the orientated forward axis because the would include
+        // - the z translation can't be done along the orientated forward axis because that would include
         //   the camera pitch, here, same as above, we need an axis that is parallel to the x-z-plane
         Vec up_axis = {0.0, 1.0, 0.0, 1.0};
         if( mouse.yrel != 0 ) {

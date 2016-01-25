@@ -295,19 +295,12 @@ void shader_print(FILE* f, struct Shader* const shader) {
     }
 }
 
-void shader_matrices(struct Shader* const shader, struct Camera* const camera, Mat const model_matrix) {
+void shader_uniform_matrices(struct Shader* const shader, Mat const projection_matrix, Mat const view_matrix, Mat const model_matrix) {
     assert( shader != NULL );
-    assert( camera != NULL );
+    assert( projection_matrix != NULL );
+    assert( view_matrix != NULL );
     assert( model_matrix != NULL );
-
-    Mat projection_matrix;
-    Mat view_matrix;
-    mat_identity(projection_matrix);
-    mat_identity(view_matrix);
-
-    if( camera ) {
-        camera_matrices(camera,projection_matrix,view_matrix);
-    }
+    assert( shader->program > 0 );
 
     GLint mvp_loc = -1;
     if( shader->uniform[SHADER_UNIFORM_MVP_MATRIX].location > -1) {
@@ -374,4 +367,26 @@ void shader_matrices(struct Shader* const shader, struct Camera* const camera, M
         ogl_debug( glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix) );
     }
 
+}
+
+GLint shader_vertex_attribute_pointer(struct Shader* const shader, int32_t attribute_i, GLuint buffer, size_t n, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p) {
+    GLint location = -1;
+    if( buffer == 0 || n == 0 || c_num == 0 ) {
+        return location;
+    }
+
+    if( shader->attribute[attribute_i].location > -1 ) {
+        location = shader->attribute[attribute_i].location;
+    } else if( strlen(shader->attribute[attribute_i].name) > 0 ) {
+        ogl_debug( location = glGetAttribLocation(shader->program, shader->attribute[attribute_i].name) );
+        log_warn(stderr, __FILE__, __LINE__, "attribute %d location \"%s\" of shader \"%s\" not cached\n", attribute_i, shader->attribute[attribute_i].name, shader->name);
+    }
+
+    if( location > -1 ) {
+        glEnableVertexAttribArray((GLuint)location);
+        glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        glVertexAttribPointer((GLuint)location, c_num, c_type, GL_FALSE, stride, p);
+    }
+
+    return location;
 }

@@ -18,10 +18,15 @@
 
 void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, struct Camera* const camera, Mat const model_matrix) {
     assert( mesh != NULL );
+    assert( shader != NULL );
+    assert( camera != NULL );
 
     ogl_debug( glUseProgram(shader->program); );
 
-    shader_matrices(shader, camera, model_matrix);
+    Mat projection_matrix = {0};
+    Mat view_matrix = {0};
+    camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
+    shader_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix);
 
     GLint loc[NUM_SHADER_ATTRIBUTES] = {0};
     for( int32_t array_id = 0; array_id < NUM_SHADER_ATTRIBUTES; array_id++ ) {
