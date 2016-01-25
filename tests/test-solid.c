@@ -108,10 +108,10 @@ int32_t main(int32_t argc, char *argv[]) {
 
 
         Vec light_direction = { 0.2, -0.5, -1.0 };
-        shader_set_uniform(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
+        shader_add_uniform(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
 
         Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
-        shader_set_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "ambiance", "4f", ambiance);
+        shader_add_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
         Mat identity;
         mat_identity(identity);

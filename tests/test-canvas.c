@@ -94,16 +94,13 @@ int32_t main(int32_t argc, char *argv[]) {
     Mat grid_transform2;
     quat_to_mat(grid_rotation2, grid_transform2);
 
-    struct Vbo canvas_vbo;
-    vbo_create(&canvas_vbo);
-
     canvas_add_attribute(&global_canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
     canvas_add_attribute(&global_canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_FLOAT);
     canvas_add_attribute(&global_canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
 
     struct Shader shader;
     shader_create_gl_lines("default_shader", &shader);
-    canvas_append_shader_program(&global_canvas, &shader, "default_shader");
+    canvas_append_shader(&global_canvas, &shader, "default_shader");
 
     struct Character symbols[256];
     default_font_create(symbols);
@@ -113,8 +110,13 @@ int32_t main(int32_t argc, char *argv[]) {
 
     canvas_append_font(&global_canvas, font, "default_font");
 
-    struct VboMesh canvas_mesh;
-    vbomesh_create(&canvas_vbo, GL_LINES, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW, &canvas_mesh);
+    struct Canvas text_canvas;
+    canvas_create(&text_canvas);
+    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
+    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_FLOAT);
+    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
+    canvas_append_shader(&text_canvas, &shader, "default_shader");
+    canvas_append_font(&text_canvas, font, "default_font");
 
     SDL_SetEventFilter(event_filter, NULL);
     while (true) {
@@ -143,14 +145,23 @@ int32_t main(int32_t argc, char *argv[]) {
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
 
         draw_grid(&global_canvas, 0, 12.0f, 12.0f, 12, (Color){0.1, 0.7, 0.9, 1.0}, grid_transform1);
-
-        text_put_world(&global_canvas, 0, "default_font", 1.0, (Color){1.0, 1.0, 1.0, 1.0}, L"ficken", (Mat)IDENTITY_MAT);
-
         draw_basis(&global_canvas, 1, 1.0f, (Mat)IDENTITY_MAT);
-
         canvas_render_layers(&global_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
-
         canvas_clear(&global_canvas, 0, NUM_CANVAS_LAYERS);
+
+        Mat text_matrix;
+        mat_rotate(NULL, qfrom_axis_angle((Vec4f){1.0, 0.0, 0.0, 1.0}, PI/2), text_matrix);
+        mat_translate(text_matrix, (Vec4f){-3.5, -1.0, 0.0, 1.0}, text_matrix);
+
+        Vec4f* text_cursor = &text_canvas.layer[0].cursor;
+        /* text_put_world(&text_canvas, text_cursor, 0, "default_font", 0.5, (Color){0.0, 1.0, 1.0, 1.0}, L"Dies ist ein Test\n", text_matrix); */
+        /* text_put_world(&text_canvas, text_cursor, 0, "default_font", 0.5, (Color){1.0, 1.0, 0.0, 1.0}, L"fuer einen Text", text_matrix); */
+        text_put_screen(&text_canvas, text_cursor, 0, "default_font", 20.0, (Color){1.0, 0.7, 1.0, 1.0}, L"LALA\n", 0, 0);
+        text_put_screen(&text_canvas, text_cursor, 0, "default_font", 20.0, (Color){0.0, 0.7, 1.0, 1.0}, L"FICKEN\n", 0, 0);
+        text_put_screen(&text_canvas, text_cursor, 0, "default_font", 20.0, (Color){0.1, 0.7, 0.4, 1.0}, L"FUMMELN\n", 0, 0);
+
+        canvas_render_layers(&text_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
+        canvas_clear(&text_canvas, 0, NUM_CANVAS_LAYERS);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
