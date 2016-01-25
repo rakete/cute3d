@@ -24,34 +24,68 @@ void glsl_debug_info_log( GLuint object,
     char *log;
 
     glGet__iv(object, GL_INFO_LOG_LENGTH, &log_length);
-    log = malloc(log_length);
+
+    assert( log_length > 0 );
+    log = malloc((size_t)log_length);
     glGet__InfoLog(object, log_length, NULL, log);
     fprintf(stderr, "%s", log);
     free(log);
 }
 
-GLuint glsl_compile_source(GLenum type, const char* source, GLsizei length) {
-    assert( strlen(source) > 0 );
+GLuint glsl_compile_source(GLenum type, const char* shader_source) {
+    assert( type == GL_FRAGMENT_SHADER || type == GL_VERTEX_SHADER );
 
-    if( ! (strlen(source) > 6 &&
-           source[0] == '/' &&
-           source[1] == '/' &&
-           source[2] == 'C' &&
-           source[3] == 'U' &&
-           source[4] == 'T' &&
-           source[5] == 'E') )
+    // check for cute header in source and warn if this looks like it is
+    // not something that was distributed with cute
+    if( ! (strlen(shader_source) > 6 &&
+           shader_source[0] == '/' &&
+           shader_source[1] == '/' &&
+           shader_source[2] == 'C' &&
+           shader_source[3] == 'U' &&
+           shader_source[4] == 'T' &&
+           shader_source[5] == 'E') )
     {
-        log_warn(stderr, __FILE__, __LINE__, "%s\n does not look like cute3d glsl code\n", source);
+        log_warn(stderr, __FILE__, __LINE__, "%s\n does not look like cute3d glsl code\n", shader_source);
     }
 
+    size_t test_length = 0;
+    const GLchar* compat_source = NULL;
+    if( type == GL_VERTEX_SHADER ) {
+        test_length = strlen(GLSL_VERT_COMPAT);
+        compat_source = GLSL_VERT_COMPAT;
+    } else if( type == GL_FRAGMENT_SHADER ) {
+        test_length = strlen(GLSL_FRAG_COMPAT);
+        compat_source = GLSL_FRAG_COMPAT;
+    }
+    assert( test_length > 0 );
+    assert( test_length < INT_MAX );
+    GLint compat_length = (GLint)test_length;
+
+    test_length = strlen(shader_source);
+    assert( test_length > 0 );
+    assert( test_length < INT_MAX );
+    GLint source_length = (GLint)test_length;
+
+    // the final shader source is made up from the compatibilty source defined
+    // in GLSL_VERT_COMPAT and GLSL_FRAG_COMPAT, and the actual shader_source
+    // both have their length and their pointer are put into source_array, their
+    // length are put into length_array, glShaderSource takes those and assembles
+    // the final source and puts it into shader, glCompileShader finally produces
+    // the compiled shader
+    const GLchar* source_array[2] = {compat_source, shader_source};
+    GLint length_array[2] = {compat_length, source_length};
+
     GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, (const GLchar**)&source, &length);
+    assert( shader > 0 );
+
+    glShaderSource(shader, 2, source_array, length_array);
     glCompileShader(shader);
 
+    // check for compilation errors and inform the user about them
     GLint shader_ok;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_ok);
     if ( ! shader_ok ) {
-        fprintf(stderr, "failed to compile: %s\n", source);
+        fprintf(stderr, "failed to compile: %s\n", shader_source);
         glsl_debug_info_log(shader, glGetShaderiv, glGetShaderInfoLog);
         glDeleteShader(shader);
         return 0;
@@ -68,10 +102,13 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
         return 0;
     }
 
-    GLsizei length;
+    long filepos;
     fseek(file, 0, SEEK_END);
-    length = ftell(file);
+    filepos = ftell(file);
     fseek(file, 0, SEEK_SET);
+
+    assert( filepos > 0 );
+    size_t length = (size_t)filepos;
 
     GLchar* source = malloc(length);
     if( source == NULL ) {
@@ -83,7 +120,7 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
     }
 
     log_info(stderr, __FILE__, __LINE__, "compiling: %s\n", filename);
-    GLuint id = glsl_compile_source(type, source, length);
+    GLuint id = glsl_compile_source(type, source);
     if( ! id ) {
         log_fail(stderr, __FILE__, __LINE__, "compilation failed in: %s\n", filename);
     }
@@ -91,6 +128,9 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
 }
 
 GLuint glsl_link_program(GLuint vertex_shader, GLuint fragment_shader) {
+    assert( vertex_shader > 0 );
+    assert( fragment_shader > 0 );
+
     GLuint program = glCreateProgram();
     glAttachShader(program, vertex_shader);
     glAttachShader(program, fragment_shader);
@@ -109,10 +149,8 @@ GLuint glsl_link_program(GLuint vertex_shader, GLuint fragment_shader) {
 }
 
 GLuint glsl_make_program(const char *vertex_source, const char* fragment_source) {
-    GLsizei length_vertex = strlen(vertex_source);
-    GLsizei length_fragment = strlen(fragment_source);
-    GLuint vertex = glsl_compile_source(GL_VERTEX_SHADER, vertex_source, length_vertex);
-    GLuint fragment = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source, length_fragment);
+    GLuint vertex = glsl_compile_source(GL_VERTEX_SHADER, vertex_source);
+    GLuint fragment = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source);
 
     return glsl_link_program(vertex, fragment);
 }

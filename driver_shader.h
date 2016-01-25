@@ -37,10 +37,10 @@
 
 // attribute ids for arrays (and maybe locations)
 #define NUM_SHADER_ATTRIBUTES 4
-#define SHADER_ATTRIBUTE_VERTICES 0
-#define SHADER_ATTRIBUTE_NORMALS 1
-#define SHADER_ATTRIBUTE_COLORS 2
-#define SHADER_ATTRIBUTE_TEXCOORDS 3
+#define SHADER_ATTRIBUTE_VERTICES OGL_VERTICES
+#define SHADER_ATTRIBUTE_NORMALS OGL_NORMALS
+#define SHADER_ATTRIBUTE_COLORS OGL_COLORS
+#define SHADER_ATTRIBUTE_TEXCOORDS OGL_TEXCOORDS
 /* SHADER_ATTRIBUTE_INTERLEAVED_VNCT, */
 /* SHADER_ATTRIBUTE_INTERLEAVED_NCT, */
 /* SHADER_ATTRIBUTE_INTERLEAVED_VCT, */
@@ -57,11 +57,34 @@ struct Shader {
     char name[256];
     GLuint vertex_shader, fragment_shader, program;
 
+    // - instead of using glGetAttribLocation in shader_add_attribute calls it may be better
+    // to use fixed locations for the attributes and then use glBindAttribLocation and always
+    // bind to the same location
+    // - but I don't because I have to use glGetUniformLocation anyways and I like that both cases
+    // are handled in a similar fashion
+    // - I could use (layout = 0) qualifiers but opengl 3.1 only has those for attributes and not
+    // uniforms and opengl es 2 has them not at all (I think)
     struct {
         GLint location;
         char name[256];
     } attribute[NUM_SHADER_ATTRIBUTES];
 
+    // - I was thinking about using uniform buffer objects and how they would fit in here,
+    // the verdict was that instead of locations from glGetUniformLocation I could store
+    // offsets from glGetActiveUniformsiv here, or I could use the std140 layout for every
+    // shader which would give me fixed offsets making the calls to query the offsets
+    // uneccessary
+    // - shader_add_uniform would need to make these new calls, for that it can get a new string
+    // argument which indicates the block it should query, so it could get its index with
+    // glGetUniformBlockIndex, maybe I would have to store that index as well
+    // - I decided against it and kept using the standard glUniform... calls because there
+    // are quite a lot of hits for "uniform buffer objects performance" where peoply are having
+    // problems with them
+    // - ubo are not supported in opengl es 2
+    // - there are implementation dependent limitations that would have to be checked and handled
+    // and I just don't think the added complexity is worth it
+    // - debugging is twice as hard as writing code, so if you write your code as smart as you can,
+    // you will not be smart enough to debug it
     struct {
         GLint location;
         char name[256];

@@ -20,7 +20,7 @@
 struct Character {
     int32_t w;
     int32_t h;
-    const int* pixels;
+    const int32_t* pixels;
 };
 
 struct Glyph {
@@ -32,26 +32,32 @@ struct Glyph {
 
 struct Font {
     char name[256];
+
+    // a glyph is a texture point plus width and height for every character that can be displayed
+    // with this font
     struct Glyph glyphs[NUM_FONT_GLYPHS];
+
+    // the glyphs will only be initialized if the alphabet string given to font_create contains it,
+    // so this array can be used to check if a character can be displayed with this font, if its
+    // glyph is initialized
     bool alphabet[NUM_FONT_GLYPHS];
 
     bool unicode;
 
     struct {
         GLuint id;
-        GLsizei width;
-        GLsizei height;
+        size_t width;
+        size_t height;
         GLenum type;
-        GLint format;
-        GLint min_filter;
-        GLint mag_filter;
+        int32_t format;
+        int32_t min_filter;
+        int32_t mag_filter;
     } texture;
 
     struct Shader shader;
 
     float kerning;
     float linespacing;
-    Color color;
 };
 
 void font_create(struct Font* font, const wchar_t* alphabet, bool unicode, struct Character* symbols, const char* name);

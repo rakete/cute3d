@@ -144,34 +144,42 @@ void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicod
             GLSL( uniform mat4 projection_matrix;
                   uniform mat4 model_matrix;
                   uniform mat4 view_matrix;
-                  in vec3 vertex;
-                  in vec2 texcoord;
-                  uniform vec4 diffuse_color;
-                  out vec4 frag_color;
-                  out vec2 frag_texcoord;
+
+                  shader_in vec3 vertex;
+                  shader_in vec4 color;
+                  shader_in vec2 texcoord;
+
+                  shader_out vec2 frag_texcoord;
+                  shader_out vec4 frag_color;
                   void main() {
                       gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex,1.0);
-                      frag_color = diffuse_color;
                       frag_texcoord = texcoord;
+                      frag_color = color;
                   });
 
         const char* fragment_source =
-            GLSL( uniform sampler2D diffuse;
-                  uniform ivec2 offset;
-                  uniform ivec2 glyph;
-                  in vec4 frag_color;
-                  in vec2 frag_texcoord;
+            GLSL( uniform sampler2D diffuse_texture;
+                  shader_in vec4 frag_color;
+                  shader_in vec2 frag_texcoord;
                   void main() {
-                      vec2 dim = textureSize(diffuse,0);
-                      float x = (1.0/dim.x) * (float(offset.x) + frag_texcoord.x * float(glyph.x));
-                      float y = (1.0/dim.y) * (float(offset.y) + frag_texcoord.y * float(glyph.y));
-                      gl_FragColor = texture(diffuse, vec2(x,y));
-                      if( gl_FragColor.a < 0.05 ) {
-                          discard;
-                      }
+                      vec4 tex_value = texture2D(diffuse_texture, vec2(frag_texcoord.x,frag_texcoord.y));
+                      gl_FragColor = vec4(tex_value[0]*frag_color[0],
+                                          tex_value[1]*frag_color[1],
+                                          tex_value[2]*frag_color[2],
+                                          tex_value[3]*frag_color[3]);
                   });
 
         shader_create_from_sources(vertex_source, fragment_source, "font_shader", &font->shader);
+
+        shader_add_attribute(&font->shader, SHADER_ATTRIBUTE_VERTICES, "vertex");
+        shader_add_attribute(&font->shader, SHADER_ATTRIBUTE_COLORS, "color");
+        shader_add_attribute(&font->shader, SHADER_ATTRIBUTE_TEXCOORDS, "texcoord");
+
+        shader_add_uniform(&font->shader, SHADER_UNIFORM_PROJECTION_MATRIX, "projection_matrix", NULL, NULL);
+        shader_add_uniform(&font->shader, SHADER_UNIFORM_VIEW_MATRIX, "view_matrix", NULL, NULL);
+        shader_add_uniform(&font->shader, SHADER_UNIFORM_MODEL_MATRIX, "model_matrix", NULL, NULL);
+
+        shader_add_uniform(&font->shader, SHADER_UNIFORM_DIFFUSE_COLOR, "diffuse_color", NULL, NULL);
     }
 }
 

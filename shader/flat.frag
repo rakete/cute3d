@@ -1,6 +1,3 @@
-//CUTE
-#version 130
-
 smooth in vec4 frag_color;
 smooth in float intensity;
 

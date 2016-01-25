@@ -87,8 +87,8 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     assert( vertex_source );
     assert( fragment_source );
 
-    p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, vertex_source, strlen(vertex_source));
-    p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source, strlen(fragment_source));
+    p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, vertex_source);
+    p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source);
 
     if( p->vertex_shader > 0 && p->fragment_shader > 0 ) {
         p->program = glsl_link_program(p->vertex_shader, p->fragment_shader);
