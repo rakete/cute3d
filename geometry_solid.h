@@ -24,17 +24,17 @@
 #include "math_matrix.h"
 
 struct Solid {
-    uint32_t size;
+    size_t size;
 
     float* vertices;
-    int* indices;
-    int* triangles;
+    uint32_t* indices;
+    uint32_t* triangles;
     float* colors;
     float* normals;
     float* texcoords;
 };
 
-void solid_create(int32_t size, int32_t* indices, float* vertices, int32_t* triangles, float* normals, float* colors, float* texcoords, struct Solid* solid);
+void solid_create(size_t size, uint32_t* indices, float* vertices, uint32_t* triangles, float* normals, float* colors, float* texcoords, struct Solid* solid);
 void solid_normals(struct Solid* solid);
 void solid_color(struct Solid* solid, float color[4]);
 
@@ -42,8 +42,8 @@ struct Tetrahedron {
     struct Solid solid;
 
     float vertices[36];
-    int32_t indices[12];
-    int32_t triangles[12];
+    uint32_t indices[12];
+    uint32_t triangles[12];
     float colors[48];
     float normals[36];
     float texcoords[24];
@@ -55,8 +55,8 @@ struct Cube {
     struct Solid solid;
 
     float vertices[108];
-    int32_t indices[36];
-    int32_t triangles[36];
+    uint32_t indices[36];
+    uint32_t triangles[36];
     float colors[144];
     float normals[108];
     float texcoords[72];
@@ -69,8 +69,8 @@ struct Sphere16 {
     struct Solid solid;
 
     float vertices[(16*6*2+16*2)*3*3];
-    int32_t indices[16*6*2*3+16*3*2];
-    int32_t triangles[16*6*2*3+16*3*2];
+    uint32_t indices[16*6*2*3+16*3*2];
+    uint32_t triangles[16*6*2*3+16*3*2];
     float colors[(16*6*2+16*2)*4*3];
     float normals[(16*6*2+16*2)*3*3];
     float texcoords[(16*6*2+16*2)*2*3];
@@ -82,8 +82,8 @@ struct Sphere32 {
     struct Solid solid;
 
     float vertices[(32*14*2+32*2)*3*3];
-    int32_t indices[32*14*2*3+32*3*2];
-    int32_t triangles[32*14*2*3+32*3*2];
+    uint32_t indices[32*14*2*3+32*3*2];
+    uint32_t triangles[32*14*2*3+32*3*2];
     float colors[(32*14*2+32*2)*4*3];
     float normals[(32*14*2+32*2)*3*3];
     float texcoords[(32*14*2+32*2)*2*3];

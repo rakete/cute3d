@@ -68,15 +68,15 @@ struct Shader {
     } uniform[NUM_SHADER_UNIFORMS];
 };
 
-int32_t init_shader();
+int32_t init_shader() __attribute__((warn_unused_result));
 
 void shader_create_empty(struct Shader* p);
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p);
 void shader_create_from_sources(const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p);
 void shader_copy(struct Shader* const src, struct Shader* dst);
 
-GLint shader_attribute(struct Shader* shader, int32_t attribute_index, const char* name, int32_t n, const char* type, void* data);
-GLint shader_uniform(struct Shader* shader, int32_t uniform_index, const char* name, const char* type, void* data);
+GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name);
+GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const char* name, const char* type, void* data);
 
 void shader_create_flat(const char* name, struct Shader* shader);
 void shader_create_gl_lines(const char* name, struct Shader* shader);

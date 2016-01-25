@@ -1,32 +1,32 @@
 #include "gui_font.h"
 
 void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicode, struct Character* symbols, const char* name) {
-    int32_t name_length = strlen(name);
+    size_t name_length = strlen(name);
     assert( name_length > 0 );
     assert( name_length < 256 );
 
     strncpy(font->name, name, name_length+1);
+    for( int32_t i = 0; i < NUM_FONT_GLYPHS; i++ ) {
+        font->alphabet[i] = false;
+        font->glyphs[i] = (struct Glyph){0, 0, 0, 0};
+    }
     font->unicode = unicode;
-    font->kerning = 0.2;
-    font->linespacing = 0.2;
-    font->color[0] = 1.0;
-    font->color[1] = 1.0;
-    font->color[2] = 1.0;
-    font->color[3] = 1.0;
+    font->kerning = 0.2f;
+    font->linespacing = 0.2f;
 
-    //int32_t n = strlen(alphabet);
+    size_t alphabet_len = wcslen(unicode_alphabet);
+    assert( alphabet_len < INT32_MAX );
 
-    uint32_t n = wcslen(unicode_alphabet);
-    char ascii_alphabet[n + 1];
-    size_t size = wcstombs(ascii_alphabet, unicode_alphabet, n);
-    if( size >= n ) {
-        ascii_alphabet[n] = '\0';
+    char ascii_alphabet[alphabet_len + 1];
+    size_t size = wcstombs(ascii_alphabet, unicode_alphabet, alphabet_len);
+    if( size >= alphabet_len ) {
+        ascii_alphabet[alphabet_len] = '\0';
     }
 
     int32_t max_h = 0;
-    int32_t widths[n];
-    for( uint32_t i = 0; i < n; i++ ) {
-        unsigned char c = ascii_alphabet[i];
+    int32_t widths[alphabet_len];
+    for( int32_t i = 0; i < (int32_t)alphabet_len; i++ ) {
+        int8_t c = ascii_alphabet[i];
         if( symbols[c].h > max_h ) {
             max_h = symbols[c].h;
         }
@@ -46,12 +46,12 @@ void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicod
     int32_t power2 = 8;
     int32_t row_width = 0;
     int32_t row_n = 0;
-    int32_t rows[n];
-    int32_t row_offsets[n];
-    for( uint32_t i = 0; i < n; i++ ) {
+    int32_t rows[alphabet_len];
+    int32_t row_offsets[alphabet_len];
+    for( int32_t i = 0; i < (int32_t)alphabet_len; i++ ) {
         row_offsets[i] = row_width;
 
-        int32_t column_height = max_h * (n / (i+1)) + (n % (i+1) > 0) * max_h;
+        int32_t column_height = max_h * ((int32_t)alphabet_len / (i+1)) + ((int32_t)alphabet_len % (i+1) > 0) * max_h;
 
         row_width += widths[i];
         while( power2 < row_width ) {
@@ -61,36 +61,32 @@ void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicod
         int32_t next_row_width = row_width + widths[i+1];
         /* printf("%d %d %d %d %d\n", column_height, row_width, power2, next_row_width, row_n); */
         rows[i] = row_n;
-        if( (i+1) < n && column_height <= power2 && next_row_width > power2 ) {
+        if( (i+1) < (int32_t)alphabet_len && column_height <= power2 && next_row_width > power2 ) {
             row_n += 1;
             row_width = 0;
         }
     }
+    assert( power2 < INT16_MAX );
+    assert( power2 > -1 );
 
-    int32_t texture_size = power2 * power2;
+    size_t texture_size = (size_t)power2 * (size_t)power2;
     float* texture = (float*)calloc( texture_size * 4,  sizeof(float) );
     if( texture != NULL ) {
-        /* for( int32_t i = 0; i < texture_size; i++ ) { */
-        /*     texture[i*4+0] = 0.0; */
-        /*     texture[i*4+1] = 0.0; */
-        /*     texture[i*4+2] = 0.0; */
-        /*     texture[i*4+3] = 1.0; */
-        /* } */
 
-        unsigned char k = ascii_alphabet[0];
+        int8_t k = ascii_alphabet[0];
         struct Character c = symbols[k];
         for( int32_t gy = 0; gy < c.h; gy++ ) {
             for( int32_t gx = 0; gx < c.w; gx++ ) {
-                texture[(gy*power2+gx)*4+0] = 1.0 * c.pixels[gy*c.w+gx];
-                texture[(gy*power2+gx)*4+1] = 1.0 * c.pixels[gy*c.w+gx];
-                texture[(gy*power2+gx)*4+2] = 1.0 * c.pixels[gy*c.w+gx];
-                texture[(gy*power2+gx)*4+3] = 1.0 * c.pixels[gy*c.w+gx];
+                texture[(gy*power2+gx)*4+0] = 1.0f * c.pixels[gy*c.w+gx];
+                texture[(gy*power2+gx)*4+1] = 1.0f * c.pixels[gy*c.w+gx];
+                texture[(gy*power2+gx)*4+2] = 1.0f * c.pixels[gy*c.w+gx];
+                texture[(gy*power2+gx)*4+3] = 1.0f * c.pixels[gy*c.w+gx];
             }
         }
 
-        for( int32_t i = 0; i < n; i++ ) {
-            unsigned char c = ascii_alphabet[i];
-            font->alphabet[c] = 1;
+        for( int32_t i = 0; i < (int32_t)alphabet_len; i++ ) {
+            int8_t c = ascii_alphabet[i];
+            font->alphabet[c] = true;
 
             struct Glyph* glyph = &font->glyphs[c];
 
@@ -110,10 +106,10 @@ void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicod
                     tx = offset_x + gx;
                     ty = offset_y + gy + max_h - symbols[c].h;
 
-                    texture[(ty*power2+tx)*4+0] = 1.0 * pixel;
-                    texture[(ty*power2+tx)*4+1] = 1.0 * pixel;
-                    texture[(ty*power2+tx)*4+2] = 1.0 * pixel;
-                    texture[(ty*power2+tx)*4+3] = 1.0 * pixel;
+                    texture[(ty*power2+tx)*4+0] = 1.0f * pixel;
+                    texture[(ty*power2+tx)*4+1] = 1.0f * pixel;
+                    texture[(ty*power2+tx)*4+2] = 1.0f * pixel;
+                    texture[(ty*power2+tx)*4+3] = 1.0f * pixel;
                 }
             }
         }

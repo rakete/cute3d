@@ -116,7 +116,7 @@ bool collide_convex_plane(struct ColliderConvex* const convex, struct ColliderPl
 // helper to transform vertices from convex2 halfedgemesh into the coordinate system of convex1
 static void convex_local_transform(struct ColliderConvex* const convex1,
                                    struct ColliderConvex* const convex2,
-                                   uint32_t size,
+                                   size_t size,
                                    float transformed_vertices[])
 {
     // I get both orientation and translation of both convex'es, but invert the ones from
@@ -180,7 +180,7 @@ static void query_face_directions(struct ColliderConvex* const convex1,
     // means when this function is called with convex1 and convex2 flipped the best_normal
     // (seperation axis) orientation will be in convex2 coordinates instead of convex1
     // coordinates
-    uint32_t transformed_size = mesh2->vertices.occupied*3;
+    size_t transformed_size = mesh2->vertices.occupied*3;
     float transformed_vertices[transformed_size];
     convex_local_transform(convex1, convex2, transformed_size, transformed_vertices);
 
@@ -223,7 +223,7 @@ static void query_face_directions(struct ColliderConvex* const convex1,
         // support - point32_t on the plane normal to compute the distance
         // d = n . (s - p)
         Vec3f plane_point;
-        uint32_t vertex_i = mesh1->edges.array[mesh1->faces.array[face_i].edge].vertex;
+        int32_t vertex_i = mesh1->edges.array[mesh1->faces.array[face_i].edge].vertex;
         vec_copy3f(mesh1->vertices.array[vertex_i].position, plane_point);
         vec_sub3f(support, plane_point, support);
         float distance = vdot(support, face_normal);
@@ -253,7 +253,7 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
     struct HalfEdgeMesh* const mesh1 = convex1->mesh;
     struct HalfEdgeMesh* const mesh2 = convex2->mesh;
 
-    uint32_t transformed_size = mesh2->vertices.occupied*3;
+    size_t transformed_size = mesh2->vertices.occupied*3;
     float transformed_vertices[transformed_size];
     convex_local_transform(convex1, convex2, transformed_size, transformed_vertices);
 
@@ -484,13 +484,13 @@ struct Physics collisions_resolve(struct Physics previous,
                                   struct Collision* const collisions,
                                   float dt)
 {
-    for( size_t i = 0; i < collisions_size; i++ ) {
-        for( size_t j = 0; j < collisions[i].num_contacts; j++ ) {
-            Vec* contact_normal = &collisions[i].normal;
-            Vec* contact_point = &collisions[i].contact[j].point;
-            float penetration = collisions[i].contact[j].penetration;
-        }
-    }
+    /* for( size_t i = 0; i < collisions_size; i++ ) { */
+    /*     for( size_t j = 0; j < collisions[i].num_contacts; j++ ) { */
+    /*         Vec* contact_normal = &collisions[i].normal; */
+    /*         Vec* contact_point = &collisions[i].contact[j].point; */
+    /*         float penetration = collisions[i].contact[j].penetration; */
+    /*     } */
+    /* } */
 
     return current;
 }

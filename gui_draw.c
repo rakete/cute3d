@@ -20,11 +20,11 @@ void draw_grid( struct Canvas* canvas,
                 int32_t layer_i,
                 float width,
                 float height,
-                int32_t steps,
+                uint32_t steps,
                 const Color color,
                 const Mat model_matrix )
 {
-    int32_t size = (steps+1)*2 + (steps+1)*2;
+    uint32_t size = (steps+1)*2 + (steps+1)*2;
 
     float vertices[size * 3];
     float colors[size * 4];
@@ -36,7 +36,7 @@ void draw_grid( struct Canvas* canvas,
     // |  |  | 6-----7
     // |  |  |
     // 0  4  8 2-----3
-    for( int32_t i = 0; i < (steps+1); i++ ) {
+    for( uint32_t i = 0; i < (steps+1); i++ ) {
 
         float xf = -width/2.0f + (float)i * (width / (float)steps);
         float yf = -height/2.0f + (float)i * (height / (float)steps);
@@ -108,11 +108,11 @@ void draw_arrow( struct Canvas* canvas,
         /*   0.0,  0.1,  -0.2, */
         /*   -0.1, 0.0,  -0.2, */
         /*   0.0,  -0.1, -0.2 }; */
-    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.0, 0.0, 0.0 }, vertices + 3*0);
-    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.1, 0.0,-0.2 }, vertices + 3*1);
-    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.0, 0.1,-0.2 }, vertices + 3*2);
-    mat_mul_vec3f(arrow_matrix, (Vec3f){-0.1, 0.0,-0.2 }, vertices + 3*3);
-    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.0,-0.1,-0.2 }, vertices + 3*4);
+    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.0f, 0.0f, 0.0f }, vertices + 3*0);
+    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.1f, 0.0f,-0.2f }, vertices + 3*1);
+    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.0f, 0.1f,-0.2f }, vertices + 3*2);
+    mat_mul_vec3f(arrow_matrix, (Vec3f){-0.1f, 0.0f,-0.2f }, vertices + 3*3);
+    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.0f,-0.1f,-0.2f }, vertices + 3*4);
 
     float colors[5*4] =
         { color[0], color[1], color[2], color[3],
@@ -179,18 +179,18 @@ void draw_vec( struct Canvas* canvas,
     // move the arrow along scaled vector down so that the value given in arrow will fit the
     // 1.0f == arrow at the top, 0.0f arrow invisible scheme
     // arrow == 0.9f -> arrow -10% (-1.0f + 0.9f) from the top of the vector
-    mat_translate(arrow_offset_matrix, (Vec){0.0, (-1.0 + arrow) * scale * length, 0.0, 1.0}, arrow_offset_matrix);
+    mat_translate(arrow_offset_matrix, (Vec){0.0f, (-1.0f + arrow) * scale * length, 0.0f, 1.0f}, arrow_offset_matrix);
     mat_mul(arrow_offset_matrix, model_matrix, arrow_offset_matrix);
 
     static float vertices[18] =
-        { 0.0,  0.0,  0.0,
-          0.0,  0.0,  1.0,
-          0.05,  0.0,  0.9,
-          0.0,  0.05,  0.9,
-          -0.05, 0.0,  0.9,
-          0.0,  -0.05, 0.9 };
+        { 0.0f,  0.0f,  0.0f,
+          0.0f,  0.0f,  1.0f,
+          0.05f,  0.0f,  0.9f,
+          0.0f,  0.05f,  0.9f,
+          -0.05f, 0.0f,  0.9f,
+          0.0f,  -0.05f, 0.9f };
 
-    static GLuint elements[18] =
+    static uint32_t elements[18] =
         { 0, 1,
           1, 2,
           1, 3,
@@ -276,13 +276,13 @@ void draw_circle( struct Canvas* canvas,
     static GLfloat vertices[360*3];
     if( first_run ) {
         for( int32_t i = 0; i < 360; i++ ) {
-            float theta = -2.0 * PI * (float)i / (float)360;
+            float theta = -2.0f * PI * (float)i / (float)360.0f;
             float x = cosf(theta);
             float y = sinf(theta);
 
             vertices[i*3+0] = x;
             vertices[i*3+1] = y;
-            vertices[i*3+2] = 0.0;
+            vertices[i*3+2] = 0.0f;
         }
         first_run = 0;
     }
@@ -299,9 +299,9 @@ void draw_circle( struct Canvas* canvas,
         colors[i*4+3] = color[3];
     }
 
-    int32_t start_index = (start * 360.0)/(2.0 * PI);
-    int32_t end_index = (end * 360.0)/(2.0 * PI);
-    for( int32_t i = 0; i < end_index - start_index; i++ ) {
+    uint32_t start_index = (start * 360.0f)/(2.0f * PI);
+    uint32_t end_index = (end * 360.0f)/(2.0f * PI);
+    for( uint32_t i = 0; i < end_index - start_index; i++ ) {
         elements[i*2+0] = start_index + i;
         elements[i*2+1] = start_index + i + 1;
     }
@@ -316,10 +316,10 @@ void draw_circle( struct Canvas* canvas,
     mat_mul(arrow_matrix, model_matrix, arrow_matrix);
 
     if( arrow > 0.0 && end_index > 1 ) {
-        int32_t arrow_index = end_index - start_index;
+        uint32_t arrow_index = end_index - start_index;
 
-        GLint i = elements[arrow_index*2-1];
-        GLint j = elements[arrow_index*2-2];
+        uint32_t i = elements[arrow_index*2-1];
+        uint32_t j = elements[arrow_index*2-2];
 
         Vec a, b, v;
         a[0] = vertices[i*3+0] * radius;
@@ -333,7 +333,7 @@ void draw_circle( struct Canvas* canvas,
         b[3] = 1.0;
 
         vec_sub(a,b,v);
-        draw_arrow(canvas, layer, v, a, radius/2.0, 0.0, color, arrow_matrix);
+        draw_arrow(canvas, layer, v, a, radius/2.0f, 0.0f, color, arrow_matrix);
     }
 
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 360, arrow_matrix);
@@ -391,14 +391,14 @@ void draw_reticle( struct Canvas* canvas,
         /*   0.1, 0.0, 0.0, */
         /*   -0.5, 0.0, 0.0, */
         /*   -0.1, 0.0, 0.0 }; */
-    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.0,  0.5, 0.0 }, vertices + 3*0);
-    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.0,  0.1, 0.0 }, vertices + 3*1);
-    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.0, -0.5, 0.0 }, vertices + 3*2);
-    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.0, -0.1, 0.0 }, vertices + 3*3);
-    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.5,  0.0, 0.0 }, vertices + 3*4);
-    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.1,  0.0, 0.0 }, vertices + 3*5);
-    mat_mul_vec3f(reticle_matrix, (Vec3f){ -0.5,  0.0, 0.0 }, vertices + 3*6);
-    mat_mul_vec3f(reticle_matrix, (Vec3f){ -0.1,  0.0, 0.0 }, vertices + 3*7);
+    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.0f,  0.5f, 0.0f }, vertices + 3*0);
+    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.0f,  0.1f, 0.0f }, vertices + 3*1);
+    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.0f, -0.5f, 0.0f }, vertices + 3*2);
+    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.0f, -0.1f, 0.0f }, vertices + 3*3);
+    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.5f,  0.0f, 0.0f }, vertices + 3*4);
+    mat_mul_vec3f(reticle_matrix, (Vec3f){  0.1f,  0.0f, 0.0f }, vertices + 3*5);
+    mat_mul_vec3f(reticle_matrix, (Vec3f){ -0.5f,  0.0f, 0.0f }, vertices + 3*6);
+    mat_mul_vec3f(reticle_matrix, (Vec3f){ -0.1f,  0.0f, 0.0f }, vertices + 3*7);
 
     GLfloat colors[8*4] =
         { color[0], color[1], color[2], color[3],
@@ -433,7 +433,7 @@ void draw_contact( struct Canvas* canvas,
     Mat contact_matrix;
     mat_translate(model_matrix, contact_point, contact_matrix);
 
-    draw_vec(canvas, layer, contact_normal, (Vec)NULL_VEC, scale, 1.0f, (Color){0.1, 0.9, 0.7, 1.0}, contact_matrix);
+    draw_vec(canvas, layer, contact_normal, (Vec)NULL_VEC, scale, 1.0f, (Color){0.1f, 0.9f, 0.7f, 1.0f}, contact_matrix);
 
     Quat q = NULL_VEC;
     quat_from_vec_pair((Vec)Z_AXIS, (Vec)Y_AXIS, q);
@@ -442,32 +442,32 @@ void draw_contact( struct Canvas* canvas,
     Mat quad_matrix1;
     quat_to_mat(q, quad_matrix1);
     mat_mul(quad_matrix1, contact_matrix, quad_matrix1);
-    //draw_color_quad(scale/2.0, (Color){0.1, 0.9, 0.7, 1.0}, projection_matrix, view_matrix, quad_matrix1);
+    //draw_color_quad(scale/2.0, (Color){0.1f, 0.9f, 0.7f, 1.0f}, projection_matrix, view_matrix, quad_matrix1);
 
     quat_mul_axis_angle(q, (Vec)X_AXIS, PI/2, q);
 
     Mat quad_matrix2;
     quat_to_mat(q, quad_matrix2);
     mat_mul(quad_matrix2, contact_matrix, quad_matrix2);
-    //draw_color_quad(scale/2.0, (Color){0.1, 0.9, 0.7, 1.0}, projection_matrix, view_matrix, quad_matrix2);
+    //draw_color_quad(scale/2.0, (Color){0.1f, 0.9f, 0.7f, 1.0f}, projection_matrix, view_matrix, quad_matrix2);
 
     quat_mul_axis_angle(q, (Vec)Y_AXIS, PI/2, q);
 
     Mat quad_matrix3;
     quat_to_mat(q, quad_matrix3);
     mat_mul(quad_matrix3, contact_matrix, quad_matrix3);
-    //draw_color_quad(scale/2.0, (Color){0.1, 0.9, 0.7, 1.0}, projection_matrix, view_matrix, quad_matrix3);
+    //draw_color_quad(scale/2.0, (Color){0.1f, 0.9f, 0.7f, 1.0f}, projection_matrix, view_matrix, quad_matrix3);
 
     Quat reticle_rotation;
-    quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, reticle_rotation);
+    quat_from_vec_pair((Vec){0.0f, 0.0f, 1.0f, 1.0f}, (Vec){0.0f, 1.0f, 0.0f, 1.0f}, reticle_rotation);
     Mat reticle_transform;
     quat_to_mat(reticle_rotation, reticle_transform);
     mat_mul(reticle_transform, contact_matrix, reticle_transform);
-    draw_reticle(canvas, layer, scale/2.0, (Color){1.0, 0.2, 0.7, 1.0}, reticle_transform);
+    draw_reticle(canvas, layer, scale/2.0f, (Color){1.0f, 0.2f, 0.7f, 1.0f}, reticle_transform);
 
     Vec contact_normal_flipped;
     vec_mul1f(contact_normal, -1.0f, contact_normal_flipped);
-    draw_vec(canvas, layer, contact_normal_flipped, (Vec)NULL_VEC, scale, 0.0f, (Color){1.0, 0.2, 0.7, 1.0}, contact_matrix);
+    draw_vec(canvas, layer, contact_normal_flipped, (Vec)NULL_VEC, scale, 0.0f, (Color){1.0f, 0.2f, 0.7f, 1.0f}, contact_matrix);
 
 }
 

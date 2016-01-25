@@ -32,7 +32,7 @@ void draw_grid( struct Canvas* canvas,
                 int32_t layer,
                 float width,
                 float height,
-                int32_t steps,
+                uint32_t steps,
                 const Color color,
                 const Mat model_matrix );
 

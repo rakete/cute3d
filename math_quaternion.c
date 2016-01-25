@@ -53,16 +53,20 @@ bool quat_from_axis_angle(const Vec3f axis, const float angle, Quat q) {
     /* q[3] = (float)cosf(half_angle); */
 
     Vec normed_axis;
-    float norm = sqrt( axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2] );
+    double norm = sqrt( axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2] );
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
     normed_axis[0] = axis[0] / norm;
     normed_axis[1] = axis[1] / norm;
     normed_axis[2] = axis[2] / norm;
     normed_axis[3] = 1.0;
 
-    q[0] = normed_axis[0] * sin(angle/2);
-    q[1] = normed_axis[1] * sin(angle/2);
-    q[2] = normed_axis[2] * sin(angle/2);
-    q[3] = cos(angle/2);
+    q[0] = normed_axis[0] * sin(angle/2.0);
+    q[1] = normed_axis[1] * sin(angle/2.0);
+    q[2] = normed_axis[2] * sin(angle/2.0);
+    q[3] = cos(angle/2.0);
+#pragma GCC diagnostic pop
 
     return 1;
 }
@@ -202,7 +206,7 @@ void quat_conjugate(const Quat q, Quat r) {
 }
 
 void quat_invert(const Quat q, Quat r) {
-    Quat conj;
+    Quat conj = {0};
     quat_conjugate(q, conj);
 
     /* r[0] = conj[0] * (1 / qdot( q, conj ) ); */
@@ -210,10 +214,14 @@ void quat_invert(const Quat q, Quat r) {
     /* r[2] = conj[2] * (1 / qdot( q, conj ) ); */
     /* r[3] = conj[3] * (1 / qdot( q, conj ) ); */
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
     r[0] = conj[0] / pow(qmagnitude(q), 2.0);
     r[1] = conj[1] / pow(qmagnitude(q), 2.0);
     r[2] = conj[2] / pow(qmagnitude(q), 2.0);
     r[3] = conj[3] / pow(qmagnitude(q), 2.0);
+#pragma GCC diagnostic pop
+
 }
 
 void quat_normalize(const Quat q, Quat r) {
@@ -239,7 +247,10 @@ QuatP qnormalize(Quat q) {
 }
 
 void quat_magnitude(const Quat q, float* r) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
     *r = sqrt( qdot(q, q) );
+#pragma GCC diagnostic pop
 }
 
 float qmagnitude(const Quat q) {
@@ -282,9 +293,15 @@ void quat_to_axis_angle(const Quat p, Vec axis, float* angle) {
     quat_copy(p, q);
     quat_normalize(q, q); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
     *angle = 2.0 * acos(q[3]);
-    double s = sqrt(1.0 - q[3] * q[3]); // assuming quaternion normalised then w is less than 1, so term always positive.
+#pragma GCC diagnostic pop
 
+    double s = sqrt(1.0f - q[3] * q[3]); // assuming quaternion normalised then w is less than 1, so term always positive.
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
     if( s < FLOAT_EPSILON ) { // test to avoid divide by zero, s is always positive due to sqrt
         // if s close to zero then direction of axis not important
         axis[0] = q[0]; // if it is important that axis is normalised then replace with x=1; y=z=0;
@@ -297,6 +314,7 @@ void quat_to_axis_angle(const Quat p, Vec axis, float* angle) {
         axis[2] = q[2] / s;
         axis[3] = 1.0f;
     }
+#pragma GCC diagnostic pop
 
     float length = vlength(axis);
     if( length < FLOAT_EPSILON ) {

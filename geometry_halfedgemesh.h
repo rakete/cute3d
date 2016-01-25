@@ -52,20 +52,20 @@ struct HalfEdgeMesh {
     int32_t size;
 
     struct {
-        int32_t capacity;
-        int32_t occupied;
+        size_t capacity;
+        size_t occupied;
         struct HalfEdgeVertex* array;
     } vertices;
 
     struct {
-        int32_t capacity;
-        int32_t occupied;
+        size_t capacity;
+        size_t occupied;
         struct HalfEdgeFace* array;
     } faces;
 
     struct {
-        int32_t capacity;
-        int32_t occupied;
+        size_t capacity;
+        size_t occupied;
         struct HalfEdge* array;
     } edges;
 };
@@ -75,9 +75,9 @@ int32_t halfedgemesh_create(struct HalfEdgeMesh* mesh);
 int32_t halfedgemesh_destroy(struct HalfEdgeMesh* mesh);
 
 // allocation functions, return allocated bytes or zero
-int32_t halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, int32_t n);
-int32_t halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, int32_t n);
-int32_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, int32_t n);
+size_t halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, size_t n);
+size_t halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, size_t n);
+size_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, size_t n);
 
 // appending a complete solid at once, that encodes the assumption that the input data is
 // in a certain format, so I choose to use only this instead of a more generic function

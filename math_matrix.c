@@ -485,7 +485,7 @@ void vec_perpendicular(const Vec v, Vec r) {
 void vec_basis(const Vec x, Vec y, Vec z) {
     if( fabsf(x[0]) > fabsf(x[1]) ) {
         // Scaling factor to ensure the results are normalised
-        const float s = 1.0/sqrtf(x[2]*x[2] + x[0]*x[0]);
+        const float s = 1.0f/sqrtf(x[2]*x[2] + x[0]*x[0]);
 
         // The new Z-axis is at right angles to the world Y-axis
         z[0] = x[2]*s;
@@ -499,7 +499,7 @@ void vec_basis(const Vec x, Vec y, Vec z) {
         y[2] = -x[1]*z[0];
         y[3] = 1.0;
     } else {
-        const float s = 1.0/sqrtf(x[2]*x[2] + x[1]*x[1]);
+        const float s = 1.0f/sqrtf(x[2]*x[2] + x[1]*x[1]);
 
         z[0] = 0;
         z[1] = -x[2]*s;
@@ -547,9 +547,9 @@ void mat_basis(const Vec x, Mat r) {
 void mat_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Mat m) {
     Mat n;
     // songho.ca my hero
-    n[0] = (2.0*zNear)/(right-left);  n[4] = 0.0f;                      n[8] = (right+left)/(right-left);   n[12] = 0.0f;
-    n[1] = 0.0f;                      n[5] = (2.0*zNear)/(top-bottom);  n[9] = (top+bottom)/(top-bottom);   n[13] = 0.0f;
-    n[2] = 0.0f;                      n[6] = 0.0f;                      n[10] = -(zFar+zNear)/(zFar-zNear); n[14] = -2.0*zFar*zNear/(zFar-zNear);
+    n[0] = (2.0f*zNear)/(right-left); n[4] = 0.0f;                      n[8] = (right+left)/(right-left);   n[12] = 0.0f;
+    n[1] = 0.0f;                      n[5] = (2.0f*zNear)/(top-bottom); n[9] = (top+bottom)/(top-bottom);   n[13] = 0.0f;
+    n[2] = 0.0f;                      n[6] = 0.0f;                      n[10] = -(zFar+zNear)/(zFar-zNear); n[14] = -2.0f*zFar*zNear/(zFar-zNear);
     n[3] = 0.0f;                      n[7] = 0.0f;                      n[11] = -1.0f;                      n[15] = 0.0f;
 
     mat_mul(m,n,m);
@@ -557,10 +557,10 @@ void mat_perspective(float left, float right, float top, float bottom, float zNe
 
 void mat_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Mat m) {
     Mat n;
-    n[0] = 2.0/(right-left); n[4] = 0.0f;             n[8] = 0.0f;               n[12] = -(right+left)/(right-left);
-    n[1] = 0.0f;             n[5] = 2.0/(top-bottom); n[9] = 0.0f;               n[13] = -(top+bottom)/(top-bottom);
-    n[2] = 0.0f;             n[6] = 0.0f;             n[10] = -2.0/(zFar-zNear); n[14] = -(zFar+zNear)/(zFar-zNear);
-    n[3] = 0.0f;             n[7] = 0.0f;             n[11] = 0.0f;              n[15] = 1.0f;
+    n[0] = 2.0f/(right-left); n[4] = 0.0f;              n[8] = 0.0f;                n[12] = -(right+left)/(right-left);
+    n[1] = 0.0f;              n[5] = 2.0f/(top-bottom); n[9] = 0.0f;                n[13] = -(top+bottom)/(top-bottom);
+    n[2] = 0.0f;              n[6] = 0.0f;              n[10] = -2.0f/(zFar-zNear); n[14] = -(zFar+zNear)/(zFar-zNear);
+    n[3] = 0.0f;              n[7] = 0.0f;              n[11] = 0.0f;               n[15] = 1.0f;
 
     mat_mul(m,n,m);
 }
@@ -712,10 +712,13 @@ void mat_invert(const Mat m, double* det, Mat r) {
 
     d = 1.0 / d;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
     r[0] = inv[0] * d; r[4] = inv[4] * d; r[8]  = inv[8] * d;  r[12] = inv[12] * d;
     r[1] = inv[1] * d; r[5] = inv[5] * d; r[9]  = inv[9] * d;  r[13] = inv[13] * d;
     r[2] = inv[2] * d; r[6] = inv[6] * d; r[10] = inv[10] * d; r[14] = inv[14] * d;
     r[3] = inv[3] * d; r[7] = inv[7] * d; r[11] = inv[11] * d; r[15] = inv[15] * d;
+#pragma GCC diagnostic pop
 
     if(det) *det = d;
 }
@@ -743,6 +746,8 @@ void mat_invert3f(const Mat m, double* det, Mat r) {
 
     double invdet = 1.0 / d;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
     r[0] = (m[5] * m[10] - m[9] * m[6]) * invdet;
     r[1] = (m[2] * m[9] - m[1] * m[10]) * invdet;
     r[2] = (m[1] * m[6] - m[2] * m[5]) * invdet;
@@ -762,6 +767,7 @@ void mat_invert3f(const Mat m, double* det, Mat r) {
     r[13] = m[13];
     r[14] = m[14];
     r[15] = m[15];
+#pragma GCC diagnostic pop
 
     if(det) *det = d;
 }

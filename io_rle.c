@@ -38,7 +38,7 @@ static void encode_packet(unsigned char* input,
     //printf("%lu %lu %lu %lu %lu %lu\n", encoded_begin, input_offset, *allocated, *literal_run, *encoded_run, alloc_offset);
 
     for( uint64_t l = literal_begin; l < literal_end ; l+=bytes ) {
-        for( int32_t b = 0; b < bytes; b++ ) {
+        for( uint32_t b = 0; b < bytes; b++ ) {
             output[*allocated+b] = input[l+b];
         }
     }
@@ -62,13 +62,13 @@ static void encode_packet(unsigned char* input,
             //printf("%lu", 4294967295);
             *encoded_run -= 4294967295;
         } else {
-            for( int32_t b = 0; b < bytes; b++ ) {
+            for( uint32_t b = 0; b < bytes; b++ ) {
                 output[output_offset+1*bytes+b] = ((unsigned char*)encoded_run)[b];
             }
             *encoded_run = 1;
         }
 
-        for( int32_t b = 0; b < bytes; b++ ) {
+        for( uint32_t b = 0; b < bytes; b++ ) {
             output[output_offset+2*bytes+b] = input[encoded_begin+b];
         }
     }
@@ -92,7 +92,7 @@ size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char
         unsigned char current[bytes];
         int32_t equal = 1;
 
-        for( int32_t b = 0; b < bytes; b++ ) {
+        for( uint32_t b = 0; b < bytes; b++ ) {
             current[b] = input[i+b];
             if( i > 0 && current[b] != last[b] ) {
                 equal = 0;

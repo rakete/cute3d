@@ -53,6 +53,11 @@
 
 #define NUM_OGL_PRIMITIVES GL_TRIANGLE_FAN+1
 
+#define NUM_OGL_ATTRIBUTES 4
+#define OGL_VERTICES 0
+#define OGL_NORMALS 1
+#define OGL_COLORS 2
+#define OGL_TEXCOORDS 3
 
 /* #ifndef NUM_CUTE_ATTRIBUTES */
 /* enum CuteAttributeType { */
@@ -60,12 +65,12 @@
 /* }; */
 /* #endif */
 
-int32_t init_ogl(int32_t width, int32_t height, const float clear_color[4]);
+int32_t init_ogl(int32_t width, int32_t height, const float clear_color[4]) __attribute__((warn_unused_result));
 
-int32_t ogl_buffer_resize(GLuint* buffer, int32_t old_nbytes, int32_t new_nbytes);
+size_t ogl_buffer_resize(GLuint* buffer, size_t old_nbytes, size_t new_nbytes) __attribute__((warn_unused_result));
 
-GLsizei ogl_sizeof_type(GLenum type);
+size_t ogl_sizeof_type(GLenum type) __attribute__((warn_unused_result));
 
-GLsizei ogl_sizeof_primitive(GLenum primitive);
+size_t ogl_sizeof_primitive(GLenum primitive) __attribute__((warn_unused_result));
 
 #endif
