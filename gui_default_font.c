@@ -788,11 +788,11 @@ struct Character char_2() {
 struct Character char_3() {
     static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
-        0, 0, 1, 1, 0, 0,
-        0, 1, 0, 0, 1, 0,
+        0, 1, 1, 1, 0, 0,
+        0, 0, 0, 0, 1, 0,
         0, 0, 0, 1, 0, 0,
-        0, 1, 0, 0, 1, 0,
-        0, 0, 1, 1, 0, 0,
+        0, 0, 0, 0, 1, 0,
+        0, 1, 1, 1, 0, 0,
         0, 0, 0, 0, 0, 0
     };
     struct Character r = { .w = 6, .h = 7, .pixels = pixels };
@@ -802,9 +802,9 @@ struct Character char_3() {
 struct Character char_4() {
     static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 1, 0,
         0, 0, 0, 1, 0, 0,
-        0, 0, 1, 0, 1, 0,
+        0, 0, 1, 0, 0, 0,
+        0, 1, 0, 0, 1, 0,
         0, 1, 1, 1, 1, 0,
         0, 0, 0, 0, 1, 0,
         0, 0, 0, 0, 0, 0
@@ -1177,5 +1177,4 @@ void default_font_create(struct Character symbols[256]) {
     symbols[']'] = char_close_bracket();
     symbols['{'] = char_open_brace();
     symbols['}'] = char_close_brace();
-
 }
