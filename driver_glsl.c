@@ -127,19 +127,25 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
     return id;
 }
 
-GLuint glsl_link_program(GLuint vertex_shader, GLuint fragment_shader) {
+GLuint glsl_create_program(GLuint vertex_shader, GLuint fragment_shader) {
     log_assert( vertex_shader > 0 );
     log_assert( fragment_shader > 0 );
 
     GLuint program = glCreateProgram();
     glAttachShader(program, vertex_shader);
     glAttachShader(program, fragment_shader);
+
+    return program;
+}
+
+
+GLuint glsl_link_program(GLuint program) {
     glLinkProgram(program);
 
     GLint program_ok;
     glGetProgramiv(program, GL_LINK_STATUS, &program_ok);
-    if (!program_ok) {
-        fprintf(stderr, "Failed to link shader program:\n");
+    if( ! program_ok ) {
+        fprintf(stderr, "failed to link shader program:\n");
         glsl_debug_info_log(program, glGetProgramiv, glGetProgramInfoLog);
         glDeleteProgram(program);
         return 0;
@@ -148,9 +154,9 @@ GLuint glsl_link_program(GLuint vertex_shader, GLuint fragment_shader) {
     return program;
 }
 
-GLuint glsl_make_program(const char *vertex_source, const char* fragment_source) {
-    GLuint vertex = glsl_compile_source(GL_VERTEX_SHADER, vertex_source);
-    GLuint fragment = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source);
+/* GLuint glsl_make_program(const char *vertex_source, const char* fragment_source) { */
+/*     GLuint vertex = glsl_compile_source(GL_VERTEX_SHADER, vertex_source); */
+/*     GLuint fragment = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source); */
 
-    return glsl_link_program(vertex, fragment);
-}
+/*     return glsl_link_program(vertex, fragment); */
+/* } */

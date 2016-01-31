@@ -102,7 +102,8 @@ void glsl_debug_info_log( GLuint object,
 
 GLuint glsl_compile_source(GLenum type, const char* source);
 GLuint glsl_compile_file(GLenum type, const char* filename);
-GLuint glsl_link_program(GLuint vertex_shader, GLuint fragment_shader);
-GLuint glsl_make_program(const char *vertex_source, const char* fragment_source);
+
+GLuint glsl_create_program(GLuint vertex_shader, GLuint fragment_shader);
+GLuint glsl_link_program(GLuint program);
 
 #endif

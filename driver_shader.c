@@ -56,15 +56,24 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
         p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, vertex_file);
         p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, fragment_file);
     } else {
+        log_warn(stderr, __FILE__, __LINE__, "shader files \"%s\" and \"%s\" do not exist, using default shader\n", vertex_file, fragment_file);
         p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, "shader/default.vert");
         p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, "shader/default.frag");
     }
 
-    if( p->vertex_shader > 0 && p->fragment_shader > 0 ) {
-        p->program = glsl_link_program(p->vertex_shader, p->fragment_shader);
-    } else {
-        p->program = 0;
-    }
+    log_assert( p->vertex_shader > 0 );
+    log_assert( p->fragment_shader > 0 );
+
+    p->program = glsl_create_program(p->vertex_shader, p->fragment_shader);
+    log_assert( p->program > 0 );
+
+    glBindAttribLocation(p->program, SHADER_LOCATION_VERTICES, SHADER_NAME_VERTICES);
+    glBindAttribLocation(p->program, SHADER_LOCATION_NORMALS, SHADER_NAME_NORMALS);
+    glBindAttribLocation(p->program, SHADER_LOCATION_COLORS, SHADER_NAME_COLORS);
+    glBindAttribLocation(p->program, SHADER_LOCATION_TEXCOORDS, SHADER_NAME_TEXCOORDS);
+
+    p->program = glsl_link_program(p->program);
+    log_assert( p->program > 0 );
 
     for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
         p->attribute[i].name[0] = '\0';
@@ -90,11 +99,19 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, vertex_source);
     p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source);
 
-    if( p->vertex_shader > 0 && p->fragment_shader > 0 ) {
-        p->program = glsl_link_program(p->vertex_shader, p->fragment_shader);
-    } else {
-        p->program = 0;
-    }
+    log_assert( p->vertex_shader > 0 );
+    log_assert( p->fragment_shader > 0 );
+
+    p->program = glsl_create_program(p->vertex_shader, p->fragment_shader);
+    log_assert( p->program > 0 );
+
+    glBindAttribLocation(p->program, SHADER_LOCATION_VERTICES, SHADER_NAME_VERTICES);
+    glBindAttribLocation(p->program, SHADER_LOCATION_NORMALS, SHADER_NAME_NORMALS);
+    glBindAttribLocation(p->program, SHADER_LOCATION_COLORS, SHADER_NAME_COLORS);
+    glBindAttribLocation(p->program, SHADER_LOCATION_TEXCOORDS, SHADER_NAME_TEXCOORDS);
+
+    p->program = glsl_link_program(p->program);
+    log_assert( p->program > 0 );
 
     for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
         p->attribute[i].name[0] = '\0';
