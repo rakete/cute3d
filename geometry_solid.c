@@ -27,7 +27,7 @@ void solid_create(size_t size, uint32_t* indices, float* vertices, uint32_t* tri
 }
 
 void solid_normals(struct Solid* solid) {
-    assert(solid->normals != NULL);
+    log_assert(solid->normals != NULL);
 
     if( solid->vertices && solid->indices ) {
         size_t size = solid->size/3;
@@ -68,7 +68,7 @@ void solid_normals(struct Solid* solid) {
 }
 
 void solid_color(struct Solid* solid, float color[4]) {
-    assert(solid->colors != NULL);
+    log_assert(solid->colors != NULL);
 
     if( solid->vertices && solid->indices ) {
         size_t n = solid->size;

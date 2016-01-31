@@ -3,8 +3,10 @@
 
 #include "assert.h"
 #include "stdio.h"
+#include "string.h"
 #include "stdarg.h"
 #include "stdint.h"
+#include "stdbool.h"
 
 #define LOG_ANSI_COLOR_RED     "\x1b[31m"
 #define LOG_ANSI_COLOR_GREEN   "\x1b[32m"
@@ -17,5 +19,28 @@
 void log_info(FILE* f, const char* filename, int32_t linenumber, const char* format, ...);
 void log_warn(FILE* f, const char* filename, int32_t linenumber, const char* format, ...);
 void log_fail(FILE* f, const char* filename, int32_t linenumber, const char* format, ...);
+// - logging assert failures, the log_assert macro takes can be used with just one argument, the asserted condtion,
+// and optionally a format string and variadic args can come after the condition
+// - I had to implement it with these multiple macros and extra "", "" arguments to work around warnings (also I could
+// not implement it without the "", "" because C99 requires that the ... gets at least one argument)
+// - I discovered an interesting trick that I didn't use: there can be a macro #define foo() and function definition
+// void (foo)() both in the same program without problems, the macro will be used whenever foo() is used, but when written
+// like this (foo)(), the function will be used
+#define log_assert(...) _log_assert(__VA_ARGS__, "", "");
+#define _log_assert(condition, format, ...) do { _log_assert_printf(condition, #condition, format, __VA_ARGS__); assert(condition); } while(0)
+void _log_assert_printf(bool assertion_correct, const char* condition, const char* format, ...);
+
+/* _Pragma(log_stringify(clang diagnostic push));                      \ */
+/* _Pragma(log_stringify(clang diagnostic ignored "-Wformat-zero-length")) \ */
+/* _Pragma(log_stringify(clang diagnostic ignored "-Wformat-extra-args")) \ */
+
+/* #define _log_assert(condition, format, ...)                           \ */
+/*     _Pragma(log_stringify(GCC diagnostic push));                        \ */
+/*     _Pragma(log_stringify(GCC diagnostic ignored "-Wformat-zero-length")) \ */
+/*     _Pragma(log_stringify(GCC diagnostic ignored "-Wformat-extra-args")) \ */
+/*     if( condition ) {} else { printf(format, __VA_ARGS__); }            \ */
+/*     assert(condition);                                                  \ */
+/*     _Pragma(log_stringify(GCC diagnostic pop)); */
+
 
 #endif

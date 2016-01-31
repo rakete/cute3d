@@ -50,7 +50,7 @@ void text_put_old(const wchar_t* text, const struct Font* font, float scale, con
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
         GLint vertex_position = glGetAttribLocation(font->shader.program, "vertex");
-        assert( vertex_position >= 0 );
+        log_assert( vertex_position >= 0 );
 
         glEnableVertexAttribArray((GLuint)vertex_position);
         glVertexAttribPointer((GLuint)vertex_position, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -61,7 +61,7 @@ void text_put_old(const wchar_t* text, const struct Font* font, float scale, con
         glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
 
         GLint texcoord_position = glGetAttribLocation(font->shader.program, "texcoord");
-        assert( texcoord_position >= 0 );
+        log_assert( texcoord_position >= 0 );
 
         glEnableVertexAttribArray((GLuint)texcoord_position);
         glVertexAttribPointer((GLuint)texcoord_position, 2, GL_FLOAT, GL_FALSE, 0, 0);

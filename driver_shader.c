@@ -47,8 +47,8 @@ void shader_create_empty(struct Shader* p) {
 
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p) {
     size_t name_length = strlen(name);
-    assert( name_length > 0 );
-    assert( name_length < 256 );
+    log_assert( name_length > 0 );
+    log_assert( name_length < 256 );
 
     strncpy(p->name, name, name_length+1);
 
@@ -79,13 +79,13 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
 
 void shader_create_from_sources(const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p) {
     size_t name_length = strlen(name);
-    assert( name_length > 0 );
-    assert( name_length < 256 );
+    log_assert( name_length > 0 );
+    log_assert( name_length < 256 );
 
     strncpy(p->name, name, name_length+1);
 
-    assert( vertex_source );
-    assert( fragment_source );
+    log_assert( vertex_source );
+    log_assert( fragment_source );
 
     p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, vertex_source);
     p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source);
@@ -108,11 +108,11 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
 }
 
 void shader_copy(struct Shader* const src, struct Shader* dst) {
-    assert( src != NULL );
-    assert( dst != NULL );
+    log_assert( src != NULL );
+    log_assert( dst != NULL );
 
     size_t name_length = strlen(src->name);
-    assert( name_length < 256 );
+    log_assert( name_length < 256 );
     strncpy(dst->name, src->name, name_length+1);
 
     dst->program = src->program;
@@ -121,14 +121,14 @@ void shader_copy(struct Shader* const src, struct Shader* dst) {
 
     for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
         size_t attribute_name_length = strlen(src->attribute[i].name);
-        assert( attribute_name_length < 256 );
+        log_assert( attribute_name_length < 256 );
         strncpy(dst->attribute[i].name, src->attribute[i].name, attribute_name_length+1);
         dst->attribute[i].location = src->attribute[i].location;
     }
 
     for( int32_t i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
         size_t uniform_name_length = strlen(src->uniform[i].name);
-        assert( uniform_name_length < 256 );
+        log_assert( uniform_name_length < 256 );
         strncpy(dst->uniform[i].name, src->uniform[i].name, uniform_name_length+1);
         dst->uniform[i].location = src->uniform[i].location;
     }
@@ -136,9 +136,9 @@ void shader_copy(struct Shader* const src, struct Shader* dst) {
 
 GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name) {
     size_t name_length = strlen(name);
-    assert( name_length > 0 );
-    assert( name_length < 256 );
-    assert( shader->program > 0 );
+    log_assert( name_length > 0 );
+    log_assert( name_length < 256 );
+    log_assert( shader->program > 0 );
 
     GLint location = -1;
 
@@ -167,9 +167,9 @@ GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const
 
 GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const char* name, const char* type, void* data) {
     size_t name_length = strlen(name);
-    assert( name_length > 0 );
-    assert( name_length < 256 );
-    assert( shader->program > 0 );
+    log_assert( name_length > 0 );
+    log_assert( name_length < 256 );
+    log_assert( shader->program > 0 );
 
     GLint location = -1;
 
@@ -296,11 +296,11 @@ void shader_print(FILE* f, struct Shader* const shader) {
 }
 
 void shader_uniform_matrices(struct Shader* const shader, Mat const projection_matrix, Mat const view_matrix, Mat const model_matrix) {
-    assert( shader != NULL );
-    assert( projection_matrix != NULL );
-    assert( view_matrix != NULL );
-    assert( model_matrix != NULL );
-    assert( shader->program > 0 );
+    log_assert( shader != NULL );
+    log_assert( projection_matrix != NULL );
+    log_assert( view_matrix != NULL );
+    log_assert( model_matrix != NULL );
+    log_assert( shader->program > 0 );
 
     GLint mvp_loc = -1;
     if( shader->uniform[SHADER_UNIFORM_MVP_MATRIX].location > -1) {

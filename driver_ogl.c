@@ -27,9 +27,10 @@ int32_t init_ogl(int32_t width, int32_t height, const float clear_color[4]) {
 // of the buffer and the new size it should be resized to, returns either the amount
 // of bytes that were added to the buffer size or 0 if nothing was resized
 size_t ogl_buffer_resize(GLuint* buffer, size_t old_bytes, size_t new_bytes) {
-    assert( buffer != NULL );
-    assert( old_bytes < PTRDIFF_MAX );
-    assert( new_bytes < PTRDIFF_MAX );
+    log_assert( buffer != NULL );
+    log_assert( old_bytes < PTRDIFF_MAX );
+    log_assert( new_bytes < PTRDIFF_MAX );
+    log_assert( new_bytes > old_bytes );
 
     GLuint new_buffer;
     GLuint old_buffer = *buffer;

@@ -323,8 +323,8 @@ void quat_to_axis_angle(const Quat p, Vec axis, float* angle) {
 }
 
 void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
-    assert(t>=0);
-    assert(t<=1);
+    log_assert(t>=0);
+    log_assert(t<=1);
 
     float flip = 1;
 

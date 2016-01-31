@@ -1,10 +1,12 @@
 #include "gui_text.h"
 
 void text_put(struct Canvas* canvas, Vec4f cursor, uint32_t layer, uint32_t projection, const char* font_name, float scale, const Color color, const wchar_t* unicode_text, const Mat model_matrix) {
-    assert( canvas != NULL );
-    assert( scale > 0.0f );
-    assert( color != NULL );
-    assert( model_matrix != NULL );
+    log_assert( layer >= 0 );
+    log_assert( projection >= 0 );
+    log_assert( canvas != NULL );
+    log_assert( scale > 0.0f );
+    log_assert( color != NULL );
+    log_assert( model_matrix != NULL );
 
     size_t text_length = wcslen(unicode_text);
     if( text_length == 0 ) {
@@ -38,7 +40,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, uint32_t layer, uint32_t proj
 
     // we rely on \0 not being part of the font to advance the cursor at the end of
     // the string one additional time
-    assert( font->alphabet['\0'] == false );
+    log_assert( font->alphabet['\0'] == false );
 
     float kerning = font->kerning/2.0f;
     bool newline = 0;
@@ -66,7 +68,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, uint32_t layer, uint32_t proj
                 glyph = &font->glyphs[c];
             } else if( ! glyph_warnings[c] ) {
                 if( c == '\0') {
-                    assert(i == text_length);
+                    log_assert(i == text_length);
                 } else {
                     log_warn(stderr, __FILE__, __LINE__, "font %s does not contain glyph \"%c\"\n", font->name, c);
                     glyph_warnings[c] = true;
@@ -81,7 +83,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, uint32_t layer, uint32_t proj
                 glyph = &font->glyphs[(int)c];
             } else if( ! glyph_warnings[(int)c] ) {
                 if( c == '\0') {
-                    assert(i == text_length);
+                    log_assert(i == text_length);
                 } else {
                     log_warn(stderr, __FILE__, __LINE__, "font %s does not contain glyph \"%c\"\n", font->name, c);
                     glyph_warnings[(int)c] = true;

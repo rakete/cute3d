@@ -69,12 +69,12 @@ size_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, size_t n) {
 }
 
 void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
-    assert( solid->size > 0 );
-    assert( solid->size < INT_MAX/3 );
-    assert( solid->vertices != NULL );
-    assert( solid->indices != NULL );
-    assert( solid->triangles != NULL );
-    assert( solid->normals != NULL );
+    log_assert( solid->size > 0 );
+    log_assert( solid->size < INT_MAX/3 );
+    log_assert( solid->vertices != NULL );
+    log_assert( solid->indices != NULL );
+    log_assert( solid->triangles != NULL );
+    log_assert( solid->normals != NULL );
 
     // this function needs to identify all unique vertices of the given solid, add those
     // to the mesh, then go through all triangles of the solid and create all faces and
@@ -190,7 +190,7 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         uint32_t a = triangle[0];
         uint32_t b = triangle[1];
         uint32_t c = triangle[2];
-        assert( a != b && b != c && c != a );
+        log_assert( a != b && b != c && c != a );
 
         // we assume each pair of vertex indices, representing an edge, gets seen once as a -> b and once again
         // as b -> a (which conveniently fits our model of representing each edge as two half edges pointing
@@ -198,9 +198,9 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         //
         // so we assert that halfedge index for the current halfedge has never been set in edges_map
         // and should still be -1
-        assert( edges_map[a][b] == -1 );
-        assert( edges_map[b][c] == -1 );
-        assert( edges_map[c][a] == -1 );
+        log_assert( edges_map[a][b] == -1 );
+        log_assert( edges_map[b][c] == -1 );
+        log_assert( edges_map[c][a] == -1 );
 
         // indices for the three new halfedges we'll create in the mesh
         int32_t ca_i = -1;
@@ -294,9 +294,9 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
             other->other = -1;
         }
 
-        assert( ab_i != -1 );
-        assert( bc_i != -1 );
-        assert( ca_i != -1 );
+        log_assert( ab_i != -1 );
+        log_assert( bc_i != -1 );
+        log_assert( ca_i != -1 );
 
         // we need to set the halfedges index in the edges_map so we can use it as other index when we'll see the
         // current edge again in the future
@@ -381,27 +381,27 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
 
         mesh->size += edge_i_inc;
 
-        assert( vertex_i > 0 );
-        assert( mesh->vertices.capacity < INT32_MAX );
-        assert( vertex_i <= (int32_t)mesh->vertices.capacity );
+        log_assert( vertex_i > 0 );
+        log_assert( mesh->vertices.capacity < INT32_MAX );
+        log_assert( vertex_i <= (int32_t)mesh->vertices.capacity );
         mesh->vertices.occupied = (size_t)vertex_i;
 
-        assert( face_i > 0 );
-        assert( mesh->faces.capacity < INT32_MAX );
-        assert( face_i <= (int32_t)mesh->faces.capacity );
+        log_assert( face_i > 0 );
+        log_assert( mesh->faces.capacity < INT32_MAX );
+        log_assert( face_i <= (int32_t)mesh->faces.capacity );
         mesh->faces.occupied = (size_t)face_i;
 
-        assert( edge_i > 0 );
-        assert( mesh->edges.capacity < INT32_MAX );
-        assert( edge_i <= (int32_t)mesh->edges.capacity );
+        log_assert( edge_i > 0 );
+        log_assert( mesh->edges.capacity < INT32_MAX );
+        log_assert( edge_i <= (int32_t)mesh->edges.capacity );
         mesh->edges.occupied = (size_t)edge_i;
     }
 }
 
 void solid_triangulate(float* vertices, int32_t n, int32_t* triangles, int32_t m) {
-    assert( n >= 3 );
-    assert( n < INT_MAX/3 );
-    assert( m <= 3 * n - 2);
+    log_assert( n >= 3 );
+    log_assert( n < INT_MAX/3 );
+    log_assert( m <= 3 * n - 2);
 
     if( n == 3 || n == 4 ) {
         triangles[0] = 0;
@@ -418,7 +418,7 @@ void solid_triangulate(float* vertices, int32_t n, int32_t* triangles, int32_t m
 }
 
 void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
-    assert(mesh->size == solid->size);
+    log_assert(mesh->size == solid->size);
 
     uint32_t vertices_offset = 0;
     uint32_t normals_offset = 0;
@@ -446,7 +446,7 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
             edge_normals[face_vertex_i*3+1] = current_edge->normal[1];
             edge_normals[face_vertex_i*3+2] = current_edge->normal[2];
 
-            assert( current_edge->vertex >= 0 );
+            log_assert( current_edge->vertex >= 0 );
             face_triangles[face_vertex_i] = (uint32_t)current_edge->vertex;
 
             current_edge = &mesh->edges.array[current_edge->next];
@@ -482,8 +482,8 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
 }
 
 int32_t halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int32_t face_i, int32_t all_edges, Vec3f equal_normal, Vec3f average_normal, Vec3f cross_normal) {
-    assert(face_i <= mesh->faces.occupied);
-    assert(equal_normal != NULL || average_normal != NULL || cross_normal != NULL);
+    log_assert(face_i <= mesh->faces.occupied);
+    log_assert(equal_normal != NULL || average_normal != NULL || cross_normal != NULL);
 
     struct HalfEdgeFace* face = &mesh->faces.array[face_i];
 
@@ -558,10 +558,10 @@ int32_t halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int32_t face_i, int3
 }
 
 int32_t halfedgemesh_face_iterate(struct HalfEdgeMesh* mesh, int32_t face_i, struct HalfEdge** edge, int32_t* edge_i, int32_t* i) {
-    assert( face_i <= mesh->faces.occupied );
-    assert( edge != NULL );
-    assert( i != NULL );
-    assert( edge_i != NULL );
+    log_assert( face_i <= mesh->faces.occupied );
+    log_assert( edge != NULL );
+    log_assert( i != NULL );
+    log_assert( edge_i != NULL );
 
     struct HalfEdgeFace* face = &mesh->faces.array[face_i];
 
@@ -581,10 +581,10 @@ int32_t halfedgemesh_face_iterate(struct HalfEdgeMesh* mesh, int32_t face_i, str
 }
 
 int32_t halfedgemesh_vertex_iterate(struct HalfEdgeMesh* mesh, int32_t vertex_i, struct HalfEdge** edge, int32_t* edge_i, int32_t* i) {
-    assert( vertex_i <= mesh->vertices.occupied );
-    assert( edge != NULL );
-    assert( edge_i != NULL );
-    assert( i != NULL );
+    log_assert( vertex_i <= mesh->vertices.occupied );
+    log_assert( edge != NULL );
+    log_assert( edge_i != NULL );
+    log_assert( i != NULL );
 
     int32_t result = 0;
     if( *i == 0 || *edge_i == -1 ) {
@@ -592,7 +592,7 @@ int32_t halfedgemesh_vertex_iterate(struct HalfEdgeMesh* mesh, int32_t vertex_i,
         result = 1;
     } else if( *i % 2 == 1 ) {
         *edge_i = mesh->edges.array[*edge_i].other;
-        assert( mesh->edges.array[*edge_i].vertex == vertex_i );
+        log_assert( mesh->edges.array[*edge_i].vertex == vertex_i );
         result = -1;
     } else if( *i % 2 == 0 ) {
         *edge_i = mesh->edges.array[*edge_i].next;
@@ -676,21 +676,21 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
                 normal_b[2] = face_normals[face_two_i*3+2];
 
                 if( vequal3f(normal_a, normal_b) ) {
-                    assert( this->prev != this->this );
-                    assert( this->next != this->this );
-                    assert( this->prev != this->next );
+                    log_assert( this->prev != this->this );
+                    log_assert( this->next != this->this );
+                    log_assert( this->prev != this->next );
 
-                    assert( other->prev != other->this );
-                    assert( other->next != other->this );
-                    assert( other->prev != other->next );
+                    log_assert( other->prev != other->this );
+                    log_assert( other->next != other->this );
+                    log_assert( other->prev != other->next );
 
-                    assert( other->prev != this->this );
-                    assert( other->next != this->this );
-                    assert( other->prev != this->next );
+                    log_assert( other->prev != this->this );
+                    log_assert( other->next != this->this );
+                    log_assert( other->prev != this->next );
 
-                    assert( this->prev != other->this );
-                    assert( this->next != other->this );
-                    assert( this->prev != other->next );
+                    log_assert( this->prev != other->this );
+                    log_assert( this->next != other->this );
+                    log_assert( this->prev != other->next );
 
                     int32_t halfedge_a_i = this->next;
                     struct HalfEdge* halfedge_a = &mesh->edges.array[halfedge_a_i];
@@ -730,7 +730,7 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
 
                     // increase face size of face one by face size of face size, - 2 because we are deleting an
                     // edge (two halfedges, one from each face)
-                    assert( mesh->faces.array[face_one_i].size > 2 && mesh->faces.array[face_two_i].size > 2 );
+                    log_assert( mesh->faces.array[face_one_i].size > 2 && mesh->faces.array[face_two_i].size > 2 );
                     mesh->faces.array[face_one_i].size += mesh->faces.array[face_two_i].size - 2;
                     // mark face 2 for removal
                     mesh->faces.array[face_two_i].edge = -1;
@@ -744,10 +744,10 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
                     }
 
                     // - update a's next to b, and b's prev to a, and c's next to d, and d's prev to c
-                    assert( halfedge_a->prev == this->this );
-                    assert( halfedge_b->next == other->this );
-                    assert( halfedge_c->next == this->this );
-                    assert( halfedge_d->prev == other->this );
+                    log_assert( halfedge_a->prev == this->this );
+                    log_assert( halfedge_b->next == other->this );
+                    log_assert( halfedge_c->next == this->this );
+                    log_assert( halfedge_d->prev == other->this );
 
                     halfedge_a->prev = halfedge_b_i;
                     halfedge_b->next = halfedge_a_i;
@@ -770,37 +770,37 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
                     removed_edges[num_removed_edges] = other_i;
                     num_removed_edges += 1;
 
-                    assert( halfedge_a->prev != halfedge_a->this );
-                    assert( halfedge_a->next != halfedge_a->this );
-                    assert( halfedge_a->prev != halfedge_a->next );
+                    log_assert( halfedge_a->prev != halfedge_a->this );
+                    log_assert( halfedge_a->next != halfedge_a->this );
+                    log_assert( halfedge_a->prev != halfedge_a->next );
 
-                    assert( halfedge_b->prev != halfedge_b->this );
-                    assert( halfedge_b->next != halfedge_b->this );
-                    assert( halfedge_b->prev != halfedge_b->next );
+                    log_assert( halfedge_b->prev != halfedge_b->this );
+                    log_assert( halfedge_b->next != halfedge_b->this );
+                    log_assert( halfedge_b->prev != halfedge_b->next );
 
-                    assert( halfedge_c->prev != halfedge_c->this );
-                    assert( halfedge_c->next != halfedge_c->this );
-                    assert( halfedge_c->prev != halfedge_c->next );
+                    log_assert( halfedge_c->prev != halfedge_c->this );
+                    log_assert( halfedge_c->next != halfedge_c->this );
+                    log_assert( halfedge_c->prev != halfedge_c->next );
 
-                    assert( halfedge_d->prev != halfedge_d->this );
-                    assert( halfedge_d->next != halfedge_d->this );
-                    assert( halfedge_d->prev != halfedge_d->next );
+                    log_assert( halfedge_d->prev != halfedge_d->this );
+                    log_assert( halfedge_d->next != halfedge_d->this );
+                    log_assert( halfedge_d->prev != halfedge_d->next );
 
-                    assert( this->prev != this->this );
-                    assert( this->next != this->this );
-                    assert( this->prev != this->next );
+                    log_assert( this->prev != this->this );
+                    log_assert( this->next != this->this );
+                    log_assert( this->prev != this->next );
 
-                    assert( other->prev != other->this );
-                    assert( other->next != other->this );
-                    assert( other->prev != other->next );
+                    log_assert( other->prev != other->this );
+                    log_assert( other->next != other->this );
+                    log_assert( other->prev != other->next );
 
-                    assert( other->prev != this->this );
-                    assert( other->next != this->this );
-                    assert( other->prev != this->next );
+                    log_assert( other->prev != this->this );
+                    log_assert( other->next != this->this );
+                    log_assert( other->prev != this->next );
 
-                    assert( this->prev != other->this );
-                    assert( this->next != other->this );
-                    assert( this->prev != other->next );
+                    log_assert( this->prev != other->this );
+                    log_assert( this->next != other->this );
+                    log_assert( this->prev != other->next );
                 }
             }
         }
@@ -897,7 +897,7 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
             }
 
             if( gap_edges > 0 && iter_edge < mesh->edges.occupied ) {
-                assert( iter_edge >= gap_edges );
+                log_assert( iter_edge >= gap_edges );
 
                 int32_t old_edge_i = iter_edge;
                 int32_t new_edge_i = iter_edge - gap_edges;
@@ -932,16 +932,16 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
         }
     }
 
-    assert( num_removed_vertices >= 0 );
-    assert( mesh->vertices.occupied >= (size_t)num_removed_vertices );
+    log_assert( num_removed_vertices >= 0 );
+    log_assert( mesh->vertices.occupied >= (size_t)num_removed_vertices );
     mesh->vertices.occupied -= (size_t)num_removed_vertices;
 
-    assert( num_removed_faces >= 0 );
-    assert( mesh->faces.occupied >= (size_t)num_removed_faces );
+    log_assert( num_removed_faces >= 0 );
+    log_assert( mesh->faces.occupied >= (size_t)num_removed_faces );
     mesh->faces.occupied -= (size_t)num_removed_faces;
 
-    assert( num_removed_edges >= 0 );
-    assert( mesh->edges.occupied >= (size_t)num_removed_edges );
+    log_assert( num_removed_edges >= 0 );
+    log_assert( mesh->edges.occupied >= (size_t)num_removed_edges );
     mesh->edges.occupied -= (size_t)num_removed_edges;
 }
 
@@ -960,58 +960,58 @@ void halfedgemesh_verify(struct HalfEdgeMesh* mesh) {
         struct HalfEdge* this = &mesh->edges.array[face->edge];
         int32_t i = 0;
         while( (i == 0 || this->this != face->edge) && i <= face->size*2 ) {
-            assert( this->face == face_i );
+            log_assert( this->face == face_i );
 
             seen_vertices[this->vertex] += 1;
-            assert( seen_vertices[this->vertex] == 1 );
+            log_assert( seen_vertices[this->vertex] == 1 );
 
             struct HalfEdge* other = &mesh->edges.array[this->other];
-            assert( this->vertex != other->vertex );
+            log_assert( this->vertex != other->vertex );
 
-            assert( this->prev != this->this );
-            assert( this->next != this->this );
-            assert( this->prev != this->next );
+            log_assert( this->prev != this->this );
+            log_assert( this->next != this->this );
+            log_assert( this->prev != this->next );
 
-            assert( other->prev != other->this );
-            assert( other->next != other->this );
-            assert( other->prev != other->next );
+            log_assert( other->prev != other->this );
+            log_assert( other->next != other->this );
+            log_assert( other->prev != other->next );
 
-            assert( other->prev != this->this );
-            assert( other->next != this->this );
-            assert( other->prev != this->next );
+            log_assert( other->prev != this->this );
+            log_assert( other->next != this->this );
+            log_assert( other->prev != this->next );
 
-            assert( this->prev != other->this );
-            assert( this->next != other->this );
-            assert( this->prev != other->next );
+            log_assert( this->prev != other->this );
+            log_assert( this->next != other->this );
+            log_assert( this->prev != other->next );
 
-            assert( this->other == this->this + 1 || this->other == this->this - 1 );
+            log_assert( this->other == this->this + 1 || this->other == this->this - 1 );
 
-            assert( fabs(vdot(face->normal, this->normal)) - 1.0 < FLOAT_EPSILON );
+            log_assert( fabs(vdot(face->normal, this->normal)) - 1.0 < FLOAT_EPSILON );
 
             // other prev vertex must be equal this vertex
-            assert( mesh->edges.array[other->prev].vertex == this->vertex );
+            log_assert( mesh->edges.array[other->prev].vertex == this->vertex );
             // other vertex must be equal this prev vertex
-            assert( other->vertex == mesh->edges.array[this->prev].vertex );
+            log_assert( other->vertex == mesh->edges.array[this->prev].vertex );
 
             struct HalfEdgeVertex* vertex = &mesh->vertices.array[this->vertex];
             struct HalfEdge* iter_edge = &mesh->edges.array[vertex->edge];
             int32_t j = 0;
             while( j == 0 || iter_edge->this != vertex->edge ) {
                 if( iter_edge->vertex == this->vertex ) {
-                    assert( j % 2 == 1 );
+                    log_assert( j % 2 == 1 );
                     iter_edge = &mesh->edges.array[iter_edge->next];
                 } else {
-                    assert( j % 2 == 0 );
+                    log_assert( j % 2 == 0 );
                     iter_edge = &mesh->edges.array[iter_edge->other];
                 }
 
                 j++;
-                assert( j < mesh->edges.occupied );
+                log_assert( j < mesh->edges.occupied );
             }
 
             this = &mesh->edges.array[this->next];
             i++;
         }
-        assert( i == face->size );
+        log_assert( i == face->size );
     }
 }

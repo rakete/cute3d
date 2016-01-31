@@ -2,8 +2,8 @@
 
 void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicode, struct Character* symbols, const char* name) {
     size_t name_length = strlen(name);
-    assert( name_length > 0 );
-    assert( name_length < 256 );
+    log_assert( name_length > 0 );
+    log_assert( name_length < 256 );
 
     strncpy(font->name, name, name_length+1);
     for( int32_t i = 0; i < NUM_FONT_GLYPHS; i++ ) {
@@ -15,7 +15,7 @@ void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicod
     font->linespacing = 0.2f;
 
     size_t alphabet_len = wcslen(unicode_alphabet);
-    assert( alphabet_len < INT32_MAX );
+    log_assert( alphabet_len < INT32_MAX );
 
     char ascii_alphabet[alphabet_len + 1];
     size_t size = wcstombs(ascii_alphabet, unicode_alphabet, alphabet_len);
@@ -66,8 +66,8 @@ void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicod
             row_width = 0;
         }
     }
-    assert( power2 < INT16_MAX );
-    assert( power2 > -1 );
+    log_assert( power2 < INT16_MAX );
+    log_assert( power2 > -1 );
 
     size_t texture_size = (size_t)power2 * (size_t)power2;
     float* texture = (float*)calloc( texture_size * 4,  sizeof(float) );

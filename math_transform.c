@@ -77,7 +77,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec target) {
         //   need to point32_t the forward_axis toward the target
         float yaw;
         vec_angle(yaw_direction, forward_axis, &yaw);
-        assert( ! isnan(yaw) );
+        log_assert( ! isnan(yaw) );
 
         // - I have to compute the cross product between yaw_direction and
         //   forward_axis and use the resulting yaw_axis
@@ -105,7 +105,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec target) {
         //   between those
         float pitch;
         vec_angle(target_direction, yaw_forward_axis, &pitch);
-        assert( ! isnan(pitch) );
+        log_assert( ! isnan(pitch) );
 
         // - and just as in the yaw case we compute an rotation pitch_axis
         Vec pitch_axis;

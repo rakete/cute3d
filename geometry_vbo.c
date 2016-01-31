@@ -44,6 +44,8 @@ int32_t init_vbo() {
 }
 
 void vbo_create(struct Vbo* p) {
+    log_assert( p != NULL );
+
     for( int32_t i = 0; i < NUM_VBO_PHASES; i++ ) {
         for( int32_t j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
             p->_internal_buffer[i][j].id = 0;
@@ -70,10 +72,12 @@ void vbo_create(struct Vbo* p) {
 }
 
 void vbo_destroy(struct Vbo* p) {
-    assert( 0 == 1 );
+    log_assert( 0 == 1 );
 }
 
 void vbo_print(FILE* f, struct Vbo* vbo) {
+    log_assert( vbo != NULL );
+
     fprintf(f, "vbo->capacity: %lu\n", vbo->capacity);
     fprintf(f, "vbo->occupied: %lu\n", vbo->occupied);
 }
@@ -84,79 +88,80 @@ void vbo_add_buffer(struct Vbo* vbo,
                     GLenum component_t,
                     GLenum usage)
 {
-    assert( vbo != NULL );
-    assert( i < NUM_SHADER_ATTRIBUTES );
+    log_assert( vbo != NULL );
+    log_assert( i < NUM_SHADER_ATTRIBUTES );
 
-    if( vbo && i < NUM_SHADER_ATTRIBUTES ) {
-        ogl_debug( glGenBuffers(1, &vbo->buffer[i].id) );
+    ogl_debug( glGenBuffers(1, &vbo->buffer[i].id) );
 
-        vbo->buffer[i].usage = usage;
+    vbo->buffer[i].usage = usage;
 
-        vbo->components[i].size = component_n;
-        vbo->components[i].type = component_t;
-        vbo->components[i].bytes = (uint32_t)ogl_sizeof_type(component_t);
+    vbo->components[i].size = component_n;
+    vbo->components[i].type = component_t;
+    vbo->components[i].bytes = (uint32_t)ogl_sizeof_type(component_t);
 
-        size_t nbytes = vbo->capacity * component_n * ogl_sizeof_type(component_t);
-        assert( nbytes < PTRDIFF_MAX );
-        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
-                   glBufferData(GL_ARRAY_BUFFER, (ptrdiff_t)nbytes, NULL, usage);
-                   glBindBuffer(GL_ARRAY_BUFFER, 0); );
+    size_t nbytes = vbo->capacity * component_n * ogl_sizeof_type(component_t);
+    log_assert( nbytes < PTRDIFF_MAX );
+    ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
+               glBufferData(GL_ARRAY_BUFFER, (ptrdiff_t)nbytes, NULL, usage);
+               glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
-    }
 }
 
 size_t vbo_alloc(struct Vbo* vbo, size_t n) {
-    if( vbo ) {
-        size_t resized_bytes = 0;
-        for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
-            if( vbo->buffer[i].id ) {
-                size_t new_bytes = (vbo->capacity + n) * vbo->components[i].size * vbo->components[i].bytes;
-                size_t old_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
+    log_assert( vbo != NULL );
+    log_assert( n > 0 );
 
-                resized_bytes = ogl_buffer_resize(&vbo->buffer[i].id, old_bytes, new_bytes);
-            }
-        }
+    size_t resized_bytes = 0;
+    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+        if( vbo->buffer[i].id ) {
+            size_t new_bytes = (vbo->capacity + n) * vbo->components[i].size * vbo->components[i].bytes;
+            size_t old_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
 
-        // - only increase capacity if all vbos were resized
-        // - resized_bytes is different per buffer, so just return n instead
-        if( resized_bytes > 0 ) {
-            vbo->capacity += n;
-            return n;
+            resized_bytes = ogl_buffer_resize(&vbo->buffer[i].id, old_bytes, new_bytes);
+            log_assert( resized_bytes == new_bytes - old_bytes );
         }
     }
 
-    return 0;
+    // - only increase capacity if all vbos were resized
+    // - resized_bytes is different per buffer, so just return n instead
+    log_assert( resized_bytes > 0 );
+    vbo->capacity += n;
+    return n;
 }
 
 size_t vbo_available_capacity(struct Vbo* vbo) {
+    log_assert( vbo != NULL );
+    log_assert( vbo->capacity >= vbo->occupied );
+
     size_t freespace = 0;
-    if( vbo ) {
-        freespace = vbo->capacity - vbo->occupied;
-    }
+    freespace = vbo->capacity - vbo->occupied;
+
     return freespace;
 }
 
 size_t vbo_available_bytes(struct Vbo* vbo, int32_t i) {
+    log_assert( vbo != NULL );
+    log_assert( i >= 0 );
+
     size_t freespace = 0;
-    if( vbo && vbo->buffer[i].id ) {
-        freespace = vbo_available_capacity(vbo) * vbo->components[i].size * vbo->components[i].bytes;
-    }
+    freespace = vbo_available_capacity(vbo) * vbo->components[i].size * vbo->components[i].bytes;
+
     return freespace;
 }
 
 void vbo_fill_value(struct Vbo* vbo, int32_t i, size_t offset_n, size_t size_n, uint8_t value) {
-    assert( vbo != NULL );
-    assert( vbo->buffer[i].id > 0 );
-    assert( offset_n < vbo->capacity );
-    assert( offset_n > 0 );
-    assert( size_n <= vbo->capacity );
-    assert( size_n > 0 );
+    log_assert( vbo != NULL );
+    log_assert( vbo->buffer[i].id > 0 );
+    log_assert( offset_n < vbo->capacity );
+    log_assert( offset_n > 0 );
+    log_assert( size_n <= vbo->capacity );
+    log_assert( size_n > 0 );
 
     void* array = malloc( ogl_sizeof_type(vbo->components[i].type) * size_n );
     size_t array_offset = offset_n * vbo->components[i].size;
     size_t array_size = size_n * vbo->components[i].size;
-    assert( array_offset < INTPTR_MAX );
-    assert( array_size < INTPTR_MAX );
+    log_assert( array_offset < INTPTR_MAX );
+    log_assert( array_size < INTPTR_MAX );
 
     memset(array, (int)value, array_size);
 
@@ -166,25 +171,25 @@ void vbo_fill_value(struct Vbo* vbo, int32_t i, size_t offset_n, size_t size_n, 
 }
 
 void* vbo_map(struct Vbo* vbo, int32_t i, size_t offset, size_t length, GLbitfield access) {
-    assert( offset < vbo->capacity );
-    assert( vbo != NULL );
-    assert( vbo->buffer[i].id > 0 );
+    log_assert( offset < vbo->capacity );
+    log_assert( vbo != NULL );
+    log_assert( i >= 0 );
+    log_assert( vbo->buffer[i].id > 0 );
 
     if( offset + length > vbo->capacity ) {
         vbo_alloc(vbo, offset + length - vbo->capacity);
     }
 
-    assert( offset + length <= vbo->capacity );
+    log_assert( offset + length <= vbo->capacity );
     size_t offset_bytes = offset * vbo->components[i].size * vbo->components[i].bytes;
     size_t length_bytes = length * vbo->components[i].size * vbo->components[i].bytes;
     if( length <= offset || length > vbo->capacity ) {
         length_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
     }
 
-
     void* pointer = NULL;
-    assert( offset_bytes < INTPTR_MAX );
-    assert( length_bytes < INTPTR_MAX );
+    log_assert( offset_bytes < INTPTR_MAX );
+    log_assert( length_bytes < INTPTR_MAX );
     ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
                pointer = glMapBufferRange(GL_ARRAY_BUFFER, (intptr_t)offset_bytes, (intptr_t)length_bytes, access);
                glBindBuffer(GL_ARRAY_BUFFER, 0); );
@@ -235,13 +240,14 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
 }
 
 void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
-    assert( vbo );
-    assert( mesh );
-    assert( 0 == 1 );
+    log_assert( vbo != NULL );
+    log_assert( mesh != NULL );
 
     if( mesh->offset + mesh->capacity == mesh->vbo->occupied ) {
         mesh->vbo->occupied = mesh->offset;
     }
+
+    log_assert( 0 == 1 );
 }
 
 void vbomesh_print(FILE* f, struct VboMesh* mesh) {
@@ -333,7 +339,6 @@ void vbomesh_print(FILE* f, struct VboMesh* mesh) {
 }
 
 size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
-    assert( n > 0 );
 
     if( mesh == NULL ) {
         return 0;
@@ -342,6 +347,8 @@ size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
     if( mesh->capacity == 0 ) {
         mesh->offset = mesh->vbo->occupied;
     }
+    log_assert( mesh != NULL );
+    log_assert( n > 0 );
 
     if( mesh->offset + mesh->capacity == mesh->vbo->occupied ) {
         size_t resized_n = vbo_alloc(mesh->vbo, n);
@@ -357,8 +364,6 @@ size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
 }
 
 size_t vbomesh_alloc_indices(struct VboMesh* mesh, size_t n) {
-    assert( n > 0 );
-
     if( mesh && mesh->indices->id ) {
         size_t size_bytes = mesh->indices->capacity * mesh->index.bytes;
         size_t alloc_bytes = n * mesh->index.bytes;
@@ -373,6 +378,9 @@ size_t vbomesh_alloc_indices(struct VboMesh* mesh, size_t n) {
         } else {
             assert( resized_bytes == 0 );
         }
+    log_assert( mesh != NULL );
+    log_assert( mesh->indices->id > 0 );
+    log_assert( n > 0 );
     }
 
     return 0;
@@ -391,7 +399,11 @@ void vbomesh_clear_indices(struct VboMesh* mesh) {
 }
 
 size_t vbomesh_append_buffer_generic(struct VboMesh* mesh, int32_t i, void* data, size_t n, uint32_t components_size, GLenum components_type) {
-    assert( n > 0 );
+    log_assert( mesh != NULL );
+    log_assert( i >= 0 );
+    log_assert( i < NUM_SHADER_ATTRIBUTES );
+    log_assert( mesh->vbo->buffer[i].id > 0 );
+    log_assert( n > 0 );
 
     if( mesh && mesh->vbo->buffer[i].id ) {
         if( mesh->capacity == 0 ) {

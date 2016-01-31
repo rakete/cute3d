@@ -17,9 +17,9 @@
 #include "render_vbomesh.h"
 
 void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, struct Camera* const camera, Mat const model_matrix) {
-    assert( mesh != NULL );
-    assert( shader != NULL );
-    assert( camera != NULL );
+    log_assert( mesh != NULL );
+    log_assert( shader != NULL );
+    log_assert( camera != NULL );
 
     ogl_debug( glUseProgram(shader->program); );
 
@@ -35,7 +35,7 @@ void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, str
         uint32_t c_bytes = mesh->vbo->components[array_id].bytes;
         size_t offset = mesh->offset * c_num * c_bytes;
 
-        assert( c_num < INT_MAX );
+        log_assert( c_num < INT_MAX );
 
         loc[array_id] = -1;
         if( c_num == 0 || c_bytes == 0 ) {

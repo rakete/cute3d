@@ -66,51 +66,51 @@ void collider_convex(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct Coll
 
 // collide
 bool collide_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2) {
-    assert(sphere1->collider.type == COLLIDER_SPHERE);
-    assert(sphere2->collider.type == COLLIDER_SPHERE);
-    assert("implementation" == false);
+    log_assert(sphere1->collider.type == COLLIDER_SPHERE);
+    log_assert(sphere2->collider.type == COLLIDER_SPHERE);
+    log_assert("implementation" == false);
 }
 
 bool collide_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane) {
-    assert(sphere->collider.type == COLLIDER_SPHERE);
-    assert(plane->collider.type == COLLIDER_PLANE);
-    assert("implementation" == false);
+    log_assert(sphere->collider.type == COLLIDER_SPHERE);
+    log_assert(plane->collider.type == COLLIDER_PLANE);
+    log_assert("implementation" == false);
 }
 
 bool collide_sphere_convex(struct ColliderSphere* const sphere, struct ColliderConvex* const convex) {
-    assert(sphere->collider.type == COLLIDER_SPHERE);
-    assert(convex->collider.type == COLLIDER_CONVEX);
-    assert("implementation" == false);
+    log_assert(sphere->collider.type == COLLIDER_SPHERE);
+    log_assert(convex->collider.type == COLLIDER_CONVEX);
+    log_assert("implementation" == false);
 }
 
 bool collide_plane_sphere(struct ColliderPlane* const plane, struct ColliderSphere* const sphere) {
-    assert(plane->collider.type == COLLIDER_PLANE);
-    assert(sphere->collider.type == COLLIDER_SPHERE);
-    assert("implementation" == false);
+    log_assert(plane->collider.type == COLLIDER_PLANE);
+    log_assert(sphere->collider.type == COLLIDER_SPHERE);
+    log_assert("implementation" == false);
 }
 
 bool collide_plane_plane(struct ColliderPlane* const plane1, struct ColliderPlane* const plane2) {
-    assert(plane1->collider.type == COLLIDER_PLANE);
-    assert(plane2->collider.type == COLLIDER_PLANE);
-    assert("implementation" == false);
+    log_assert(plane1->collider.type == COLLIDER_PLANE);
+    log_assert(plane2->collider.type == COLLIDER_PLANE);
+    log_assert("implementation" == false);
 }
 
 bool collide_plane_convex(struct ColliderPlane* const plane, struct ColliderConvex* const convex) {
-    assert(plane->collider.type == COLLIDER_PLANE);
-    assert(convex->collider.type == COLLIDER_CONVEX);
-    assert("implementation" == false);
+    log_assert(plane->collider.type == COLLIDER_PLANE);
+    log_assert(convex->collider.type == COLLIDER_CONVEX);
+    log_assert("implementation" == false);
 }
 
 bool collide_convex_sphere(struct ColliderConvex* const convex, struct ColliderSphere* const sphere) {
-    assert(convex->collider.type == COLLIDER_CONVEX);
-    assert(sphere->collider.type == COLLIDER_SPHERE);
-    assert("implementation" == false);
+    log_assert(convex->collider.type == COLLIDER_CONVEX);
+    log_assert(sphere->collider.type == COLLIDER_SPHERE);
+    log_assert("implementation" == false);
 }
 
 bool collide_convex_plane(struct ColliderConvex* const convex, struct ColliderPlane* const plane) {
-    assert(convex->collider.type == COLLIDER_CONVEX);
-    assert(plane->collider.type == COLLIDER_PLANE);
-    assert("implementation" == false);
+    log_assert(convex->collider.type == COLLIDER_CONVEX);
+    log_assert(plane->collider.type == COLLIDER_PLANE);
+    log_assert("implementation" == false);
 }
 
 // helper to transform vertices from convex2 halfedgemesh into the coordinate system of convex1
@@ -362,8 +362,8 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
     }
 }
 bool collide_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2) {
-    assert(convex1->collider.type == COLLIDER_CONVEX);
-    assert(convex2->collider.type == COLLIDER_CONVEX);
+    log_assert(convex1->collider.type == COLLIDER_CONVEX);
+    log_assert(convex2->collider.type == COLLIDER_CONVEX);
 
     float distance = -FLT_MAX;
     uint32_t face_index1 = UINT_MAX;
@@ -397,9 +397,9 @@ bool collide_convex_convex(struct ColliderConvex* const convex1, struct Collider
 
 // contacts
 uint32_t contacts_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2, struct Collision* collision) {
-    assert(convex1->collider.type == COLLIDER_CONVEX);
-    assert(convex2->collider.type == COLLIDER_CONVEX);
-    assert("implementation" == false);
+    log_assert(convex1->collider.type == COLLIDER_CONVEX);
+    log_assert(convex2->collider.type == COLLIDER_CONVEX);
+    log_assert("implementation" == false);
 }
 
 
@@ -522,7 +522,7 @@ struct Physics collisions_resolve(struct Physics previous,
 /*     for( uint32_t i = 0; i < mesh1->edges.occupied; i+=2 ) { */
 /*         struct HalfEdge* const edge1 = &mesh1->edges.array[i+0]; */
 /* 		struct HalfEdge* const other1 = &mesh1->edges.array[i+1]; */
-/* 		assert( edge1->other == i + 1 && other1->other == i ); */
+/* 		log_assert( edge1->other == i + 1 && other1->other == i ); */
 
 /*         Vec3f p1, q1, e1; */
 /*         mat_mul_vec3f(transform, mesh1->vertices.array[other1->vertex].position, p1); */
@@ -536,7 +536,7 @@ struct Physics collisions_resolve(struct Physics previous,
 /*         for( uint32_t j = 0; j < mesh2->edges.occupied; j+=2 ) { */
 /*             struct HalfEdge* const edge2 = &mesh2->edges.array[i+0]; */
 /*             struct HalfEdge* const other2 = &mesh2->edges.array[i+1]; */
-/*             assert( edge2->other == i+1 && other2->other == i ); */
+/*             log_assert( edge2->other == i+1 && other2->other == i ); */
 
 /*             Vec3f p2, q2, e2; */
 /*             vec_copy3f(mesh2->vertices.array[other2->vertex].position, p2); */

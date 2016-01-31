@@ -17,7 +17,7 @@
             printf("%s@%d:::::\n%s\n", __FILE__, __LINE__, sdl2_stringify(line)); \
             printf("SDL_GetError(): %s\n", SDL_GetError());             \
         }                                                               \
-        assert(strlen(error) == 0);                                     \
+        log_assert(strlen(error) == 0);                                     \
     } while(0)
 #else
 #define sdl2_debug(line) line

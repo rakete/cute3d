@@ -5,10 +5,10 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
         layer_end += 1;
     }
 
-    assert( layer_start >= 0 );
-    assert( layer_end <= NUM_CANVAS_LAYERS );
-    assert( layer_start < layer_end );
-    assert( canvas != NULL );
+    log_assert( layer_start >= 0 );
+    log_assert( layer_end <= NUM_CANVAS_LAYERS );
+    log_assert( layer_start < layer_end );
+    log_assert( canvas != NULL );
 
     // first for loop binds the buffers and fills them with the attribute data
     // I used to have this in the shader loop
@@ -38,7 +38,7 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
             size_t alloc_bytes = occupied_attributes * canvas->components[attribute_i].size * canvas->components[attribute_i].bytes;
             void* attributes_array = canvas->attributes[attribute_i].array;
 
-            assert( alloc_bytes < PTRDIFF_MAX );
+            log_assert( alloc_bytes < PTRDIFF_MAX );
 
             glBindBuffer(GL_ARRAY_BUFFER, canvas->buffer[attribute_i].id);
             glBufferData(GL_ARRAY_BUFFER, (ptrdiff_t)alloc_bytes, attributes_array, GL_STREAM_READ);
@@ -193,9 +193,5 @@ void canvas_render_text(struct Canvas* const canvas, int32_t layer_start, int32_
         layer_end += 1;
     }
 
-    assert( layer_start >= 0 );
-    assert( layer_end <= NUM_CANVAS_LAYERS );
-    assert( layer_start < layer_end );
-    assert( canvas != NULL );
 
 }

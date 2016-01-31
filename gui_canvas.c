@@ -15,7 +15,7 @@ int32_t init_canvas() {
 }
 
 void canvas_create(struct Canvas* canvas) {
-    assert( canvas != NULL );
+    log_assert( canvas != NULL );
 
     for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
         canvas->components[i].size = 0;
@@ -60,9 +60,9 @@ void canvas_create(struct Canvas* canvas) {
 }
 
 void canvas_add_attribute(struct Canvas* canvas, int32_t added_attribute, uint32_t size, GLenum type) {
-    assert( canvas != NULL );
-    assert( added_attribute >= 0 && added_attribute < NUM_SHADER_ATTRIBUTES );
-    assert( size > 0 );
+    log_assert( canvas != NULL );
+    log_assert( added_attribute >= 0 && added_attribute < NUM_SHADER_ATTRIBUTES );
+    log_assert( size > 0 );
 
     if( canvas->components[added_attribute].size <= 0 ) {
 
@@ -80,8 +80,8 @@ void canvas_add_attribute(struct Canvas* canvas, int32_t added_attribute, uint32
 
 int32_t canvas_append_shader(struct Canvas* canvas, struct Shader* const shader, const char* shader_name) {
     size_t name_length = strlen(shader_name);
-    assert( name_length > 0 );
-    assert( name_length < 256 );
+    log_assert( name_length > 0 );
+    log_assert( name_length < 256 );
 
     int32_t shader_i = 0;
     while( shader_i < NUM_CANVAS_SHADER && strlen(canvas->shader[shader_i].name) != 0 ) {
@@ -103,8 +103,8 @@ int32_t canvas_append_shader(struct Canvas* canvas, struct Shader* const shader,
 
 int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name) {
     size_t name_length = strlen(shader_name);
-    assert( name_length > 0 );
-    assert( name_length < 256 );
+    log_assert( name_length > 0 );
+    log_assert( name_length < 256 );
 
     static int32_t check_first = 0;
     if( check_first > 0 &&
@@ -130,8 +130,8 @@ int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name) {
 
 int32_t canvas_append_font(struct Canvas* canvas, struct Font font, const char* font_name) {
     size_t name_length = strlen(font_name);
-    assert( name_length > 0 );
-    assert( name_length < 256 );
+    log_assert( name_length > 0 );
+    log_assert( name_length < 256 );
 
     int32_t font_i = 0;
     while( font_i < NUM_CANVAS_FONTS && strlen(canvas->fonts[font_i].name) != 0 ) {
@@ -153,8 +153,8 @@ int32_t canvas_append_font(struct Canvas* canvas, struct Font font, const char* 
 
 int32_t canvas_find_font(struct Canvas* canvas, const char* font_name) {
     size_t name_length = strlen(font_name);
-    assert( name_length > 0 );
-    assert( name_length < 256 );
+    log_assert( name_length > 0 );
+    log_assert( name_length < 256 );
 
     static int32_t check_first = 0;
     if( check_first > 0 &&
@@ -179,15 +179,15 @@ int32_t canvas_find_font(struct Canvas* canvas, const char* font_name) {
 }
 
 size_t canvas_alloc_attributes(struct Canvas* canvas, int32_t attribute_i, size_t n) {
-    assert( canvas != NULL );
-    assert( attribute_i >= 0 && attribute_i < NUM_SHADER_ATTRIBUTES );
+    log_assert( canvas != NULL );
+    log_assert( attribute_i >= 0 && attribute_i < NUM_SHADER_ATTRIBUTES );
 
     if( n == 0 ) {
         return 0;
     }
 
     size_t old_capacity = canvas->attributes[attribute_i].capacity;
-    assert( INT32_MAX - n > old_capacity );
+    log_assert( INT32_MAX - n > old_capacity );
     size_t new_capacity = old_capacity + n;
 
     uint32_t size = canvas->components[attribute_i].size;
@@ -200,9 +200,9 @@ size_t canvas_alloc_attributes(struct Canvas* canvas, int32_t attribute_i, size_
             canvas->attributes[attribute_i].array = new_array_pointer;
         }
 
-        assert( canvas->attributes[attribute_i].array != NULL );
+        log_assert( canvas->attribute[attribute_i].array != NULL );
     } else {
-        assert( canvas->attributes[attribute_i].array == NULL );
+        log_assert( canvas->attribute[attribute_i].array == NULL );
     }
 
     canvas->attributes[attribute_i].capacity = new_capacity;
@@ -211,9 +211,10 @@ size_t canvas_alloc_attributes(struct Canvas* canvas, int32_t attribute_i, size_
 }
 
 size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, const char* shader_name, GLenum primitive_type, size_t n) {
-    assert( canvas != NULL );
-    assert( layer_i >= 0 );
-    assert( primitive_type == GL_LINES || primitive_type == GL_TRIANGLES || primitive_type == GL_QUADS );
+    log_assert( canvas != NULL );
+    log_assert( layer_i >= 0 );
+    log_assert( projection_i >= 0 );
+    log_assert( primitive_type == GL_LINES || primitive_type == GL_TRIANGLES || primitive_type == GL_QUADS );
 
     if( n == 0 ) {
         return 0;
@@ -225,7 +226,7 @@ size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, const char* 
     }
 
     size_t old_capacity = canvas->layer[layer_i].indices[shader_i][primitive_type].capacity;
-    assert( INT32_MAX - n > old_capacity );
+    log_assert( INT32_MAX - n > old_capacity );
     size_t new_capacity = old_capacity + n;
 
     GLuint* old_array_pointer = canvas->layer[layer_i].indices[shader_i][primitive_type].array;
@@ -241,8 +242,8 @@ size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, const char* 
 }
 
 size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i, const char* font_name, size_t n) {
-    assert( canvas != NULL );
-    assert( layer_i >= 0 );
+    log_assert( canvas != NULL );
+    log_assert( layer_i >= 0 );
 
     if( n == 0 ) {
         return 0;
@@ -254,7 +255,7 @@ size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i,
     }
 
     size_t old_capacity = canvas->layer[layer_i].text[font_i][text_i].capacity;
-    assert( INT32_MAX - n > old_capacity );
+    log_assert( INT32_MAX - n > old_capacity );
     size_t new_capacity = old_capacity + n;
 
     GLuint* old_array_pointer = canvas->layer[layer_i].text[font_i][text_i].array;
@@ -270,10 +271,10 @@ size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i,
 }
 
 void canvas_clear(struct Canvas* canvas, int32_t layer_start, int32_t layer_end) {
-    assert( layer_start >= 0 );
-    assert( layer_end <= NUM_CANVAS_LAYERS );
-    assert( layer_start < layer_end );
-    assert( canvas != NULL );
+    log_assert( layer_start >= 0 );
+    log_assert( layer_end <= NUM_CANVAS_LAYERS );
+    log_assert( layer_start < layer_end );
+    log_assert( canvas != NULL );
 
     for( int32_t j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
         canvas->attributes[j].occupied = 0;
@@ -299,17 +300,17 @@ void canvas_clear(struct Canvas* canvas, int32_t layer_start, int32_t layer_end)
 }
 
 size_t canvas_append_vertices(struct Canvas* canvas, void* vertices, uint32_t size, GLenum type, size_t n, const Mat model_matrix) {
-    assert( canvas != NULL );
-    assert( size == canvas->components[SHADER_ATTRIBUTE_VERTICES].size );
-    assert( type == canvas->components[SHADER_ATTRIBUTE_VERTICES].type );
-    assert( sizeof(type) == canvas->components[SHADER_ATTRIBUTE_VERTICES].bytes );
+    log_assert( canvas != NULL );
+    log_assert( size == canvas->components[SHADER_ATTRIBUTE_VERTICES].size );
+    log_assert( type == canvas->components[SHADER_ATTRIBUTE_VERTICES].type );
+    log_assert( ogl_sizeof_type(type) == canvas->components[SHADER_ATTRIBUTE_VERTICES].bytes );
 
     if( n == 0 ) {
         return 0;
     }
 
     size_t old_occupied = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
-    assert( INT32_MAX - n > old_occupied );
+    log_assert( INT32_MAX - n > old_occupied );
     size_t new_occupied = old_occupied + n;
 
     size_t alloc = DEFAULT_CANVAS_ALLOC;
@@ -322,8 +323,8 @@ size_t canvas_append_vertices(struct Canvas* canvas, void* vertices, uint32_t si
     uint32_t vertex_bytes = canvas->components[SHADER_ATTRIBUTE_VERTICES].bytes;
     void* vertex_array = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].array;
 
-    assert( vertex_size <= 4 );
-    assert( vertex_bytes <= 8 );
+    log_assert( vertex_size <= 4 );
+    log_assert( vertex_bytes <= 8 );
 
     size_t n_bytes = n*vertex_size*vertex_bytes;
     if( vertices == NULL && vertex_size > 0 ) {
@@ -344,17 +345,17 @@ size_t canvas_append_vertices(struct Canvas* canvas, void* vertices, uint32_t si
 }
 
 size_t canvas_append_colors(struct Canvas* canvas, void* colors, uint32_t size, GLenum type, size_t n, const Color color) {
-    assert( canvas != NULL );
-    assert( size == canvas->components[SHADER_ATTRIBUTE_COLORS].size );
-    assert( type == canvas->components[SHADER_ATTRIBUTE_COLORS].type );
-    assert( sizeof(type) == canvas->components[SHADER_ATTRIBUTE_COLORS].bytes );
+    log_assert( canvas != NULL );
+    log_assert( size == canvas->components[SHADER_ATTRIBUTE_COLORS].size );
+    log_assert( type == canvas->components[SHADER_ATTRIBUTE_COLORS].type );
+    log_assert( ogl_sizeof_type(type) == canvas->components[SHADER_ATTRIBUTE_COLORS].bytes );
 
     if( n == 0 ) {
         return 0;
     }
 
     size_t old_occupied = canvas->attributes[SHADER_ATTRIBUTE_COLORS].occupied;
-    assert( INT32_MAX - n > old_occupied );
+    log_assert( INT32_MAX - n > old_occupied );
     size_t new_occupied = old_occupied + n;
 
     size_t alloc = DEFAULT_CANVAS_ALLOC;
@@ -367,8 +368,8 @@ size_t canvas_append_colors(struct Canvas* canvas, void* colors, uint32_t size, 
     uint32_t color_bytes = canvas->components[SHADER_ATTRIBUTE_COLORS].bytes;
     void* color_array = canvas->attributes[SHADER_ATTRIBUTE_COLORS].array;
 
-    assert( color_size <= 4 );
-    assert( color_bytes <= 8 );
+    log_assert( color_size <= 4 );
+    log_assert( color_bytes <= 8 );
 
     size_t n_bytes = n*color_size*color_bytes;
     if( colors == NULL && color_size > 0 && color != NULL) {
@@ -387,17 +388,17 @@ size_t canvas_append_colors(struct Canvas* canvas, void* colors, uint32_t size, 
 }
 
 size_t canvas_append_texcoords(struct Canvas* canvas, void* texcoords, uint32_t size, GLenum type, size_t n) {
-    assert( canvas != NULL );
-    assert( size == canvas->components[SHADER_ATTRIBUTE_TEXCOORDS].size );
-    assert( type == canvas->components[SHADER_ATTRIBUTE_TEXCOORDS].type );
-    assert( sizeof(type) == canvas->components[SHADER_ATTRIBUTE_TEXCOORDS].bytes );
+    log_assert( canvas != NULL );
+    log_assert( size == canvas->components[SHADER_ATTRIBUTE_TEXCOORDS].size );
+    log_assert( type == canvas->components[SHADER_ATTRIBUTE_TEXCOORDS].type );
+    log_assert( ogl_sizeof_type(type) == canvas->components[SHADER_ATTRIBUTE_TEXCOORDS].bytes );
 
     if( n == 0 ) {
         return 0;
     }
 
     size_t old_occupied = canvas->attributes[SHADER_ATTRIBUTE_TEXCOORDS].occupied;
-    assert( INT32_MAX - n > old_occupied );
+    log_assert( INT32_MAX - n > old_occupied );
     size_t new_occupied = old_occupied + n;
 
     size_t alloc = DEFAULT_CANVAS_ALLOC;
@@ -410,8 +411,8 @@ size_t canvas_append_texcoords(struct Canvas* canvas, void* texcoords, uint32_t 
     uint32_t texcoord_bytes = canvas->components[SHADER_ATTRIBUTE_TEXCOORDS].bytes;
     void* texcoord_array = canvas->attributes[SHADER_ATTRIBUTE_TEXCOORDS].array;
 
-    assert( texcoord_size <= 4 );
-    assert( texcoord_bytes <= 8 );
+    log_assert( texcoord_size <= 4 );
+    log_assert( texcoord_bytes <= 8 );
 
     size_t n_bytes = n*texcoord_size*texcoord_bytes;
     if( texcoords == NULL && texcoord_size > 0 ) {
@@ -426,10 +427,10 @@ size_t canvas_append_texcoords(struct Canvas* canvas, void* texcoords, uint32_t 
 }
 
 size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, const char* shader_name, GLenum primitive_type, uint32_t* indices, size_t n, size_t offset) {
-    assert( canvas != NULL );
-    assert( layer_i >= 0 );
-    assert( n > 0 );
-    assert( indices != NULL );
+    log_assert( canvas != NULL );
+    log_assert( layer_i >= 0 );
+    log_assert( n > 0 );
+    log_assert( indices != NULL );
 
     if( n == 0 ) {
         return 0;
@@ -441,7 +442,7 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, const char*
     }
 
     size_t old_occupied = canvas->layer[layer_i].indices[shader_i][primitive_type].occupied;
-    assert( INT32_MAX - n > old_occupied );
+    log_assert( INT32_MAX - n > old_occupied );
     size_t new_occupied = old_occupied + n;
 
     size_t alloc = DEFAULT_CANVAS_ALLOC;
@@ -452,7 +453,7 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, const char*
 
     if( offset > 0 ) {
         for( size_t i = 0; i < n; i++ ) {
-            assert( offset + indices[i] < UINT_MAX );
+            log_assert( offset + indices[i] < UINT_MAX );
             GLuint offset_index = (GLuint)offset + indices[i];
             canvas->layer[layer_i].indices[shader_i][primitive_type].array[old_occupied+i] = offset_index;
         }
@@ -478,10 +479,10 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, const char*
 }
 
 size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i, const char* font_name, uint32_t* indices, size_t n, size_t offset) {
-    assert( canvas != NULL );
-    assert( layer_i >= 0 );
-    assert( n > 0 );
-    assert( indices != NULL );
+    log_assert( canvas != NULL );
+    log_assert( layer_i >= 0 );
+    log_assert( n > 0 );
+    log_assert( indices != NULL );
 
     if( n == 0 ) {
         return 0;
@@ -503,7 +504,7 @@ size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i
 
     if( offset > 0 ) {
         for( size_t i = 0; i < n; i++ ) {
-            assert( offset + indices[i] < UINT32_MAX );
+            log_assert( offset + indices[i] < UINT32_MAX );
             uint32_t offset_index = (uint32_t)offset + indices[i];
             canvas->layer[layer_i].text[font_i][text_i].array[old_occupied+i] = offset_index;
         }

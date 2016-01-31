@@ -25,7 +25,7 @@ void glsl_debug_info_log( GLuint object,
 
     glGet__iv(object, GL_INFO_LOG_LENGTH, &log_length);
 
-    assert( log_length > 0 );
+    log_assert( log_length > 0 );
     log = malloc((size_t)log_length);
     glGet__InfoLog(object, log_length, NULL, log);
     fprintf(stderr, "%s", log);
@@ -33,7 +33,7 @@ void glsl_debug_info_log( GLuint object,
 }
 
 GLuint glsl_compile_source(GLenum type, const char* shader_source) {
-    assert( type == GL_FRAGMENT_SHADER || type == GL_VERTEX_SHADER );
+    log_assert( type == GL_FRAGMENT_SHADER || type == GL_VERTEX_SHADER );
 
     // check for cute header in source and warn if this looks like it is
     // not something that was distributed with cute
@@ -57,13 +57,13 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
         test_length = strlen(GLSL_FRAG_COMPAT);
         compat_source = GLSL_FRAG_COMPAT;
     }
-    assert( test_length > 0 );
-    assert( test_length < INT_MAX );
+    log_assert( test_length > 0 );
+    log_assert( test_length < INT_MAX );
     GLint compat_length = (GLint)test_length;
 
     test_length = strlen(shader_source);
-    assert( test_length > 0 );
-    assert( test_length < INT_MAX );
+    log_assert( test_length > 0 );
+    log_assert( test_length < INT_MAX );
     GLint source_length = (GLint)test_length;
 
     // the final shader source is made up from the compatibilty source defined
@@ -76,7 +76,7 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
     GLint length_array[2] = {compat_length, source_length};
 
     GLuint shader = glCreateShader(type);
-    assert( shader > 0 );
+    log_assert( shader > 0 );
 
     glShaderSource(shader, 2, source_array, length_array);
     glCompileShader(shader);
@@ -107,7 +107,7 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
     filepos = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    assert( filepos > 0 );
+    log_assert( filepos > 0 );
     size_t length = (size_t)filepos;
 
     GLchar* source = malloc(length);
@@ -128,8 +128,8 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
 }
 
 GLuint glsl_link_program(GLuint vertex_shader, GLuint fragment_shader) {
-    assert( vertex_shader > 0 );
-    assert( fragment_shader > 0 );
+    log_assert( vertex_shader > 0 );
+    log_assert( fragment_shader > 0 );
 
     GLuint program = glCreateProgram();
     glAttachShader(program, vertex_shader);
