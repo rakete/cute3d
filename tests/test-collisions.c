@@ -12,10 +12,10 @@
 #include "physics_collisions.h"
 
 void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
-    assert(solid->elements != NULL);
-    assert(solid->vertices != NULL);
-    assert(solid->normals != NULL);
-    assert(solid->colors != NULL);
+    log_assert(solid->elements != NULL);
+    log_assert(solid->vertices != NULL);
+    log_assert(solid->normals != NULL);
+    log_assert(solid->colors != NULL);
 
     vbomesh_append(mesh, VERTEX_ARRAY, solid->vertices, solid->size);
     vbomesh_append(mesh, NORMAL_ARRAY, solid->normals, solid->size);

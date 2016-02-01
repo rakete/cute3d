@@ -1,17 +1,19 @@
 #include "math_quaternion.h"
 
-#include "cute_sdl2.h"
-#include "cute_arcball.h"
+#include "driver_sdl2.h"
+#include "driver_ogl.h"
+
+#include "math_arcball.h"
+#include "math_gametime.h"
 
 #include "gui.h"
+#include "gui_draw.h"
+
 #include "geometry_solid.h"
 
-#include "render_ogl.h"
-#include "render_draw.h"
-#include "render.h"
+#include "render_vbomesh.h"
 
 #include "physics_collisions.h"
-#include "physics_time.h"
 #include "physics.h"
 
 void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mesh) {

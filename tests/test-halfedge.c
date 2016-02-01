@@ -6,18 +6,6 @@
 #include "math_arcball.h"
 #include "geometry_vbo.h"
 
-void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
-    assert(solid->indices != NULL);
-    assert(solid->vertices != NULL);
-    assert(solid->normals != NULL);
-    assert(solid->colors != NULL);
-
-    vbomesh_append_attributes(mesh, OGL_VERTICES, solid->vertices, solid->size);
-    vbomesh_append_attributes(mesh, OGL_NORMALS, solid->normals, solid->size);
-    vbomesh_append_attributes(mesh, OGL_COLORS, solid->colors, solid->size);
-    vbomesh_append_indices(mesh, solid->indices, solid->size);
-}
-
 int main(int argc, char *argv[]) {
     if( init_sdl2() ) {
         return 1;
@@ -63,8 +51,6 @@ int main(int argc, char *argv[]) {
 
     halfedgemesh_flush(&hemesh, &solid_out);
 
-    solid_color((struct Solid*)&solid_out, (Color){ 1.0, 0.0, 1.0, 1.0 });
-
     struct Vbo vbo;
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
@@ -79,7 +65,8 @@ int main(int argc, char *argv[]) {
     shader_create_flat("flat_shader", &shader);
 
     Vec light_direction = { 0.2, -0.5, -1.0 };
-    shader_add_uniform(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
+    shader_add_uniform(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, "light_directiun");
+    shader_set_uniform_3f(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
     Color4f ambiance = { 0.25, 0.1, 0.2, 1.0 };
     shader_add_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "ambient_color");
@@ -97,9 +84,6 @@ int main(int argc, char *argv[]) {
 
         SDL_Event event;
         while( SDL_PollEvent(&event) ) {
-            /* show_printf(L"event %u\n", counter); */
-            /* counter++; */
-
             switch (event.type) {
                 case SDL_QUIT:
                     goto done;
@@ -122,14 +106,11 @@ int main(int argc, char *argv[]) {
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
 
         Mat projection_mat, view_mat;
-        camera_matrices(&arcball.camera, projection_mat, view_mat);
-        //draw_grid(12.0f, 12.0f, 12, (Color){0.5, 0.5, 0.5, 1.0}, projection_mat, view_mat, grid_transform);
+        camera_matrices(&arcball.camera, CAMERA_PERSPECTIVE, projection_mat, view_mat);
 
         Mat identity;
         mat_identity(identity);
         vbomesh_render(&vbomesh, &shader, &arcball.camera, identity);
-
-        //show_render(NULL, 10, arcball.camera);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }

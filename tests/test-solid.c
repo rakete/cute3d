@@ -3,16 +3,6 @@
 #include "render_vbomesh.h"
 #include "math_arcball.h"
 
-void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mesh) {
-    solid_color(solid,color);
-    solid_normals(solid);
-
-    vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, solid->vertices, solid->size);
-    vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, solid->normals, solid->size);
-    vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, solid->colors, solid->size);
-    vbomesh_append_indices(mesh, solid->indices, solid->size);
-}
-
 int32_t main(int32_t argc, char *argv[]) {
     if( init_sdl2() ) {
         return 1;
@@ -72,14 +62,6 @@ int32_t main(int32_t argc, char *argv[]) {
 
     struct Shader shader;
     shader_create_flat("flat_shader", &shader);
-    /* shader_add_attribute(&shader, SHADER_ATTRIBUTE_VERTICES, "vertex"); */
-    /* shader_add_attribute(&shader, SHADER_ATTRIBUTE_COLORS, "color"); */
-    /* shader_add_attribute(&shader, SHADER_ATTRIBUTE_NORMALS, "normal"); */
-
-    /* shader_set_uniform(&shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL); */
-    /* shader_set_uniform(&shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL); */
-    /* shader_set_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL); */
-    /* shader_set_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL); */
 
     struct Arcball arcball;
     arcball_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
@@ -108,10 +90,13 @@ int32_t main(int32_t argc, char *argv[]) {
 
 
         Vec light_direction = { 0.2, -0.5, -1.0 };
-        shader_add_uniform(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
+        shader_set_uniform_3f(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
+
         Color ambiance = {50, 25, 150, 255};
         shader_set_uniform_4f(&shader, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
 
+        /* float foo[4] = {0.2, 0.1, 0.2, 1.0}; */
+        /* shader_set_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "4f", 4, GL_FLOAT, foo); */
 
         Mat identity;
         mat_identity(identity);

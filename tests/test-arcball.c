@@ -1,22 +1,17 @@
+#include "driver_sdl2.h"
+
+#include "math_gametime.h"
+#include "math_arcball.h"
+
+#include "geometry_vbo.h"
 #include "geometry_halfedgemesh.h"
+
+#include "gui_draw.h"
+#include "gui_text.h"
+
+#include "render_canvas.h"
 #include "render_vbomesh.h"
 #include "render_shader.h"
-#include "gui_draw.h"
-#include "cute_sdl2.h"
-#include "cute_arcball.h"
-#include "geometry_vbo.h"
-
-void vbomesh_from_solid(struct Solid* solid, struct VboMesh* mesh) {
-    assert(solid->indices != NULL);
-    assert(solid->vertices != NULL);
-    assert(solid->normals != NULL);
-    assert(solid->colors != NULL);
-
-    vbomesh_append_attributes(mesh, OGL_VERTICES, solid->vertices, solid->size);
-    vbomesh_append_attributes(mesh, OGL_NORMALS, solid->normals, solid->size);
-    vbomesh_append_attributes(mesh, OGL_COLORS, solid->colors, solid->size);
-    vbomesh_append_indices(mesh, solid->indices, solid->size);
-}
 
 int32_t main(int32_t argc, char *argv[]) {
     if( init_sdl2() ) {
@@ -41,6 +36,10 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
+    if( init_canvas() ) {
+        return 1;
+    }
+
     struct Cube solid_in;
     solid_cube(1.0, &solid_in);
     solid_normals((struct Solid*)&solid_in);
@@ -54,7 +53,7 @@ int32_t main(int32_t argc, char *argv[]) {
     uint32_t triangles[hemesh.size];
     uint32_t elements[hemesh.size];
     float normals[hemesh.size*3];
-    float colors[hemesh.size*4];
+    uint8_t colors[hemesh.size*4];
     solid_create(hemesh.size, elements, vertices, triangles, normals, colors, NULL, &solid_out);
 
     halfedgemesh_compress(&hemesh);
@@ -73,26 +72,18 @@ int32_t main(int32_t argc, char *argv[]) {
     /*     printf("%u: %d,%d,%d\n", i, solid_out.vertices[i*3+0] > 0, solid_out.vertices[i*3+1] > 0, solid_out.vertices[i*3+2] > 0); */
     /* } */
 
-    solid_color((struct Solid*)&solid_out, (Color){ 1.0, 0.0, 1.0, 1.0 });
-
     struct Vbo vbo;
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
     struct VboMesh vbomesh;
     vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &vbomesh);
-    vbomesh_from_solid(&solid_out, &vbomesh);
+    vbomesh_from_solid(&solid_out, (Color){ 255, 255, 0, 255 }, &vbomesh);
 
     struct Shader shader;
-    shader_flat_create(&shader);
-
-    Vec light_direction = { 0.2, -0.5, -1.0 };
-    shader_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
-
-    Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
-    shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
+    shader_create_flat("flat_shader", &shader);
 
     struct Arcball arcball;
     arcball_create(window, (Vec){1.0,2.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 0.001, 1000.0, &arcball);
@@ -102,14 +93,12 @@ int32_t main(int32_t argc, char *argv[]) {
     Mat grid_transform;
     quat_to_mat(grid_rotation, grid_transform);
 
+    struct GameTime time;
+    gametime_create(1.0f / 60.0f, &time);
+
     while (true) {
-
         SDL_Event event;
-        uint32_t counter = 0;
         while( SDL_PollEvent(&event) ) {
-            /* show_printf(L"event %u\n", counter); */
-            /* counter++; */
-
             switch (event.type) {
                 case SDL_QUIT:
                     goto done;
@@ -131,15 +120,26 @@ int32_t main(int32_t argc, char *argv[]) {
                    glClearColor(.0f, .0f, .0f, 1.0f);
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
 
-        Mat projection_mat, view_mat;
-        camera_matrices(&arcball.camera, projection_mat, view_mat);
-        draw_grid(12.0f, 12.0f, 12, (Color){0.5, 0.5, 0.5, 1.0}, projection_mat, view_mat, grid_transform);
+        gametime_advance(&time, sdl2_time_delta());
+        gametime_integrate(&time);
+
+        draw_grid(&global_canvas, 0, 12.0f, 12.0f, 12, (Color){20, 180, 240, 255}, grid_transform);
+
+        Vec4f screen_cursor = {0,0,0,1};
+        text_show_fps(&global_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
+
+        canvas_render_layers(&global_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
+        canvas_clear(&global_canvas, 0, NUM_CANVAS_LAYERS);
+
+        Vec light_direction = { 0.2, -0.5, -1.0 };
+        shader_set_uniform_3f(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
+
+        Color ambiance = {50, 25, 150, 255};
+        shader_set_uniform_4f(&shader, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
 
         Mat identity;
         mat_identity(identity);
         vbomesh_render(&vbomesh, &shader, &arcball.camera, identity);
-
-        //show_render(NULL, 10, arcball.camera);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
