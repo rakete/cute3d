@@ -295,7 +295,7 @@ void vbomesh_print(FILE* f, struct VboMesh* mesh) {
                                 }
                             }
                         } else {
-                            fprintf(f, "NULL\n");
+                            fprintf(f, "vbo_map returned NULL\n");
                         }
                         vbo_unmap(mesh->vbo, j);
                         break;
@@ -324,11 +324,11 @@ void vbomesh_print(FILE* f, struct VboMesh* mesh) {
             if( array ) {
                 uint32_t primitive_size = mesh->primitives.size;
                 for( size_t k = 0; k < mesh->indices->capacity; k+=primitive_size ) {
-                    printf("[");
-                    for( int32_t l = 0; l < primitive_size; l++ ) {
-                        fprintf(f, "%d", array[k+(uint32_t)l]);
+                    fprintf(f, "[");
+                    for( uint32_t l = 0; l < primitive_size; l++ ) {
+                        fprintf(f, "%d", array[k+l]);
                         if( l < primitive_size - 1 ) {
-                            printf(", ");
+                            fprintf(f, ", ");
                         }
                     }
                     fprintf(f, "]");
