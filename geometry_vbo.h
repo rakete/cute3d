@@ -90,10 +90,10 @@ void vbo_add_buffer(struct Vbo* vbo,
                     GLenum component_t,
                     GLenum usage);
 
-size_t vbo_alloc(struct Vbo* vbo, size_t n);
+size_t vbo_alloc(struct Vbo* vbo, size_t n) __attribute__((warn_unused_result));
 
-size_t vbo_available_capacity(struct Vbo* vbo);
-size_t vbo_available_bytes(struct Vbo* vbo, int32_t i);
+size_t vbo_available_capacity(struct Vbo* vbo) __attribute__((warn_unused_result));
+size_t vbo_available_bytes(struct Vbo* vbo, int32_t i) __attribute__((warn_unused_result));
 
 void vbo_fill_value(struct Vbo* vbo, int32_t i, size_t offset_n, size_t size_n, uint8_t value);
 
@@ -164,22 +164,26 @@ void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh);
 
 void vbomesh_print(FILE* f, struct VboMesh* mesh);
 
+// put a common pattern to check if a mesh is last in vbo in here so I don't wonder about it
+// everytime I come back to this code/have to only document it once, here
+bool vbomesh_test_last(struct VboMesh* mesh);
+
 // functions to allocate new space in a mesh
-size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n);
-size_t vbomesh_alloc_indices(struct VboMesh* mesh, size_t n);
+size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n) __attribute__((warn_unused_result));
+size_t vbomesh_alloc_indices(struct VboMesh* mesh, size_t n) __attribute__((warn_unused_result));
 
 // clearing just resets the occupied counter to 0
 void vbomesh_clear_attributes(struct VboMesh* mesh);
 void vbomesh_clear_indices(struct VboMesh* mesh);
 
 // append adds new stuff at the end of occupied, allocates new capacity if neccessary
-size_t vbomesh_append_buffer_generic(struct VboMesh* mesh, int32_t i, void* data, size_t n, uint32_t components_size, GLenum components_type);
-size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, void* data, size_t n);
+size_t vbomesh_append_buffer_generic(struct VboMesh* mesh, int32_t i, void* data, size_t n, uint32_t components_size, GLenum components_type) __attribute__((warn_unused_result));
+size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, void* data, size_t n) __attribute__((warn_unused_result));
 
-size_t vbomesh_append_indices(struct VboMesh* mesh, void* data, size_t n);
+size_t vbomesh_append_indices(struct VboMesh* mesh, void* data, size_t n) __attribute__((warn_unused_result));
 
 // mapping whole mesh into host memory, probably untested
-void* vbomesh_map(struct VboMesh* mesh, size_t offset, size_t length, GLbitfield access);
+void* vbomesh_map(struct VboMesh* mesh, size_t offset, size_t length, GLbitfield access) __attribute__((warn_unused_result));
 GLboolean vbomesh_unmap(struct VboMesh* mesh);
 
 #endif

@@ -177,7 +177,9 @@ void* vbo_map(struct Vbo* vbo, int32_t i, size_t offset, size_t length, GLbitfie
     log_assert( vbo->buffer[i].id > 0 );
 
     if( offset + length > vbo->capacity ) {
-        vbo_alloc(vbo, offset + length - vbo->capacity);
+        size_t alloc = offset + length - vbo->capacity;
+        size_t result = vbo_alloc(vbo, alloc);
+        log_assert( result == alloc );
     }
 
     log_assert( offset + length <= vbo->capacity );
@@ -198,20 +200,23 @@ void* vbo_map(struct Vbo* vbo, int32_t i, size_t offset, size_t length, GLbitfie
 }
 
 GLboolean vbo_unmap(struct Vbo* vbo, int32_t i) {
-    if( vbo && vbo->buffer[i].id ) {
-        GLboolean result = 0;
-        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
-                   result = glUnmapBuffer(GL_ARRAY_BUFFER);
-                   glBindBuffer(GL_ARRAY_BUFFER, 0); );
+    log_assert( vbo != NULL );
+    log_assert( i >= 0 );
+    log_assert( vbo->buffer[i].id > 0 );
 
-        return result;
-    }
+    GLboolean result = 0;
+    ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
+               result = glUnmapBuffer(GL_ARRAY_BUFFER);
+               glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
-    return 0;
+    return result;
 }
 
 
 void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh) {
+    log_assert( vbo != NULL );
+    log_assert( mesh != NULL );
+
     mesh->vbo = vbo;
 
     mesh->offset = vbo->occupied;
@@ -243,7 +248,7 @@ void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
     log_assert( vbo != NULL );
     log_assert( mesh != NULL );
 
-    if( mesh->offset + mesh->capacity == mesh->vbo->occupied ) {
+    if( vbomesh_test_last(mesh) ) {
         mesh->vbo->occupied = mesh->offset;
     }
 
@@ -251,6 +256,8 @@ void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
 }
 
 void vbomesh_print(FILE* f, struct VboMesh* mesh) {
+    log_assert( mesh != NULL );
+
     vbo_print(f, mesh->vbo);
 
     fprintf(f, "\n");
@@ -294,7 +301,7 @@ void vbomesh_print(FILE* f, struct VboMesh* mesh) {
                         break;
                     }
                     case GL_INT: {
-                        fprintf(f, "ERROR: GL_INT not implemented in vbomesh_print32_t\n");
+                        log_fail(f, __FILE__, __LINE__, "GL_INT case not implemented in vbomesh_print\n");
                         break;
                     }
                 }
@@ -338,61 +345,81 @@ void vbomesh_print(FILE* f, struct VboMesh* mesh) {
     }
 }
 
+bool vbomesh_test_last(struct VboMesh* mesh) {
+    log_assert( mesh != NULL );
+
+    // - return always true when mesh->capacity == 0, because that means the mesh has never been allocated space
+    // and can therefore be moved at the end of the vbo by vbomesh_alloc as soon as we use it to actually allocate
+    // some space
+    // - the part after || is the actual test, when mesh->offset + mesh->capacity equal vbo->occupied no other mesh
+    // has been added to the vbo after this one, so we are the last
+    return mesh->capacity == 0 || mesh->offset + mesh->capacity == mesh->vbo->occupied;
+}
+
 size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
-
-    if( mesh == NULL ) {
-        return 0;
-    }
-
-    if( mesh->capacity == 0 ) {
-        mesh->offset = mesh->vbo->occupied;
-    }
     log_assert( mesh != NULL );
     log_assert( n > 0 );
 
-    if( mesh->offset + mesh->capacity == mesh->vbo->occupied ) {
+    // - only resize if the mesh is the last mesh, otherwise this needs to stay the same size
+    if( vbomesh_test_last(mesh) ) {
         size_t resized_n = vbo_alloc(mesh->vbo, n);
-        if( resized_n > 0 ) {
+        if( resized_n == n ) {
+            // if this mesh has never been touched before (when no space has been allocated for it in the vbo), move
+            // the mesh to the last position just after allocating
+            if( mesh->capacity == 0 ) {
+                mesh->offset = mesh->vbo->occupied;
+            }
+
             mesh->vbo->occupied += n;
             mesh->capacity += n;
+        } else {
+            log_fail(stderr, __FILE__, __LINE__, "failed to allocate attributes\n");
+            log_assert( resized_n == 0 );
         }
 
         return resized_n;
+    } else {
+        log_warn(stderr, __FILE__, __LINE__, "trying to allocate space for a mesh that is not in last position in vbo\n");
     }
 
     return 0;
 }
 
 size_t vbomesh_alloc_indices(struct VboMesh* mesh, size_t n) {
-    if( mesh && mesh->indices->id ) {
-        size_t size_bytes = mesh->indices->capacity * mesh->index.bytes;
-        size_t alloc_bytes = n * mesh->index.bytes;
-        assert( size_bytes + alloc_bytes < PTRDIFF_MAX );
-        size_t resized_bytes = ogl_buffer_resize(&mesh->indices->id, size_bytes, size_bytes + alloc_bytes);
-
-        // - we could return resized_bytes, but all other alloc functions return the number
-        //   of elements allocated, so we just do the same here
-        if( resized_bytes == alloc_bytes ) {
-            mesh->indices->capacity += n;
-            return n;
-        } else {
-            assert( resized_bytes == 0 );
-        }
     log_assert( mesh != NULL );
     log_assert( mesh->indices->id > 0 );
     log_assert( n > 0 );
+
+    size_t size_bytes = mesh->indices->capacity * mesh->index.bytes;
+    size_t alloc_bytes = n * mesh->index.bytes;
+
+    log_assert( size_bytes + alloc_bytes < PTRDIFF_MAX );
+    size_t resized_bytes = ogl_buffer_resize(&mesh->indices->id, size_bytes, size_bytes + alloc_bytes);
+
+    // - we could return resized_bytes, but all other alloc functions return the number
+    // of elements allocated, so we just do the same here
+    if( resized_bytes == alloc_bytes ) {
+        mesh->indices->capacity += n;
+        return n;
+    } else {
+        log_fail(stderr, __FILE__, __LINE__, "failed to allocate indices\n");
+        log_assert( resized_bytes == 0 );
     }
 
     return 0;
 }
 
 void vbomesh_clear_attributes(struct VboMesh* mesh) {
+    log_assert( mesh != NULL );
+
     for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
         mesh->occupied[i] = 0;
     }
 }
 
 void vbomesh_clear_indices(struct VboMesh* mesh) {
+    log_assert( mesh != NULL );
+
     for( int32_t i = 0; i < NUM_VBO_PHASES; i++ ) {
         mesh->_internal_indices[i].occupied = 0;
     }
@@ -405,50 +432,47 @@ size_t vbomesh_append_buffer_generic(struct VboMesh* mesh, int32_t i, void* data
     log_assert( mesh->vbo->buffer[i].id > 0 );
     log_assert( n > 0 );
 
-    if( mesh && mesh->vbo->buffer[i].id ) {
-        if( mesh->capacity == 0 ) {
-            mesh->offset = mesh->vbo->occupied;
+    // only these depend on given size params => generic data append
+    size_t attrib_bytes = components_size * ogl_sizeof_type(components_type);
+    size_t append_bytes = n * attrib_bytes;
+
+    // stuff that relies on vbo size values
+    size_t capacity_bytes = mesh->capacity * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
+    size_t occupied_bytes = mesh->occupied[i] * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
+    size_t offset_bytes = (mesh->offset + mesh->occupied[i]) * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
+
+    log_assert( offset_bytes < INTPTR_MAX );
+    log_assert( append_bytes < INTPTR_MAX );
+    if( occupied_bytes + append_bytes <= capacity_bytes ) {
+        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
+                   glBufferSubData(GL_ARRAY_BUFFER, (intptr_t)offset_bytes, (intptr_t)append_bytes, data);
+                   glBindBuffer(GL_ARRAY_BUFFER, 0); );
+
+
+        mesh->occupied[i] += n;
+        return n;
+    } else if(// only when this mesh is the last mesh in the vbo can we append without overwriting
+              // other meshes, we check if we are last buy checking if our offset + capacity is equal
+              // to the vbo occupied counter
+              vbomesh_test_last(mesh) &&
+              // this does not work genericly, so we just do not allocate anything at all,
+              // if num and type do not fit the stored values in vbo
+              mesh->vbo->components[i].size == components_size &&
+              mesh->vbo->components[i].type == components_type )
+    {
+        if( vbo_available_capacity(mesh->vbo) < n ) {
+            size_t result = vbomesh_alloc_attributes(mesh,n);
+            log_assert( result == n );
         }
 
-        // only these depend on given size params => generic data append
-        size_t attrib_bytes = components_size * ogl_sizeof_type(components_type);
-        size_t append_bytes = n * attrib_bytes;
+        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
+                   glBufferSubData(GL_ARRAY_BUFFER, (intptr_t)offset_bytes, (intptr_t)append_bytes, data);
+                   glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
-        // stuff that relies on vbo size values
-        size_t capacity_bytes = mesh->capacity * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
-        size_t occupied_bytes = mesh->occupied[i] * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
-        size_t offset_bytes = (mesh->offset + mesh->occupied[i]) * mesh->vbo->components[i].size * mesh->vbo->components[i].bytes;
-
-        assert( offset_bytes < INTPTR_MAX );
-        assert( append_bytes < INTPTR_MAX );
-        if( occupied_bytes + append_bytes <= capacity_bytes ) {
-            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
-                       glBufferSubData(GL_ARRAY_BUFFER, (intptr_t)offset_bytes, (intptr_t)append_bytes, data);
-                       glBindBuffer(GL_ARRAY_BUFFER, 0); );
-
-
-            mesh->occupied[i] += n;
-            return n;
-        } else if( // only when this mesh is the last mesh in the vbo can we append without overwriting
-                   // other meshes, we check if we are last buy checking if our offset + capacity is equal
-                   // to the vbo occupied counter
-                   mesh->offset + mesh->capacity == mesh->vbo->occupied &&
-                   // this does not work genericly, so we just do not allocate anything at all,
-                   // if num and type do not fit the stored values in vbo
-                   mesh->vbo->components[i].size == components_size &&
-                   mesh->vbo->components[i].type == components_type )
-        {
-            if( vbo_available_capacity(mesh->vbo) < n ) {
-                vbomesh_alloc_attributes(mesh,n);
-            }
-
-            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
-                       glBufferSubData(GL_ARRAY_BUFFER, (intptr_t)offset_bytes, (intptr_t)append_bytes, data);
-                       glBindBuffer(GL_ARRAY_BUFFER, 0); );
-
-            mesh->occupied[i] += n;
-            return n;
-        }
+        mesh->occupied[i] += n;
+        return n;
+    } else {
+        log_warn(stderr, __FILE__, __LINE__, "could not grow a mesh that is not in last position in vbo when trying to append\n");
     }
 
     return 0;
@@ -459,68 +483,67 @@ size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, void* data, si
 }
 
 size_t vbomesh_append_indices(struct VboMesh* mesh, void* data, size_t n) {
-    if( mesh && mesh->indices->id ) {
+    log_assert( mesh != NULL );
+    log_assert( mesh->indices->id > 0 );
+    log_assert( n > 0 );
 
-        if( mesh->indices->occupied + n > mesh->indices->capacity ) {
-            size_t alloc = mesh->indices->occupied + n - mesh->indices->capacity;
-            vbomesh_alloc_indices(mesh, alloc);
-        }
-
-        size_t append_bytes = n * mesh->index.bytes;
-        size_t offset_bytes = mesh->indices->occupied * mesh->index.bytes;
-        assert( offset_bytes < INTPTR_MAX );
-        assert( append_bytes < INTPTR_MAX );
-        if( mesh->indices->occupied + n <= mesh->indices->capacity ) {
-            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->indices->id);
-                       glBufferSubData(GL_ARRAY_BUFFER, (intptr_t)offset_bytes, (intptr_t)append_bytes, data);
-                       glBindBuffer(GL_ARRAY_BUFFER, 0); );
-
-            mesh->indices->occupied += n;
-            return n;
-        }
+    if( mesh->indices->occupied + n > mesh->indices->capacity ) {
+        size_t alloc = mesh->indices->occupied + n - mesh->indices->capacity;
+        size_t result = vbomesh_alloc_indices(mesh, alloc);
+        log_assert( result == alloc );
     }
 
-    return 0;
+    log_assert( mesh->indices->occupied + n <= mesh->indices->capacity );
+
+    size_t append_bytes = n * mesh->index.bytes;
+    size_t offset_bytes = mesh->indices->occupied * mesh->index.bytes;
+    log_assert( offset_bytes < INTPTR_MAX );
+    log_assert( append_bytes < INTPTR_MAX );
+    ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->indices->id);
+               glBufferSubData(GL_ARRAY_BUFFER, (intptr_t)offset_bytes, (intptr_t)append_bytes, data);
+               glBindBuffer(GL_ARRAY_BUFFER, 0); );
+
+    mesh->indices->occupied += n;
+    return n;
 }
 
 void* vbomesh_map(struct VboMesh* mesh, size_t offset, size_t length, GLbitfield access) {
-    if( mesh && mesh->indices->id && offset < mesh->indices->capacity ) {
-        if( offset + length > mesh->indices->capacity ) {
-            size_t alloc = offset + length - mesh->indices->capacity + 1;
-            vbomesh_alloc_indices(mesh, alloc);
-        }
+    log_assert( mesh != NULL );
+    log_assert( mesh->indices->id > 0 );
+    log_assert( offset < mesh->indices->capacity );
 
-        if( offset + length <= mesh->indices->capacity ) {
-            size_t offset_bytes = offset * mesh->index.bytes;
-            size_t length_bytes = length * mesh->index.bytes;
-            if( length <= offset ) {
-                length_bytes = mesh->indices->capacity * mesh->index.bytes;
-            }
-            assert( offset_bytes < INTPTR_MAX );
-            assert( length_bytes < INTPTR_MAX );
-
-            void* pointer = NULL;
-            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->indices->id);
-                       pointer = glMapBufferRange(GL_ARRAY_BUFFER, (intptr_t)offset_bytes, (intptr_t)length_bytes, access);
-                       glBindBuffer(GL_ARRAY_BUFFER, 0); );
-
-            return pointer;
-        }
-
+    if( offset + length > mesh->indices->capacity ) {
+        size_t alloc = offset + length - mesh->indices->capacity + 1;
+        size_t result = vbomesh_alloc_indices(mesh, alloc);
+        log_assert( result == alloc );
     }
 
-    return NULL;
+    log_assert( offset + length <= mesh->indices->capacity );
+
+    size_t offset_bytes = offset * mesh->index.bytes;
+    size_t length_bytes = length * mesh->index.bytes;
+    if( length <= offset ) {
+        length_bytes = mesh->indices->capacity * mesh->index.bytes;
+    }
+    log_assert( offset_bytes < INTPTR_MAX );
+    log_assert( length_bytes < INTPTR_MAX );
+
+    void* pointer = NULL;
+    ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->indices->id);
+               pointer = glMapBufferRange(GL_ARRAY_BUFFER, (intptr_t)offset_bytes, (intptr_t)length_bytes, access);
+               glBindBuffer(GL_ARRAY_BUFFER, 0); );
+
+    return pointer;
 }
 
 GLboolean vbomesh_unmap(struct VboMesh* mesh) {
-    if( mesh && mesh->indices->id ) {
-        GLboolean result = 0;
-        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->indices->id);
-                   result = glUnmapBuffer(GL_ARRAY_BUFFER);
-                   glBindBuffer(GL_ARRAY_BUFFER, 0); );
+    log_assert( mesh != NULL );
+    log_assert( mesh->indices->id > 0 );
 
-        return result;
-    }
+    GLboolean result = 0;
+    ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->indices->id);
+               result = glUnmapBuffer(GL_ARRAY_BUFFER);
+               glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
-    return 0;
+    return result;
 }

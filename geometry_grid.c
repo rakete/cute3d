@@ -492,9 +492,12 @@ void world_grid_create(struct Grid* grid,
     }
 
 
-    vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, vertices, n);
-    vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, normals, n);
-    vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, colors, n);
+    size_t vertices_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, vertices, n);
+    size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, normals, n);
+    size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, colors, n);
+    log_assert( vertices_n == n );
+    log_assert( normals_n == n );
+    log_assert( colors_n == n );
 }
 
 void world_grid_update(struct Grid* grid,
@@ -549,5 +552,6 @@ void world_grid_update(struct Grid* grid,
         }
     }
 
-    vbomesh_append_indices(mesh, triangles, n);
+    size_t triangles_n = vbomesh_append_indices(mesh, triangles, n);
+    log_assert( triangles_n == n );
 }
