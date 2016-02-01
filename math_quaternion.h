@@ -17,10 +17,9 @@
 #ifndef MATH_QUATERNION_H
 #define MATH_QUATERNION_H
 
-#include "stdbool.h"
-#include "assert.h"
-
 #include "math.h"
+
+#include "driver_log.h"
 #include "math_types.h"
 #include "math_matrix.h"
 
