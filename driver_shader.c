@@ -422,6 +422,10 @@ GLint shader_set_uniform_3f(const struct Shader* shader, int32_t uniform_index, 
             default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
         }
 
+        if( size < 3 ) {
+            log_warn(stderr, __FILE__, __LINE__, "setting uniform 3f with only %df data\n", size);
+        }
+
         // glUniform changes state of the program, so it needs to be run after glUseProgram
         // that does not apply to glVertexAttribPointer, which only changes global state
         ogl_debug( glUseProgram(shader->program);
@@ -465,6 +469,10 @@ GLint shader_set_uniform_4f(const struct Shader* shader, int32_t uniform_index, 
                 break;
             }
             default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
+        }
+
+        if( size < 4 ) {
+            log_warn(stderr, __FILE__, __LINE__, "setting uniform 4f with only %df data\n", size);
         }
 
         // glUniform changes state of the program, so it needs to be run after glUseProgram
