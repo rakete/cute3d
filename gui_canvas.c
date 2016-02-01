@@ -114,14 +114,13 @@ void canvas_add_attribute(struct Canvas* canvas, int32_t added_attribute, uint32
     }
 }
 
-int32_t canvas_add_shader(struct Canvas* canvas, struct Shader* const shader, const char* shader_name) {
-    size_t name_length = strlen(shader_name);
-    log_assert( name_length > 0 );
-    log_assert( name_length < 256 );
+int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader) {
+    log_assert( shader != NULL );
 
     int32_t shader_i = 0;
     while( shader_i < NUM_CANVAS_SHADER && strlen(canvas->shader[shader_i].name) != 0 ) {
-        if( strncmp(canvas->shader[shader_i].name, shader_name, 256) == 0 ) {
+        if( strncmp(canvas->shader[shader_i].name, shader->name, 256) == 0 ) {
+            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" already added to canvas\n", shader->name);
             return shader_i;
         }
 
@@ -164,14 +163,13 @@ int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name) {
     return shader_i;
 }
 
-int32_t canvas_add_font(struct Canvas* canvas, struct Font font, const char* font_name) {
-    size_t name_length = strlen(font_name);
-    log_assert( name_length > 0 );
-    log_assert( name_length < 256 );
+int32_t canvas_add_font(struct Canvas* canvas, const struct Font* font) {
+    log_assert( font != NULL );
 
     int32_t font_i = 0;
     while( font_i < NUM_CANVAS_FONTS && strlen(canvas->fonts[font_i].name) != 0 ) {
-        if( strncmp(canvas->fonts[font_i].name, font_name, 256) == 0 ) {
+        if( strncmp(canvas->fonts[font_i].name, font->name, 256) == 0 ) {
+            log_warn(stderr, __FILE__, __LINE__, "font \"%s\" already added to canvas\n", font->name);
             return font_i;
         }
 
@@ -182,7 +180,7 @@ int32_t canvas_add_font(struct Canvas* canvas, struct Font font, const char* fon
         return NUM_CANVAS_FONTS;
     }
 
-    memcpy(&canvas->fonts[font_i], &font, sizeof(struct Font));
+    memcpy(&canvas->fonts[font_i], font, sizeof(struct Font));
 
     return 0;
 }

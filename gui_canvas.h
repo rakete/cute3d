@@ -134,10 +134,10 @@ void canvas_create_default(struct Canvas* canvas);
 // struct with that name
 void canvas_add_attribute(struct Canvas* canvas, int32_t attribute, uint32_t size, GLenum type);
 
-int32_t canvas_add_shader(struct Canvas* canvas, struct Shader* const shader, const char* name);
+int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader);
 int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name);
 
-int32_t canvas_add_font(struct Canvas* canvas, struct Font font, const char* font_name);
+int32_t canvas_add_font(struct Canvas* canvas, const struct Font* font);
 int32_t canvas_find_font(struct Canvas* canvas, const char* font_name);
 
 // - allocating the heap memory for the arrays
