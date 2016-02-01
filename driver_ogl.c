@@ -63,31 +63,27 @@ size_t ogl_buffer_resize(GLuint* buffer, size_t old_bytes, size_t new_bytes) {
     GLuint new_buffer;
     GLuint old_buffer = *buffer;
 
-    if( new_bytes > old_bytes ) {
-        ogl_debug( glGenBuffers(1, &new_buffer);
-                   glBindBuffer(GL_COPY_WRITE_BUFFER, new_buffer);
-                   glBufferData(GL_COPY_WRITE_BUFFER, (ptrdiff_t)new_bytes, NULL, GL_STATIC_COPY); );
+    ogl_debug( glGenBuffers(1, &new_buffer);
+               glBindBuffer(GL_COPY_WRITE_BUFFER, new_buffer);
+               glBufferData(GL_COPY_WRITE_BUFFER, (ptrdiff_t)new_bytes, NULL, GL_STATIC_COPY); );
 
-        if( old_bytes > 0 && old_buffer > 0 ) {
-            ogl_debug( glBindBuffer(GL_COPY_READ_BUFFER, old_buffer);
-                       glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, (ptrdiff_t)old_bytes); );
-        }
-
-        if( old_buffer ) {
-            ogl_debug( glDeleteBuffers(1, &old_buffer) );
-        }
-
-        *buffer = new_buffer;
-
-        if( old_bytes > 0 && old_buffer ) {
-            ogl_debug( glBindBuffer(GL_COPY_READ_BUFFER, 0) );
-        }
-        ogl_debug( glBindBuffer(GL_COPY_WRITE_BUFFER, 0) );
-
-        return new_bytes - old_bytes;
+    if( old_bytes > 0 && old_buffer > 0 ) {
+        ogl_debug( glBindBuffer(GL_COPY_READ_BUFFER, old_buffer);
+                   glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, (ptrdiff_t)old_bytes); );
     }
 
-    return 0;
+    if( old_buffer ) {
+        ogl_debug( glDeleteBuffers(1, &old_buffer) );
+    }
+
+    *buffer = new_buffer;
+
+    if( old_bytes > 0 && old_buffer ) {
+        ogl_debug( glBindBuffer(GL_COPY_READ_BUFFER, 0) );
+    }
+    ogl_debug( glBindBuffer(GL_COPY_WRITE_BUFFER, 0) );
+
+    return new_bytes - old_bytes;
 }
 
 size_t ogl_sizeof_type(GLenum type) {
