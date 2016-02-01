@@ -16,10 +16,12 @@
 
 #include "render_vbomesh.h"
 
-void vbomesh_from_solid(struct Solid* solid, uint8_t color[4], struct VboMesh* mesh) {
+void vbomesh_create_from_solid(struct Solid* solid, const uint8_t color[4], struct Vbo* vbo, struct VboMesh* mesh) {
     log_assert( solid != NULL );
     log_assert( color != NULL );
     log_assert( mesh != NULL );
+
+    vbomesh_create(vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, mesh);
 
     solid_normals(solid);
     solid_color(solid,color);
@@ -35,8 +37,33 @@ void vbomesh_from_solid(struct Solid* solid, uint8_t color[4], struct VboMesh* m
     log_assert( indices_n == solid->size );
 }
 
+struct VboMesh wtf(struct Solid* solid, uint8_t color[4], struct Vbo* vbo) {
+    log_assert( solid != NULL );
+    log_assert( color != NULL );
+    log_assert( vbo != NULL );
 
-void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, struct Camera* const camera, Mat const model_matrix) {
+    struct VboMesh mesh;
+    vbomesh_create(vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &mesh);
+
+    solid_normals(solid);
+    solid_color(solid,color);
+
+    size_t vertices_n = vbomesh_append_attributes(&mesh, SHADER_ATTRIBUTE_VERTICES, solid->vertices, solid->size);
+    size_t normals_n = vbomesh_append_attributes(&mesh, SHADER_ATTRIBUTE_NORMALS, solid->normals, solid->size);
+    size_t colors_n = vbomesh_append_attributes(&mesh, SHADER_ATTRIBUTE_COLORS, solid->colors, solid->size);
+    printf("%lu\n", mesh.indices->occupied);
+    size_t indices_n = vbomesh_append_indices(&mesh, solid->indices, solid->size);
+    printf("%lu\n", mesh.indices->occupied);
+
+    log_assert( vertices_n == solid->size );
+    log_assert( normals_n == solid->size );
+    log_assert( colors_n == solid->size );
+    log_assert( indices_n == solid->size );
+
+    return mesh;
+}
+
+void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, const Mat model_matrix) {
     log_assert( mesh != NULL );
     log_assert( shader != NULL );
     log_assert( camera != NULL );

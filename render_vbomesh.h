@@ -25,8 +25,8 @@
 #include "math_transform.h"
 #include "geometry_solid.h"
 
-void vbomesh_from_solid(struct Solid* solid, uint8_t color[4], struct VboMesh* mesh);
+void vbomesh_create_from_solid(struct Solid* solid, const uint8_t color[4], struct Vbo* const vbo, struct VboMesh* mesh);
 
-void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, struct Camera* const camera, Mat const model_matrix);
+void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, const Mat model_matrix);
 
 #endif
