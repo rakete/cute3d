@@ -1,3 +1,6 @@
+#ifndef MATH_GAMETIME
+#define MATH_GAMETIME
+
 #include "stdint.h"
 
 struct GameTime {
@@ -17,3 +20,5 @@ void gametime_createx(double dt, double t, double frame, double max_frame, doubl
 void gametime_advance(struct GameTime* time, double delta);
 
 int32_t gametime_integrate(struct GameTime* time);
+
+#endif

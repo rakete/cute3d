@@ -1,4 +1,4 @@
-#include "physics_time.h"
+#include "math_gametime.h"
 
 void gametime_create(double dt, struct GameTime* time) {
     time->dt = dt;
@@ -26,7 +26,7 @@ void gametime_advance(struct GameTime* time, double delta) {
     time->accumulator += time->frame;
 }
 
-int32_t gametime_int32_tegrate(struct GameTime* time) {
+int32_t gametime_integrate(struct GameTime* time) {
     if( time->accumulator >= time->dt ) {
         time->t += time->dt;
         time->accumulator -= time->dt;
