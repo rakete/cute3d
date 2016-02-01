@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     SDL_GLContext* context;
     sdl2_glcontext(window, &context);
 
-    if( init_ogl(800, 600, (Color){0.0f, 0.0f, 0.0f, 1.0f}) ) {
+    if( init_ogl(800, 600, (Color){0, 0, 0, 255}) ) {
         return 1;
     }
 
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     uint32_t triangles[hemesh.size];
     uint32_t elements[hemesh.size];
     float normals[hemesh.size*3];
-    float colors[hemesh.size*4];
+    uint8_t colors[hemesh.size*4];
     solid_create(hemesh.size, elements, vertices, triangles, normals, colors, NULL, &solid_out);
 
     halfedgemesh_compress(&hemesh);
@@ -69,11 +69,11 @@ int main(int argc, char *argv[]) {
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
     struct VboMesh vbomesh;
     vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &vbomesh);
-    vbomesh_from_solid(&solid_out, &vbomesh);
+    vbomesh_from_solid(&solid_out, (Color){ 255, 0, 255, 255 }, &vbomesh);
 
     struct Shader shader;
     shader_create_flat("flat_shader", &shader);
@@ -81,8 +81,9 @@ int main(int argc, char *argv[]) {
     Vec light_direction = { 0.2, -0.5, -1.0 };
     shader_add_uniform(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
 
-    Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
-    shader_add_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "ambiance", "4f", ambiance);
+    Color4f ambiance = { 0.25, 0.1, 0.2, 1.0 };
+    shader_add_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "ambient_color");
+    shader_set_uniform_4f(&shader, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_FLOAT, ambiance);
 
     struct Arcball arcball;
     arcball_create(window, (Vec){1.0,2.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);

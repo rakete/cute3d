@@ -50,7 +50,7 @@ void ogl_error_print(GLenum error);
 /* }; */
 /* #endif */
 
-int32_t init_ogl(int32_t width, int32_t height, const float clear_color[4]) __attribute__((warn_unused_result));
+int32_t init_ogl(int32_t width, int32_t height, const uint8_t clear_color[4]) __attribute__((warn_unused_result));
 
 size_t ogl_buffer_resize(GLuint* buffer, size_t old_nbytes, size_t new_nbytes) __attribute__((warn_unused_result));
 

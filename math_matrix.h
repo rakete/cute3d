@@ -46,6 +46,8 @@ VecP vcopy2f(const Vec v, Vec2f r);
 void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
 MatP vcopy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
 
+void color_copy(const Color c, Color r);
+
 // vector comparison
 void vec_equal(const Vec a, const Vec b, int* r);
 int32_t vequal(const Vec a, const Vec b);

@@ -51,7 +51,7 @@ int32_t main(int32_t argc, char *argv[]) {
     SDL_GLContext* context;
     sdl2_glcontext(window, &context);
 
-    if( init_ogl(800, 600, (Color){0.0f, 0.0f, 0.0f, 1.0f}) ) {
+    if( init_ogl(800, 600, (Color){0, 0, 0, 255}) ) {
         return 1;
     }
 
@@ -113,7 +113,7 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Canvas text_canvas;
     canvas_create(&text_canvas);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
-    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_FLOAT);
+    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
     canvas_append_shader(&text_canvas, &shader, "default_shader");
     canvas_append_font(&text_canvas, font, "default_font");

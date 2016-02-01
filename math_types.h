@@ -42,7 +42,9 @@ typedef float Mat4i[16];
 
 typedef float Quat[4];
 
-typedef float Color[4];
+typedef uint8_t Color[4];
+typedef float Color4f[4];
+typedef uint8_t Color4ub[4];
 
 typedef float Texcoord[2];
 

@@ -27,7 +27,7 @@ void draw_grid( struct Canvas* canvas,
     uint32_t size = (steps+1)*2 + (steps+1)*2;
 
     float vertices[size * 3];
-    float colors[size * 4];
+    uint8_t colors[size * 4];
     uint32_t elements[size];
     uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
 
@@ -45,16 +45,16 @@ void draw_grid( struct Canvas* canvas,
         // made up of 2 vertices each, which makes 4 vertices in total
         // with 3 components which results in the number 12 below
         mat_mul_vec3f(model_matrix, (Vec3f){xf, -height/2.0f, 0.0}, vertices + i*12 + 0);
-        vec_copy(color, colors + i * 16 + 0);
+        color_copy(color, colors + i * 16 + 0);
         elements[i * 4 + 0] = offset + i * 4 + 0;
 
         mat_mul_vec3f(model_matrix, (Vec3f){xf, height/2.0f, 0.0}, vertices + i*12 + 3);
-        vec_copy(color, colors + i * 16 + 4);
+        color_copy(color, colors + i * 16 + 4);
         elements[i * 4 + 1] = offset + i * 4 + 1;
 
         mat_mul_vec3f(model_matrix, (Vec3f){-width/2.0f, yf, 0.0}, vertices + i*12 + 6);
-        vec_copy(color, colors + i * 16 + 8);
         elements[i * 4 + 2] = i * 4 + 2;
+        color_copy(color, colors + i * 16 + 8);
 
         mat_mul_vec3f(model_matrix, (Vec3f){width/2.0f, yf, 0.0}, vertices + i*12 + 9);
         vec_copy(color, colors + i * 16 + 12);
@@ -62,8 +62,8 @@ void draw_grid( struct Canvas* canvas,
     }
 
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, size, NULL);
-    canvas_append_colors(canvas, colors, 4, GL_FLOAT, size, NULL);
     canvas_append_indices(canvas, layer_i, "default_shader", GL_LINES, elements, size, 0);
+    canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, size, NULL);
 }
 
 void draw_arrow( struct Canvas* canvas,
@@ -114,7 +114,7 @@ void draw_arrow( struct Canvas* canvas,
     mat_mul_vec3f(arrow_matrix, (Vec3f){-0.1f, 0.0f,-0.2f }, vertices + 3*3);
     mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.0f,-0.1f,-0.2f }, vertices + 3*4);
 
-    float colors[5*4] =
+    uint8_t colors[5*4] =
         { color[0], color[1], color[2], color[3],
           color[0], color[1], color[2], color[3],
           color[0], color[1], color[2], color[3],
@@ -132,8 +132,8 @@ void draw_arrow( struct Canvas* canvas,
           4, 1 };
 
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 5, arrow_matrix);
-    canvas_append_colors(canvas, colors, 4, GL_FLOAT, 5, color);
     canvas_append_indices(canvas, layer_i, "default_shader", GL_LINES, elements, 8*2, 0);
+    canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 5, color);
 }
 
 void draw_vec( struct Canvas* canvas,
@@ -417,8 +417,8 @@ void draw_reticle( struct Canvas* canvas,
           6, 7 };
 
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 8, reticle_matrix);
-    canvas_append_colors(canvas, colors, 4, GL_FLOAT, 8, color);
     canvas_append_indices(canvas, layer, "default_shader", GL_LINES, elements, 4*2, 0);
+    canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 8, color);
 }
 
 void draw_contact( struct Canvas* canvas,

@@ -44,7 +44,10 @@ int32_t init_ogl(int32_t width, int32_t height, const uint8_t clear_color[4]) {
 
             glEnable(GL_MULTISAMPLE);
 
-            glClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
+            glClearColor((float)clear_color[0] / 255.0,
+                         (float)clear_color[1] / 255.0,
+                         (float)clear_color[2] / 255.0,
+                         (float)clear_color[3] / 255.0);
             glClearDepth(1);
         });
 

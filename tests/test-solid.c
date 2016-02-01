@@ -24,7 +24,7 @@ int32_t main(int32_t argc, char *argv[]) {
     SDL_GLContext* context;
     sdl2_glcontext(window, &context);
 
-    if( init_ogl(800, 600, (Color){0.0f, 0.0f, 0.0f, 1.0f}) ) {
+    if( init_ogl(800, 600, (Color){0, 0, 0, 255}) ) {
         return 1;
     }
 
@@ -40,7 +40,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
     struct Tetrahedron tetrahedron;
     struct Cube hexahedron;
@@ -56,19 +56,19 @@ int32_t main(int32_t argc, char *argv[]) {
     struct VboMesh tetrahedron_mesh,hexahedron_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
 
     vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &tetrahedron_mesh);
-    vbomesh_from_solid((struct Solid*)&tetrahedron, (Color){1.0,0.0,0.0,1.0}, &tetrahedron_mesh);
+    vbomesh_from_solid((struct Solid*)&tetrahedron, (Color){255, 0, 0, 255}, &tetrahedron_mesh);
 
     vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &hexahedron_mesh);
-    vbomesh_from_solid((struct Solid*)&hexahedron, (Color){0.0,1.0,0.0,1.0}, &hexahedron_mesh);
+    vbomesh_from_solid((struct Solid*)&hexahedron, (Color){0, 255, 0, 255}, &hexahedron_mesh);
 
     vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
-    vbomesh_from_solid((struct Solid*)&cube, (Color){1.0,0.0,1.0,1.0}, &cube_mesh);
+    vbomesh_from_solid((struct Solid*)&cube, (Color){255, 0, 255, 255}, &cube_mesh);
 
     vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere16_mesh);
-    vbomesh_from_solid((struct Solid*)&sphere16, (Color){0.0,1.0,1.0,1.0}, &sphere16_mesh);
+    vbomesh_from_solid((struct Solid*)&sphere16, (Color){0, 255, 255, 255}, &sphere16_mesh);
 
     vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere32_mesh);
-    vbomesh_from_solid((struct Solid*)&sphere32, (Color){1.0,1.0,0.0,1.0}, &sphere32_mesh);
+    vbomesh_from_solid((struct Solid*)&sphere32, (Color){255, 255, 0, 255}, &sphere32_mesh);
 
     struct Shader shader;
     shader_create_flat("flat_shader", &shader);
@@ -109,9 +109,9 @@ int32_t main(int32_t argc, char *argv[]) {
 
         Vec light_direction = { 0.2, -0.5, -1.0 };
         shader_add_uniform(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
+        Color ambiance = {50, 25, 150, 255};
+        shader_set_uniform_4f(&shader, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
 
-        Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
-        shader_add_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "ambiance", "4f", ambiance);
 
         Mat identity;
         mat_identity(identity);

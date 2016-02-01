@@ -25,7 +25,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, uint32_t layer, uint32_t proj
 
     // these are too large, not all glyphs will be put into the arrays
     float vertices[text_length * 4 * vertex_size];
-    float colors[text_length * 4 * color_size];
+    uint8_t colors[text_length * 4 * color_size];
     float texcoords[text_length * 4 * texcoord_size];
     uint32_t indices[text_length * 6];
 
@@ -117,10 +117,10 @@ void text_put(struct Canvas* canvas, Vec4f cursor, uint32_t layer, uint32_t proj
             mat_mul_vec3f( glyph_matrix, (Vec3f){1.0 - kerning, -1.0, 0.0}, &vertices[vertex_offset + 2*vertex_size] );
             mat_mul_vec3f( glyph_matrix, (Vec3f){0.0 - kerning, -1.0, 0.0}, &vertices[vertex_offset + 3*vertex_size] );
 
-            vec_copy( color, &colors[color_offset + 0*color_size] );
-            vec_copy( color, &colors[color_offset + 1*color_size] );
-            vec_copy( color, &colors[color_offset + 2*color_size] );
-            vec_copy( color, &colors[color_offset + 3*color_size] );
+            color_copy( color, &colors[color_offset + 0*color_size] );
+            color_copy( color, &colors[color_offset + 1*color_size] );
+            color_copy( color, &colors[color_offset + 2*color_size] );
+            color_copy( color, &colors[color_offset + 3*color_size] );
 
             float x_step = 1.0f/font->texture.width;
             float y_step = 1.0f/font->texture.height;
@@ -146,7 +146,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, uint32_t layer, uint32_t proj
     }
 
     canvas_append_vertices(canvas, vertices, vertex_size, GL_FLOAT, glyph_counter*4, NULL);
-    canvas_append_colors(canvas, colors, color_size, GL_FLOAT, glyph_counter*4, NULL);
+    canvas_append_colors(canvas, colors, color_size, GL_UNSIGNED_BYTE, glyph_counter*4, NULL);
     canvas_append_texcoords(canvas, texcoords, texcoord_size, GL_FLOAT, glyph_counter*4);
     canvas_append_text(canvas, layer, projection, font_name, indices, glyph_counter*6, 0);
 

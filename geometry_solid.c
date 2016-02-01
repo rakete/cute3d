@@ -16,7 +16,7 @@
 
 #include "geometry_solid.h"
 
-void solid_create(size_t size, uint32_t* indices, float* vertices, uint32_t* triangles, float* normals, float* colors, float* texcoords, struct Solid* solid) {
+void solid_create(size_t size, uint32_t* indices, float* vertices, uint32_t* triangles, float* normals, uint8_t* colors, float* texcoords, struct Solid* solid) {
     solid->size = size;
     solid->vertices = vertices;
     solid->indices = indices;
@@ -67,7 +67,7 @@ void solid_normals(struct Solid* solid) {
     }
 }
 
-void solid_color(struct Solid* solid, float color[4]) {
+void solid_color(struct Solid* solid, uint8_t color[4]) {
     log_assert(solid->colors != NULL);
 
     if( solid->vertices && solid->indices ) {

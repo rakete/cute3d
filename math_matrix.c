@@ -97,6 +97,13 @@ MatP vcopy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r) {
     return r;
 }
 
+void color_copy(const Color c, Color r) {
+    r[0] = c[0];
+    r[1] = c[1];
+    r[2] = c[2];
+    r[3] = c[3];
+}
+
 void vec_equal(const Vec a, const Vec b, int* r) {
     *r = 0;
 
