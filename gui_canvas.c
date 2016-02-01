@@ -2,7 +2,7 @@
 
 struct Canvas global_canvas = {
     .components = {{0}},
-    .attributes = {{0}},
+    .attribute = {{0}},
     .buffer = {{0}},
     .shader = {{{0}}},
     .fonts = {{{0}}},
@@ -19,12 +19,16 @@ void canvas_create(struct Canvas* canvas) {
 
     for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
         canvas->components[i].size = 0;
-        canvas->components[i].type = GL_FLOAT;
+        if( i == SHADER_ATTRIBUTE_COLORS ) {
+            canvas->components[i].type = GL_UNSIGNED_BYTE;
+        } else {
+            canvas->components[i].type = GL_FLOAT;
+        }
         canvas->components[i].bytes = 0;
 
-        canvas->attributes[i].array = NULL;
-        canvas->attributes[i].occupied = 0;
-        canvas->attributes[i].capacity = 0;
+        canvas->attribute[i].array = NULL;
+        canvas->attribute[i].occupied = 0;
+        canvas->attribute[i].capacity = 0;
 
         canvas->buffer[i].id = 0;
         canvas->buffer[i].occupied = 0;
@@ -38,11 +42,13 @@ void canvas_create(struct Canvas* canvas) {
 
     for( int32_t i = 0; i < NUM_CANVAS_LAYERS; i++ ) {
         for( int32_t j = 0; j < NUM_CANVAS_SHADER; j++ ) {
-            for( int32_t k = 0; k < NUM_OGL_PRIMITIVES; k++ ) {
-                canvas->layer[i].indices[j][k].array = NULL;
-                canvas->layer[i].indices[j][k].id = 0;
-                canvas->layer[i].indices[j][k].occupied = 0;
-                canvas->layer[i].indices[j][k].capacity = 0;
+            for( int32_t k = 0; k < NUM_CANVAS_PROJECTIONS; k++ ) {
+                for( int32_t l = 0; l < NUM_OGL_PRIMITIVES; l++ ) {
+                    canvas->layer[i].indices[j][k][l].array = NULL;
+                    canvas->layer[i].indices[j][k][l].id = 0;
+                    canvas->layer[i].indices[j][k][l].occupied = 0;
+                    canvas->layer[i].indices[j][k][l].capacity = 0;
+                }
             }
         }
 
@@ -71,14 +77,24 @@ void canvas_add_attribute(struct Canvas* canvas, int32_t added_attribute, uint32
         uint32_t bytes = (uint32_t)ogl_sizeof_type(type);
         canvas->components[added_attribute].bytes = bytes;
 
-        size_t capacity = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].capacity;
-        if( capacity > 0 ) {
-            canvas->attributes[added_attribute].array = calloc(capacity * size, bytes);
+        // if we add an attribute to a canvas that has already vertices allocated and occupied
+        // we just allocate and zero the new attributes overlapping with those vertices
+        //
+        // next time the user calls clear the occupied will be reset and the buffer is used
+        // just as any other, so this should just handle a very rare edge case
+        size_t vertices_capacity = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].capacity;
+        size_t vertices_occupied = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied;
+        if( vertices_capacity > 0 ) {
+            // because this should be rare, I'll warn about it
+            log_warn(stderr, __FILE__, __LINE__, "vertices already allocated when adding attribute %d\n", added_attribute);
+            canvas->attribute[added_attribute].array = calloc(vertices_capacity * size, bytes);
+            canvas->attribute[added_attribute].capacity = vertices_capacity;
+            canvas->attribute[added_attribute].occupied = vertices_occupied;
         }
     }
 }
 
-int32_t canvas_append_shader(struct Canvas* canvas, struct Shader* const shader, const char* shader_name) {
+int32_t canvas_add_shader(struct Canvas* canvas, struct Shader* const shader, const char* shader_name) {
     size_t name_length = strlen(shader_name);
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
@@ -128,7 +144,7 @@ int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name) {
     return shader_i;
 }
 
-int32_t canvas_append_font(struct Canvas* canvas, struct Font font, const char* font_name) {
+int32_t canvas_add_font(struct Canvas* canvas, struct Font font, const char* font_name) {
     size_t name_length = strlen(font_name);
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
@@ -186,18 +202,18 @@ size_t canvas_alloc_attributes(struct Canvas* canvas, int32_t attribute_i, size_
         return 0;
     }
 
-    size_t old_capacity = canvas->attributes[attribute_i].capacity;
+    size_t old_capacity = canvas->attribute[attribute_i].capacity;
     log_assert( INT32_MAX - n > old_capacity );
     size_t new_capacity = old_capacity + n;
 
     uint32_t size = canvas->components[attribute_i].size;
 
     if( size > 0 ) {
-        float* old_array_pointer = canvas->attributes[attribute_i].array;
+        float* old_array_pointer = canvas->attribute[attribute_i].array;
         float* new_array_pointer = (float*)realloc(old_array_pointer, new_capacity * size * sizeof(float));
 
         if( new_array_pointer != NULL ) {
-            canvas->attributes[attribute_i].array = new_array_pointer;
+            canvas->attribute[attribute_i].array = new_array_pointer;
         }
 
         log_assert( canvas->attribute[attribute_i].array != NULL );
@@ -205,12 +221,12 @@ size_t canvas_alloc_attributes(struct Canvas* canvas, int32_t attribute_i, size_
         log_assert( canvas->attribute[attribute_i].array == NULL );
     }
 
-    canvas->attributes[attribute_i].capacity = new_capacity;
+    canvas->attribute[attribute_i].capacity = new_capacity;
 
     return n;
 }
 
-size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, const char* shader_name, GLenum primitive_type, size_t n) {
+size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* shader_name, GLenum primitive_type, size_t n) {
     log_assert( canvas != NULL );
     log_assert( layer_i >= 0 );
     log_assert( projection_i >= 0 );
@@ -225,16 +241,16 @@ size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, const char* 
         return 0;
     }
 
-    size_t old_capacity = canvas->layer[layer_i].indices[shader_i][primitive_type].capacity;
+    size_t old_capacity = canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].capacity;
     log_assert( INT32_MAX - n > old_capacity );
     size_t new_capacity = old_capacity + n;
 
-    GLuint* old_array_pointer = canvas->layer[layer_i].indices[shader_i][primitive_type].array;
+    GLuint* old_array_pointer = canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].array;
     GLuint* new_array_pointer = realloc(old_array_pointer, new_capacity * sizeof(GLuint));
 
     if( new_array_pointer != NULL ) {
-        canvas->layer[layer_i].indices[shader_i][primitive_type].array = new_array_pointer;
-        canvas->layer[layer_i].indices[shader_i][primitive_type].capacity = new_capacity;
+        canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].array = new_array_pointer;
+        canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].capacity = new_capacity;
         return n;
     }
 
@@ -277,14 +293,16 @@ void canvas_clear(struct Canvas* canvas, int32_t layer_start, int32_t layer_end)
     log_assert( canvas != NULL );
 
     for( int32_t j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
-        canvas->attributes[j].occupied = 0;
+        canvas->attribute[j].occupied = 0;
         canvas->buffer[j].occupied = 0;
     }
 
     for( int32_t i = layer_start; i < layer_end; i++ ) {
         for( int32_t j = 0; j < NUM_CANVAS_SHADER; j++ ) {
-            for( int32_t k = 0; k < NUM_OGL_PRIMITIVES; k++ ) {
-                canvas->layer[i].indices[j][k].occupied = 0;
+            for( int32_t k = 0; k < NUM_CANVAS_PROJECTIONS; k++ ) {
+                for( int32_t l = 0; l < NUM_OGL_PRIMITIVES; l++ ) {
+                    canvas->layer[i].indices[j][k][l].occupied = 0;
+                }
             }
         }
 
@@ -309,19 +327,19 @@ size_t canvas_append_vertices(struct Canvas* canvas, void* vertices, uint32_t si
         return 0;
     }
 
-    size_t old_occupied = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    size_t old_occupied = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied;
     log_assert( INT32_MAX - n > old_occupied );
     size_t new_occupied = old_occupied + n;
 
     size_t alloc = DEFAULT_CANVAS_ALLOC;
-    while( new_occupied > canvas->attributes[SHADER_ATTRIBUTE_VERTICES].capacity ) {
+    while( new_occupied > canvas->attribute[SHADER_ATTRIBUTE_VERTICES].capacity ) {
         canvas_alloc_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, alloc);
         alloc = alloc * 2;
     }
 
     uint32_t vertex_size = canvas->components[SHADER_ATTRIBUTE_VERTICES].size;
     uint32_t vertex_bytes = canvas->components[SHADER_ATTRIBUTE_VERTICES].bytes;
-    void* vertex_array = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].array;
+    void* vertex_array = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].array;
 
     log_assert( vertex_size <= 4 );
     log_assert( vertex_bytes <= 8 );
@@ -339,7 +357,7 @@ size_t canvas_append_vertices(struct Canvas* canvas, void* vertices, uint32_t si
         }
     }
 
-    canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied = new_occupied;
+    canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied = new_occupied;
 
     return n;
 }
@@ -354,19 +372,25 @@ size_t canvas_append_colors(struct Canvas* canvas, void* colors, uint32_t size, 
         return 0;
     }
 
-    size_t old_occupied = canvas->attributes[SHADER_ATTRIBUTE_COLORS].occupied;
+    // this log_asserts makes sure that we do not create a situation where attributes and vertices are mismatched, it is
+    // possible to add 3 vertices, and then just to add 2 texcoords, this would leave not only one vertex without a texcoord
+    // but also the offsets of all following texcoords would be of by one, so we should only allow appending exactly the
+    // amount of attributes that is needed to match the vertices that are already there
+    log_assert( n == canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied - canvas->attribute[SHADER_ATTRIBUTE_COLORS].occupied );
+
+    size_t old_occupied = canvas->attribute[SHADER_ATTRIBUTE_COLORS].occupied;
     log_assert( INT32_MAX - n > old_occupied );
     size_t new_occupied = old_occupied + n;
 
     size_t alloc = DEFAULT_CANVAS_ALLOC;
-    while( new_occupied > canvas->attributes[SHADER_ATTRIBUTE_COLORS].capacity ) {
+    while( new_occupied > canvas->attribute[SHADER_ATTRIBUTE_COLORS].capacity ) {
         canvas_alloc_attributes(canvas, SHADER_ATTRIBUTE_COLORS, alloc);
         alloc = alloc * 2;
     }
 
     uint32_t color_size = canvas->components[SHADER_ATTRIBUTE_COLORS].size;
     uint32_t color_bytes = canvas->components[SHADER_ATTRIBUTE_COLORS].bytes;
-    void* color_array = canvas->attributes[SHADER_ATTRIBUTE_COLORS].array;
+    void* color_array = canvas->attribute[SHADER_ATTRIBUTE_COLORS].array;
 
     log_assert( color_size <= 4 );
     log_assert( color_bytes <= 8 );
@@ -382,7 +406,8 @@ size_t canvas_append_colors(struct Canvas* canvas, void* colors, uint32_t size, 
         memcpy((char*)color_array + old_occupied*color_size*color_bytes, (char*)colors, n_bytes);
     }
 
-    canvas->attributes[SHADER_ATTRIBUTE_COLORS].occupied = new_occupied;
+    canvas->attribute[SHADER_ATTRIBUTE_COLORS].occupied = new_occupied;
+    log_assert( new_occupied == canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied);
 
     return n;
 }
@@ -397,19 +422,21 @@ size_t canvas_append_texcoords(struct Canvas* canvas, void* texcoords, uint32_t 
         return 0;
     }
 
-    size_t old_occupied = canvas->attributes[SHADER_ATTRIBUTE_TEXCOORDS].occupied;
+    log_assert( n == canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied - canvas->attribute[SHADER_ATTRIBUTE_TEXCOORDS].occupied );
+
+    size_t old_occupied = canvas->attribute[SHADER_ATTRIBUTE_TEXCOORDS].occupied;
     log_assert( INT32_MAX - n > old_occupied );
     size_t new_occupied = old_occupied + n;
 
     size_t alloc = DEFAULT_CANVAS_ALLOC;
-    while( new_occupied > canvas->attributes[SHADER_ATTRIBUTE_TEXCOORDS].capacity ) {
+    while( new_occupied > canvas->attribute[SHADER_ATTRIBUTE_TEXCOORDS].capacity ) {
         canvas_alloc_attributes(canvas, SHADER_ATTRIBUTE_TEXCOORDS, alloc);
         alloc = alloc * 2;
     }
 
     uint32_t texcoord_size = canvas->components[SHADER_ATTRIBUTE_TEXCOORDS].size;
     uint32_t texcoord_bytes = canvas->components[SHADER_ATTRIBUTE_TEXCOORDS].bytes;
-    void* texcoord_array = canvas->attributes[SHADER_ATTRIBUTE_TEXCOORDS].array;
+    void* texcoord_array = canvas->attribute[SHADER_ATTRIBUTE_TEXCOORDS].array;
 
     log_assert( texcoord_size <= 4 );
     log_assert( texcoord_bytes <= 8 );
@@ -421,12 +448,13 @@ size_t canvas_append_texcoords(struct Canvas* canvas, void* texcoords, uint32_t 
         memcpy((char*)texcoord_array + old_occupied*texcoord_size*texcoord_bytes, (char*)texcoords, n_bytes);
     }
 
-    canvas->attributes[SHADER_ATTRIBUTE_TEXCOORDS].occupied = new_occupied;
+    canvas->attribute[SHADER_ATTRIBUTE_TEXCOORDS].occupied = new_occupied;
+    log_assert( new_occupied == canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied);
 
     return n;
 }
 
-size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, const char* shader_name, GLenum primitive_type, uint32_t* indices, size_t n, size_t offset) {
+size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* shader_name, GLenum primitive_type, uint32_t* indices, size_t n, size_t offset) {
     log_assert( canvas != NULL );
     log_assert( layer_i >= 0 );
     log_assert( n > 0 );
@@ -441,13 +469,13 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, const char*
         return 0;
     }
 
-    size_t old_occupied = canvas->layer[layer_i].indices[shader_i][primitive_type].occupied;
+    size_t old_occupied = canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].occupied;
     log_assert( INT32_MAX - n > old_occupied );
     size_t new_occupied = old_occupied + n;
 
     size_t alloc = DEFAULT_CANVAS_ALLOC;
-    while( new_occupied > canvas->layer[layer_i].indices[shader_i][primitive_type].capacity ) {
-        canvas_alloc_indices(canvas, layer_i, shader_name, primitive_type, alloc);
+    while( new_occupied > canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].capacity ) {
+        canvas_alloc_indices(canvas, layer_i, projection_i, shader_name, primitive_type, alloc);
         alloc = alloc * 2;
     }
 
@@ -455,25 +483,56 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, const char*
         for( size_t i = 0; i < n; i++ ) {
             log_assert( offset + indices[i] < UINT_MAX );
             GLuint offset_index = (GLuint)offset + indices[i];
-            canvas->layer[layer_i].indices[shader_i][primitive_type].array[old_occupied+i] = offset_index;
+            canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].array[old_occupied+i] = offset_index;
         }
     } else {
-        GLuint* indices_array = canvas->layer[layer_i].indices[shader_i][primitive_type].array;
+        GLuint* indices_array = canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].array;
         size_t n_bytes = n*sizeof(uint32_t);
         memcpy((char*)indices_array + old_occupied*sizeof(GLuint), (char*)indices, n_bytes);
     }
 
-    size_t vertices_capacity = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].capacity;
+    size_t vertices_capacity = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].capacity;
+    size_t vertices_occupied = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied;
+
+    // the for loop below starts at one because we assume that 0 are the vertices, which we check
+    // capcities against
+    log_assert( SHADER_ATTRIBUTE_VERTICES == 0 );
+
+    // we need to 'fill up' all attribute for which there are vertices but nothing added into the
+    // buffers, so this is done here, this is neccessary so that we can have a canvas with e.g.
+    // vertices/colors/texcoords but then only call append_vertices and append_texcoords, but still
+    // advance the colors so that when we later _do_ call append_colors, the vertices and texcoords
+    // and colors in the single, huge attribute buffers all line up correctly
     for( int32_t i = 1; i < NUM_SHADER_ATTRIBUTES; i++ ) {
-        size_t attribute_capacity = canvas->attributes[i].capacity;
-        if( attribute_capacity < vertices_capacity ) {
-            uint32_t attribute_size = canvas->components[i].size;
-            uint32_t attribute_bytes = canvas->components[i].bytes;
-            canvas->attributes[i].array = calloc((vertices_capacity - attribute_capacity) * attribute_size, attribute_bytes);
+        size_t attribute_capacity = canvas->attribute[i].capacity;
+        uint32_t attribute_size = canvas->components[i].size;
+
+        // an attribute is only filled when its components have a size, that means we called canvas_add_attribute
+        // with a size > 0 before, adding the attribute
+        if( attribute_size > 0 ) {
+
+            // we take the vertices capacity and compare them to the attribute capacity, if an attribute has
+            // smaller capacity we'll just allocate new memory and zero it completely, then sync both occupied
+            // and capacity counters
+            // the else case just handles when the capacity is already the same, enough, then we just sync the
+            // occupied counters
+            if( attribute_capacity < vertices_capacity ) {
+                uint32_t attribute_size = canvas->components[i].size;
+                uint32_t attribute_bytes = canvas->components[i].bytes;
+
+                canvas->attribute[i].array = realloc(canvas->attribute[i].array, vertices_capacity * attribute_size * attribute_bytes);
+                log_assert( canvas->attribute[i].array != NULL );
+                memset((char*)canvas->attribute[i].array, 0, vertices_capacity * attribute_size * attribute_bytes);
+
+                canvas->attribute[i].capacity = vertices_capacity;
+                canvas->attribute[i].occupied = vertices_occupied;
+            } else {
+                canvas->attribute[i].occupied = vertices_occupied;
+            }
         }
     }
 
-    canvas->layer[layer_i].indices[shader_i][primitive_type].occupied = new_occupied;
+    canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].occupied = new_occupied;
 
     return n;
 }
@@ -514,13 +573,29 @@ size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i
         memcpy((char*)indices_array + old_occupied*sizeof(GLuint), (char*)indices, n_bytes);
     }
 
-    size_t vertices_capacity = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].capacity;
+    size_t vertices_capacity = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].capacity;
+    size_t vertices_occupied = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied;
+
+    log_assert( SHADER_ATTRIBUTE_VERTICES == 0 );
+
     for( int32_t i = 1; i < NUM_SHADER_ATTRIBUTES; i++ ) {
-        size_t attribute_capacity = canvas->attributes[i].capacity;
-        if( attribute_capacity < vertices_capacity ) {
-            uint32_t attribute_size = canvas->components[i].size;
-            uint32_t attribute_bytes = canvas->components[i].bytes;
-            canvas->attributes[i].array = calloc((vertices_capacity - attribute_capacity) * attribute_size, attribute_bytes);
+        size_t attribute_capacity = canvas->attribute[i].capacity;
+        uint32_t attribute_size = canvas->components[i].size;
+
+        if( attribute_size > 0 ) {
+            if( attribute_capacity < vertices_capacity ) {
+                uint32_t attribute_size = canvas->components[i].size;
+                uint32_t attribute_bytes = canvas->components[i].bytes;
+
+                canvas->attribute[i].array = realloc(canvas->attribute[i].array, vertices_capacity * attribute_size * attribute_bytes);
+                log_assert( canvas->attribute[i].array != NULL );
+                memset((char*)canvas->attribute[i].array, 0, vertices_capacity * attribute_size * attribute_bytes);
+
+                canvas->attribute[i].capacity = vertices_capacity;
+                canvas->attribute[i].occupied = vertices_occupied;
+            } else {
+                canvas->attribute[i].occupied = vertices_occupied;
+            }
         }
     }
 

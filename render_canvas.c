@@ -10,13 +10,17 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
     log_assert( layer_start < layer_end );
     log_assert( canvas != NULL );
 
-    // first for loop binds the buffers and fills them with the attribute data
+    // - first for loop binds the buffers and fills them with the attribute data
     // I used to have this in the shader loop
+    // - now also sets up the vertex attribute pointers for all shaders
+    GLint loc[NUM_SHADER_ATTRIBUTES];
     for( int32_t attribute_i = 0; attribute_i < NUM_SHADER_ATTRIBUTES; attribute_i++ ) {
-        size_t occupied_attributes = canvas->attributes[attribute_i].occupied;
+        size_t occupied_attributes = canvas->attribute[attribute_i].occupied;
         size_t occupied_buffer = canvas->buffer[attribute_i].occupied;
 
-        if( occupied_attributes == 0 ) {
+        loc[attribute_i] = -1;
+
+        if( occupied_attributes == 0 || canvas->components[attribute_i].size == 0 ) {
             continue;
         }
 
@@ -24,7 +28,7 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
         // we'll keep the generated ones around inside the canvas data structure
         // until the end of the program
         if( canvas->buffer[attribute_i].id == 0 ) {
-            glGenBuffers(1, &canvas->buffer[attribute_i].id);
+            ogl_debug( glGenBuffers(1, &canvas->buffer[attribute_i].id) );
         }
 
         // fill and bind the buffers, the two occupied counters indicate whether or not we already filled the buffer,
@@ -36,13 +40,22 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
         // everything in that case as well -> multiple calls without canvas_clear are not optimal, but should work
         if( canvas->buffer[attribute_i].id > 0 && occupied_attributes > occupied_buffer ) {
             size_t alloc_bytes = occupied_attributes * canvas->components[attribute_i].size * canvas->components[attribute_i].bytes;
-            void* attributes_array = canvas->attributes[attribute_i].array;
+            void* attributes_array = canvas->attribute[attribute_i].array;
 
             log_assert( alloc_bytes < PTRDIFF_MAX );
 
-            glBindBuffer(GL_ARRAY_BUFFER, canvas->buffer[attribute_i].id);
-            glBufferData(GL_ARRAY_BUFFER, (ptrdiff_t)alloc_bytes, attributes_array, GL_STREAM_READ);
+            ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, canvas->buffer[attribute_i].id);
+                       glBufferData(GL_ARRAY_BUFFER, (ptrdiff_t)alloc_bytes, attributes_array, GL_STREAM_READ); );
         }
+
+        // set up vertex attribute pointers, which means attaching the data in the buffers to inputs in the shaders
+        // this had to be done inside the loops that go through every shader, but now I assume that I use glBindAttribLocation
+        // when creating the shaders so that the locations will always be the same for all canvas shaders, therefore I
+        // can now do this once, here, and then not worry about it until the very end where I unbind the locations once
+        uint32_t c_num = canvas->components[attribute_i].size;
+        GLenum c_type = canvas->components[attribute_i].type;
+        log_assert( c_num < INT_MAX );
+        loc[attribute_i] = shader_set_attribute(NULL, attribute_i, canvas->buffer[attribute_i].id, occupied_attributes, (GLint)c_num, c_type, 0, 0);
     }
 
     // second loop goes through all shaders, binds their locations, then loops through all layers, uploads the indices and renders
@@ -55,52 +68,47 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
 
         ogl_debug( glUseProgram(shader->program); );
 
-        // binding matrices to uniforms
         Mat projection_matrix = {0};
         Mat view_matrix = {0};
-        camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
-        shader_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix);
+        for( uint32_t projection_i = 0; projection_i < NUM_CANVAS_PROJECTIONS; projection_i++ ) {
+            // binding matrices to uniforms
+            if( projection_i == CANVAS_PROJECT_SCREEN ) {
+                mat_identity(projection_matrix);
+                mat_orthographic(0, camera->screen.width, 0, -camera->screen.height, -0.1, 0.1, projection_matrix);
 
-        // binding the attributes
-        GLint loc[NUM_SHADER_ATTRIBUTES];
-        for( int32_t attribute_i = 0; attribute_i < NUM_SHADER_ATTRIBUTES; attribute_i++ ) {
-            size_t occupied_attributes = canvas->attributes[attribute_i].occupied;
-            uint32_t c_num = canvas->components[attribute_i].size;
-            GLenum c_type = canvas->components[attribute_i].type;
+                mat_identity(view_matrix);
 
-            assert( c_num < INT_MAX );
-            loc[attribute_i] = shader_vertex_attribute_pointer(shader, attribute_i, canvas->buffer[attribute_i].id, occupied_attributes, (GLint)c_num, c_type, 0, 0);
-        }
-
-        for( int32_t layer_i = layer_start; layer_i < layer_end; layer_i++ ) {
-            for( uint32_t primitive_i = 0; primitive_i < NUM_OGL_PRIMITIVES; primitive_i++ ) {
-                if( canvas->layer[layer_i].indices[shader_i][primitive_i].occupied == 0 ) {
-                    continue;
-                }
-
-                if( canvas->layer[layer_i].indices[shader_i][primitive_i].id == 0 ) {
-                    glGenBuffers(1, &canvas->layer[layer_i].indices[shader_i][primitive_i].id);
-                }
-
-                GLenum indices_type = GL_UNSIGNED_INT;
-
-                size_t indices_occupied = canvas->layer[layer_i].indices[shader_i][primitive_i].occupied;
-                size_t indices_bytes = indices_occupied * ogl_sizeof_type(indices_type);
-                void* indices_array = canvas->layer[layer_i].indices[shader_i][primitive_i].array;
-
-                assert( indices_bytes < PTRDIFF_MAX );
-
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[shader_i][primitive_i].id);
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_STREAM_READ);
-
-                glDrawElements(primitive_i, indices_occupied, indices_type, 0);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+                log_assert( shader_set_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix) > -1 );
+            } else {
+                camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
+                log_assert( shader_set_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix) > -1 );
             }
-        }
 
-        for(int32_t attribute_i = 0; attribute_i < NUM_SHADER_ATTRIBUTES; attribute_i++ ) {
-            if( loc[attribute_i] > -1 ) {
-                glDisableVertexAttribArray((GLuint)loc[attribute_i]);
+            for( int32_t layer_i = layer_start; layer_i < layer_end; layer_i++ ) {
+                for( uint32_t primitive_i = 0; primitive_i < NUM_OGL_PRIMITIVES; primitive_i++ ) {
+                    if( canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].occupied == 0 ) {
+                        continue;
+                    }
+
+                    if( canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].id == 0 ) {
+                        ogl_debug( glGenBuffers(1, &canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].id) );
+                    }
+
+                    GLenum indices_type = GL_UNSIGNED_INT;
+
+                    size_t indices_occupied = canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].occupied;
+                    size_t indices_bytes = indices_occupied * ogl_sizeof_type(indices_type);
+                    void* indices_array = canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].array;
+
+                    log_assert( indices_bytes < PTRDIFF_MAX );
+
+                    ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].id);
+                               glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_STREAM_READ);
+
+                               glDrawElements(primitive_i, indices_occupied, indices_type, 0);
+                               glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
+
+                }
             }
         }
     }
@@ -116,37 +124,26 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
         // bind font shader
         ogl_debug( glUseProgram(font->shader.program); );
 
-        // binding the attributes
-        GLint loc[NUM_SHADER_ATTRIBUTES] = {0};
-        for( int32_t attribute_i = 0; attribute_i < NUM_SHADER_ATTRIBUTES; attribute_i++ ) {
-            size_t occupied_attributes = canvas->attributes[attribute_i].occupied;
-            uint32_t c_num = canvas->components[attribute_i].size;
-            GLenum c_type = canvas->components[attribute_i].type;
-
-            assert( c_num < INT_MAX );
-            loc[attribute_i] = shader_vertex_attribute_pointer(&font->shader, attribute_i, canvas->buffer[attribute_i].id, occupied_attributes, (GLint)c_num, c_type, 0, 0);
-        }
-
         // bind diffuse sampler
-        GLint diffuse_loc = glGetUniformLocation(font->shader.program, "diffuse_texture");
-        glUniform1i(diffuse_loc, 0);
-        glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, font->texture.id);
+        ogl_debug( GLint diffuse_loc = glGetUniformLocation(font->shader.program, "diffuse_texture");
+                   glUniform1i(diffuse_loc, 0) ;
+                   glActiveTexture(GL_TEXTURE0 + 0);
+                   glBindTexture(GL_TEXTURE_2D, font->texture.id); );
 
-        // yeah, well, perspective or ortho or what?
+        Mat projection_matrix = {0};
+        Mat view_matrix = {0};
         for( int32_t projection_i = 0; projection_i < NUM_CANVAS_PROJECTIONS; projection_i++ ) {
-            Mat projection_matrix = {0};
-            Mat view_matrix = {0};
+            // yeah, well, perspective or ortho or what?
             if( projection_i == CANVAS_PROJECT_SCREEN ) {
                 mat_identity(projection_matrix);
                 mat_orthographic(0, camera->screen.width, 0, -camera->screen.height, -0.1, 0.1, projection_matrix);
 
                 mat_identity(view_matrix);
 
-                shader_uniform_matrices(&font->shader, projection_matrix, view_matrix, model_matrix);
+                log_assert( shader_set_uniform_matrices(&font->shader, projection_matrix, view_matrix, model_matrix) > -1 );
             } else {
                 camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
-                shader_uniform_matrices(&font->shader, projection_matrix, view_matrix, model_matrix);
+                log_assert( shader_set_uniform_matrices(&font->shader, projection_matrix, view_matrix, model_matrix) > -1 );
             }
 
             // draw text for each layer
@@ -156,7 +153,7 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
                 }
 
                 if( canvas->layer[layer_i].text[font_i][projection_i].id == 0 ) {
-                    glGenBuffers(1, &canvas->layer[layer_i].text[font_i][projection_i].id);
+                    ogl_debug( glGenBuffers(1, &canvas->layer[layer_i].text[font_i][projection_i].id) );
                 }
 
                 GLenum indices_type = GL_UNSIGNED_INT;
@@ -166,32 +163,31 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
                 size_t indices_bytes = indices_occupied * ogl_sizeof_type(indices_type);
                 void* indices_array = canvas->layer[layer_i].text[font_i][projection_i].array;
 
-                assert( indices_bytes < PTRDIFF_MAX );
+                log_assert( indices_bytes < PTRDIFF_MAX );
 
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].text[font_i][projection_i].id);
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_STREAM_READ);
+                ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].text[font_i][projection_i].id);
+                           glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_STREAM_READ); );
 
                 if( projection_i == CANVAS_PROJECT_SCREEN ) {
-                    glDisable(GL_DEPTH_TEST);
-                    glDrawElements(primitive_type, indices_occupied, indices_type, 0);
-                    glEnable(GL_DEPTH_TEST);
+                    ogl_debug( glDisable(GL_DEPTH_TEST);
+                               glDrawElements(primitive_type, indices_occupied, indices_type, 0);
+                               glEnable(GL_DEPTH_TEST); );
                 } else {
-                    glDrawElements(primitive_type, indices_occupied, indices_type, 0);
+                    ogl_debug( glDrawElements(primitive_type, indices_occupied, indices_type, 0) );
                 }
 
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+                ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) );
             }
         }
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glUseProgram(0);
-}
-
-void canvas_render_text(struct Canvas* const canvas, int32_t layer_start, int32_t layer_end, struct Camera* const camera, Mat const model_matrix) {
-    if( layer_end < NUM_CANVAS_LAYERS ) {
-        layer_end += 1;
+    // unbind the attribute locations, only those that were actually bound
+    for(int32_t attribute_i = 0; attribute_i < NUM_SHADER_ATTRIBUTES; attribute_i++ ) {
+        if( loc[attribute_i] > -1 ) {
+            ogl_debug( glDisableVertexAttribArray((GLuint)loc[attribute_i]) );
+        }
     }
 
-
+    ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, 0);
+               glUseProgram(0); );
 }

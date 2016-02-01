@@ -1,6 +1,6 @@
 #include "gui_text.h"
 
-void text_put(struct Canvas* canvas, Vec4f cursor, uint32_t layer, uint32_t projection, const char* font_name, float scale, const Color color, const wchar_t* unicode_text, const Mat model_matrix) {
+void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projection, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text) {
     log_assert( layer >= 0 );
     log_assert( projection >= 0 );
     log_assert( canvas != NULL );
@@ -35,7 +35,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, uint32_t layer, uint32_t proj
         return;
     }
 
-    size_t canvas_offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    size_t canvas_offset = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied;
     struct Font* font = &canvas->fonts[font_i];
 
     // we rely on \0 not being part of the font to advance the cursor at the end of
@@ -155,36 +155,64 @@ void text_put(struct Canvas* canvas, Vec4f cursor, uint32_t layer, uint32_t proj
     }
 }
 
-void text_put_world(struct Canvas* canvas, Vec4f cursor, uint32_t layer, const char* font_name, float scale, const Color color, const wchar_t* unicode_text, const Mat model_matrix) {
-    text_put(canvas, cursor, layer, CANVAS_PROJECT_WORLD, font_name, scale, color, unicode_text, model_matrix);
+void text_put_world(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text) {
+    text_put(canvas, cursor, layer, CANVAS_PROJECT_WORLD, font_name, scale, color, model_matrix, unicode_text);
 }
 
-void text_put_screen(struct Canvas* canvas, Vec4f cursor, uint32_t layer, const char* font_name, float scale, const Color color, const wchar_t* unicode_text, int32_t x, int32_t y) {
-    /* camera.type = CAMERA_ORTHOGRAPHIC; */
-    /* Mat ortho_projection, ortho_view; */
-    /* camera_matrices(&camera, ortho_projection, ortho_view); */
-
-    /* Mat text_matrix; */
-    /* mat_identity(text_matrix); */
-
-    /* Vec translation; */
-    /* translation[0] = camera.frustum.left + fabs(camera.frustum.left - camera.frustum.right)/(float)camera.screen.width * (float)x; */
-    /* translation[1] = camera.frustum.top - fabs(camera.frustum.top - camera.frustum.bottom)/(float)camera.screen.height * (float)y; */
-    /* translation[2] = 0.0; */
-    /* translation[3] = 1.0; */
-    /* mat_translate(text_matrix, translation, text_matrix); */
-
-    /* mat_rotate(text_matrix, camera.pivot.orientation, text_matrix); */
-
-    // multiplying with zNear fixes text being too small or too big when
-    // zNear is set to something other then 1.0
-    /* float scale = (float)size / (float)camera.screen.height * camera.frustum.zNear; */
-
-    /* text_put(text, font, scale, ortho_projection, ortho_view, text_matrix); */
-
+void text_put_screen(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* unicode_text) {
     Vec translation = {x, -y, 0.0, 1.0};
     Mat model_matrix = {0};
     mat_translate(NULL, translation, model_matrix);
 
-    text_put(canvas, cursor, layer, CANVAS_PROJECT_SCREEN, font_name, scale, color, unicode_text, model_matrix);
+    text_put(canvas, cursor, layer, CANVAS_PROJECT_SCREEN, font_name, scale, color, model_matrix, unicode_text);
+}
+
+void text_printf(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    const size_t text_size = 8192;
+    wchar_t text[text_size];
+    vswprintf(text, text_size, format, args);
+    va_end(args);
+
+    text_put_screen(canvas, cursor, layer, font_name, scale, color, x, y, text);
+}
+
+double text_show_fps(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, double delta) {
+    static int32_t frames_done = 0;
+    static double old_time = -1;
+    static double game_time = 0;
+    static double fps = 0;
+
+    game_time += delta;
+
+    if( old_time < 0 ) {
+        old_time = game_time;
+    }
+
+    if( (game_time - old_time) >= 1.0 ) {
+        fps = (double)frames_done / (game_time - old_time);
+        frames_done = 0;
+        old_time = game_time;
+    }
+    frames_done++;
+
+    text_printf(canvas, cursor, layer, font_name, scale, color, x, y, L"FPS :%.1f\n", fps);
+
+    return fps;
+}
+
+void text_show_time(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, double time) {
+    int32_t hours = 0;
+    int32_t minutes = 0;
+    int32_t seconds = 0;
+    int32_t milliseconds = 0;
+
+    hours = (int)floor(time) / 60 / 60;
+    minutes = (int)floor(time) / 60 % 60;
+    seconds = (int)floor(time) % 60;
+    milliseconds = (int)floor((time - floor(time)) * 1000);
+
+    text_printf(canvas, cursor, layer, font_name, scale, color, x, y, L"TIME:%02d:%02d:%02d.%03d\n", hours, minutes, seconds, milliseconds);
 }

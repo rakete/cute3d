@@ -163,6 +163,7 @@ void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicod
                   shader_in vec2 frag_texcoord;
                   void main() {
                       vec4 tex_value = texture2D(diffuse_texture, vec2(frag_texcoord.x,frag_texcoord.y));
+                      //gl_FragColor = frag_color;
                       gl_FragColor = vec4(tex_value[0]*frag_color[0],
                                           tex_value[1]*frag_color[1],
                                           tex_value[2]*frag_color[2],
@@ -175,11 +176,9 @@ void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicod
         shader_add_attribute(&font->shader, SHADER_ATTRIBUTE_COLORS, "color");
         shader_add_attribute(&font->shader, SHADER_ATTRIBUTE_TEXCOORDS, "texcoord");
 
-        shader_add_uniform(&font->shader, SHADER_UNIFORM_PROJECTION_MATRIX, "projection_matrix", NULL, NULL);
-        shader_add_uniform(&font->shader, SHADER_UNIFORM_VIEW_MATRIX, "view_matrix", NULL, NULL);
-        shader_add_uniform(&font->shader, SHADER_UNIFORM_MODEL_MATRIX, "model_matrix", NULL, NULL);
-
-        shader_add_uniform(&font->shader, SHADER_UNIFORM_DIFFUSE_COLOR, "diffuse_color", NULL, NULL);
+        shader_add_uniform(&font->shader, SHADER_UNIFORM_PROJECTION_MATRIX, "projection_matrix");
+        shader_add_uniform(&font->shader, SHADER_UNIFORM_VIEW_MATRIX, "view_matrix");
+        shader_add_uniform(&font->shader, SHADER_UNIFORM_MODEL_MATRIX, "model_matrix");
     }
 }
 

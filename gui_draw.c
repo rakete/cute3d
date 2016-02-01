@@ -29,7 +29,7 @@ void draw_grid( struct Canvas* canvas,
     float vertices[size * 3];
     uint8_t colors[size * 4];
     uint32_t elements[size];
-    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    uint32_t offset = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied;
 
     // 1  5  9 10----11
     // |  |  |
@@ -53,17 +53,17 @@ void draw_grid( struct Canvas* canvas,
         elements[i * 4 + 1] = offset + i * 4 + 1;
 
         mat_mul_vec3f(model_matrix, (Vec3f){-width/2.0f, yf, 0.0}, vertices + i*12 + 6);
-        elements[i * 4 + 2] = i * 4 + 2;
         color_copy(color, colors + i * 16 + 8);
+        elements[i * 4 + 2] = offset + i * 4 + 2;
 
         mat_mul_vec3f(model_matrix, (Vec3f){width/2.0f, yf, 0.0}, vertices + i*12 + 9);
-        vec_copy(color, colors + i * 16 + 12);
+        color_copy(color, colors + i * 16 + 12);
         elements[i * 4 + 3] = offset + i * 4 + 3;
     }
 
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, size, NULL);
-    canvas_append_indices(canvas, layer_i, "default_shader", GL_LINES, elements, size, 0);
     canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, size, NULL);
+    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, elements, size, 0);
 }
 
 void draw_arrow( struct Canvas* canvas,
@@ -132,8 +132,8 @@ void draw_arrow( struct Canvas* canvas,
           4, 1 };
 
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 5, arrow_matrix);
-    canvas_append_indices(canvas, layer_i, "default_shader", GL_LINES, elements, 8*2, 0);
     canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 5, color);
+    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, elements, 8*2, 0);
 }
 
 void draw_vec( struct Canvas* canvas,
@@ -201,10 +201,10 @@ void draw_vec( struct Canvas* canvas,
           4, 5,
           5, 2 };
 
-    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    uint32_t offset = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied;
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 6, arrow_matrix);
-    canvas_append_colors(canvas, NULL, 4, GL_FLOAT, 6, color);
-    canvas_append_indices(canvas, layer_i, "default_shader", GL_LINES, elements, 9*2, offset);
+    canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 6, color);
+    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, elements, 9*2, offset);
 }
 
 void draw_quat( struct Canvas* canvas,
@@ -273,7 +273,7 @@ void draw_circle( struct Canvas* canvas,
     }
 
     static int32_t first_run = 1;
-    static GLfloat vertices[360*3];
+    static float vertices[360*3];
     if( first_run ) {
         for( int32_t i = 0; i < 360; i++ ) {
             float theta = -2.0f * PI * (float)i / (float)360.0f;
@@ -287,8 +287,8 @@ void draw_circle( struct Canvas* canvas,
         first_run = 0;
     }
 
-    GLuint elements[360*2];
-    GLfloat colors[360*4];
+    uint32_t elements[360*2];
+    uint8_t colors[360*4];
     for( int32_t i = 0; i < 360; i++ ) {
         elements[i*2+0] = 0;
         elements[i*2+1] = 0;
@@ -337,8 +337,8 @@ void draw_circle( struct Canvas* canvas,
     }
 
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 360, arrow_matrix);
-    canvas_append_colors(canvas, colors, 4, GL_FLOAT, 360, color);
-    canvas_append_indices(canvas, layer, "default_shader", GL_LINES, elements, 360*2, 0);
+    canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 360, color);
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, elements, 360*2, 0);
 }
 
 void draw_basis( struct Canvas* canvas,
@@ -382,7 +382,7 @@ void draw_reticle( struct Canvas* canvas,
     mat_scale(reticle_matrix, scale, reticle_matrix);
     mat_mul(reticle_matrix, model_matrix, reticle_matrix);
 
-    GLfloat vertices[8*3];
+    float vertices[8*3];
         /* { 0.0, 0.5, 0.0, */
         /*   0.0, 0.1, 0.0, */
         /*   0.0, -0.5, 0.0, */
@@ -400,7 +400,7 @@ void draw_reticle( struct Canvas* canvas,
     mat_mul_vec3f(reticle_matrix, (Vec3f){ -0.5f,  0.0f, 0.0f }, vertices + 3*6);
     mat_mul_vec3f(reticle_matrix, (Vec3f){ -0.1f,  0.0f, 0.0f }, vertices + 3*7);
 
-    GLfloat colors[8*4] =
+    uint8_t colors[8*4] =
         { color[0], color[1], color[2], color[3],
           color[0], color[1], color[2], color[3],
           color[0], color[1], color[2], color[3],
@@ -410,15 +410,15 @@ void draw_reticle( struct Canvas* canvas,
           color[0], color[1], color[2], color[3],
           color[0], color[1], color[2], color[3] };
 
-    static GLuint elements[8] =
+    static uint32_t elements[8] =
         { 0, 1,
           2, 3,
           4, 5,
           6, 7 };
 
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 8, reticle_matrix);
-    canvas_append_indices(canvas, layer, "default_shader", GL_LINES, elements, 4*2, 0);
     canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 8, color);
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, elements, 4*2, 0);
 }
 
 void draw_contact( struct Canvas* canvas,
