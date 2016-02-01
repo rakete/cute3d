@@ -12,30 +12,10 @@
 #include "geometry_solid.h"
 
 #include "render_vbomesh.h"
+#include "render_canvas.h"
 
 #include "physics_collisions.h"
 #include "physics.h"
-
-void vbomesh_from_solid(struct Solid* solid, float color[4], struct VboMesh* mesh) {
-    static struct Vbo vbo;
-    static int32_t vbo_initialized = 0;
-    if( ! vbo_initialized ) {
-        vbo_create(&vbo);
-        vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
-        vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
-        vbo_add_buffer(&vbo, COLOR_ARRAY, 4, GL_FLOAT, GL_STATIC_DRAW);
-        vbo_initialized = 1;
-    }
-
-    solid_color(solid,color);
-    solid_normals(solid);
-
-    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, mesh);
-    vbomesh_append(mesh, VERTEX_ARRAY, solid->vertices, solid->size);
-    vbomesh_append(mesh, NORMAL_ARRAY, solid->normals, solid->size);
-    vbomesh_append(mesh, COLOR_ARRAY, solid->colors, solid->size);
-    vbomesh_primitives(mesh, solid->elements, solid->size);
-}
 
 /* man könnte vielleicht einfach ein array mit diesen components in ein struct
    wie den bouncing cube packen um dann in einem loop alle komponenten zu updaten
@@ -110,17 +90,17 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    int32_t width = 1920;
-    int32_t height = 1080;
+    int32_t width = 800;
+    int32_t height = 600;
 
     SDL_Window* window;
     sdl2_window("test-physics", 0, 0, width, height, &window);
-    SDL_SetWindowFullscreen(window, SDL_TRUE);
+    //SDL_SetWindowFullscreen(window, SDL_TRUE);
 
     SDL_GLContext* context;
     sdl2_glcontext(window, &context);
 
-    if( init_ogl(width, height, (Color){0.0f, 0.0f, 0.0f, 1.0f}) ) {
+    if( init_ogl(width, height, (Color){0, 0, 0, 255}) ) {
         return 1;
     }
 
@@ -132,12 +112,29 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
+    if( init_canvas() ) {
+        return 1;
+    }
+
     struct BouncingCube entity;
+
+    /* Vbo */
+    struct Vbo vbo;
+    vbo_create(&vbo);
+    vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
     /* Box */
     float size = 2.0f;
     solid_cube(size, &entity.solid);
-    vbomesh_from_solid((struct Solid*)&entity.solid, (Color){0.7, 0.1, 0.0, 1.0}, &entity.mesh);
+    vbomesh_create_from_solid((struct Solid*)&entity.solid, (Color){180, 25, 0, 255}, &vbo, &entity.mesh);
+
+    /* struct VboMesh foo = wtf((struct Solid*)&entity.solid, (Color){0, 25, 180, 255}, &vbo); */
+    /* printf("%lu\n", foo.indices->occupied); */
+    /* foo.indices = &foo._internal_indices[0]; */
+    /* vbomesh_print(stderr, &foo); */
+    /* printf("%lu\n", foo.indices->occupied); */
 
     Mat inertia;
     float mass = 1;
@@ -162,14 +159,14 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    struct Shader shader;
-    render_shader_flat(&shader);
+    struct Shader flat_shader;
+    shader_create_flat("flat_shader", &flat_shader);
 
     Vec light_direction = { 0.0, -1.0, 0.0, 1.0 };
-    shader_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
+    shader_set_uniform_3f(&flat_shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
-    Color ambiance = { 0.0, 0.0, 0.05, 1.0 };
-    shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
+    Color ambiance = { 0, 0, 12, 255 };
+    shader_set_uniform_4f(&flat_shader, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
 
     /* Matrices */
     struct Arcball arcball;
@@ -187,6 +184,19 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Character symbols[256];
     default_font_create(symbols);
 
+    struct Font canvas_font;
+    font_create(&canvas_font, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font");
+
+    /* Canvas */
+    /* canvas_add_attribute(&global_canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT); */
+    /* canvas_add_attribute(&global_canvas, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT); */
+    /* canvas_add_attribute(&global_canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE); */
+    /* canvas_add_attribute(&global_canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT); */
+
+    /* canvas_add_shader(&global_canvas, &lines_shader, lines_shader.name); */
+    /* canvas_add_font(&global_canvas, &canvas_font, canvas_font.name); */
+    canvas_create_default(&global_canvas);
+
     /* collision detection state */
     size_t world_size = 2;
 
@@ -202,7 +212,7 @@ int32_t main(int32_t argc, char *argv[]) {
     /* Eventloop */
     while (true) {
         SDL_Event event;
-        while( SDL_PollEvent(&event) ) {
+        while( sdl2_poll_event(&event) ) {
             switch (event.type) {
                 case SDL_QUIT:
                     goto done;
@@ -216,10 +226,7 @@ int32_t main(int32_t argc, char *argv[]) {
             }
         }
 
-        Mat projection_mat, view_mat;
-        camera_matrices(&arcball.camera, projection_mat, view_mat);
-
-        gametime_advance(sdl2_time_delta(), &time);
+        gametime_advance(&time, sdl2_time_delta());
 
         ogl_debug( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); );
 
@@ -241,9 +248,9 @@ int32_t main(int32_t argc, char *argv[]) {
                               1.0 };
         mat_translate(grid_transform, point_on_grid, grid_transform);
 
-        draw_grid(480.0f, 480.0f, 48, (Color){0.5, 0.5, 0.5, 1.0}, projection_mat, view_mat, grid_transform);
-        draw_grid(20.0f, 20.0f, 10, (Color){0.5, 0.5, 0.5, 1.0}, projection_mat, view_mat, grid_transform);
-        draw_grid(12.0f, 12.0f, 12, (Color){0.5, 0.5, 0.5, 1.0}, projection_mat, view_mat, grid_transform);
+        draw_grid(NULL, 0, 480.0f, 480.0f, 48, (Color){127, 127, 127, 255}, grid_transform);
+        draw_grid(NULL, 0, 20.0f, 20.0f, 10, (Color){127, 127, 127, 255}, grid_transform);
+        draw_grid(NULL, 0, 12.0f, 12.0f, 12, (Color){127, 127, 127, 255}, grid_transform);
 
         entity.previous = entity.current;
         while( gametime_integrate(&time) ) {
@@ -270,57 +277,55 @@ int32_t main(int32_t argc, char *argv[]) {
         const double alpha = time.accumulator / time.dt;
         entity.current = physics_interpolate(entity.previous, entity.current, alpha);
 
-        render_vbomesh(&entity.mesh, &shader, &arcball.camera, entity.current.world_transform);
-        draw_normals_array(entity.solid.vertices,
-                           entity.solid.normals,
-                           entity.solid.solid.size,
-                           0.25,
-                           (Color){1.0, 0.0, 1.0, 1.0},
-                           projection_mat,
-                           view_mat,
-                           entity.current.world_transform);
+        vbomesh_render(&entity.mesh, &flat_shader, &arcball.camera, entity.current.world_transform);
+        /* draw_normals_array(entity.solid.vertices, */
+        /*                    entity.solid.normals, */
+        /*                    entity.solid.solid.size, */
+        /*                    0.25, */
+        /*                    (Color){255, 0, 255, 255}, */
+        /*                    projection_mat, */
+        /*                    view_mat, */
+        /*                    entity.current.world_transform); */
 
-        glDisable(GL_DEPTH_TEST);
+        //glDisable(GL_DEPTH_TEST);
 
         Mat translation_mat;
         mat_translate(NULL, entity.current.pivot.position, translation_mat);
 
-        draw_basis(1.0,
-                   projection_mat,
-                   view_mat,
-                   translation_mat);
+        draw_basis(NULL, 0, 1.0, translation_mat);
 
         /* draw physics */
-        draw_vec(entity.current.linear_velocity,
-                 (Vec){0.0, 0.0, 0.0, 1.0},
-                 1.0f,
-                 1.0f,
-                 (Color){1.0, 1.0, 0.0, 1.0},
-                 projection_mat,
-                 view_mat,
-                 translation_mat);
-        draw_quat(entity.current.spin,
-                  1.0f,
-                  (Color){1.0, 1.0, 1.0, 1.0},
-                  (Color){0.0, 0.2, 0.4, 1.0},
-                  projection_mat,
-                  view_mat,
-                  translation_mat);
+        /* draw_vec(entity.current.linear_velocity, */
+        /*          (Vec){0.0, 0.0, 0.0, 1.0}, */
+        /*          1.0f, */
+        /*          1.0f, */
+        /*          (Color){1.0, 1.0, 0.0, 1.0}, */
+        /*          projection_mat, */
+        /*          view_mat, */
+        /*          translation_mat); */
+        /* draw_quat(entity.current.spin, */
+        /*           1.0f, */
+        /*           (Color){1.0, 1.0, 1.0, 1.0}, */
+        /*           (Color){0.0, 0.2, 0.4, 1.0}, */
+        /*           projection_mat, */
+        /*           view_mat, */
+        /*           translation_mat); */
 
         /* draw contacts */
-        for( uint32_t i = 0; i < collisions_size; i++ ) {
-            for( uint32_t j = 0; j < collisions[i].num_contacts; j++ ) {
-                Vec* contact_normal = &collisions[i].normal;
-                Vec* contact_point32_t = &collisions[i].contact[j].point32_t;
-                float penetration = collisions[i].contact[j].penetration;
+        /* for( uint32_t i = 0; i < collisions_size; i++ ) { */
+        /*     for( uint32_t j = 0; j < collisions[i].num_contacts; j++ ) { */
+        /*         Vec* contact_normal = &collisions[i].normal; */
+        /*         Vec* contact_point32_t = &collisions[i].contact[j].point32_t; */
+        /*         float penetration = collisions[i].contact[j].penetration; */
 
-                draw_contact(*contact_point, *contact_normal, penetration, 1.0, projection_mat, view_mat, translation_mat);
-            }
-        }
+        /*         draw_contact(*contact_point, *contact_normal, penetration, 1.0, projection_mat, view_mat, translation_mat); */
+        /*     } */
+        /* } */
 
-        glEnable(GL_DEPTH_TEST);
+        //glEnable(GL_DEPTH_TEST);
 
-        show_render(NULL, 10, arcball.camera);
+        canvas_render_layers(&global_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
+        canvas_clear(&global_canvas, 0, NUM_CANVAS_LAYERS);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }

@@ -99,8 +99,8 @@ int32_t main(int32_t argc, char *argv[]) {
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
-    canvas_add_shader(&text_canvas, &shader, "default_shader");
-    canvas_add_font(&text_canvas, font, "default_font");
+    canvas_add_shader(&text_canvas, &shader);
+    canvas_add_font(&text_canvas, &font);
 
     struct GameTime time;
     gametime_create(1.0f / 60.0f, &time);
@@ -172,9 +172,6 @@ int32_t main(int32_t argc, char *argv[]) {
 
         canvas_render_layers(&text_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&text_canvas, 0, NUM_CANVAS_LAYERS);
-
-        /* canvas_render_layers(&global_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT); */
-        /* canvas_clear(&global_canvas, 0, NUM_CANVAS_LAYERS); */
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
