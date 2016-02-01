@@ -16,6 +16,26 @@
 
 #include "render_vbomesh.h"
 
+void vbomesh_from_solid(struct Solid* solid, uint8_t color[4], struct VboMesh* mesh) {
+    log_assert( solid != NULL );
+    log_assert( color != NULL );
+    log_assert( mesh != NULL );
+
+    solid_normals(solid);
+    solid_color(solid,color);
+
+    size_t vertices_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, solid->vertices, solid->size);
+    size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, solid->normals, solid->size);
+    size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, solid->colors, solid->size);
+    size_t indices_n = vbomesh_append_indices(mesh, solid->indices, solid->size);
+
+    log_assert( vertices_n == solid->size );
+    log_assert( normals_n == solid->size );
+    log_assert( colors_n == solid->size );
+    log_assert( indices_n == solid->size );
+}
+
+
 void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, struct Camera* const camera, Mat const model_matrix) {
     log_assert( mesh != NULL );
     log_assert( shader != NULL );
@@ -26,7 +46,7 @@ void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, str
     Mat projection_matrix = {0};
     Mat view_matrix = {0};
     camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
-    shader_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix);
+    log_assert( shader_set_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix) > -1 );
 
     GLint loc[NUM_SHADER_ATTRIBUTES] = {0};
     for( int32_t array_id = 0; array_id < NUM_SHADER_ATTRIBUTES; array_id++ ) {
@@ -54,7 +74,7 @@ void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, str
         if( mesh->vbo->buffer[array_id].id && loc[array_id] > -1 ) {
             ogl_debug( glEnableVertexAttribArray((GLuint)loc[array_id]);
                        glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[array_id].id);
-                       glVertexAttribPointer((GLuint)loc[array_id], (GLint)c_num, c_type, GL_FALSE, 0, (void*)(intptr_t)offset); );
+                       glVertexAttribPointer((GLuint)loc[array_id], (GLint)c_num, c_type, GL_TRUE, 0, (void*)(intptr_t)offset); );
         }
     }
 

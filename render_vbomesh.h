@@ -18,10 +18,14 @@
 #define RENDER_VBOMESH_H
 
 #include "driver_ogl.h"
+#include "driver_log.h"
 #include "math_camera.h"
 #include "render_shader.h"
 #include "geometry_vbo.h"
 #include "math_transform.h"
+#include "geometry_solid.h"
+
+void vbomesh_from_solid(struct Solid* solid, uint8_t color[4], struct VboMesh* mesh);
 
 void vbomesh_render(struct VboMesh* const mesh, struct Shader* const shader, struct Camera* const camera, Mat const model_matrix);
 
