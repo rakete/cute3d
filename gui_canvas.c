@@ -11,22 +11,6 @@ struct Canvas global_canvas = {
 
 int32_t init_canvas() {
     canvas_create(&global_canvas);
-    canvas_add_attribute(&global_canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
-    canvas_add_attribute(&global_canvas, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT);
-    canvas_add_attribute(&global_canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
-    canvas_add_attribute(&global_canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
-
-    struct Shader shader;
-    shader_create_gl_lines("default_shader", &shader);
-    canvas_add_shader(&global_canvas, &shader, "default_shader");
-
-    struct Character symbols[256];
-    default_font_create(symbols);
-
-    struct Font font;
-    font_create(&font, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font");
-    canvas_add_font(&global_canvas, font, "default_font");
-
     return 0;
 }
 
@@ -79,6 +63,26 @@ void canvas_create(struct Canvas* canvas) {
 
         vec_copy((Vec4f){0, 0, 0, 1}, canvas->layer[i].cursor);
     }
+}
+
+void canvas_create_default(struct Canvas* canvas) {
+    canvas_create(canvas);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
+
+    struct Shader shader;
+    shader_create_gl_lines("default_shader", &shader);
+    canvas_add_shader(canvas, &shader);
+
+    struct Character symbols[256];
+    default_font_create(symbols);
+
+    struct Font font;
+    font_create(&font, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font");
+
+    canvas_add_font(canvas, &font);
 }
 
 void canvas_add_attribute(struct Canvas* canvas, int32_t added_attribute, uint32_t size, GLenum type) {

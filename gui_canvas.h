@@ -121,6 +121,7 @@ extern struct Canvas global_canvas;
 int32_t init_canvas() __attribute__((warn_unused_result));
 
 void canvas_create(struct Canvas* canvas);
+void canvas_create_default(struct Canvas* canvas);
 
 // - the _add_ in general just initialise settings or something like, they are not neccessary to be
 // called every frame, just once after creating the canvas
