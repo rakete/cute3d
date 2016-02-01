@@ -124,7 +124,7 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     }
 }
 
-void shader_copy(struct Shader* const src, struct Shader* dst) {
+void shader_copy(const struct Shader* src, struct Shader* dst) {
     log_assert( src != NULL );
     log_assert( dst != NULL );
 
@@ -274,7 +274,7 @@ void shader_create_gl_lines(const char* name, struct Shader* shader) {
     shader_add_uniform(shader, SHADER_UNIFORM_MVP_MATRIX, "mvp_matrix");
 }
 
-void shader_print(FILE* f, struct Shader* const shader) {
+void shader_print(FILE* f, const struct Shader* shader) {
     fprintf(f, "shader->vertex_shader: %d\n", shader->vertex_shader);
     fprintf(f, "shader->fragment_shader: %d\n", shader->fragment_shader);
     fprintf(f, "shader->program: %d\n", shader->program);
@@ -294,7 +294,7 @@ void shader_print(FILE* f, struct Shader* const shader) {
     }
 }
 
-GLint shader_set_uniform_matrices(struct Shader* const shader, Mat const projection_matrix, Mat const view_matrix, Mat const model_matrix) {
+GLint shader_set_uniform_matrices(const struct Shader* shader, const Mat projection_matrix, const Mat view_matrix, const Mat model_matrix) {
     log_assert( shader != NULL );
     log_assert( projection_matrix != NULL );
     log_assert( view_matrix != NULL );
@@ -391,7 +391,7 @@ GLint shader_set_uniform_matrices(struct Shader* const shader, Mat const project
     return ret;
 }
 
-GLint shader_set_uniform_3f(struct Shader* const shader, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
+GLint shader_set_uniform_3f(const struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
     log_assert( shader->program > 0 );
     log_assert( uniform_index >= 0 );
     log_assert( uniform_index <= NUM_SHADER_UNIFORMS );
@@ -434,7 +434,7 @@ GLint shader_set_uniform_3f(struct Shader* const shader, int32_t uniform_index, 
     return location;
 }
 
-GLint shader_set_uniform_4f(struct Shader* const shader, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
+GLint shader_set_uniform_4f(const struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
     log_assert( shader->program > 0 );
     log_assert( uniform_index >= 0 );
     log_assert( uniform_index <= NUM_SHADER_UNIFORMS );
@@ -478,7 +478,7 @@ GLint shader_set_uniform_4f(struct Shader* const shader, int32_t uniform_index, 
     return location;
 }
 
-GLint shader_set_attribute(struct Shader* const shader, int32_t attribute_i, GLuint buffer, size_t n, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p) {
+GLint shader_set_attribute(const struct Shader* shader, int32_t attribute_i, GLuint buffer, size_t n, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p) {
     log_assert( attribute_i >= SHADER_ATTRIBUTE_VERTICES );
     log_assert( attribute_i < NUM_SHADER_ATTRIBUTES );
     log_assert( c_num >= 0 );

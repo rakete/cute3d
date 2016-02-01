@@ -396,14 +396,14 @@ bool collide_convex_convex(struct ColliderConvex* const convex1, struct Collider
 }
 
 // contacts
-uint32_t contacts_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2, struct Collision* collision) {
+uint32_t contacts_convex_convex(const struct ColliderConvex* convex1, const struct ColliderConvex* convex2, struct Collision* collision) {
     log_assert(convex1->collider.type == COLLIDER_CONVEX);
     log_assert(convex2->collider.type == COLLIDER_CONVEX);
     log_assert("implementation" == false);
 }
 
 
-uint32_t contacts_generic(struct Collider* const a, struct Collider* const b, struct Collision* collision) {
+uint32_t contacts_generic(const struct Collider* a, const struct Collider* b, struct Collision* collision) {
     switch( a->type ) {
         case COLLIDER_SPHERE: break;
         case COLLIDER_PLANE: break;
@@ -441,7 +441,7 @@ void collisions_prepare(size_t n, struct Collision* collisions) {
 
 size_t collisions_broad(size_t self,
                         size_t world_size,
-                        struct Collider** const world_colliders,
+                        struct Collider** world_colliders,
                         size_t* candidates)
 {
     size_t candidates_size = 0;
@@ -457,10 +457,10 @@ size_t collisions_broad(size_t self,
 
 size_t collisions_narrow(size_t self,
                          size_t world_size,
-                         struct Collider** const world_colliders,
-                         struct Physics** const world_bodies,
+                         struct Collider** world_colliders,
+                         struct Physics** world_bodies,
                          size_t candidates_size,
-                         size_t* const candidates,
+                         const size_t* candidates,
                          struct Physics** bodies,
                          struct Collision* collisions)
 {
@@ -480,8 +480,8 @@ size_t collisions_narrow(size_t self,
 struct Physics collisions_resolve(struct Physics previous,
                                   struct Physics current,
                                   size_t collisions_size,
-                                  struct Physics** const bodies,
-                                  struct Collision* const collisions,
+                                  struct Physics** bodies,
+                                  struct Collision* collisions,
                                   float dt)
 {
     /* for( size_t i = 0; i < collisions_size; i++ ) { */

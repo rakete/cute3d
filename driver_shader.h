@@ -102,7 +102,7 @@ int32_t init_shader() __attribute__((warn_unused_result));
 void shader_create_empty(struct Shader* p);
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p);
 void shader_create_from_sources(const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p);
-void shader_copy(struct Shader* const src, struct Shader* dst);
+void shader_copy(const struct Shader* src, struct Shader* dst);
 
 GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name);
 GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const char* name);
@@ -110,11 +110,11 @@ GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const cha
 void shader_create_flat(const char* name, struct Shader* shader);
 void shader_create_gl_lines(const char* name, struct Shader* shader);
 
-void shader_print(FILE* f, struct Shader* const shader);
+void shader_print(FILE* f, const struct Shader* shader);
 
-GLint shader_set_uniform_matrices(struct Shader* const shader, Mat const projection_matrix, Mat const view_matrix, Mat const model_matrix);
-GLint shader_set_uniform_3f(struct Shader* const shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
-GLint shader_set_uniform_4f(struct Shader* const shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
-GLint shader_set_attribute(struct Shader* const shader, int32_t attribute_i, GLuint buffer, size_t n, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p);
+GLint shader_set_uniform_matrices(const struct Shader* shader, const Mat projection_matrix, const Mat view_matrix, const Mat model_matrix);
+GLint shader_set_uniform_3f(const struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
+GLint shader_set_uniform_4f(const struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
+GLint shader_set_attribute(const struct Shader* shader, int32_t attribute_i, GLuint buffer, size_t n, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p);
 
 #endif

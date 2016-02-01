@@ -31,9 +31,9 @@ struct Pivot {
 void pivot_create(struct Pivot* pivot);
 int32_t pivot_lookat(struct Pivot* pivot, const Vec target);
 
-VecP pivot_local_axis(struct Pivot* const pivot, Vec3f axis);
+VecP pivot_local_axis(const struct Pivot* pivot, Vec3f axis);
 
-MatP pivot_world_transform(struct Pivot* const pivot, Mat world_transform);
-MatP pivot_local_transform(struct Pivot* const pivot, Mat local_transform);
+MatP pivot_world_transform(const struct Pivot* pivot, Mat world_transform);
+MatP pivot_local_transform(const struct Pivot* pivot, Mat local_transform);
 
 #endif

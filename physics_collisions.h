@@ -107,17 +107,17 @@ void collider_convex(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct Coll
 // contact generation and is the only needed during broad phase
 // the contact generation by itself can double as collision detection because as soon as we'll get at least one contact, we
 // know the a collision has taken place.
-bool collide_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2);
-bool collide_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane);
-bool collide_sphere_convex(struct ColliderSphere* const sphere, struct ColliderConvex* const convex);
+bool collide_sphere_sphere(struct ColliderSphere* sphere1, struct ColliderSphere* sphere2);
+bool collide_sphere_plane(struct ColliderSphere* sphere, struct ColliderPlane* plane);
+bool collide_sphere_convex(struct ColliderSphere* sphere, struct ColliderConvex* convex);
 
-bool collide_plane_sphere(struct ColliderPlane* const plane, struct ColliderSphere* const sphere);
-bool collide_plane_plane(struct ColliderPlane* const plane1, struct ColliderPlane* const plane2);
-bool collide_plane_convex(struct ColliderPlane* const plane, struct ColliderConvex* const convex);
+bool collide_plane_sphere(struct ColliderPlane* plane, struct ColliderSphere* sphere);
+bool collide_plane_plane(struct ColliderPlane* plane1, struct ColliderPlane* plane2);
+bool collide_plane_convex(struct ColliderPlane* plane, struct ColliderConvex* convex);
 
-bool collide_convex_sphere(struct ColliderConvex* const convex, struct ColliderSphere* const sphere);
-bool collide_convex_plane(struct ColliderConvex* const convex, struct ColliderPlane* const plane);
-bool collide_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2);
+bool collide_convex_sphere(struct ColliderConvex* convex, struct ColliderSphere* sphere);
+bool collide_convex_plane(struct ColliderConvex* convex, struct ColliderPlane* plane);
+bool collide_convex_convex(struct ColliderConvex* convex1, struct ColliderConvex* convex2);
 
 struct Contact {
     Vec point;
@@ -132,22 +132,22 @@ struct Collision {
 };
 
 /* Sphere */
-uint32_t contacts_sphere_sphere(struct ColliderSphere* const sphere1, struct ColliderSphere* const sphere2, struct Collision* collision);
-uint32_t contacts_sphere_plane(struct ColliderSphere* const sphere, struct ColliderPlane* const plane, struct Collision* collision);
-uint32_t contacts_sphere_convex(struct ColliderSphere* const sphere, struct ColliderConvex* const convex, struct Collision* collision);
+uint32_t contacts_sphere_sphere(const struct ColliderSphere* sphere1, const struct ColliderSphere* sphere2, struct Collision* collision);
+uint32_t contacts_sphere_plane(const struct ColliderSphere* sphere, const struct ColliderPlane* plane, struct Collision* collision);
+uint32_t contacts_sphere_convex(const struct ColliderSphere* sphere, const struct ColliderConvex* convex, struct Collision* collision);
 
 /* Plane */
-uint32_t contacts_plane_sphere(struct ColliderPlane* const plane, struct ColliderSphere* const sphere, struct Collision* collision);
-uint32_t contacts_plane_plane(struct ColliderPlane* const plane1, struct ColliderPlane* const plane2, struct Collision* collision);
-uint32_t contacts_plane_convex(struct ColliderPlane* const plane, struct ColliderConvex* const convex, struct Collision* collision);
+uint32_t contacts_plane_sphere(const struct ColliderPlane* plane, const struct ColliderSphere* sphere, struct Collision* collision);
+uint32_t contacts_plane_plane(const struct ColliderPlane* plane1, const struct ColliderPlane* plane2, struct Collision* collision);
+uint32_t contacts_plane_convex(const struct ColliderPlane* plane, const struct ColliderConvex* convex, struct Collision* collision);
 
 /* Convex */
-uint32_t contacts_convex_sphere(struct ColliderConvex* const convex, struct ColliderSphere* const sphere, struct Collision* collision);
-uint32_t contacts_convex_plane(struct ColliderConvex* const convex, struct ColliderPlane* const plane, struct Collision* collision);
-uint32_t contacts_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2, struct Collision* collision);
+uint32_t contacts_convex_sphere(const struct ColliderConvex* convex, const struct ColliderSphere* sphere, struct Collision* collision);
+uint32_t contacts_convex_plane(const struct ColliderConvex* convex, const struct ColliderPlane* plane, struct Collision* collision);
+uint32_t contacts_convex_convex(const struct ColliderConvex* convex1, const struct ColliderConvex* convex2, struct Collision* collision);
 
 /* Generic */
-uint32_t contacts_generic(struct Collider* const a, struct Collider* const b, struct Collision* collision);
+uint32_t contacts_generic(const struct Collider* a, const struct Collider* b, struct Collision* collision);
 
 // this just initializes an array of collisions with zeros for now
 void collisions_prepare(size_t n, struct Collision* collisions);
@@ -160,7 +160,7 @@ void collisions_prepare(size_t n, struct Collision* collisions);
 // wasting most of the space occupied in candidates)
 size_t collisions_broad(size_t self,
                         size_t world_size,
-                        struct Collider** const world_colliders,
+                        struct Collider** world_colliders,
                         size_t* candidates);
 
 // after the broad collision phase, which only finds potential collisions, the narrow phase narrows those down
@@ -178,10 +178,10 @@ size_t collisions_broad(size_t self,
 // most of the work should be done in the broad phase anyways
 size_t collisions_narrow(size_t self,
                          size_t world_size,
-                         struct Collider** const world_colliders,
-                         struct Physics** const world_bodies,
+                         struct Collider** world_colliders,
+                         struct Physics** world_bodies,
                          size_t candidates_size,
-                         size_t* const candidates,
+                         const size_t* candidates,
                          struct Physics** bodies,
                          struct Collision* collisions);
 
@@ -191,8 +191,8 @@ size_t collisions_narrow(size_t self,
 struct Physics collisions_resolve(struct Physics previous,
                                   struct Physics current,
                                   size_t collisions_size,
-                                  struct Physics** const bodies,
-                                  struct Collision* const collisions,
+                                  struct Physics** bodies,
+                                  struct Collision* collisions,
                                   float dt);
 
 #endif

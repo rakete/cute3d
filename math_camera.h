@@ -50,6 +50,6 @@ void camera_create(int32_t width, int32_t height, struct Camera* camera);
 
 void camera_frustum(struct Camera* camera, float left, float right, float bottom, float top, float zNear, float zFar);
 
-void camera_matrices(struct Camera* const camera, enum CameraProjection type, Mat projection_mat, Mat view_mat);
+void camera_matrices(const struct Camera* camera, enum CameraProjection type, Mat projection_mat, Mat view_mat);
 
 #endif

@@ -36,7 +36,7 @@ struct Solid {
 
 void solid_create(size_t size, uint32_t* indices, float* vertices, uint32_t* triangles, float* normals, uint8_t* colors, float* texcoords, struct Solid* solid);
 void solid_normals(struct Solid* solid);
-void solid_color(struct Solid* solid, uint8_t color[4]);
+void solid_color(struct Solid* solid, const uint8_t color[4]);
 
 struct Tetrahedron {
     struct Solid solid;

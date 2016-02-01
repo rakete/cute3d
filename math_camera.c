@@ -23,7 +23,7 @@ void camera_frustum(struct Camera* camera, float left, float right, float bottom
     camera->frustum.zFar = zFar;
 }
 
-void camera_matrices(struct Camera* const camera, enum CameraProjection type, Mat projection_mat, Mat view_mat) {
+void camera_matrices(const struct Camera* camera, enum CameraProjection type, Mat projection_mat, Mat view_mat) {
     if( camera ) {
         mat_identity(projection_mat);
 
