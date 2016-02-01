@@ -120,8 +120,9 @@ void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicod
 
         glGenTextures(1, &font->texture.id);
 
-        font->texture.width = power2;
-        font->texture.height = power2;
+        log_assert( power2 >= 0 );
+        font->texture.width = (size_t)power2;
+        font->texture.height = (size_t)power2;
         font->texture.type = GL_FLOAT;
         font->texture.format = GL_RGBA;
 
