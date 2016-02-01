@@ -1,6 +1,34 @@
 #include "driver_ogl.h"
 
-int32_t init_ogl(int32_t width, int32_t height, const float clear_color[4]) {
+void ogl_error_print(GLenum error) {
+    switch(error) {
+        case GL_NO_ERROR: break;
+        case GL_INVALID_ENUM:
+            printf("glGetError: GL_INVALID_ENUM\n");
+            break;
+        case GL_INVALID_VALUE:
+            printf("glGetError: GL_INVALID_VALUE\n");
+            break;
+        case GL_INVALID_OPERATION:
+            printf("glGetError: GL_INVALID_OPERATION\n");
+            break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            printf("glGetError: GL_INVALID_FRAMEBUFFER_OPERATION\n");
+            break;
+        case GL_OUT_OF_MEMORY:
+            printf("glGetError: GL_OUT_OF_MEMORY\n");
+            break;
+        case GL_STACK_UNDERFLOW:
+            printf("glGetError: GL_STACK_UNDERFLOW\n");
+            break;
+        case GL_STACK_OVERFLOW:
+            printf("glGetError: GL_STACK_OVERFLOW\n");
+            break;
+        default: break;
+    }
+}
+
+int32_t init_ogl(int32_t width, int32_t height, const uint8_t clear_color[4]) {
     ogl_debug({
             const char* gl_version = (const char*)glGetString(GL_VERSION);
             log_info(stderr, __FILE__, __LINE__, "%s\n", gl_version);
