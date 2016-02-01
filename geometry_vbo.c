@@ -247,6 +247,7 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
 void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
     log_assert( vbo != NULL );
     log_assert( mesh != NULL );
+    log_assert( mesh->vbo != NULL );
 
     if( vbomesh_test_last(mesh) ) {
         mesh->vbo->occupied = mesh->offset;
@@ -257,6 +258,7 @@ void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
 
 void vbomesh_print(FILE* f, struct VboMesh* mesh) {
     log_assert( mesh != NULL );
+    log_assert( mesh->vbo != NULL );
 
     vbo_print(f, mesh->vbo);
 
@@ -347,6 +349,7 @@ void vbomesh_print(FILE* f, struct VboMesh* mesh) {
 
 bool vbomesh_test_last(struct VboMesh* mesh) {
     log_assert( mesh != NULL );
+    log_assert( mesh->vbo != NULL );
 
     // - return always true when mesh->capacity == 0, because that means the mesh has never been allocated space
     // and can therefore be moved at the end of the vbo by vbomesh_alloc as soon as we use it to actually allocate
@@ -358,6 +361,7 @@ bool vbomesh_test_last(struct VboMesh* mesh) {
 
 size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
     log_assert( mesh != NULL );
+    log_assert( mesh->vbo != NULL );
     log_assert( n > 0 );
 
     // - only resize if the mesh is the last mesh, otherwise this needs to stay the same size
@@ -427,6 +431,7 @@ void vbomesh_clear_indices(struct VboMesh* mesh) {
 
 size_t vbomesh_append_buffer_generic(struct VboMesh* mesh, int32_t i, void* data, size_t n, uint32_t components_size, GLenum components_type) {
     log_assert( mesh != NULL );
+    log_assert( mesh->vbo != NULL );
     log_assert( i >= 0 );
     log_assert( i < NUM_SHADER_ATTRIBUTES );
     log_assert( mesh->vbo->buffer[i].id > 0 );
@@ -479,6 +484,9 @@ size_t vbomesh_append_buffer_generic(struct VboMesh* mesh, int32_t i, void* data
 }
 
 size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, void* data, size_t n) {
+    log_assert( mesh != NULL );
+    log_assert( mesh->vbo != NULL );
+
     return vbomesh_append_buffer_generic(mesh, i, data, n, mesh->vbo->components[i].size, mesh->vbo->components[i].type);
 }
 
