@@ -24,6 +24,10 @@ void draw_grid( struct Canvas* canvas,
                 const Color color,
                 const Mat model_matrix )
 {
+    if( canvas == NULL ) {
+        canvas = &global_canvas;
+    }
+
     uint32_t size = (steps+1)*2 + (steps+1)*2;
 
     float vertices[size * 3];
@@ -75,6 +79,10 @@ void draw_arrow( struct Canvas* canvas,
                  const Color color,
                  const Mat model_matrix)
 {
+    if( canvas == NULL ) {
+        canvas = &global_canvas;
+    }
+
     Mat arrow_matrix;
     mat_identity(arrow_matrix);
 
@@ -145,6 +153,10 @@ void draw_vec( struct Canvas* canvas,
                const Color color,
                const Mat model_matrix)
 {
+    if( canvas == NULL ) {
+        canvas = &global_canvas;
+    }
+
     Mat arrow_matrix;
     mat_identity(arrow_matrix);
 
@@ -215,6 +227,10 @@ void draw_quat( struct Canvas* canvas,
                 const Color color2,
                 const Mat model_matrix )
 {
+    if( canvas == NULL ) {
+        canvas = &global_canvas;
+    }
+
     // visualizing quaternions is nasty, I am just drawing an axis-angle representation, that kind of sort of
     // works
     Vec axis;
@@ -265,6 +281,10 @@ void draw_circle( struct Canvas* canvas,
                   const Color color,
                   const Mat model_matrix )
 {
+    if( canvas == NULL ) {
+        canvas = &global_canvas;
+    }
+
     if( end > 2*PI || end < 0.0f ) {
         end = 2*PI;
     }
@@ -346,6 +366,10 @@ void draw_basis( struct Canvas* canvas,
                  float scale,
                  const Mat model_matrix )
 {
+    if( canvas == NULL ) {
+        canvas = &global_canvas;
+    }
+
     draw_vec(canvas, layer, (Vec){2.0, 0.0, 0.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, scale, 1.0f, (Color){1.0, 0.0, 0.0, 1.0}, model_matrix);
     draw_vec(canvas, layer, (Vec){0.0, 2.0, 0.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, scale, 1.0f, (Color){0.0, 1.0, 0.0, 1.0}, model_matrix);
     draw_vec(canvas, layer, (Vec){0.0, 0.0, 2.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, scale, 1.0f, (Color){0.0, 0.0, 1.0, 1.0}, model_matrix);
@@ -357,6 +381,10 @@ void draw_reticle( struct Canvas* canvas,
                    const Color color,
                    const Mat model_matrix )
 {
+    if( canvas == NULL ) {
+        canvas = &global_canvas;
+    }
+
     // bitmap: reticle
     // using: bnw
     /* static int32_t reticle[16*16] = { */
@@ -429,6 +457,9 @@ void draw_contact( struct Canvas* canvas,
                    float scale,
                    const Mat model_matrix )
 {
+    if( canvas == NULL ) {
+        canvas = &global_canvas;
+    }
 
     Mat contact_matrix;
     mat_translate(model_matrix, contact_point, contact_matrix);
@@ -480,6 +511,10 @@ void draw_normals_array( struct Canvas* canvas,
                          const Color color,
                          const Mat model_matrix )
 {
+    if( canvas == NULL ) {
+        canvas = &global_canvas;
+    }
+
     for( int32_t i = 0; i < n; i++ ) {
         Mat arrow_matrix;
         mat_identity(arrow_matrix);
