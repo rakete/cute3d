@@ -398,7 +398,7 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
     }
 }
 
-void solid_triangulate(float* vertices, int32_t n, int32_t* triangles, int32_t m) {
+void shitty_triangulate(float* vertices, int32_t n, int32_t* triangles, int32_t m) {
     log_assert( n >= 3 );
     log_assert( n < INT_MAX/3 );
     log_assert( m <= 3 * n - 2);
@@ -411,6 +411,11 @@ void solid_triangulate(float* vertices, int32_t n, int32_t* triangles, int32_t m
 
     // #YOLO
     if( n == 4 ) {
+        static bool once_is_enough = 1;
+        if( once_is_enough ) {
+            log_warn(stderr, __FILE__, __LINE__, "using completely shitty_triangulate function!\n");
+            once_is_enough = 0;
+        }
         triangles[3] = 2;
         triangles[4] = 3;
         triangles[5] = 0;
@@ -454,7 +459,7 @@ void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid) {
 
         int32_t tesselation_size = 3 * (face->size - 2);
         int32_t face_tesselation[tesselation_size];
-        solid_triangulate(face_vertices, face->size, face_tesselation, tesselation_size);
+        shitty_triangulate(face_vertices, face->size, face_tesselation, tesselation_size);
 
         for( int32_t j = 0; j < tesselation_size ; j++ ) {
             int32_t k = face_tesselation[j];
