@@ -1,6 +1,6 @@
 #include "driver_log.h"
 
-void log_info(FILE* f, const char* filename, int32_t linenumber, const char* format, ...) {
+bool log_info(FILE* f, const char* filename, int32_t linenumber, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -17,9 +17,11 @@ void log_info(FILE* f, const char* filename, int32_t linenumber, const char* for
     vfprintf(f, message, args);
     fflush(stdout);
     va_end(args);
+
+    return true;
 }
 
-void log_warn(FILE* f, const char* filename, int32_t linenumber, const char* format, ...) {
+bool log_warn(FILE* f, const char* filename, int32_t linenumber, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -36,9 +38,11 @@ void log_warn(FILE* f, const char* filename, int32_t linenumber, const char* for
     vfprintf(f, message, args);
     fflush(stdout);
     va_end(args);
+
+    return true;
 }
 
-void log_fail(FILE* f, const char* filename, int32_t linenumber, const char* format, ...) {
+bool log_fail(FILE* f, const char* filename, int32_t linenumber, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
