@@ -1,10 +1,6 @@
 #include "gui_text.h"
 
 void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projection, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text) {
-    if( canvas == NULL ) {
-        canvas = &global_canvas;
-    }
-
     log_assert( layer >= 0 );
     log_assert( projection >= 0 );
     log_assert( canvas != NULL );
@@ -160,17 +156,10 @@ void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projec
 }
 
 void text_put_world(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text) {
-    if( canvas == NULL ) {
-        canvas = &global_canvas;
-    }
-
     text_put(canvas, cursor, layer, CANVAS_PROJECT_WORLD, font_name, scale, color, model_matrix, unicode_text);
 }
 
 void text_put_screen(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* unicode_text) {
-    if( canvas == NULL ) {
-        canvas = &global_canvas;
-    }
 
     Vec translation = {x, -y, 0.0, 1.0};
     Mat model_matrix = {0};
@@ -180,9 +169,6 @@ void text_put_screen(struct Canvas* canvas, Vec4f cursor, int32_t layer, const c
 }
 
 void text_printf(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* format, ...) {
-    if( canvas == NULL ) {
-        canvas = &global_canvas;
-    }
 
     va_list args;
     va_start(args, format);
@@ -196,9 +182,6 @@ void text_printf(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char*
 }
 
 double text_show_fps(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, double delta) {
-    if( canvas == NULL ) {
-        canvas = &global_canvas;
-    }
 
     static int32_t frames_done = 0;
     static double old_time = -1;
@@ -224,9 +207,6 @@ double text_show_fps(struct Canvas* canvas, Vec4f cursor, int32_t layer, const c
 }
 
 void text_show_time(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, double time) {
-    if( canvas == NULL ) {
-        canvas = &global_canvas;
-    }
 
     int32_t hours = 0;
     int32_t minutes = 0;

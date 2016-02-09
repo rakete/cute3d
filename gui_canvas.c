@@ -1,20 +1,16 @@
 #include "gui_canvas.h"
 
-struct Canvas global_canvas = {
-    .components = {{0}},
-    .attribute = {{0}},
-    .buffer = {{0}},
-    .shader = {{{0}}},
-    .fonts = {{{0}}},
-    .layer = {{{{{0}}}}}
-};
+struct Canvas global_dynamic_canvas = {0};
+struct Canvas global_static_canvas = {0};
 
 int32_t init_canvas() {
-    canvas_create(&global_canvas);
+    canvas_create(&global_dynamic_canvas);
+    canvas_create(&global_static_canvas);
+
     return 0;
 }
 
-void canvas_create(struct Canvas* canvas) {
+void canvas_create_empty(struct Canvas* canvas) {
     log_assert( canvas != NULL );
 
     for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
@@ -38,6 +34,10 @@ void canvas_create(struct Canvas* canvas) {
 
     for( int32_t i = 0; i < NUM_CANVAS_SHADER; i++ ) {
         shader_create_empty(&canvas->shader[i]);
+    }
+
+    for( int32_t i = 0; i < NUM_CANVAS_FONTS; i++ ) {
+        font_create_empty(&canvas->fonts[i]);
     }
 
     for( int32_t i = 0; i < NUM_CANVAS_LAYERS; i++ ) {
@@ -65,8 +65,9 @@ void canvas_create(struct Canvas* canvas) {
     }
 }
 
-void canvas_create_default(struct Canvas* canvas) {
-    canvas_create(canvas);
+void canvas_create(struct Canvas* canvas) {
+    canvas_create_empty(canvas);
+
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
@@ -74,15 +75,15 @@ void canvas_create_default(struct Canvas* canvas) {
 
     struct Shader shader = {0};
     shader_create_gl_lines("default_shader", &shader);
-    canvas_add_shader(canvas, &shader);
+    log_assert( canvas_add_shader(canvas, &shader) < NUM_CANVAS_SHADER );
 
-    struct Character symbols[256];
+    struct Character symbols[256] = {0};
     default_font_create(symbols);
 
-    struct Font font;
-    font_create(&font, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font");
+    struct Font font = {0};
+    font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font", &font);
 
-    canvas_add_font(canvas, &font);
+    log_assert( canvas_add_font(canvas, &font) < NUM_CANVAS_FONTS );
 }
 
 void canvas_add_attribute(struct Canvas* canvas, int32_t added_attribute, uint32_t size, GLenum type) {
