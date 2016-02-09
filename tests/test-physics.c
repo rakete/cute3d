@@ -6,8 +6,8 @@
 #include "math_arcball.h"
 #include "math_gametime.h"
 
-#include "gui.h"
 #include "gui_draw.h"
+#include "gui_text.h"
 
 #include "geometry_solid.h"
 
@@ -86,6 +86,8 @@ void physics_forces(struct Physics state, float t, float dt, Vec force, Vec torq
 }
 
 int32_t main(int32_t argc, char *argv[]) {
+    printf("<<watchlist//>>\n");
+
     if( init_sdl2() ) {
         return 1;
     }
@@ -116,10 +118,10 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    struct BouncingCube entity;
+    struct BouncingCube entity = {0};
 
     /* Vbo */
-    struct Vbo vbo;
+    struct Vbo vbo = {0};
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
@@ -136,7 +138,7 @@ int32_t main(int32_t argc, char *argv[]) {
     /* vbomesh_print(stderr, &foo); */
     /* printf("%lu\n", foo.indices->occupied); */
 
-    Mat inertia;
+    Mat inertia = {0};
     float mass = 1;
     physics_box_inertia(size, size, size, mass, inertia);
     physics_create(mass, inertia, &entity.current);
@@ -149,7 +151,7 @@ int32_t main(int32_t argc, char *argv[]) {
     collider_obb(size, size, size, &entity.current.pivot, &entity.collider);
 
     /* Ground */
-    struct Ground ground;
+    struct Ground ground = {0};
     pivot_create(&ground.pivot);
     collider_plane(((Vec){0.2, 0.8, 0.0, 1.0}), -4.0, &ground.pivot, &ground.collider);
     //vec_copy((Vec){0.0, -4.0, 0.0, 1.0}, ground.pivot.position);
@@ -159,7 +161,7 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    struct Shader flat_shader;
+    struct Shader flat_shader = {0};
     shader_create_flat("flat_shader", &flat_shader);
 
     Vec light_direction = { 0.0, -1.0, 0.0, 1.0 };
@@ -169,22 +171,20 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_set_uniform_4f(&flat_shader, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
 
     /* Matrices */
-    struct Arcball arcball;
+    struct Arcball arcball = {0};
     arcball_create(window, (Vec){0.0, 12.0, 32.0, 1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0f, 1000.0f, &arcball);
 
     SDL_Delay(100);
 
     /* Time */
-    struct GameTime time;
+    struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);
 
-    sdl2_debug( SDL_GL_SetSwapInterval(0) );
-
     /* Text */
-    struct Character symbols[256];
+    struct Character symbols[256] = {0};
     default_font_create(symbols);
 
-    struct Font canvas_font;
+    struct Font canvas_font = {0};
     font_create(&canvas_font, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font");
 
     /* Canvas */
@@ -226,18 +226,19 @@ int32_t main(int32_t argc, char *argv[]) {
             }
         }
 
+        sdl2_gl_set_swap_interval(0);
+
+        double t1 = sdl2_time();
+
         gametime_advance(&time, sdl2_time_delta());
 
         ogl_debug( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); );
 
-        show_fps_counter(time.frame);
-        show_time(time.t);
-
         Mat grid_transform = IDENTITY_MAT;
 
-        Quat grid_rotation1;
+        Quat grid_rotation1 = {0};
         quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation1);
-        Quat grid_rotation2;
+        Quat grid_rotation2 = {0};
         quat_from_vec_pair((Vec){0.0, 1.0, 0.0, 1.0}, ground.collider.normal, grid_rotation2);
         mat_rotate(grid_transform, grid_rotation1, grid_transform);
         mat_rotate(grid_transform, grid_rotation2, grid_transform);
@@ -289,7 +290,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
         //glDisable(GL_DEPTH_TEST);
 
-        Mat translation_mat;
+        Mat translation_mat = {0};
         mat_translate(NULL, entity.current.pivot.position, translation_mat);
 
         draw_basis(NULL, 0, 1.0, translation_mat);
@@ -324,10 +325,17 @@ int32_t main(int32_t argc, char *argv[]) {
 
         //glEnable(GL_DEPTH_TEST);
 
+        Vec text_cursor = {0, 0, 0, 1};
+        text_show_fps(NULL, text_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
+
         canvas_render_layers(&global_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_canvas, 0, NUM_CANVAS_LAYERS);
 
-        sdl2_debug( SDL_GL_SwapWindow(window) );
+        double t2 = sdl2_time();
+        double t = (t2 - t1) * 1000;
+        printf("//t: %f\n", t);
+
+        sdl2_gl_swap_window(window) ;
     }
 
 done:

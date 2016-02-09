@@ -27,23 +27,23 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    struct Vbo vbo;
+    struct Vbo vbo = {0};
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
 
-    struct Shader shader;
+    struct Shader shader = {0};
     shader_create_flat("flat_shader", &shader);
 
-    struct Arcball arcball;
+    struct Arcball arcball = {0};
     arcball_create(window, (Vec){12.0,16.0,-8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 0.001, 1000.0, &arcball);
 
-    struct Character symbols[256];
+    struct Character symbols[256] = {0};
     default_font_create(symbols);
 
-    struct Font font;
-    font_create(&font, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font");
+    struct Font font = {0};
+    font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font", &font);
 
     log_info(stderr, __FILE__, __LINE__, "info message %s\n", "foo");
     log_warn(stderr, __FILE__, __LINE__, "warning message %s\n", "bar");

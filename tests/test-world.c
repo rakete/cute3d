@@ -17,19 +17,19 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    struct Vbo vbo;
+    struct Vbo vbo = {0};
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, COLOR_ARRAY, 4, GL_FLOAT, GL_STATIC_DRAW);
 
-    struct Mesh world_mesh;
+    struct Mesh world_mesh = {0};
     mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &world_mesh);
 
-    struct Grid grid;
+    struct Grid grid = {0};
     grid_create(1,1,1,&grid);
 
-    struct GridPages pages;
+    struct GridPages pages = {0};
     grid_pages(&grid,1,1,1,&pages);
 
     uint64_t pages_num = pages.num.x * pages.num.y * pages.num.z;
@@ -38,7 +38,7 @@ int32_t main(int32_t argc, char *argv[]) {
         grid_alloc(&pages, i, 0);
     }
 
-    struct Cube cube;
+    struct Cube cube = {0};
     solid_cube(1.0, &cube);
     solid_normals((struct Solid*)&cube);
 

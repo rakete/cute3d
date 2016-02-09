@@ -26,17 +26,17 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    struct Vbo vbo;
+    struct Vbo vbo = {0};
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
-    struct Tetrahedron tetrahedron;
-    struct Cube hexahedron;
-    struct Cube cube;
-    struct Sphere16 sphere16;
-    struct Sphere32 sphere32;
+    struct Tetrahedron tetrahedron = {0};
+    struct Cube hexahedron = {0};
+    struct Cube cube = {0};
+    struct Sphere16 sphere16 = {0};
+    struct Sphere32 sphere32 = {0};
     solid_tetrahedron(1.0, &tetrahedron);
     solid_hexahedron(1.0, &hexahedron);
     solid_cube(1.0, &cube);
@@ -44,26 +44,16 @@ int32_t main(int32_t argc, char *argv[]) {
     solid_sphere32(1.0, &sphere32);
 
     struct VboMesh tetrahedron_mesh,hexahedron_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
+    vbomesh_create_from_solid((struct Solid*)&tetrahedron, (Color){255, 0, 0, 255}, &vbo, &tetrahedron_mesh);
+    vbomesh_create_from_solid((struct Solid*)&hexahedron, (Color){0, 255, 0, 255}, &vbo, &hexahedron_mesh);
+    vbomesh_create_from_solid((struct Solid*)&cube, (Color){255, 0, 255, 255}, &vbo, &cube_mesh);
+    vbomesh_create_from_solid((struct Solid*)&sphere16, (Color){0, 255, 255, 255}, &vbo, &sphere16_mesh);
+    vbomesh_create_from_solid((struct Solid*)&sphere32, (Color){255, 255, 0, 255}, &vbo, &sphere32_mesh);
 
-    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &tetrahedron_mesh);
-    vbomesh_from_solid((struct Solid*)&tetrahedron, (Color){255, 0, 0, 255}, &tetrahedron_mesh);
-
-    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &hexahedron_mesh);
-    vbomesh_from_solid((struct Solid*)&hexahedron, (Color){0, 255, 0, 255}, &hexahedron_mesh);
-
-    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
-    vbomesh_from_solid((struct Solid*)&cube, (Color){255, 0, 255, 255}, &cube_mesh);
-
-    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere16_mesh);
-    vbomesh_from_solid((struct Solid*)&sphere16, (Color){0, 255, 255, 255}, &sphere16_mesh);
-
-    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &sphere32_mesh);
-    vbomesh_from_solid((struct Solid*)&sphere32, (Color){255, 255, 0, 255}, &sphere32_mesh);
-
-    struct Shader shader;
+    struct Shader shader = {0};
     shader_create_flat("flat_shader", &shader);
 
-    struct Arcball arcball;
+    struct Arcball arcball = {0};
     arcball_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
 
     while (true) {

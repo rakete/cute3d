@@ -17,20 +17,20 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     printf("vbo\n");
-    struct Vbo vbo;
+    struct Vbo vbo = {0};
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
 
-    struct Grid grid;
+    struct Grid grid = {0};
     grid_create(4,4,1,&grid);
 
-    struct GridPages pages;
+    struct GridPages pages = {0};
     grid_pages(&grid,2,2,1,&pages);
 
     grid_dump(grid,pages);
 
-    struct GridIndex index;
+    struct GridIndex index = {0};
     for( uint64_t z = 0; z < grid.size.z; z++ ) {
         for( uint64_t y = 0; y < grid.size.y; y++ ) {
             for( uint64_t x = 0; x < grid.size.x; x++ ) {
@@ -42,7 +42,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
     printf("-----------\n");
 
-    struct GridBox box;
+    struct GridBox box = {0};
     box.position.x = 1;
     box.position.y = 1;
     box.position.z = 0;
@@ -60,7 +60,7 @@ int32_t main(int32_t argc, char *argv[]) {
         }
     }
 
-    struct GridSize size;
+    struct GridSize size = {0};
     uint64_t array_size = grid_levelsize(&grid, &pages, 0, &size)->array;
     for( int32_t i = 0; i < array_size; i++ ) {
         grid_index(&grid, &pages, NULL, i, &index);

@@ -57,8 +57,10 @@ int32_t main(int32_t argc, char *argv[]) {
     if( init_canvas() ) {
         return 1;
     }
+    canvas_create_default(&global_dynamic_canvas);
+    canvas_create_default(&global_static_canvas);
 
-    struct Vbo vbo;
+    struct Vbo vbo = {0};
     vbo_create(&vbo);
 
     /* struct Shader shader; */
@@ -70,7 +72,7 @@ int32_t main(int32_t argc, char *argv[]) {
     /* Color ambiance = { 0.25, 0.1, 0.2, 1.0 }; */
     /* shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance); */
 
-    struct Arcball arcball;
+    struct Arcball arcball = {0};
     arcball_create(window, (Vec){1.0,2.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 0.01, 1000.0, &arcball);
 
     Quat grid_rotation1;
@@ -85,24 +87,24 @@ int32_t main(int32_t argc, char *argv[]) {
     Mat grid_transform2;
     quat_to_mat(grid_rotation2, grid_transform2);
 
-    struct Character symbols[256];
+    struct Character symbols[256] = {0};
     default_font_create(symbols);
 
-    struct Shader shader;
+    struct Shader shader = {0};
     shader_create_gl_lines("default_shader", &shader);
 
-    struct Font font;
-    font_create(&font, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font");
+    struct Font font = {0};
+    font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font", &font);
 
-    struct Canvas text_canvas;
+    struct Canvas text_canvas = {0};
     canvas_create(&text_canvas);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
-    canvas_add_shader(&text_canvas, &shader);
-    canvas_add_font(&text_canvas, &font);
+    log_assert( canvas_add_shader(&text_canvas, &shader) < NUM_CANVAS_SHADER );
+    log_assert( canvas_add_font(&text_canvas, &font) < NUM_CANVAS_FONTS );
 
-    struct GameTime time;
+    struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);
 
     SDL_SetEventFilter(event_filter, NULL);
@@ -149,17 +151,17 @@ int32_t main(int32_t argc, char *argv[]) {
 
         draw_basis(&text_canvas, 1, 1.0f, (Mat)IDENTITY_MAT);
 
-        Mat text_matrix;
+        Mat text_matrix = {0};
         mat_rotate(NULL, qfrom_axis_angle((Vec4f){1.0, 0.0, 0.0, 1.0}, PI/2), text_matrix);
         mat_translate(text_matrix, (Vec4f){-3.5, -1.0, 6.25, 1.0}, text_matrix);
 
         Vec4f world_cursor = {0,0,0,1};
         text_put_world(&text_canvas, world_cursor, 0, "default_font", 0.5, (Color){0, 255, 255, 255}, text_matrix, L"Dies ist ein Test\n");
         text_put_world(&text_canvas, world_cursor, 0, "default_font", 0.5, (Color){255, 255, 0, 255}, text_matrix, L"fuer einen Text");
-        gametime_integrate(&time);
 
+        gametime_integrate(&time);
         Vec4f screen_cursor = {0,0,0,1};
-        double fps = text_show_fps(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
+        double fps = text_show_fps(&global_dynamic_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
         printf("//FPS: %.1f\n", fps);
 
         text_show_time(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.t);
@@ -171,7 +173,10 @@ int32_t main(int32_t argc, char *argv[]) {
         text_printf(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 40, 60, 255}, 0, 0, L"PRINTF %d Luftballons\n", 99);
 
         canvas_render_layers(&text_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
-        canvas_clear(&text_canvas, 0, NUM_CANVAS_LAYERS);
+        canvas_clear(&text_canvas);
+
+        canvas_render_layers(&global_dynamic_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
+        canvas_clear(&global_dynamic_canvas);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
