@@ -198,7 +198,7 @@ VecP vsub1f(Vec v, float w) {
 }
 
 void vec_mul(const Vec v, const Vec w, Mat m) {
-    printf("4f vec_mul not implemented yet!");
+    log_assert(false, "4f vec_mul not implemented yet!");
 }
 
 VecP vmul(const Vec v, Mat w) {
@@ -292,7 +292,6 @@ void vec_cross3f(const Vec3f v, const Vec3f w, Vec3f r) {
     t[2] = v[0]*w[1] - v[1]*w[0];
 
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
-    //vec_normalize3f(r, r);
 }
 
 VecP vcross3f(const Vec3f v, Vec3f w) {
@@ -636,6 +635,7 @@ void mat_invert(const Mat m, double* det, Mat r) {
     if(det) *det = 0;
     if(d == 0) {
         mat_copy(m, r);
+        return;
     }
 
     inv[1] =
@@ -765,6 +765,7 @@ void mat_invert3f(const Mat m, double* det, Mat r) {
     if(det) *det = 0;
     if(d == 0) {
         mat_copy3f(m, r);
+        return;
     }
 
     double invdet = 1.0 / d;
