@@ -29,9 +29,9 @@ bool log_fail(FILE* f, const char* filename, int32_t linenumber, const char* for
 // - I discovered an interesting trick that I didn't use: there can be a macro #define foo() and function definition
 // void (foo)() both in the same program without problems, the macro will be used whenever foo() is used, but when written
 // like this (foo)(), the function will be used
-#define log_assert(...) _log_assert(__VA_ARGS__, "", "");
-#define _log_assert(condition, format, ...) do { _log_assert_printf(condition, #condition, format, __VA_ARGS__); assert(condition); } while(0)
-void _log_assert_printf(bool assertion_correct, const char* condition, const char* format, ...);
+#define log_assert(...) _log_assert_dispatch(__VA_ARGS__, "", "");
+#define _log_assert_dispatch(condition, format, ...) do { assert((condition) || _log_assert(#condition, format, __VA_ARGS__)); } while(0)
+bool _log_assert(const char* condition, const char* format, ...);
 
 /* _Pragma(log_stringify(clang diagnostic push));                      \ */
 /* _Pragma(log_stringify(clang diagnostic ignored "-Wformat-zero-length")) \ */
@@ -44,6 +44,5 @@ void _log_assert_printf(bool assertion_correct, const char* condition, const cha
 /*     if( condition ) {} else { printf(format, __VA_ARGS__); }            \ */
 /*     assert(condition);                                                  \ */
 /*     _Pragma(log_stringify(GCC diagnostic pop)); */
-
 
 #endif

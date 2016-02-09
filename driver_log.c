@@ -63,18 +63,18 @@ bool log_fail(FILE* f, const char* filename, int32_t linenumber, const char* for
     return true;
 }
 
-void _log_assert_printf(bool assertion_correct, const char* condition, const char* format, ...) {
+bool _log_assert(const char* condition, const char* format, ...) {
     va_list args;
     va_start(args, format);
     va_end(args);
 
-    if( ! assertion_correct ) {
-        printf("\n" LOG_ANSI_COLOR_RED "[FAIL]" LOG_ANSI_COLOR_RESET " assert( %s );\n", condition);
-        if( strlen(format) ) {
-            printf(LOG_ANSI_COLOR_BLUE);
-            vprintf(format, args);
-            printf(LOG_ANSI_COLOR_RESET);
-            fflush(stdout);
-        }
+    printf("\n" LOG_ANSI_COLOR_RED "[FAIL]" LOG_ANSI_COLOR_RESET " assert( %s );\n", condition);
+    if( strlen(format) ) {
+        printf(LOG_ANSI_COLOR_BLUE);
+        vprintf(format, args);
+        printf(LOG_ANSI_COLOR_RESET);
+        fflush(stdout);
     }
+
+    return false;
 }
