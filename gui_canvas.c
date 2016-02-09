@@ -131,7 +131,7 @@ int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader) {
         return NUM_CANVAS_SHADER;
     }
 
-    shader_copy(shader, &canvas->shader[shader_i]);
+    memcpy(&canvas->shader[shader_i], shader, sizeof(struct Shader));
 
     return shader_i;
 }

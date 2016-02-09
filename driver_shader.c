@@ -124,33 +124,6 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     }
 }
 
-void shader_copy(const struct Shader* src, struct Shader* dst) {
-    log_assert( src != NULL );
-    log_assert( dst != NULL );
-
-    size_t name_length = strlen(src->name);
-    log_assert( name_length < 256 );
-    strncpy(dst->name, src->name, name_length+1);
-
-    dst->program = src->program;
-    dst->vertex_shader = src->vertex_shader;
-    dst->fragment_shader = src->fragment_shader;
-
-    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
-        size_t attribute_name_length = strlen(src->attribute[i].name);
-        log_assert( attribute_name_length < 256 );
-        strncpy(dst->attribute[i].name, src->attribute[i].name, attribute_name_length+1);
-        dst->attribute[i].location = src->attribute[i].location;
-    }
-
-    for( int32_t i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
-        size_t uniform_name_length = strlen(src->uniform[i].name);
-        log_assert( uniform_name_length < 256 );
-        strncpy(dst->uniform[i].name, src->uniform[i].name, uniform_name_length+1);
-        dst->uniform[i].location = src->uniform[i].location;
-    }
-}
-
 GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name) {
     size_t name_length = strlen(name);
     log_assert( name_length > 0 );
