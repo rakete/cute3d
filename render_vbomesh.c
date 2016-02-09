@@ -42,7 +42,7 @@ struct VboMesh wtf(struct Solid* solid, uint8_t color[4], struct Vbo* vbo) {
     log_assert( color != NULL );
     log_assert( vbo != NULL );
 
-    struct VboMesh mesh;
+    struct VboMesh mesh = {0};
     vbomesh_create(vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &mesh);
 
     solid_normals(solid);

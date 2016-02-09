@@ -19,6 +19,6 @@ struct Arcball {
 
 void arcball_create(SDL_Window* window, Vec eye, Vec target, float near, float far, struct Arcball* arcball);
 
-void arcball_event(struct Arcball* arcball, SDL_Event event);
+bool arcball_event(struct Arcball* arcball, SDL_Event event);
 
 #endif

@@ -72,7 +72,7 @@ void canvas_create_default(struct Canvas* canvas) {
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
 
-    struct Shader shader;
+    struct Shader shader = {0};
     shader_create_gl_lines("default_shader", &shader);
     canvas_add_shader(canvas, &shader);
 

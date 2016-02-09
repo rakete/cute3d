@@ -83,26 +83,26 @@ void draw_arrow( struct Canvas* canvas,
         canvas = &global_canvas;
     }
 
-    Mat arrow_matrix;
+    Mat arrow_matrix = {0};
     mat_identity(arrow_matrix);
 
     Vec z = { 0.0, 0.0, 1.0, 1.0 };
-    Vec axis;
+    Vec axis = {0};
     vec_cross(v,z,axis);
     if( vnullp(axis) ) {
         vec_perpendicular(z,axis);
     }
 
-    float angle;
+    float angle = 0.0f;
     vec_angle(v,z,&angle);
 
-    Quat rotation;
+    Quat rotation = {0};
     quat_from_axis_angle(axis, angle, rotation);
     quat_to_mat(rotation, arrow_matrix);
 
     mat_scale(arrow_matrix, scale, arrow_matrix);
 
-    Vec translation;
+    Vec translation = {0};
     vec_mul1f(v, scale, translation);
     vec_mul1f(translation, offset, translation);
     vec_add(pos, translation, translation);
@@ -110,17 +110,12 @@ void draw_arrow( struct Canvas* canvas,
     mat_translate(arrow_matrix, translation, arrow_matrix);
     mat_mul(arrow_matrix, model_matrix, arrow_matrix);
 
-    float vertices[5*3];
-        /* { 0.0,  0.0,  0.0, */
-        /*   0.1,  0.0,  -0.2, */
-        /*   0.0,  0.1,  -0.2, */
-        /*   -0.1, 0.0,  -0.2, */
-        /*   0.0,  -0.1, -0.2 }; */
-    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.0f, 0.0f, 0.0f }, vertices + 3*0);
-    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.1f, 0.0f,-0.2f }, vertices + 3*1);
-    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.0f, 0.1f,-0.2f }, vertices + 3*2);
-    mat_mul_vec3f(arrow_matrix, (Vec3f){-0.1f, 0.0f,-0.2f }, vertices + 3*3);
-    mat_mul_vec3f(arrow_matrix, (Vec3f){ 0.0f,-0.1f,-0.2f }, vertices + 3*4);
+    float vertices[5*3] =
+        { 0.0,  0.0,  0.0,
+          0.05,  0.0,  -0.1,
+          0.0,  0.05,  -0.1,
+          -0.05, 0.0,  -0.1,
+          0.0,  -0.05, -0.1 };
 
     uint8_t colors[5*4] =
         { color[0], color[1], color[2], color[3],
@@ -157,26 +152,26 @@ void draw_vec( struct Canvas* canvas,
         canvas = &global_canvas;
     }
 
-    Mat arrow_matrix;
+    Mat arrow_matrix = {0};
     mat_identity(arrow_matrix);
 
     Vec z = { 0.0, 0.0, 1.0, 1.0 };
-    Vec axis;
+    Vec axis = {0};
     vec_cross(v,z,axis);
     if( vnullp(axis) ) {
         vec_perpendicular(z,axis);
     }
 
-    float angle;
+    float angle = 0.0f;
     vec_angle(v,z,&angle);
 
-    Quat rotation;
+    Quat rotation = {0};
     quat_from_axis_angle(axis, angle, rotation);
     quat_to_mat(rotation, arrow_matrix);
 
     // mesh length is always 1.0f, so not only scale it with scale, but also scale it with the
     // actual length it should have
-    float length = 1.0;
+    float length = 1.0f;
     vec_length(v, &length);
     mat_scale(arrow_matrix, scale * length, arrow_matrix);
 
@@ -233,14 +228,14 @@ void draw_quat( struct Canvas* canvas,
 
     // visualizing quaternions is nasty, I am just drawing an axis-angle representation, that kind of sort of
     // works
-    Vec axis;
-    float angle;
+    Vec axis = {0};
+    float angle = 0.0f;
     quat_to_axis_angle(q, axis, &angle);
 
     // a quaternion has a range of two rotations, so as if going from -2*PI to 2*PI, so when converting into
     // axis-angle representation, we get an axis and its inverse (like 1,0,0 and -1,0,0) first with angles
     // from 0 to 2*PI and then from 2*PI back to 0
-    Vec axis_inverse;
+    Vec axis_inverse = {0};
     if( vsign(axis) < 0 ) {
         // so when the axis and the angle is fed to draw_circle, since it always changes direction, the circle arrow
         // will direction will change too, so this if makes sure that axis is always pointing in the same direction
@@ -261,10 +256,10 @@ void draw_quat( struct Canvas* canvas,
 
     // draw two circles from 0 to angle, and from angle to 2*PI, so we'll get a full circle consisting
     // of two parts in different colors
-    Quat circle_rotation;
+    Quat circle_rotation = {0};
     quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, axis, circle_rotation);
 
-    Mat circle_transform;
+    Mat circle_transform = {0};
     quat_to_mat(circle_rotation, circle_transform);
     mat_mul(circle_transform, model_matrix, circle_transform);
 
@@ -293,7 +288,7 @@ void draw_circle( struct Canvas* canvas,
     }
 
     static int32_t first_run = 1;
-    static float vertices[360*3];
+    static float vertices[360*3] = {0};
     if( first_run ) {
         for( int32_t i = 0; i < 360; i++ ) {
             float theta = -2.0f * PI * (float)i / (float)360.0f;
@@ -307,8 +302,8 @@ void draw_circle( struct Canvas* canvas,
         first_run = 0;
     }
 
-    uint32_t elements[360*2];
-    uint8_t colors[360*4];
+    uint32_t elements[360*2] = {0};
+    uint8_t colors[360*4] = {0};
     for( int32_t i = 0; i < 360; i++ ) {
         elements[i*2+0] = 0;
         elements[i*2+1] = 0;
@@ -461,7 +456,7 @@ void draw_contact( struct Canvas* canvas,
         canvas = &global_canvas;
     }
 
-    Mat contact_matrix;
+    Mat contact_matrix = {0};
     mat_translate(model_matrix, contact_point, contact_matrix);
 
     draw_vec(canvas, layer, contact_normal, (Vec)NULL_VEC, scale, 1.0f, (Color){0.1f, 0.9f, 0.7f, 1.0f}, contact_matrix);
@@ -477,21 +472,22 @@ void draw_contact( struct Canvas* canvas,
 
     quat_mul_axis_angle(q, (Vec)RIGHT_AXIS, PI/2, q);
 
-    Mat quad_matrix2;
+    Mat quad_matrix2 = {0};
     quat_to_mat(q, quad_matrix2);
     mat_mul(quad_matrix2, contact_matrix, quad_matrix2);
     //draw_color_quad(scale/2.0, (Color){0.1f, 0.9f, 0.7f, 1.0f}, projection_matrix, view_matrix, quad_matrix2);
 
     quat_mul_axis_angle(q, (Vec)UP_AXIS, PI/2, q);
 
-    Mat quad_matrix3;
+    Mat quad_matrix3 = {0};
     quat_to_mat(q, quad_matrix3);
     mat_mul(quad_matrix3, contact_matrix, quad_matrix3);
     //draw_color_quad(scale/2.0, (Color){0.1f, 0.9f, 0.7f, 1.0f}, projection_matrix, view_matrix, quad_matrix3);
 
-    Quat reticle_rotation;
+    Quat reticle_rotation = {0};
     quat_from_vec_pair((Vec){0.0f, 0.0f, 1.0f, 1.0f}, (Vec){0.0f, 1.0f, 0.0f, 1.0f}, reticle_rotation);
-    Mat reticle_transform;
+
+    Mat reticle_transform = {0};
     quat_to_mat(reticle_rotation, reticle_transform);
     mat_mul(reticle_transform, contact_matrix, reticle_transform);
     draw_reticle(canvas, layer, scale/2.0f, (Color){1.0f, 0.2f, 0.7f, 1.0f}, reticle_transform);
@@ -516,7 +512,7 @@ void draw_normals_array( struct Canvas* canvas,
     }
 
     for( int32_t i = 0; i < n; i++ ) {
-        Mat arrow_matrix;
+        Mat arrow_matrix = {0};
         mat_identity(arrow_matrix);
 
         Vec normal = { normals[i*3+0], normals[i*3+1], normals[i*3+2], 1.0f };

@@ -365,7 +365,8 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         face_ptr->size = 3;
         face_ptr->edge = ca_i;
 
-        Vec vec_a, vec_b;
+        Vec vec_a = {0};
+        Vec vec_b = {0};
         vec_sub(mesh->vertices.array[unique_vertex_map[a]].position, mesh->vertices.array[unique_vertex_map[b]].position, vec_a);
         vec_sub(mesh->vertices.array[unique_vertex_map[b]].position, mesh->vertices.array[unique_vertex_map[c]].position, vec_b);
         vec_normalize(vec_a, vec_a);
@@ -508,7 +509,8 @@ int32_t halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int32_t face_i, int3
     struct HalfEdge* prev_edge = &mesh->edges.array[current_edge->prev];
     struct HalfEdge* next_edge = &mesh->edges.array[current_edge->next];
     if( cross_normal != NULL ) {
-        Vec current_vec, next_vec;
+        Vec current_vec = {0};
+        Vec next_vec = {0};
         vec_sub(mesh->vertices.array[prev_edge->vertex].position, mesh->vertices.array[current_edge->vertex].position, current_vec);
         vec_sub(mesh->vertices.array[current_edge->vertex].position, mesh->vertices.array[next_edge->vertex].position, next_vec);
         vec_cross3f(current_vec, next_vec, cross_normal);
@@ -530,7 +532,9 @@ int32_t halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int32_t face_i, int3
 
             struct HalfEdge* prev_prev_edge = &mesh->edges.array[prev_edge->prev];
             if( cross_normal != NULL ) {
-                Vec prev_vec, current_vec, next_vec;
+                Vec prev_vec = {0};
+                Vec current_vec = {0};
+                Vec next_vec = {0};
                 vec_sub(mesh->vertices.array[prev_prev_edge->vertex].position, mesh->vertices.array[prev_edge->vertex].position, prev_vec);
                 vec_sub(mesh->vertices.array[prev_edge->vertex].position, mesh->vertices.array[current_edge->vertex].position, current_vec);
                 vec_sub(mesh->vertices.array[current_edge->vertex].position, mesh->vertices.array[next_edge->vertex].position, next_vec);
@@ -538,7 +542,8 @@ int32_t halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int32_t face_i, int3
                 vec_normalize(current_vec, current_vec);
                 vec_normalize(next_vec, next_vec);
 
-                Vec3f normal_a, normal_b;
+                Vec normal_a = {0};
+                Vec normal_b = {0};
                 vec_cross3f(prev_vec, current_vec, normal_a);
                 vec_cross3f(current_vec, next_vec, normal_b);
 
@@ -670,12 +675,12 @@ void halfedgemesh_compress(struct HalfEdgeMesh* mesh) {
             attached_edges[other->vertex] += 1;
 
             if( face_has_normal[face_one_i] && face_has_normal[face_two_i] ) {
-                Vec3f normal_a = { 0, 0, 0 };
+                Vec normal_a = {0};
                 normal_a[0] = face_normals[face_one_i*3+0];
                 normal_a[1] = face_normals[face_one_i*3+1];
                 normal_a[2] = face_normals[face_one_i*3+2];
 
-                Vec3f normal_b = { 0, 0, 0 };
+                Vec normal_b = {0};
                 normal_b[0] = face_normals[face_two_i*3+0];
                 normal_b[1] = face_normals[face_two_i*3+1];
                 normal_b[2] = face_normals[face_two_i*3+2];
@@ -991,7 +996,7 @@ void halfedgemesh_verify(struct HalfEdgeMesh* mesh) {
 
             log_assert( this->other == this->this + 1 || this->other == this->this - 1 );
 
-            log_assert( fabs(vdot(face->normal, this->normal)) - 1.0 < FLOAT_EPSILON );
+            log_assert( fabs(vdot(face->normal, this->normal)) - 1.0 < CUTE_EPSILON );
 
             // other prev vertex must be equal this vertex
             log_assert( mesh->edges.array[other->prev].vertex == this->vertex );

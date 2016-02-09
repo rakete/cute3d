@@ -106,7 +106,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projec
         newline = 0;
 
         if( glyph ) {
-            Mat glyph_matrix;
+            Mat glyph_matrix = {0};
             mat_translate(NULL, cursor_translation, glyph_matrix);
             mat_scale(glyph_matrix, scale, glyph_matrix);
             mat_mul(glyph_matrix, model_matrix, glyph_matrix);

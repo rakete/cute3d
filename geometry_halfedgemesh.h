@@ -28,13 +28,13 @@ struct HalfEdgeVertex {
 };
 
 struct HalfEdgeFace {
-    Vec3f normal;
+    Vec normal;
     int32_t size;
     int32_t edge;
 };
 
 struct HalfEdge {
-    Vec3f normal;
+    Vec normal;
     Texcoord texcoord;
     Color color;
 

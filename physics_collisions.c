@@ -257,25 +257,25 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
     float transformed_vertices[transformed_size];
     convex_local_transform(convex1, convex2, transformed_size, transformed_vertices);
 
-    Mat transform1;
+    Mat transform1 = {0};
     pivot_local_transform(convex1->collider.pivot, transform1);
 
-    Mat transform2;
+    Mat transform2 = {0};
     pivot_world_transform(convex2->collider.pivot, transform2);
 
-    Mat transform;
+    Mat transform = {0};
     mat_mul(transform2, transform1, transform);
 
-    Quat world_convex1_orientation;
+    Quat world_convex1_orientation = {0};
     quat_copy(convex1->collider.pivot->orientation, world_convex1_orientation);
     quat_mul(world_convex1_orientation, convex1->orientation, world_convex1_orientation);
     quat_invert(world_convex1_orientation, world_convex1_orientation);
 
-    Quat convex2_world_orientation;
+    Quat convex2_world_orientation = {0};
     quat_copy(convex2->collider.pivot->orientation, convex2_world_orientation);
     quat_mul(convex2_world_orientation, convex2->orientation, convex2_world_orientation);
 
-    Quat convex2_normal_orientation;
+    Quat convex2_normal_orientation = {0};
     quat_mul(convex2_world_orientation, world_convex1_orientation, convex2_normal_orientation);
 
     // every face normal of the minowski sum of mesh1 and mesh2 is a potential sat,
@@ -304,28 +304,31 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
             vec_mul3f1f(c, -1.0f, c);
             vec_mul3f1f(d, -1.0f, d);
 
-            Vec3f edge1_direction, edge1_head;
+            Vec3f edge1_direction = {0};
+            Vec3f edge1_head = {0};
             vec_copy3f(mesh1->vertices.array[edge1->vertex].position, edge1_head);
             vec_sub3f(mesh1->vertices.array[other1->vertex].position, edge1_head, edge1_direction);
 
-            Vec3f edge2_direction, edge2_head;
+            Vec3f edge2_direction = {0};
+            Vec3f edge2_head = {0};
             /* vec_copy3f(transformed_vertices+edge2->vertex*3, edge2_head); */
             /* vec_sub3f(transformed_vertices+other2->vertex*3, edge2_head, edge2_direction); */
             vec_copy3f(mesh2->vertices.array[edge2->vertex].position, edge2_head);
             mat_mul_vec3f(transform, edge2_head, edge2_head);
-            Vec3f pos;
+            Vec3f pos = {0};
             mat_mul_vec3f(transform, mesh2->vertices.array[other2->vertex].position, pos);
             vec_sub3f(pos, edge2_head, edge2_direction);
 
             vec_normalize3f(edge1_direction, edge1_direction);
             vec_normalize3f(edge2_direction, edge2_direction);
 
-            if( fabs(vdot(edge1_direction, edge2_direction)) >= 1.0f - FLOAT_EPSILON) {
+            if( fabs(vdot(edge1_direction, edge2_direction)) >= 1.0f - CUTE_EPSILON) {
                 continue;
             }
 
             // instead of cross product I should be able to just use the edges between a b and d c
-            Vec3f bxa, dxc;
+            Vec3f bxa = {0};
+            Vec3f dxc = {0};
             /* vec_cross3f(b, a, bxa); */
             /* vec_cross3f(d, c, dxc); */
             vec_copy3f(edge1_direction, bxa);
@@ -338,17 +341,17 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
 
             if( cba * dba < 0.0f && adc * bdc < 0.0f && cba * bdc > 0.0f ) {
                 // edge1 and edge2 form an minowski face
-                Vec3f center_direction;
+                Vec3f center_direction = {0};
                 vec_sub3f((Vec3f){0,0,0}, edge1_head, center_direction);
                 vec_normalize3f(center_direction, center_direction);
 
-                Vec3f plane_normal;
+                Vec3f plane_normal = {0};
                 vec_cross3f(edge1_direction, edge2_direction, plane_normal);
                 if( vdot( center_direction, plane_normal ) > 0.0f ) {
                     vec_mul3f1f(plane_normal, -1.0f, plane_normal);
                 }
 
-                Vec3f other_point;
+                Vec3f other_point = {0};
                 vec_sub3f(edge2_head, edge1_head, other_point);
                 float distance = vdot(other_point, plane_normal);
                 if( distance > *best_distance ) {
