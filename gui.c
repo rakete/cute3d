@@ -183,7 +183,7 @@ void text_overlay(const wchar_t* text, const struct Font* font, int32_t size, st
 
     // multiplying with zNear fixes text being too small or too big when
     // zNear is set to something other then 1.0
-    float scale = (float)size / (float)camera.screen.height * camera.frustum.zNear;
+    float scale = (float)size / (float)camera.screen.height * camera.frustum.near;
 
     glDisable(GL_DEPTH_TEST);
     text_put(text, font, scale, ortho_projection, ortho_view, text_matrix);
@@ -249,7 +249,7 @@ void show_render(const struct Font* font, int32_t size, struct Camera camera) {
         if( ! default_font_created ) {
             struct Character symbols[256];
             default_font_create(symbols);
-            font_create(&default_font, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;+-*/=()[]{}", false, symbols, "default");
+            font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;+-*/=()[]{}", false, symbols, "default", &default_font);
             default_font_created = 1;
         }
 

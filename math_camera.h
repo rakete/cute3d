@@ -41,8 +41,8 @@ struct Camera {
         float top;
         float bottom;
 
-        float zNear;
-        float zFar;
+        float near;
+        float far;
     } frustum;
 };
 
