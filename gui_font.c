@@ -1,6 +1,36 @@
 #include "gui_font.h"
 
-void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicode, struct Character* symbols, const char* name) {
+void font_create_empty(struct Font* font) {
+    font->name[0] = '\0';
+
+    for( size_t i = 0; i < NUM_FONT_GLYPHS; i++ ) {
+        font->glyphs[i].x = 0;
+        font->glyphs[i].y = 0;
+        font->glyphs[i].w = 0;
+        font->glyphs[i].h = 0;
+    }
+
+    for( size_t i = 0; i < NUM_FONT_GLYPHS; i++ ) {
+        font->alphabet[i] = false;
+    }
+
+    font->unicode = false;
+
+    font->texture.id = 0;
+    font->texture.width = 0;
+    font->texture.height = 0;
+    font->texture.type = GL_FLOAT;
+    font->texture.format = GL_RGBA;
+    font->texture.min_filter = GL_NEAREST;
+    font->texture.mag_filter = GL_NEAREST;
+
+    shader_create_empty(&font->shader);
+
+    font->kerning = 0.0f;
+    font->linespacing = 0.0f;
+}
+
+void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character* symbols, const char* name, struct Font* font) {
     size_t name_length = strlen(name);
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
@@ -114,10 +144,6 @@ void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicod
             }
         }
 
-        if( font->texture.id ) {
-            glDeleteTextures(1,&font->texture.id);
-        }
-
         glGenTextures(1, &font->texture.id);
 
         log_assert( power2 >= 0 );
@@ -165,6 +191,7 @@ void font_create(struct Font* font, const wchar_t* unicode_alphabet, bool unicod
                   void main() {
                       vec4 tex_value = texture2D(diffuse_texture, vec2(frag_texcoord.x,frag_texcoord.y));
                       //gl_FragColor = frag_color;
+                      //gl_FragColor = vec4(frag_texcoord.x, frag_texcoord.y, frag_texcoord.x*frag_texcoord.y, 1.0);
                       gl_FragColor = vec4(tex_value[0]*frag_color[0],
                                           tex_value[1]*frag_color[1],
                                           tex_value[2]*frag_color[2],
