@@ -33,7 +33,7 @@ void draw_grid( struct Canvas* canvas,
     float vertices[size * 3];
     uint8_t colors[size * 4];
     uint32_t elements[size];
-    uint32_t offset = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied;
+    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
 
     // 1  5  9 10----11
     // |  |  |

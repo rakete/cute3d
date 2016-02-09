@@ -55,7 +55,7 @@ struct Canvas {
         void* array;
         size_t capacity;
         size_t occupied;
-    } attribute[NUM_SHADER_ATTRIBUTES];
+    } attributes[NUM_SHADER_ATTRIBUTES];
 
     // - vbos that are supposed to be filled by an external render function, one per attribute
     // - these are one big buffer that are supposed to be bound once before rendering all the

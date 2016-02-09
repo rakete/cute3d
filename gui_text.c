@@ -39,7 +39,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projec
         return;
     }
 
-    size_t canvas_offset = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied;
+    size_t canvas_offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
     struct Font* font = &canvas->fonts[font_i];
 
     // we rely on \0 not being part of the font to advance the cursor at the end of
