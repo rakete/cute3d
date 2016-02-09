@@ -5,6 +5,16 @@ void arcball_create(SDL_Window* window, Vec eye, Vec target, float near, float f
     int32_t width,height;
     sdl2_debug( SDL_GL_GetDrawableSize(window, &width, &height) );
 
+    // - if the user specifies an eye and target so that we are looking along the y-axis (like 0,1,0 and 0,0,0),
+    // then we just adjust the eye a tiny bit upwards to prevent a black screen because the up_axis used in
+    // arcball_event is the y axis, and two parallel axis have no cross product and things become 0 and everything
+    // gets messy, so just add FLOAT_EPSILON to the z coord and be done with it
+    if( eye[0] == target[0] && eye[2] == target[2] ) {
+        log_assert( eye[1] != target[1] );
+
+        eye[2] += CUTE_EPSILON;
+    }
+
     camera_create(width, height, &arcball->camera);
     float top = (near/width) * height/2.0f;
     float bottom = -top;
