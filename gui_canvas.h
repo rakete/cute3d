@@ -149,7 +149,10 @@ size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, int32_t project
 // - clear is supposed to be called every frame and completely resets all occupied counters, but leaves
 // the allocated memory, so that memory once allocated is reused in repeating draw calls, that should
 // restrict the calls to malloc to the very beginning of the program
-void canvas_clear(struct Canvas* canvas, int32_t layer_start, int32_t layer_end);
+// - well, the way I coded the canvas, one huge attribute buffer for all layers, it does not make sense
+// to clear it only partly, because I always have to clear all attributes which makes having the indices
+// still around useless, so now this function always clears all layers
+void canvas_clear(struct Canvas* canvas);
 
 // - the _append_ functions are used to fill the arrays with data, they always append to the end of the already occupied space
 // - these check the allocated capacity and call the alloc functions if there is not enough space available for the new data

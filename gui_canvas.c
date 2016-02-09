@@ -260,13 +260,11 @@ size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t proj
     GLuint* old_array_pointer = canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].array;
     GLuint* new_array_pointer = realloc(old_array_pointer, new_capacity * sizeof(GLuint));
 
-    if( new_array_pointer != NULL ) {
-        canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].array = new_array_pointer;
-        canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].capacity = new_capacity;
-        return n;
-    }
+    log_assert( new_array_pointer != NULL );
+    canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].array = new_array_pointer;
+    canvas->layer[layer_i].indices[shader_i][projection_i][primitive_type].capacity = new_capacity;
 
-    return 0;
+    return n;
 }
 
 size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i, const char* font_name, size_t n) {
@@ -289,27 +287,22 @@ size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i,
     GLuint* old_array_pointer = canvas->layer[layer_i].text[font_i][text_i].array;
     GLuint* new_array_pointer = realloc(old_array_pointer, new_capacity * sizeof(GLuint));
 
-    if( new_array_pointer != NULL ) {
-        canvas->layer[layer_i].text[font_i][text_i].array = new_array_pointer;
-        canvas->layer[layer_i].text[font_i][text_i].capacity = new_capacity;
-        return n;
-    }
+    log_assert( new_array_pointer != NULL );
+    canvas->layer[layer_i].text[font_i][text_i].array = new_array_pointer;
+    canvas->layer[layer_i].text[font_i][text_i].capacity = new_capacity;
 
-    return 0;
+    return n;
 }
 
-void canvas_clear(struct Canvas* canvas, int32_t layer_start, int32_t layer_end) {
-    log_assert( layer_start >= 0 );
-    log_assert( layer_end <= NUM_CANVAS_LAYERS );
-    log_assert( layer_start < layer_end );
+void canvas_clear(struct Canvas* canvas) {
     log_assert( canvas != NULL );
 
     for( int32_t j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
-        canvas->attribute[j].occupied = 0;
+        canvas->attributes[j].occupied = 0;
         canvas->buffer[j].occupied = 0;
     }
 
-    for( int32_t i = layer_start; i < layer_end; i++ ) {
+    for( int32_t i = 0; i < NUM_CANVAS_LAYERS; i++ ) {
         for( int32_t j = 0; j < NUM_CANVAS_SHADER; j++ ) {
             for( int32_t k = 0; k < NUM_CANVAS_PROJECTIONS; k++ ) {
                 for( int32_t l = 0; l < NUM_OGL_PRIMITIVES; l++ ) {
