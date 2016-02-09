@@ -48,9 +48,9 @@ typedef float Texcoord[2];
 #define IDENTITY_VEC { 1, 1, 1, 1 }
 #define IDENTITY_MAT { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }
 
-#define X_AXIS { 1, 0, 0, 1 }
-#define Y_AXIS { 0, 1, 0, 1 }
-#define Z_AXIS { 0, 0, 1, 1 }
+#define RIGHT_AXIS { 1, 0, 0, 1 }
+#define UP_AXIS { 0, 1, 0, 1 }
+#define FORWARD_AXIS { 0, 0, -1, 1 }
 
 #define CUTE_EPSILON 0.00001f
 

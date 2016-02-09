@@ -466,23 +466,23 @@ void draw_contact( struct Canvas* canvas,
 
     draw_vec(canvas, layer, contact_normal, (Vec)NULL_VEC, scale, 1.0f, (Color){0.1f, 0.9f, 0.7f, 1.0f}, contact_matrix);
 
-    Quat q = NULL_VEC;
-    quat_from_vec_pair((Vec)Z_AXIS, (Vec)Y_AXIS, q);
-    quat_mul_axis_angle(q, (Vec)Y_AXIS, PI/4, q);
+    Quat q = {0};
+    quat_from_vec_pair((Vec)FORWARD_AXIS, (Vec)UP_AXIS, q);
+    quat_mul_axis_angle(q, (Vec)UP_AXIS, PI/4, q);
 
     Mat quad_matrix1;
     quat_to_mat(q, quad_matrix1);
     mat_mul(quad_matrix1, contact_matrix, quad_matrix1);
     //draw_color_quad(scale/2.0, (Color){0.1f, 0.9f, 0.7f, 1.0f}, projection_matrix, view_matrix, quad_matrix1);
 
-    quat_mul_axis_angle(q, (Vec)X_AXIS, PI/2, q);
+    quat_mul_axis_angle(q, (Vec)RIGHT_AXIS, PI/2, q);
 
     Mat quad_matrix2;
     quat_to_mat(q, quad_matrix2);
     mat_mul(quad_matrix2, contact_matrix, quad_matrix2);
     //draw_color_quad(scale/2.0, (Color){0.1f, 0.9f, 0.7f, 1.0f}, projection_matrix, view_matrix, quad_matrix2);
 
-    quat_mul_axis_angle(q, (Vec)Y_AXIS, PI/2, q);
+    quat_mul_axis_angle(q, (Vec)UP_AXIS, PI/2, q);
 
     Mat quad_matrix3;
     quat_to_mat(q, quad_matrix3);

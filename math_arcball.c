@@ -47,7 +47,7 @@ void arcball_event(struct Arcball* arcball, SDL_Event event) {
         // - the sideways translation is computed by taking the right_axis and orienting it with
         //   the cameras orientation, the way I set up the lookat implementation this should always
         //   result in a vector parallel to the x-z-plane
-        Vec right_axis = {1.0, 0.0, 0.0, 1.0};
+        Vec right_axis = RIGHT_AXIS;
         vec_rotate(right_axis, inverted_orientation, right_axis);
         if( mouse.xrel != 0 ) {
             // - then we'll just multiply the resulting axis with the mouse x relative movement, inversely
@@ -63,7 +63,7 @@ void arcball_event(struct Arcball* arcball, SDL_Event event) {
 
         // - the z translation can't be done along the orientated forward axis because that would include
         //   the camera pitch, here, same as above, we need an axis that is parallel to the x-z-plane
-        Vec up_axis = {0.0, 1.0, 0.0, 1.0};
+        Vec up_axis = UP_AXIS;
         if( mouse.yrel != 0 ) {
             // - luckily such an axis is easily computed from the crossproduct of the orientated right_axis and
             //   the default up_axis, the result is an axis pointing in the direction of the cameras forward axis,
@@ -93,16 +93,16 @@ void arcball_event(struct Arcball* arcball, SDL_Event event) {
         // - the flipped value indicates if the camera is flipped over, so we'll just use that to
         //   change the sign of the yaw to make the mouse movement on the screen always correctly
         //   relates to the movement of the rotation
-        Vec up_axis = {0.0, 1.0, 0.0, 1.0};
-        Quat yaw_rotation;
-        quat_from_axis_angle(up_axis, arcball->flipped * PI/180 * mouse.xrel, yaw_rotation);
+        Vec up_axis = UP_AXIS;
+        Quat yaw_rotation = {0};
+        quat_from_axis_angle(up_axis, arcball->flipped * PI/180 * mouse.xrel * rotation_slowness_factor, yaw_rotation);
 
         // - pitch is a little more involved, I need to compute the orientated right axis and use
         //   that to compute the pitch_rotation
         Quat inverted_orientation;
         quat_invert(arcball->camera.pivot.orientation, inverted_orientation);
 
-        Vec right_axis = {1.0, 0.0, 0.0, 1.0};
+        Vec right_axis = RIGHT_AXIS;
         vec_rotate(right_axis, inverted_orientation, right_axis);
 
         Quat pitch_rotation;
@@ -139,7 +139,7 @@ void arcball_event(struct Arcball* arcball, SDL_Event event) {
             Quat inverted_orientation;
             quat_invert(arcball->camera.pivot.orientation, inverted_orientation);
 
-            Vec forward_axis = {0.0, 0.0, -1.0, 1.0};
+            Vec forward_axis = FORWARD_AXIS;
             vec_rotate(forward_axis, inverted_orientation, forward_axis);
 
             Vec zoom;

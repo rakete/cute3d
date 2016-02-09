@@ -34,9 +34,9 @@ void pivot_create(struct Pivot* pivot) {
 int32_t pivot_lookat(struct Pivot* pivot, const Vec target) {
     int32_t result = -1;
 
-    Vec right_axis = { 1.0, 0.0, 0.0, 1.0 };
-    Vec up_axis = { 0.0, 1.0, 0.0, 1.0 };
-    Vec forward_axis = { 0.0, 0.0, -1.0, 1.0 };
+    Vec right_axis = RIGHT_AXIS;
+    Vec up_axis = UP_AXIS;
+    Vec forward_axis = FORWARD_AXIS;
 
     Vec target_direction;
     vec_sub(target, pivot->position, target_direction);
