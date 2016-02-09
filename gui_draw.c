@@ -504,6 +504,45 @@ void draw_normals_array( struct Canvas* canvas,
 
 }
 
+void draw_camera(struct Canvas* canvas,
+                 int32_t layer,
+                 const struct Camera* camera,
+                 float scale,
+                 const Color color,
+                 const Mat model_matrix)
+{
+    float near = camera->frustum.near;
+    float left = camera->frustum.left;
+    float right = camera->frustum.right;
+    float top = camera->frustum.top;
+    float bottom = camera->frustum.bottom;
+
+    float camera_vertices[5*3] =
+        {  0.0f,   0.0f,  0.0f,
+          right,    top,  -near,
+           left,    top,  -near,
+           left, bottom,  -near,
+          right, bottom,  -near };
+
+    static uint32_t camera_elements[8*2] =
+        { 0, 1,
+          0, 2,
+          0, 3,
+          0, 4,
+          1, 2,
+          2, 3,
+          3, 4,
+          4, 1 };
+
+    Mat camera_matrix = {0};
+    pivot_world_transform(&camera->pivot, camera_matrix);
+
+    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    canvas_append_vertices(canvas, camera_vertices, 3, GL_FLOAT, 5, camera_matrix);
+    canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 5, color);
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, camera_elements, 8*2, offset);
+}
+
 /* void draw_texture_quad( float scale, */
 /*                         GLuint texture_id, */
 /*                         const Mat projection_matrix, */
