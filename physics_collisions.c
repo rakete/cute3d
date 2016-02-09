@@ -12,7 +12,7 @@ void collider_unique_id(unsigned long* id) {
     *id = unique_id;
 }
 
-void collider_plane(Vec normal, float offset, struct Pivot* pivot, struct ColliderPlane* plane) {
+void collider_plane(Vec normal, float offset, struct TransformPivot* pivot, struct ColliderPlane* plane) {
     plane->collider.type = COLLIDER_PLANE;
     plane->collider.pivot = pivot;
     vec_copy((Vec)NULL_VEC, plane->collider.position);
@@ -22,7 +22,7 @@ void collider_plane(Vec normal, float offset, struct Pivot* pivot, struct Collid
     plane->offset = offset;
 }
 
-void collider_sphere(float radius, struct Pivot* pivot, struct ColliderSphere* sphere) {
+void collider_sphere(float radius, struct TransformPivot* pivot, struct ColliderSphere* sphere) {
     sphere->collider.type = COLLIDER_SPHERE;
     sphere->collider.pivot = pivot;
     vec_copy((Vec)NULL_VEC, sphere->collider.position);
@@ -30,7 +30,7 @@ void collider_sphere(float radius, struct Pivot* pivot, struct ColliderSphere* s
     sphere->radius = radius;
 }
 
-void collider_obb(float width, float height, float depth, struct Pivot* pivot, struct ColliderOBB* obb) {
+void collider_obb(float width, float height, float depth, struct TransformPivot* pivot, struct ColliderOBB* obb) {
     obb->collider.type = COLLIDER_OBB;
     obb->collider.pivot = pivot;
     vec_copy((Vec)NULL_VEC, obb->collider.position);
@@ -42,7 +42,7 @@ void collider_obb(float width, float height, float depth, struct Pivot* pivot, s
     quat_identity(obb->orientation);
 }
 
-void collider_capsule(Vec point_a, Vec point_b, float radius, struct Pivot* pivot, struct ColliderCapsule* capsule) {
+void collider_capsule(Vec point_a, Vec point_b, float radius, struct TransformPivot* pivot, struct ColliderCapsule* capsule) {
     capsule->collider.type = COLLIDER_CAPSULE;
     capsule->collider.pivot = pivot;
     vec_copy((Vec)NULL_VEC, capsule->collider.position);
@@ -54,7 +54,7 @@ void collider_capsule(Vec point_a, Vec point_b, float radius, struct Pivot* pivo
     quat_identity(capsule->orientation);
 }
 
-void collider_convex(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct ColliderConvex* convex) {
+void collider_convex(struct HalfEdgeMesh* mesh, struct TransformPivot* pivot, struct ColliderConvex* convex) {
     convex->collider.type = COLLIDER_CONVEX;
     convex->collider.pivot = pivot;
     vec_copy((Vec)NULL_VEC, convex->collider.position);

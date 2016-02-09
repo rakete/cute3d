@@ -39,7 +39,7 @@ struct Collider {
     // the idea with this const struct Pivot* pointer is that I attach a collider to
     // some other objects pivot, thats also why I may have a seperate orientation for
     // for the specific collider in addition to the orientation in pivot
-    struct Pivot* pivot;
+    struct TransformPivot* pivot;
     enum ColliderType type;
     Vec position;
 };
@@ -94,11 +94,11 @@ struct ColliderConvex {
 };
 
 // each supported bounding volume data structure should have a constructor to initialize it
-void collider_plane(Vec normal, float offset, struct Pivot* pivot, struct ColliderPlane* plane);
-void collider_sphere(float radius, struct Pivot* pivot, struct ColliderSphere* sphere);
-void collider_obb(float width, float height, float depth, struct Pivot* pivot, struct ColliderOBB* obb);
-void collider_capsule(Vec point_a, Vec point_b, float radius, struct Pivot* pivot, struct ColliderCapsule* capsule);
-void collider_convex(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct ColliderConvex* convex);
+void collider_plane(Vec normal, float offset, struct TransformPivot* pivot, struct ColliderPlane* plane);
+void collider_sphere(float radius, struct TransformPivot* pivot, struct ColliderSphere* sphere);
+void collider_obb(float width, float height, float depth, struct TransformPivot* pivot, struct ColliderOBB* obb);
+void collider_capsule(Vec point_a, Vec point_b, float radius, struct TransformPivot* pivot, struct ColliderCapsule* capsule);
+void collider_convex(struct HalfEdgeMesh* mesh, struct TransformPivot* pivot, struct ColliderConvex* convex);
 
 // collision detection itself is actually two seperate things: collision testing and contact generation, these should both
 // be implemented here eventually, but first I am going to concentrate only on contact generation. this should be

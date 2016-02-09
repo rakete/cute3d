@@ -20,7 +20,7 @@
 #include "math_types.h"
 #include "math_matrix.h"
 
-struct Pivot {
+struct TransformPivot {
     Vec position;
     Quat orientation;
 
@@ -28,12 +28,12 @@ struct Pivot {
     float eye_distance;
 };
 
-void pivot_create(struct Pivot* pivot);
-int32_t pivot_lookat(struct Pivot* pivot, const Vec target);
+void pivot_create(struct TransformPivot* pivot);
+int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target);
 
-VecP pivot_local_axis(const struct Pivot* pivot, Vec3f axis);
+VecP pivot_local_axis(const struct TransformPivot* pivot, Vec3f axis);
 
-MatP pivot_world_transform(const struct Pivot* pivot, Mat world_transform);
-MatP pivot_local_transform(const struct Pivot* pivot, Mat local_transform);
+MatP pivot_world_transform(const struct TransformPivot* pivot, Mat world_transform);
+MatP pivot_local_transform(const struct TransformPivot* pivot, Mat local_transform);
 
 #endif

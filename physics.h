@@ -20,7 +20,6 @@
 #include "math_types.h"
 #include "math_matrix.h"
 #include "math_transform.h"
-#include "gui.h"
 
 enum PhysicsMode {
     PhysicsStatic = 0x001,
@@ -29,7 +28,7 @@ enum PhysicsMode {
 };
 
 struct Physics {
-    struct Pivot pivot;
+    struct TransformPivot pivot;
 
     // primary state
     Vec linear_momentum;            ///< the momentum of the cube in kilogram meters per second.

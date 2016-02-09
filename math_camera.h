@@ -28,7 +28,7 @@ enum CameraProjection {
 };
 
 struct Camera {
-    struct Pivot pivot;
+    struct TransformPivot pivot;
 
     struct {
         int32_t width;

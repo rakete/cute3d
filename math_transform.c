@@ -16,7 +16,7 @@
 
 #include "math_transform.h"
 
-void pivot_create(struct Pivot* pivot) {
+void pivot_create(struct TransformPivot* pivot) {
     pivot->position[0] = 0.0;
     pivot->position[1] = 0.0;
     pivot->position[2] = 0.0;
@@ -31,7 +31,7 @@ void pivot_create(struct Pivot* pivot) {
     pivot->eye_distance = 1.0;
 }
 
-int32_t pivot_lookat(struct Pivot* pivot, const Vec target) {
+int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target) {
     int32_t result = -1;
 
     Vec right_axis = RIGHT_AXIS;
@@ -170,12 +170,12 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec target) {
     return result;
 }
 
-VecP pivot_local_axis(const struct Pivot* pivot, Vec3f axis) {
+VecP pivot_local_axis(const struct TransformPivot* pivot, Vec3f axis) {
     vec_rotate3f(axis, pivot->orientation, axis);
     return axis;
 }
 
-MatP pivot_world_transform(const struct Pivot* pivot, Mat world_transform) {
+MatP pivot_world_transform(const struct TransformPivot* pivot, Mat world_transform) {
     Mat translation = {0};
     mat_translate(NULL, pivot->position, translation);
 
@@ -186,7 +186,7 @@ MatP pivot_world_transform(const struct Pivot* pivot, Mat world_transform) {
     return world_transform;
 }
 
-MatP pivot_local_transform(const struct Pivot* pivot, Mat local_transform) {
+MatP pivot_local_transform(const struct TransformPivot* pivot, Mat local_transform) {
     Mat world_transform = {0};
     mat_identity(world_transform);
 
