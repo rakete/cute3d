@@ -15,7 +15,7 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
     // - now also sets up the vertex attribute pointers for all shaders
     GLint loc[NUM_SHADER_ATTRIBUTES];
     for( int32_t attribute_i = 0; attribute_i < NUM_SHADER_ATTRIBUTES; attribute_i++ ) {
-        size_t occupied_attributes = canvas->attribute[attribute_i].occupied;
+        size_t occupied_attributes = canvas->attributes[attribute_i].occupied;
         size_t occupied_buffer = canvas->buffer[attribute_i].occupied;
 
         loc[attribute_i] = -1;
@@ -40,7 +40,7 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
         // everything in that case as well -> multiple calls without canvas_clear are not optimal, but should work
         if( canvas->buffer[attribute_i].id > 0 && occupied_attributes > occupied_buffer ) {
             size_t alloc_bytes = occupied_attributes * canvas->components[attribute_i].size * canvas->components[attribute_i].bytes;
-            void* attributes_array = canvas->attribute[attribute_i].array;
+            void* attributes_array = canvas->attributes[attribute_i].array;
 
             log_assert( alloc_bytes < PTRDIFF_MAX );
 
