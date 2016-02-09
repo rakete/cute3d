@@ -123,36 +123,36 @@ static void convex_local_transform(struct ColliderConvex* const convex1,
     // convex1, which means I have a local2->world transformation for convex2 named
     // convex2_world_translation/orientation and a world->local1 transformation named
     // convex1_local_translation/orientation
-    Quat convex1_local_orientation;
+    Quat convex1_local_orientation = {0};
     quat_copy(convex1->collider.pivot->orientation, convex1_local_orientation);
     quat_mul(convex1_local_orientation, convex1->orientation, convex1_local_orientation);
     quat_invert(convex1_local_orientation, convex1_local_orientation);
 
-    Vec3f convex1_local_translation;
+    Vec convex1_local_translation = {0};
     vec_copy3f(convex1->collider.pivot->position, convex1_local_translation);
     vec_add3f(convex1_local_translation, convex1->collider.position, convex1_local_translation);
     vec_mul1f(convex1_local_translation, -1.0f, convex1_local_translation);
 
-    Quat convex2_world_orientation;
+    Quat convex2_world_orientation = {0};
     quat_copy(convex2->collider.pivot->orientation, convex2_world_orientation);
     quat_mul(convex2_world_orientation, convex2->orientation, convex2_world_orientation);
 
-    Vec3f convex2_world_translation;
+    Vec convex2_world_translation = {0};
     vec_copy3f(convex2->collider.pivot->position, convex2_world_translation);
     vec_add3f(convex2_world_translation, convex2->collider.position, convex2_world_translation);
 
     // both convex2_world_translation/orienation and convex1_local_translation/orientation
     // combined are the final vertex_translation/orientation
-    Quat vertex_orientation;
+    Quat vertex_orientation = {0};
     quat_mul(convex2_world_orientation, convex1_local_orientation, vertex_orientation);
 
-    Vec3f vertex_translation;
+    Vec vertex_translation = {0};
     vec_add3f(convex2_world_translation, convex1_local_translation, vertex_translation);
 
     // the vertex_translation/orientation is then applied to every vertex of convex2->mesh resulting
     // in a new array of vertices which coordinates are now relative to convex1
     for( uint32_t i = 0; i < convex2->mesh->vertices.occupied && i*3 < size; i++ ) {
-        Vec3f vertex;
+        Vec vertex = {0};
         vec_copy3f(convex2->mesh->vertices.array[i].position, vertex);
 
         vec_rotate3f(vertex, vertex_orientation, vertex);
@@ -191,18 +191,18 @@ static void query_face_directions(struct ColliderConvex* const convex1,
     // - then compute distance of support vertex to face
     // - keep track of largest distance found
     for( uint32_t face_i = 0; face_i < mesh1->faces.occupied; face_i++ ) {
-        Vec3f face_normal;
+        Vec3f face_normal = {0};
         vec_copy3f(mesh1->faces.array[face_i].normal, face_normal);
 
         // make plane normal opposite direction of face normal so that we'll find a support
-        // point32_t that is 'most inside' from our perspective
-        Vec3f plane_normal;
+        // point that is 'most inside' from our perspective
+        Vec3f plane_normal = {0};
         vec_mul1f(face_normal, -1.0f, plane_normal);
 
         // projecting every vertex of mesh2 onto plane_normal and then using the one with the
         // largest projection as support
-        Vec3f support;
-        uint32_t support_j;
+        Vec3f support = {0};
+        uint32_t support_j = 0;
         float best_projection = -FLT_MAX;
         for( uint32_t vertex_j = 0; vertex_j < mesh2->vertices.occupied; vertex_j++ ) {
             Vec3f vertex;
@@ -219,10 +219,10 @@ static void query_face_directions(struct ColliderConvex* const convex1,
 
         // just the dot product is not enough, the face and therefore the plane we like to compute the
         // distance to is orientated in 3d space so that is does not go through the origin (most likely),
-        // so we just use one of the face vertices as point32_t on plane and then project the difference of
-        // support - point32_t on the plane normal to compute the distance
+        // so we just use one of the face vertices as point on plane and then project the difference of
+        // support - point on the plane normal to compute the distance
         // d = n . (s - p)
-        Vec3f plane_point;
+        Vec3f plane_point = {0};
         int32_t vertex_i = mesh1->edges.array[mesh1->faces.array[face_i].edge].vertex;
         vec_copy3f(mesh1->vertices.array[vertex_i].position, plane_point);
         vec_sub3f(support, plane_point, support);
@@ -364,6 +364,7 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
         }
     }
 }
+
 bool collide_convex_convex(struct ColliderConvex* const convex1, struct ColliderConvex* const convex2) {
     log_assert(convex1->collider.type == COLLIDER_CONVEX);
     log_assert(convex2->collider.type == COLLIDER_CONVEX);
@@ -378,19 +379,19 @@ bool collide_convex_convex(struct ColliderConvex* const convex1, struct Collider
     Vec3f axis = {0.0, 0.0, 0.0};
 
     query_face_directions(convex1, convex2, axis, &distance, &face_index1, &vertex_index1);
-    printf("distance1: %f\n", distance);
+    printf("//distance1: %f\n", distance);
     if( distance > 0.0f ) {
         return false;
     }
 
     query_face_directions(convex2, convex1, axis, &distance, &face_index2, &vertex_index2);
-    printf("distance2: %f\n", distance);
+    printf("//distance2: %f\n", distance);
     if( distance > 0.0f ) {
         return false;
     }
 
     query_edge_directions(convex1, convex2, axis, &distance, &edge_index1, &edge_index2);
-    printf("distance3: %f\n", distance);
+    printf("//distance3: %f\n", distance);
     if( distance > 0.0f ) {
         return false;
     }
