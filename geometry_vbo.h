@@ -137,7 +137,8 @@ struct VboMesh {
     // in vbomesh instead, but I suspect because it made things somehow easier to implement
     // - as of now, I decided against refactoring this part and putting the indices into
     // vbo because the existing solution should be more flexible for meshes where I have
-    // a fixed amount of vertices and then change the indices to get dynamic geometry
+    // a fixed amount of vertices and then change the indices to get dynamic geometry, that was,
+    // I believe, my original intention here
     // - of course, if I would instead stream my data every frame, this solution is not optimal
     // because I would have to map/bind every index buffer for every mesh, instead of just
     // mapping/binding one big index buffer once, as I could do with the attributes buffers
@@ -147,6 +148,19 @@ struct VboMesh {
     // becomes easier, without the index buffer, the meshes can just be treated like local stack
     // variables, they'll deallocate automatically once they go out of scope, with the index
     // buffer allocated on the gpu, I have to explicitly deconstruct every mesh
+    // - one problem with this right here: I can not create a local VboMesh and then return
+    // a copy, the indices pointer will always be wrong! moving this into Vbo would help
+    // - when thinking about implementing color picking, to minimize drawcalls, it would be
+    // better if the indices would be in one big buffer instead of multiple smaller ones, then
+    // I could just pass a whole vbo (and ibo?) into a picking function and would only need
+    // one drawcall, but (!) I would additionally need something like instancing, something
+    // to pass in the model matrices for the seperate meshes! otherwise it would not reduce
+    // the amount of drawcalls
+    // - given the last two points, I want to make this seperate from VboMesh, but, my initial
+    // thinking it should be part of Vbo, is not optimal I believe, it should be seperate,
+    // I want an Ibo struct in addition to an Vbo struct, which I then point to from VboMesh,
+    // that reflects better the notion that attribute data is 'fixed', whereas indices can
+    // be streamed in for every frame, or may be completely replaced
     struct VboMeshIndexBuffer {
         uint32_t id; // index buffer
         GLenum usage;
