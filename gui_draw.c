@@ -70,8 +70,8 @@ void draw_arrow( struct Canvas* canvas,
                  int32_t layer_i,
                  const Vec v,
                  const Vec pos,
-                 float scale,
                  float offset,
+                 float scale,
                  const Color color,
                  const Mat model_matrix)
 {
@@ -136,8 +136,8 @@ void draw_vec( struct Canvas* canvas,
                int32_t layer_i,
                const Vec v,
                const Vec pos,
-               float scale,
                float arrow,
+               float scale,
                const Color color,
                const Mat model_matrix)
 {
@@ -232,13 +232,13 @@ void draw_quat( struct Canvas* canvas,
         // we also draw two axis in different colors, that will swap, to indicate the two rotation phases of the quaternion
         // thats why this is in here and in the else with swapped colors, and thats why we flip the axis again (this time,
         // to get the actual inverse)
-        draw_vec(canvas, layer_i, axis, (Vec){0.0, 0.0, 0.0, 1.0}, scale, 1.0f, color1, model_matrix);
+        draw_vec(canvas, layer_i, axis, (Vec){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, color1, model_matrix);
         vec_mul1f(axis, -1.0f, axis_inverse);
-        draw_vec(canvas, layer_i, axis_inverse, (Vec){0.0, 0.0, 0.0, 1.0}, scale, 1.0f, color2, model_matrix);
+        draw_vec(canvas, layer_i, axis_inverse, (Vec){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, color2, model_matrix);
     } else {
-        draw_vec(canvas, layer_i, axis, (Vec){0.0, 0.0, 0.0, 1.0}, scale, 1.0f, color2, model_matrix);
+        draw_vec(canvas, layer_i, axis, (Vec){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, color2, model_matrix);
         vec_mul1f(axis, -1.0f, axis_inverse);
-        draw_vec(canvas, layer_i, axis_inverse, (Vec){0.0, 0.0, 0.0, 1.0}, scale, 1.0f, color1, model_matrix);
+        draw_vec(canvas, layer_i, axis_inverse, (Vec){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, color1, model_matrix);
     }
 
     // draw two circles from 0 to angle, and from angle to 2*PI, so we'll get a full circle consisting
@@ -332,7 +332,7 @@ void draw_circle( struct Canvas* canvas,
         b[3] = 1.0;
 
         vec_sub(a,b,v);
-        draw_arrow(canvas, layer, v, a, radius/2.0f, 0.0f, color, arrow_matrix);
+        draw_arrow(canvas, layer, v, a, 0.0f, radius/2.0f, color, arrow_matrix);
     }
 
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 360, arrow_matrix);
@@ -346,9 +346,9 @@ void draw_basis( struct Canvas* canvas,
                  const Mat model_matrix )
 {
 
-    draw_vec(canvas, layer, (Vec){2.0, 0.0, 0.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, scale, 1.0f, (Color){1.0, 0.0, 0.0, 1.0}, model_matrix);
-    draw_vec(canvas, layer, (Vec){0.0, 2.0, 0.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, scale, 1.0f, (Color){0.0, 1.0, 0.0, 1.0}, model_matrix);
-    draw_vec(canvas, layer, (Vec){0.0, 0.0, 2.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, scale, 1.0f, (Color){0.0, 0.0, 1.0, 1.0}, model_matrix);
+    draw_vec(canvas, layer, (Vec){2.0, 0.0, 0.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, (Color){1.0, 0.0, 0.0, 1.0}, model_matrix);
+    draw_vec(canvas, layer, (Vec){0.0, 2.0, 0.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, (Color){0.0, 1.0, 0.0, 1.0}, model_matrix);
+    draw_vec(canvas, layer, (Vec){0.0, 0.0, 2.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, (Color){0.0, 0.0, 1.0, 1.0}, model_matrix);
 }
 
 void draw_reticle( struct Canvas* canvas,
@@ -434,7 +434,7 @@ void draw_contact( struct Canvas* canvas,
     Mat contact_matrix = {0};
     mat_translate(model_matrix, contact_point, contact_matrix);
 
-    draw_vec(canvas, layer, contact_normal, (Vec)NULL_VEC, scale, 1.0f, (Color){0.1f, 0.9f, 0.7f, 1.0f}, contact_matrix);
+    draw_vec(canvas, layer, contact_normal, (Vec)NULL_VEC, 1.0f, scale, (Color){0.1f, 0.9f, 0.7f, 1.0f}, contact_matrix);
 
     Quat q = {0};
     quat_from_vec_pair((Vec)FORWARD_AXIS, (Vec)UP_AXIS, q);
@@ -469,7 +469,7 @@ void draw_contact( struct Canvas* canvas,
 
     Vec contact_normal_flipped;
     vec_mul1f(contact_normal, -1.0f, contact_normal_flipped);
-    draw_vec(canvas, layer, contact_normal_flipped, (Vec)NULL_VEC, scale, 0.0f, (Color){1.0f, 0.2f, 0.7f, 1.0f}, contact_matrix);
+    draw_vec(canvas, layer, contact_normal_flipped, (Vec)NULL_VEC, 0.0f, scale, (Color){1.0f, 0.2f, 0.7f, 1.0f}, contact_matrix);
 
 }
 
@@ -490,7 +490,7 @@ void draw_normals_array( struct Canvas* canvas,
         Vec normal = { normals[i*3+0], normals[i*3+1], normals[i*3+2], 1.0f };
         Vec vertex = { vertices[i*3+0], vertices[i*3+1], vertices[i*3+2], 1.0 };
 
-        draw_vec(canvas, layer, normal, vertex, scale, 0.0f, color, model_matrix);
+        draw_vec(canvas, layer, normal, vertex, 0.0f, scale, color, model_matrix);
     }
 
 }

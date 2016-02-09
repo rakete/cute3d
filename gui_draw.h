@@ -28,76 +28,83 @@
 #include "driver_glsl.h"
 #include "gui_canvas.h"
 
-void draw_grid( struct Canvas* canvas,
-                int32_t layer,
-                float width,
-                float height,
-                uint32_t steps,
-                const Color color,
-                const Mat model_matrix );
-
-void draw_arrow( struct Canvas* canvas,
-                 int32_t layer,
-                 const Vec v,
-                 const Vec pos,
-                 float scale,
-                 float offset,
-                 const Color color,
-                 const Mat model_matrix );
-
-void draw_vec( struct Canvas* canvas,
+void draw_grid(struct Canvas* canvas,
                int32_t layer,
-               const Vec v,
-               const Vec pos,
-               float scale,
-               float arrow,
+               float width,
+               float height,
+               uint32_t steps,
                const Color color,
                const Mat model_matrix);
 
-void draw_quat( struct Canvas* canvas,
+void draw_arrow(struct Canvas* canvas,
                 int32_t layer,
-                const Quat q,
+                const Vec v,
+                const Vec pos,
+                float offset,
                 float scale,
-                const Color color1,
-                const Color color2,
-                const Mat model_matrix );
+                const Color color,
+                const Mat model_matrix);
 
-void draw_circle( struct Canvas* canvas,
-                  int32_t layer,
-                  float radius,
-                  float start,
-                  float end,
-                  float arrow,
-                  const Color color,
-                  const Mat model_matrix );
+void draw_vec(struct Canvas* canvas,
+              int32_t layer,
+              const Vec v,
+              const Vec pos,
+              float arrow,
+              float scale,
+              const Color color,
+              const Mat model_matrix);
 
-void draw_basis( struct Canvas* canvas,
+void draw_quat(struct Canvas* canvas,
+               int32_t layer,
+               const Quat q,
+               float scale,
+               const Color color1,
+               const Color color2,
+               const Mat model_matrix);
+
+void draw_circle(struct Canvas* canvas,
                  int32_t layer,
+                 float radius,
+                 float start,
+                 float end,
+                 float arrow,
+                 const Color color,
+                 const Mat model_matrix);
+
+void draw_basis(struct Canvas* canvas,
+                int32_t layer,
+                float scale,
+                const Mat model_matrix);
+
+void draw_reticle(struct Canvas* canvas,
+                  int32_t layer,
+                  float scale,
+                  const Color color,
+                  const Mat model_matrix);
+
+void draw_contact(struct Canvas* canvas,
+                  int32_t layer,
+                  const Vec contact_point,
+                  const Vec contact_normal,
+                  float contact_penetration,
+                  float scale,
+                  const Mat model_matrix);
+
+void draw_normals_array(struct Canvas* canvas,
+                        int32_t layer,
+                        const float* vertices,
+                        const float* normals,
+                        int32_t n,
+                        float scale,
+                        const Color color,
+                        const Mat model_matrix);
+
+void draw_camera(struct Canvas* canvas,
+                 int32_t layer,
+                 const struct Camera* camera,
                  float scale,
-                 const Mat model_matrix );
-
-void draw_reticle( struct Canvas* canvas,
-                   int32_t layer,
-                   float scale,
-                   const Color color,
-                   const Mat model_matrix );
-
-void draw_contact( struct Canvas* canvas,
-                   int32_t layer,
-                   const Vec contact_point,
-                   const Vec contact_normal,
-                   float contact_penetration,
-                   float scale,
-                   const Mat model_matrix );
-
-void draw_normals_array( struct Canvas* canvas,
-                         int32_t layer,
-                         const float* vertices,
-                         const float* normals,
-                         int32_t n,
-                         float scale,
-                         const Color color,
-                         const Mat model_matrix);
+                 const Color color,
+                 const Mat model_matrix);
 
 /* void draw_texture_quad( float scale, */
 /*                         GLuint texture_id, */
