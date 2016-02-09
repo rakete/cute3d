@@ -168,40 +168,49 @@ void draw_vec( struct Canvas* canvas,
     mat_translate(arrow_matrix, pos, arrow_matrix);
     mat_mul(arrow_matrix, model_matrix, arrow_matrix);
 
-    Mat arrow_offset_matrix = IDENTITY_MAT;
-    quat_to_mat(rotation, arrow_offset_matrix);
-    mat_scale(arrow_offset_matrix, scale * length, arrow_offset_matrix);
-    mat_translate(arrow_offset_matrix, pos, arrow_offset_matrix);
 
     // move the arrow along scaled vector down so that the value given in arrow will fit the
     // 1.0f == arrow at the top, 0.0f arrow invisible scheme
-    // arrow == 0.9f -> arrow -10% (-1.0f + 0.9f) from the top of the vector
-    mat_translate(arrow_offset_matrix, (Vec){0.0f, (-1.0f + arrow) * scale * length, 0.0f, 1.0f}, arrow_offset_matrix);
-    mat_mul(arrow_offset_matrix, model_matrix, arrow_offset_matrix);
+    // arrow == 0.9f -> arrow -10% (-1.0f + 0.9f) from the top of the vectorMat arrow_offset_matrix = IDENTITY_MAT;
+    Mat arrow_offset_matrix = IDENTITY_MAT;
+    Vec arrow_translation = {0};
+    vec_mul1f(v, arrow * scale, arrow_translation);
+    mat_translate(arrow_matrix, arrow_translation, arrow_offset_matrix);
 
-    static float vertices[18] =
+    static float vec_vertices[2*3] =
         { 0.0f,  0.0f,  0.0f,
-          0.0f,  0.0f,  1.0f,
-          0.05f,  0.0f,  0.9f,
-          0.0f,  0.05f,  0.9f,
-          -0.05f, 0.0f,  0.9f,
-          0.0f,  -0.05f, 0.9f };
+          0.0f,  0.0f,  1.0f };
 
-    static uint32_t elements[18] =
-        { 0, 1,
-          1, 2,
-          1, 3,
-          1, 4,
-          1, 5,
-          2, 3,
+    static uint32_t vec_elements[1*2] =
+        { 0, 1 };
+
+    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    canvas_append_vertices(canvas, vec_vertices, 3, GL_FLOAT, 2, arrow_matrix);
+    canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 2, color);
+    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, vec_elements, 1*2, offset);
+
+    static float arrow_vertices[5*3] =
+        { 0.0f,  0.0f,  0.1f,
+          0.05f,  0.0f,  0.0f,
+          0.0f,  0.05f,  0.0f,
+          -0.05f, 0.0f,  0.0f,
+          0.0f,  -0.05f, 0.0f };
+
+    static uint32_t arrow_elements[8*2] =
+        { 2, 3,
+          2, 4,
+          2, 5,
+          2, 6,
           3, 4,
           4, 5,
-          5, 2 };
+          5, 6,
+          6, 3 };
 
-    uint32_t offset = canvas->attribute[SHADER_ATTRIBUTE_VERTICES].occupied;
-    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 6, arrow_matrix);
-    canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 6, color);
-    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, elements, 9*2, offset);
+    if( arrow > 0.0f ) {
+        canvas_append_vertices(canvas, arrow_vertices, 3, GL_FLOAT, 5, arrow_offset_matrix);
+        canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 5, color);
+        canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, arrow_elements, 8*2, offset);
+    }
 }
 
 void draw_quat( struct Canvas* canvas,
