@@ -32,5 +32,7 @@ double sdl2_time_delta();
 double sdl2_time();
 
 int32_t sdl2_poll_event(SDL_Event* event);
+void sdl2_gl_swap_window(SDL_Window* window);
+void sdl2_gl_set_swap_interval(int interval);
 
 #endif

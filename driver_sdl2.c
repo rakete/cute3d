@@ -89,13 +89,44 @@ double sdl2_time() {
     return t;
 }
 
+#define sdl2_profile(line)                                              \
+    double t1 = sdl2_time();                                            \
+    line;                                                               \
+    double t2 = sdl2_time();                                            \
+    double t = (t2 - t1) * 1000;                                        \
+    if( t > 0.5 ) {                                                     \
+        log_warn(stderr, __FILE__, __LINE__, "%s: %.02fms\n", sdl2_stringify(line), t); \
+    }
+
+
 int32_t sdl2_poll_event(SDL_Event* event) {
     double t1 = sdl2_time();
-    int32_t ret = SDL_PollEvent(event);
+    int32_t ret = 0;
+    sdl2_debug( ret = SDL_PollEvent(event) );
     double t2 = sdl2_time();
     double t = (t2 - t1) * 1000;
     if( t > 0.5 ) {
         log_warn(stderr, __FILE__, __LINE__, "SDL_PollEvent time: %.02fms\n", t);
     }
     return ret;
+}
+
+void sdl2_gl_swap_window(SDL_Window* window) {
+    double t1 = sdl2_time();
+    sdl2_debug( SDL_GL_SwapWindow(window) );
+    double t2 = sdl2_time();
+    double t = (t2 - t1) * 1000;
+    if( t > 50.0 ) {
+        log_warn(stderr, __FILE__, __LINE__, "SDL_GL_SwapWindow time: %.02fms\n", t);
+    }
+}
+
+void sdl2_gl_set_swap_interval(int interval) {
+    double t1 = sdl2_time();
+    sdl2_debug( SDL_GL_SetSwapInterval(interval) );
+    double t2 = sdl2_time();
+    double t = (t2 - t1) * 1000;
+    if( t > 1.0 ) {
+        log_warn(stderr, __FILE__, __LINE__, "SDL_GL_SetSwapInterval time: %.02fms\n", t);
+    }
 }
