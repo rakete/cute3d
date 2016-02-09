@@ -107,10 +107,10 @@ void color_copy(const Color c, Color r) {
 void vec_equal(const Vec a, const Vec b, int* r) {
     *r = 0;
 
-    if( fabs(a[0] - b[0]) <= FLOAT_EPSILON &&
-        fabs(a[1] - b[1]) <= FLOAT_EPSILON &&
-        fabs(a[2] - b[2]) <= FLOAT_EPSILON &&
-        fabs(a[3] - b[3]) <= FLOAT_EPSILON )
+    if( fabs(a[0] - b[0]) <= CUTE_EPSILON &&
+        fabs(a[1] - b[1]) <= CUTE_EPSILON &&
+        fabs(a[2] - b[2]) <= CUTE_EPSILON &&
+        fabs(a[3] - b[3]) <= CUTE_EPSILON )
     {
         *r = 1;
     }
@@ -125,9 +125,9 @@ int32_t vequal(const Vec a, const Vec b) {
 void vec_equal3f(const Vec3f a, const Vec3f b, int* r) {
     *r = 0;
 
-    if( fabs(a[0] - b[0]) <= FLOAT_EPSILON &&
-        fabs(a[1] - b[1]) <= FLOAT_EPSILON &&
-        fabs(a[2] - b[2]) <= FLOAT_EPSILON )
+    if( fabs(a[0] - b[0]) <= CUTE_EPSILON &&
+        fabs(a[1] - b[1]) <= CUTE_EPSILON &&
+        fabs(a[2] - b[2]) <= CUTE_EPSILON )
     {
         *r = 1;
     }
@@ -310,10 +310,15 @@ float vsquared(const Vec3f v) {
     return r;
 }
 
-
 void vec_length(const Vec3f v, float* r) {
-    if( fabs(v[0]) < FLOAT_EPSILON && fabs(v[1]) < FLOAT_EPSILON && fabs(v[2]) < FLOAT_EPSILON ) {
+    if( v[0] == 0.0f && v[1] == 0.0f && v[2] == 0.0f ) {
+        // - I had this return 0 when all v[*] < CUTE_EPSILON, but it turned out I don't really like getting
+        // zero from this function because dividing by zero gives me nan, which causes problems elsewhere, so,
+        // only return zero when all coords are actually zero
         *r = 0.0f;
+    } else if( fabs(v[0]) < CUTE_EPSILON && fabs(v[1]) < CUTE_EPSILON && fabs(v[2]) < CUTE_EPSILON ) {
+        // - used to return 0 here, now just make CUTE_EPSILON smallest possible vector length
+        *r = CUTE_EPSILON;
     } else {
         *r = sqrtf( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
     }
@@ -356,9 +361,9 @@ void vec_angle(const Vec3f v, const Vec3f w, float* r) {
     vec_normalize3f(w, normed_w);
 
     float dot = vdot(normed_v,normed_w);
-    if( fabs(dot + 1.0f) < FLOAT_EPSILON ) {
+    if( fabs(dot + 1.0f) < CUTE_EPSILON ) {
         *r = PI;
-    } else if( fabs(dot - 1.0f) < FLOAT_EPSILON ) {
+    } else if( fabs(dot - 1.0f) < CUTE_EPSILON ) {
         *r = 0.0f;
     } else {
         *r = acosf(dot);
@@ -400,9 +405,9 @@ void vec_rotate3f(const Vec3f vec, const Quat q, Vec3f r) {
 }
 
 void vec_nullp(const Vec v, bool* r) {
-    if( fabs(v[0]) < FLOAT_EPSILON &&
-        fabs(v[1]) < FLOAT_EPSILON &&
-        fabs(v[2]) < FLOAT_EPSILON )
+    if( fabs(v[0]) < CUTE_EPSILON &&
+        fabs(v[1]) < CUTE_EPSILON &&
+        fabs(v[2]) < CUTE_EPSILON )
     {
         *r = 1;
     } else {
@@ -417,7 +422,7 @@ bool vnullp(const Vec v) {
 }
 
 void vec_unitp(const Vec v, bool* r) {
-    if( fabs(vlength(v) - 1.0f) < FLOAT_EPSILON ) {
+    if( fabs(vlength(v) - 1.0f) < CUTE_EPSILON ) {
         *r = 1;
     } else {
         *r = 0;

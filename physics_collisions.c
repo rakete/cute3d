@@ -572,7 +572,7 @@ struct Physics collisions_resolve(struct Physics previous,
 /*                 // Skip near parallel edges: |e1 x e2| = sin(alpha) * |e1| * |e2| */
 /*                 float length = vlength(e1xe2); */
 /*                 float distance = -FLT_MAX; */
-/*                 if( length >= FLOAT_EPSILON * sqrt(vsquared(e1) * vsquared(e2)) ) { */
+/*                 if( length >= CUTE_EPSILON * sqrt(vsquared(e1) * vsquared(e2)) ) { */
 /*                     Vec3f normal; */
 /*                     vec_mul1f(e1xe2, 1.0f/length, normal); */
 

@@ -45,12 +45,12 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec target) {
     float dot;
     vec_dot(target_direction, forward_axis, &dot);
 
-    Quat rotation;
-    if( fabs(dot + 1.0f) < FLOAT_EPSILON ) {
+    Quat rotation = {0};
+    if( fabs(dot + 1.0f) < CUTE_EPSILON ) {
         // vector a and b point32_t exactly in the opposite direction,
         // so it is a 180 degrees turn around the up-axis
         quat_mul_axis_angle(pivot->orientation, up_axis, PI, rotation);
-    } else if( fabs(dot - (1.0f)) < FLOAT_EPSILON ) {
+    } else if( fabs(dot - (1.0f)) < CUTE_EPSILON ) {
         // vector a and b point32_t exactly in the same direction
         // so we return the identity quaternion
         quat_copy(pivot->orientation, rotation);

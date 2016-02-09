@@ -38,8 +38,8 @@ QuatP qidentity(Quat q) {
 }
 
 bool quat_from_axis_angle(const Vec3f axis, const float angle, Quat q) {
-    if( ( fabs(axis[0]) < FLOAT_EPSILON && fabs(axis[1]) < FLOAT_EPSILON && fabs(axis[2]) < FLOAT_EPSILON ) ||
-        fabs(angle) < FLOAT_EPSILON )
+    if( ( fabs(axis[0]) < CUTE_EPSILON && fabs(axis[1]) < CUTE_EPSILON && fabs(axis[2]) < CUTE_EPSILON ) ||
+        fabs(angle) < CUTE_EPSILON )
     {
         quat_identity(q);
         return 1;
@@ -83,8 +83,8 @@ bool quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
     float angle;
     vec_angle(b,a,&angle);
 
-    if( (fabs(axis[0]) < FLOAT_EPSILON && fabs(axis[1]) < FLOAT_EPSILON && fabs(axis[2]) < FLOAT_EPSILON) ||
-        fabs(angle) < FLOAT_EPSILON )
+    if( (fabs(axis[0]) < CUTE_EPSILON && fabs(axis[1]) < CUTE_EPSILON && fabs(axis[2]) < CUTE_EPSILON) ||
+        fabs(angle) < CUTE_EPSILON )
     {
         quat_identity(q);
         return 1;
@@ -101,8 +101,8 @@ QuatP qfrom_vec_pair(const Vec3f a, Quat b) {
 }
 
 bool quat_mul_axis_angle(const Quat q, const Vec3f axis, const float angle, Quat r) {
-    if( (fabs(axis[0]) < FLOAT_EPSILON && fabs(axis[1]) < FLOAT_EPSILON && fabs(axis[2]) < FLOAT_EPSILON) ||
-        fabs(angle) < FLOAT_EPSILON )
+    if( (fabs(axis[0]) < CUTE_EPSILON && fabs(axis[1]) < CUTE_EPSILON && fabs(axis[2]) < CUTE_EPSILON) ||
+        fabs(angle) < CUTE_EPSILON )
     {
         quat_copy(q, r);
         return 1;
@@ -120,9 +120,9 @@ QuatP qmul_axis_angle(const Vec3f axis, const float angle, Quat q) {
 }
 
 bool quat_mul_vec_pair(const Quat q, const Vec3f a, const Vec3f b, Quat r) {
-    if( (fabs(a[0]) < FLOAT_EPSILON && fabs(a[1]) < FLOAT_EPSILON && fabs(a[2]) < FLOAT_EPSILON) ||
-        (fabs(b[0]) < FLOAT_EPSILON && fabs(b[1]) < FLOAT_EPSILON && fabs(b[2]) < FLOAT_EPSILON) ||
-        (fabs(a[0]- b[0]) < FLOAT_EPSILON && fabs(a[1] - b[1]) < FLOAT_EPSILON && fabs(a[2] - b[2]) < FLOAT_EPSILON) )
+    if( (fabs(a[0]) < CUTE_EPSILON && fabs(a[1]) < CUTE_EPSILON && fabs(a[2]) < CUTE_EPSILON) ||
+        (fabs(b[0]) < CUTE_EPSILON && fabs(b[1]) < CUTE_EPSILON && fabs(b[2]) < CUTE_EPSILON) ||
+        (fabs(a[0]- b[0]) < CUTE_EPSILON && fabs(a[1] - b[1]) < CUTE_EPSILON && fabs(a[2] - b[2]) < CUTE_EPSILON) )
     {
         quat_copy(q, r);
         return 1;
@@ -227,7 +227,7 @@ void quat_invert(const Quat q, Quat r) {
 void quat_normalize(const Quat q, Quat r) {
     float norm;
     quat_magnitude(q, &norm);
-    if( norm < FLOAT_EPSILON ) {
+    if( norm < CUTE_EPSILON ) {
         r[0] = 0;
         r[1] = 0;
         r[2] = 0;
@@ -302,7 +302,7 @@ void quat_to_axis_angle(const Quat p, Vec axis, float* angle) {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
-    if( s < FLOAT_EPSILON ) { // test to avoid divide by zero, s is always positive due to sqrt
+    if( s < CUTE_EPSILON ) { // test to avoid divide by zero, s is always positive due to sqrt
         // if s close to zero then direction of axis not important
         axis[0] = q[0]; // if it is important that axis is normalised then replace with x=1; y=z=0;
         axis[1] = q[1];
@@ -317,7 +317,7 @@ void quat_to_axis_angle(const Quat p, Vec axis, float* angle) {
 #pragma GCC diagnostic pop
 
     float length = vlength(axis);
-    if( length < FLOAT_EPSILON ) {
+    if( length < CUTE_EPSILON ) {
         *angle = 0.0f;
     }
 }
@@ -336,7 +336,7 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
     }
 
     Quat ua,ub;
-    if( (1 - cosine) < FLOAT_EPSILON ) {
+    if( (1 - cosine) < CUTE_EPSILON ) {
         quat_mul1f(qa, t*flip, ua);
         quat_mul1f(qb, 1-t, ub);
         quat_add(ua, ub, r);

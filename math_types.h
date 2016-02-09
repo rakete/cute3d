@@ -77,6 +77,6 @@ typedef float Texcoord[2];
 #define Y_AXIS { 0, 1, 0, 1 }
 #define Z_AXIS { 0, 0, 1, 1 }
 
-#define FLOAT_EPSILON 0.00001f
+#define CUTE_EPSILON 0.00001f
 
 #endif
