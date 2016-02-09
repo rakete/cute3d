@@ -332,9 +332,15 @@ float vlength(const Vec3f v) {
 
 void vec_normalize(const Vec v, Vec r) {
     float norm = vlength(v);
-    r[0] = v[0] / norm;
-    r[1] = v[1] / norm;
-    r[2] = v[2] / norm;
+
+    // guard against nan
+    if( norm < CUTE_EPSILON ) {
+        norm = CUTE_EPSILON;
+    }
+
+    r[0] = v[0] == 0.0f ? 0.0f : v[0] / norm;
+    r[1] = v[1] == 0.0f ? 0.0f : v[1] / norm;
+    r[2] = v[2] == 0.0f ? 0.0f : v[2] / norm;
     r[3] = 1.0;
 }
 
@@ -345,9 +351,14 @@ VecP vnormalize(Vec v) {
 
 void vec_normalize3f(const Vec3f v, Vec3f r) {
     float norm = vlength(v);
-    r[0] = v[0] / norm;
-    r[1] = v[1] / norm;
-    r[2] = v[2] / norm;
+
+    if( norm < CUTE_EPSILON ) {
+        norm = CUTE_EPSILON;
+    }
+
+    r[0] = v[0] == 0.0f ? 0.0f : v[0] / norm;
+    r[1] = v[1] == 0.0f ? 0.0f : v[1] / norm;
+    r[2] = v[2] == 0.0f ? 0.0f : v[2] / norm;
 }
 
 VecP vnormalize3f(Vec3f v) {
