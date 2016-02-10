@@ -25,7 +25,10 @@
 
 #include "math_types.h"
 #include "math_camera.h"
+#include "math_color.h"
+
 #include "driver_ogl.h"
+
 #include "gui_canvas.h"
 
 void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projection, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text);

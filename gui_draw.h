@@ -24,8 +24,12 @@
 #include "math_types.h"
 #include "math_matrix.h"
 #include "math_quaternion.h"
+#include "math_camera.h"
+#include "math_color.h"
+
 #include "driver_ogl.h"
 #include "driver_glsl.h"
+
 #include "gui_canvas.h"
 
 void draw_grid(struct Canvas* canvas,

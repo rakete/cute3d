@@ -17,7 +17,7 @@
 #ifndef GUI_DEFAULT_FONT_H
 #define GUI_DEFAULT_FONT_H
 
-#include "gui.h"
+#include "gui_font.h"
 
 struct Character char_A();
 struct Character char_B();
