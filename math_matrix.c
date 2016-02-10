@@ -16,51 +16,15 @@
 
 #include "math_matrix.h"
 
-void vec_axisx(Vec r) {
-    r[0] = 1.0;
-    r[1] = 0.0;
-    r[2] = 0.0;
-    r[3] = 1.0;
-}
-
-VecP vaxisx(Vec r) {
-    vec_axisx(r);
-    return r;
-}
-
-void vec_axisy(Vec r) {
-    r[0] = 0.0;
-    r[1] = 1.0;
-    r[2] = 0.0;
-    r[3] = 1.0;
-}
-
-VecP vaxisy(Vec r) {
-    vec_axisy(r);
-    return r;
-}
-
-void vec_axisz(Vec r) {
-    r[0] = 0.0;
-    r[1] = 0.0;
-    r[2] = 1.0;
-    r[3] = 1.0;
-}
-
-VecP vaxisz(Vec r) {
-    vec_axisz(r);
-    return r;
-}
-
-void vec_copy(const Vec v, Vec r) {
+void vec_copy4f(const Vec v, Vec r) {
     r[0] = v[0];
     r[1] = v[1];
     r[2] = v[2];
     r[3] = v[3];
 }
 
-VecP vcopy(const Vec v, Vec r) {
-    vec_copy(v,r);
+VecP vcopy4f(const Vec v, Vec r) {
+    vec_copy4f(v,r);
     return r;
 }
 
@@ -85,32 +49,12 @@ VecP vcopy2f(const Vec v, Vec2f r) {
     return r;
 }
 
-void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r) {
-    r[0] = x[0];  r[4] = y[0];  r[8]  = z[0];  r[12] = 0.0;
-    r[1] = x[1];  r[5] = y[1];  r[9]  = z[1];  r[13] = 0.0;
-    r[2] = x[2];  r[6] = y[2];  r[10] = z[2];  r[14] = 0.0;
-    r[3] = 0.0;   r[7] = 0.0;   r[11] = 0.0;   r[15] = 1.0;
-}
-
-MatP vcopy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r) {
-    vec_copy3fmat(x,y,z,r);
-    return r;
-}
-
-void color_copy(const Color c, Color r) {
-    r[0] = c[0];
-    r[1] = c[1];
-    r[2] = c[2];
-    r[3] = c[3];
-}
-
 void vec_equal(const Vec a, const Vec b, int* r) {
     *r = 0;
 
     if( fabs(a[0] - b[0]) <= CUTE_EPSILON &&
         fabs(a[1] - b[1]) <= CUTE_EPSILON &&
-        fabs(a[2] - b[2]) <= CUTE_EPSILON &&
-        fabs(a[3] - b[3]) <= CUTE_EPSILON )
+        fabs(a[2] - b[2]) <= CUTE_EPSILON )
     {
         *r = 1;
     }
@@ -122,129 +66,47 @@ int32_t vequal(const Vec a, const Vec b) {
     return r;
 }
 
-void vec_equal3f(const Vec3f a, const Vec3f b, int* r) {
-    *r = 0;
-
-    if( fabs(a[0] - b[0]) <= CUTE_EPSILON &&
-        fabs(a[1] - b[1]) <= CUTE_EPSILON &&
-        fabs(a[2] - b[2]) <= CUTE_EPSILON )
-    {
-        *r = 1;
-    }
-}
-
-int32_t vequal3f(const Vec3f a, const Vec3f b) {
-    int32_t r;
-    vec_equal3f(a,b,&r);
-    return r;
-}
-
-void vec_add(const Vec v, const Vec3f w, Vec r) {
+void vec_add(const Vec3f v, const Vec3f w, Vec3f r) {
     r[0] = v[0] + w[0];
     r[1] = v[1] + w[1];
     r[2] = v[2] + w[2];
-    r[3] = v[3];
 }
 
-VecP vadd(const Vec v, Vec w) {
+VecP vadd(const Vec3f v, Vec3f w) {
     vec_add(v,w,w);
     return w;
 }
 
-void vec_add3f(const Vec3f v, const Vec3f w, Vec3f r) {
-    r[0] = v[0] + w[0];
-    r[1] = v[1] + w[1];
-    r[2] = v[2] + w[2];
-}
-
-VecP vadd3f(const Vec3f v, Vec3f w) {
-    vec_add3f(v,w,w);
-    return w;
-}
-
-void vec_sub(const Vec v, const Vec3f w, Vec r) {
+void vec_sub(const Vec3f v, const Vec3f w, Vec3f r) {
     r[0] = v[0] - w[0];
     r[1] = v[1] - w[1];
     r[2] = v[2] - w[2];
-    r[3] = 1.0;
 }
 
-VecP vsub(const Vec v, Vec w) {
+VecP vsub(const Vec3f v, Vec3f w) {
     vec_sub(v,w,w);
     return w;
 }
 
-void vec_sub3f(const Vec3f v, const Vec3f w, Vec3f r) {
-    r[0] = v[0] - w[0];
-    r[1] = v[1] - w[1];
-    r[2] = v[2] - w[2];
-}
-
-VecP vsub3f(const Vec3f v, Vec3f w) {
-    vec_sub3f(v,w,w);
-    return w;
-}
-
-void vec_sub1f(const Vec v, const float w, Vec r) {
+void vec_sub1f(const Vec3f v, const float w, Vec3f r) {
     r[0] = v[0] - w;
     r[1] = v[1] - w;
     r[2] = v[2] - w;
-    r[3] = 1.0;
 }
 
-VecP vsub1f(Vec v, float w) {
+VecP vsub1f(Vec3f v, float w) {
     vec_sub1f(v,w,v);
     return v;
 }
 
-void vec_mul(const Vec v, const Vec w, Mat m) {
-    log_assert(false, "4f vec_mul not implemented yet!");
-}
-
-VecP vmul(const Vec v, Mat w) {
-    Vec t;
-    t[0] = w[0];
-    t[1] = w[1];
-    t[2] = w[2];
-    t[3] = w[3];
-
-    vec_mul(v,t,w);
-    return w;
-}
-
-
-void vec_mul1f(const Vec3f v, float w, Vec r) {
+void vec_mul1f(const Vec3f v, float w, Vec3f r) {
     r[0] = v[0]*w;
     r[1] = v[1]*w;
     r[2] = v[2]*w;
-    r[3] = 1.0;
 }
 
 VecP vmul1f(Vec3f v, float w) {
     vec_mul1f(v,w,v);
-    return v;
-}
-
-void vec_mul4f1f(const Vec v, float w, Vec r) {
-    r[0] = v[0]*w;
-    r[1] = v[1]*w;
-    r[2] = v[2]*w;
-    r[3] = v[3]*w;
-}
-
-VecP vmul4f1f(Vec v, float w) {
-    vec_mul4f1f(v,w,v);
-    return v;
-}
-
-void vec_mul3f1f(const Vec3f v, float w, Vec3f r) {
-    r[0] = v[0]*w;
-    r[1] = v[1]*w;
-    r[2] = v[2]*w;
-}
-
-VecP vmul3f1f(Vec3f v, float w) {
-    vec_mul3f1f(v,w,v);
     return v;
 }
 
@@ -259,7 +121,6 @@ VecP vinvert(Vec v) {
     return v;
 }
 
-
 void vec_dot(const Vec3f v, const Vec3f w, float* r) {
     *r = v[0]*w[0] + v[1]*w[1] + v[2]*w[2];
 }
@@ -270,22 +131,7 @@ float vdot(const Vec3f v, const Vec3f w) {
     return r;
 }
 
-void vec_cross(const Vec v, const Vec3f w, Vec r) {
-    Vec t;
-    t[0] = v[1]*w[2] - v[2]*w[1];
-    t[1] = v[2]*w[0] - v[0]*w[2];
-    t[2] = v[0]*w[1] - v[1]*w[0];
-
-    r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; r[3] = 1.0;
-    //vec_normalize(r, r);
-}
-
-VecP vcross(const Vec v, Vec w) {
-    vec_cross(v,w,w);
-    return w;
-}
-
-void vec_cross3f(const Vec3f v, const Vec3f w, Vec3f r) {
+void vec_cross(const Vec3f v, const Vec3f w, Vec3f r) {
     Vec t;
     t[0] = v[1]*w[2] - v[2]*w[1];
     t[1] = v[2]*w[0] - v[0]*w[2];
@@ -294,8 +140,8 @@ void vec_cross3f(const Vec3f v, const Vec3f w, Vec3f r) {
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
 }
 
-VecP vcross3f(const Vec3f v, Vec3f w) {
-    vec_cross3f(v,w,w);
+VecP vcross(const Vec v, Vec w) {
+    vec_cross(v,w,w);
     return w;
 }
 
@@ -329,7 +175,7 @@ float vlength(const Vec3f v) {
     return r;
 }
 
-void vec_normalize(const Vec v, Vec r) {
+void vec_normalize(const Vec3f v, Vec3f r) {
     float norm = vlength(v);
 
     // guard against nan
@@ -340,7 +186,6 @@ void vec_normalize(const Vec v, Vec r) {
     r[0] = v[0] == 0.0f ? 0.0f : v[0] / norm;
     r[1] = v[1] == 0.0f ? 0.0f : v[1] / norm;
     r[2] = v[2] == 0.0f ? 0.0f : v[2] / norm;
-    r[3] = 1.0;
 }
 
 VecP vnormalize(Vec v) {
@@ -348,27 +193,10 @@ VecP vnormalize(Vec v) {
     return v;
 }
 
-void vec_normalize3f(const Vec3f v, Vec3f r) {
-    float norm = vlength(v);
-
-    if( norm < CUTE_EPSILON ) {
-        norm = CUTE_EPSILON;
-    }
-
-    r[0] = v[0] == 0.0f ? 0.0f : v[0] / norm;
-    r[1] = v[1] == 0.0f ? 0.0f : v[1] / norm;
-    r[2] = v[2] == 0.0f ? 0.0f : v[2] / norm;
-}
-
-VecP vnormalize3f(Vec3f v) {
-    vec_normalize3f(v,v);
-    return v;
-}
-
 void vec_angle(const Vec3f v, const Vec3f w, float* r) {
     Vec3f normed_v, normed_w;
-    vec_normalize3f(v, normed_v);
-    vec_normalize3f(w, normed_w);
+    vec_normalize(v, normed_v);
+    vec_normalize(w, normed_w);
 
     float dot = vdot(normed_v,normed_w);
     if( fabs(dot + 1.0f) < CUTE_EPSILON ) {
@@ -386,7 +214,7 @@ float vangle(const Vec3f v, const Vec3f w) {
     return r;
 }
 
-void vec_rotate(const Vec vec, const Quat q, Vec r) {
+void vec_rotate4f(const Vec vec, const Quat q, Vec r) {
     Quat normed_q;
     quat_normalize(q, normed_q);
 
@@ -407,7 +235,7 @@ void vec_rotate3f(const Vec3f vec, const Quat q, Vec3f r) {
     vec4f[2] = vec[2];
     vec4f[3] = 1.0;
 
-    vec_rotate(vec4f, q, result4f);
+    vec_rotate4f(vec4f, q, result4f);
 
     r[0] = result4f[0];
     r[1] = result4f[1];
@@ -539,11 +367,7 @@ void vec_print(FILE* f, const char* title, const Vec v) {
     fprintf(f, "%s(%f %f %f %f)\n", title, v[0], v[1], v[2], v[3]);
 }
 
-void vec_print3f(FILE* f, const char* title, const Vec3f v) {
-    fprintf(f, "%s(%f %f %f)\n", title, v[0], v[1], v[2]);
-}
-
-void mat_copy(const Mat m, Mat r) {
+void mat_copy4f(const Mat m, Mat r) {
     r[0] = m[0];  r[4] = m[4];  r[8] = m[8];   r[12] = m[12];
     r[1] = m[1];  r[5] = m[5];  r[9] = m[9];   r[13] = m[13];
     r[2] = m[2];  r[6] = m[6];  r[10] = m[10]; r[14] = m[14];
@@ -594,7 +418,7 @@ void mat_identity(Mat m) {
     m[3] = 0.0f; m[7] = 0.0f; m[11] = 0.0f; m[15] = 1.0f;
 }
 
-void mat_invert(const Mat m, double* det, Mat r) {
+void mat_invert4f(const Mat m, double* det, Mat r) {
     double inv[16];
 
     inv[0] =
@@ -634,7 +458,7 @@ void mat_invert(const Mat m, double* det, Mat r) {
 
     if(det) *det = 0;
     if(d == 0) {
-        mat_copy(m, r);
+        mat_copy4f(m, r);
         return;
     }
 
@@ -746,8 +570,8 @@ void mat_invert(const Mat m, double* det, Mat r) {
     if(det) *det = d;
 }
 
-MatP minvert(Mat m, double* det) {
-    mat_invert(m,det,m);
+MatP minvert4f(Mat m, double* det) {
+    mat_invert4f(m,det,m);
     return m;
 }
 
@@ -847,7 +671,7 @@ MatP mmul(const Mat m, Mat n) {
     return n;
 }
 
-void mat_mul_vec(const Mat m, const Vec v, Vec r) {
+void mat_mul_vec4f(const Mat m, const Vec v, Vec r) {
     Vec t;
     t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]*v[3];
     t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]*v[3];
@@ -857,8 +681,8 @@ void mat_mul_vec(const Mat m, const Vec v, Vec r) {
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; r[3] = t[3];
 }
 
-MatP mmul_vec(const Mat m, Vec v) {
-    mat_mul_vec(m,v,v);
+MatP mmul_vec4f(const Mat m, Vec v) {
+    mat_mul_vec4f(m,v,v);
     return v;
 }
 
@@ -875,7 +699,7 @@ void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r) {
     w[3] = 1.0f;
 
     Vec t;
-    mat_mul_vec(m, w, t);
+    mat_mul_vec4f(m, w, t);
 
     vec_copy3f(t, r);
 }
@@ -940,7 +764,7 @@ void mat_scale(const Mat m, float s, Mat r) {
     }
 }
 
-void mat_transpose(const Mat m, Mat r) {
+void mat_transpose4f(const Mat m, Mat r) {
     Mat t;
     t[0] = m[0];  t[4] = m[1];  t[8]  = m[2];  t[12] = m[3];
     t[1] = m[4];  t[5] = m[5];  t[9]  = m[6];  t[13] = m[7];
@@ -952,8 +776,8 @@ void mat_transpose(const Mat m, Mat r) {
     }
 }
 
-MatP mtranspose(Mat m) {
-    mat_transpose(m, m);
+MatP mtranspose4f(Mat m) {
+    mat_transpose4f(m, m);
     return m;
 }
 

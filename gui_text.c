@@ -16,7 +16,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projec
 
     Vec4f cursor_translation = {0.0, 0.0, 0.0, 1.0};
     if( cursor != NULL ) {
-        vec_copy(cursor, cursor_translation);
+        vec_copy4f(cursor, cursor_translation);
     }
 
     const uint32_t vertex_size = 3;
@@ -151,15 +151,15 @@ void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projec
     canvas_append_text(canvas, layer, projection, font_name, indices, glyph_counter*6, 0);
 
     if( cursor != NULL ) {
-        vec_copy(cursor_translation, cursor);
+        vec_copy4f(cursor_translation, cursor);
     }
 }
 
-void text_put_world(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text) {
+void text_put_world(struct Canvas* canvas, Vec cursor, int32_t layer, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text) {
     text_put(canvas, cursor, layer, CANVAS_PROJECT_WORLD, font_name, scale, color, model_matrix, unicode_text);
 }
 
-void text_put_screen(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* unicode_text) {
+void text_put_screen(struct Canvas* canvas, Vec cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* unicode_text) {
 
     Vec translation = {x, -y, 0.0, 1.0};
     Mat model_matrix = {0};

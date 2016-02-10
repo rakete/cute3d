@@ -24,18 +24,24 @@
 #include "math_types.h"
 #include "math_quaternion.h"
 
+// - I don't like this code anymore
+// - some refactoring should be done:
+// - originally the plan was to only have one Vec type, but now I am stuck with three Vec(4f), Vec3f and Vec2f
+// - I tried making Vec3f and Vec2f the same as Vec(4f), but I did not like that, it worked, but I actually do
+// get type warnings telling me about mismatched sizes here and there, eventually I should look into that again
+// later
+// - most stuff in here should assume Vec3f and work with that, in fact it does now
+// - whenever I need something to handle 3f and 4f seperately, I should encode that in the function names with
+// 3f and 4f, not like before where 4f was the default and did not have a suffix, and I had specially named 3f
+// functions, now every time I have two seperate functions for 3f and 4f I want to make this explicit in their
+// name
+// - so, no suffix only for functions that work with both 3f and 4f
+// - I am not going to handle 2f vectors here ever, apart from copying them
+// - I don't like the encoded float typename everywhere, the f in 3f and 4f, it should just be 3 and 4
+
 // vector creation
-void vec_axisx(Vec r);
-VecP vaxisx(Vec r);
-
-void vec_axisy(Vec r);
-VecP vaxisy(Vec r);
-
-void vec_axisz(Vec r);
-VecP vaxisz(Vec r);
-
-void vec_copy(const Vec v, Vec r);
-VecP vcopy(const Vec v, Vec r);
+void vec_copy4f(const Vec v, Vec r);
+VecP vcopy4(const Vec v, Vec r);
 
 void vec_copy3f(const Vec3f v, Vec3f r);
 VecP vcopy3f(const Vec3f v, Vec3f r);
@@ -43,45 +49,22 @@ VecP vcopy3f(const Vec3f v, Vec3f r);
 void vec_copy2f(const Vec v, Vec2f r);
 VecP vcopy2f(const Vec v, Vec2f r);
 
-void vec_copy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
-MatP vcopy3fmat(const Vec3f x, const Vec3f y, const Vec3f z, Mat r);
-
-void color_copy(const Color c, Color r);
-
 // vector comparison
-void vec_equal(const Vec a, const Vec b, int* r);
-int32_t vequal(const Vec a, const Vec b);
-
-void vec_equal3f(const Vec3f a, const Vec3f b, int* r);
-int32_t vequal3f(const Vec3f a, const Vec3f b);
+void vec_equal(const Vec3f a, const Vec3f b, int* r);
+int32_t vequal(const Vec3f a, const Vec3f b);
 
 // vector arithmetic
-void vec_add(const Vec v, const Vec3f w, Vec r);
-VecP vadd(const Vec v, Vec w);
+void vec_add(const Vec3f v, const Vec3f w, Vec3f r);
+VecP vadd(const Vec3f v, Vec3f w);
 
-void vec_add3f(const Vec3f v, const Vec3f w, Vec3f r);
-VecP vadd3f(const Vec3f v, Vec3f w);
+void vec_sub(const Vec3f v, const Vec3f w, Vec3f r);
+VecP vsub(const Vec3f v, Vec3f w);
 
-void vec_sub(const Vec v, const Vec3f w, Vec r);
-VecP vsub(const Vec v, Vec w);
+void vec_sub1f(const Vec3f v, float w, Vec3f r);
+VecP vsub1f(Vec3f v, float w);
 
-void vec_sub3f(const Vec3f v, const Vec3f w, Vec3f r);
-VecP vsub3f(const Vec3f v, Vec3f w);
-
-void vec_sub1f(const Vec v, float w, Vec r);
-VecP vsub1f(Vec v, float w);
-
-void vec_mul(const Vec v, const Vec w, Mat m);
-VecP vmul(const Vec v, Mat w);
-
-void vec_mul1f(const Vec3f v, float w, Vec r);
+void vec_mul1f(const Vec3f v, float w, Vec3f r);
 VecP vmul1f(Vec3f v, float w);
-
-void vec_mul4f1f(const Vec v, float w, Vec r);
-VecP vmul4f1f(Vec v, float w);
-
-void vec_mul3f1f(const Vec3f v, float w, Vec r);
-VecP vmul3f1f(Vec v, float w);
 
 // vector operations
 void vec_invert(const Vec v, Vec r);
@@ -90,11 +73,8 @@ VecP vinvert(Vec v);
 void vec_dot(const Vec3f v, const Vec3f w, float* r);
 float vdot(const Vec3f v, const Vec3f w);
 
-void vec_cross(const Vec v, const Vec3f w, Vec r);
-VecP vcross(const Vec v, Vec w);
-
-void vec_cross3f(const Vec3f v, const Vec3f w, Vec3f r);
-VecP vcross3f(const Vec3f v, Vec3f w);
+void vec_cross(const Vec3f v, const Vec3f w, Vec3f r);
+VecP vcross(const Vec3f v, Vec3f w);
 
 void vec_squared(const Vec3f v, float* r);
 float vsquared(const Vec3f v);
@@ -102,16 +82,13 @@ float vsquared(const Vec3f v);
 void vec_length(const Vec3f v, float* r);
 float vlength(const Vec3f v);
 
-void vec_normalize(const Vec v, Vec r);
-VecP vnormalize(Vec v);
-
-void vec_normalize3f(const Vec3f v, Vec3f r);
-VecP vnormalize3f(Vec3f v);
+void vec_normalize(const Vec3f v, Vec3f r);
+VecP vnormalize(Vec3f v);
 
 void vec_angle(const Vec3f v, const Vec3f w, float* r);
 float vangle(const Vec3f v, const Vec3f w);
 
-void vec_rotate(const Vec vec, const Quat q, Vec r);
+void vec_rotate4f(const Vec vec, const Quat q, Vec r);
 void vec_rotate3f(const Vec3f vec, const Quat q, Vec3f r);
 
 // vector tests
@@ -133,10 +110,9 @@ VecP vperpendicular(const Vec v);
 void vec_basis(const Vec x, Vec y, Vec z);
 
 void vec_print(FILE* f, const char* title, const Vec v);
-void vec_print3f(FILE* f, const char* title, const Vec3f v);
 
 // matrix creation
-void mat_copy(const Mat m, Mat r);
+void mat_copy4f(const Mat m, Mat r);
 void mat_copy3f(const Mat m, Mat r);
 
 void mat_basis(const Vec x, Mat r);
@@ -148,8 +124,8 @@ void mat_identity(Mat m);
 MatP midentity(Mat m);
 
 // matrix operations
-void mat_invert(const Mat m, double* det, Mat r);
-MatP minvert(Mat m, double* det);
+void mat_invert4f(const Mat m, double* det, Mat r);
+MatP minvert4f(Mat m, double* det);
 
 void mat_invert3f(const Mat m, double* det, Mat r);
 MatP minvert3f(Mat m, double* det);
@@ -157,8 +133,8 @@ MatP minvert3f(Mat m, double* det);
 void mat_mul(const Mat m, const Mat n, Mat r);
 MatP mmul(const Mat m, Mat n);
 
-void mat_mul_vec(const Mat m, const Vec v, Vec r);
-MatP mmul_vec(const Mat m, Vec v);
+void mat_mul_vec4f(const Mat m, const Vec v, Vec r);
+MatP mmul_vec4f(const Mat m, Vec v);
 
 void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r);
 MatP mmul_vec3f(const Mat m, Vec3f v);
@@ -172,8 +148,8 @@ MatP mrotate(Mat m, const Quat q);
 void mat_scale(const Mat m, float s, Mat r);
 //MatP mscale(float s, Mat m);
 
-void mat_transpose(const Mat m, Mat r);
-MatP mtranspose(Mat m);
+void mat_transpose4f(const Mat m, Mat r);
+MatP mtranspose4f(Mat m);
 
 void mat_transpose3f(const Mat m, Mat r);
 MatP mtranspose3f(Mat m);

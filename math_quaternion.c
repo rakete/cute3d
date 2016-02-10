@@ -78,7 +78,7 @@ QuatP qfrom_axis_angle(Quat axis, const float angle) {
 
 bool quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
     Vec axis;
-    vec_cross3f(b,a,axis);
+    vec_cross(b,a,axis);
 
     float angle;
     vec_angle(b,a,&angle);

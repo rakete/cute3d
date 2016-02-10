@@ -19,17 +19,17 @@
 void physics_create(float mass, Mat inertia, struct Physics* physics) {
     pivot_create(&physics->pivot);
 
-    vec_copy((Vec){ 0.0, 0.0, 0.0, 1.0 }, physics->linear_momentum);
-    vec_copy((Vec){ 0.0, 0.0, 0.0, 1.0 }, physics->angular_momentum);
-    vec_copy((Vec){ 0.0, 0.0, 0.0, 1.0 }, physics->linear_velocity);
-    vec_copy((Vec){ 0.0, 0.0, 0.0, 1.0 }, physics->angular_velocity);
-    vec_copy((Vec){ 0.0, 0.0, 0.0, 1.0 }, physics->spin);
+    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, physics->linear_momentum);
+    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, physics->angular_momentum);
+    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, physics->linear_velocity);
+    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, physics->angular_velocity);
+    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, physics->spin);
 
     physics->mass = mass;
     physics->inverse_mass = 1.0f/mass;
 
-    mat_copy(inertia, physics->inertia);
-    mat_transpose(inertia, physics->inverse_inertia);
+    mat_copy4f(inertia, physics->inertia);
+    mat_transpose4f(inertia, physics->inverse_inertia);
 
     physics->t = -1.0f;
     physics->dt = -1.0f;
@@ -39,17 +39,17 @@ struct Physics physics_interpolate(struct Physics a, struct Physics b, double al
     struct Physics state = b;
 
     //state.position = a.position*(1-alpha) + b.position*alpha;
-    vec_copy(vadd(vmul1f(a.pivot.position, alpha), vmul1f(b.pivot.position, 1-alpha)), state.pivot.position);
+    vec_copy4f(vadd(vmul1f(a.pivot.position, alpha), vmul1f(b.pivot.position, 1-alpha)), state.pivot.position);
 
     //state.momentum = a.momentum*(1-alpha) + b.momentum*alpha;
-    vec_copy(vadd(vmul1f(a.linear_momentum, alpha), vmul1f(b.linear_momentum, 1-alpha)), state.linear_momentum);
+    vec_copy4f(vadd(vmul1f(a.linear_momentum, alpha), vmul1f(b.linear_momentum, 1-alpha)), state.linear_momentum);
 
     //state.orientation = slerp(a.orientation, b.orientation, alpha);
     quat_slerp(a.pivot.orientation, b.pivot.orientation, alpha, state.pivot.orientation);
     //quat_copy(b.pivot.orientation, state.pivot.orientation);
 
     //state.angularMomentum = a.angularMomentum*(1-alpha) + b.angularMomentum*alpha;
-    vec_copy(vadd(vmul1f(a.angular_momentum, alpha), vmul1f(b.angular_momentum, 1-alpha)), state.angular_momentum);
+    vec_copy4f(vadd(vmul1f(a.angular_momentum, alpha), vmul1f(b.angular_momentum, 1-alpha)), state.angular_momentum);
 
     return physics_recalculate(state);
 }
@@ -59,7 +59,7 @@ struct Physics physics_simulate(struct Physics physics) {
     vec_mul1f(physics.linear_momentum, physics.inverse_mass, linear_velocity);
 
     Vec angular_velocity = {0};
-    mat_mul_vec(physics.inverse_inertia, physics.angular_momentum, angular_velocity);
+    mat_mul_vec4f(physics.inverse_inertia, physics.angular_momentum, angular_velocity);
 
     quat_normalize(physics.pivot.orientation, physics.pivot.orientation);
 
@@ -72,8 +72,8 @@ struct Physics physics_simulate(struct Physics physics) {
     quat_mul(spin, physics.pivot.orientation, spin);
     quat_mul1f(spin, 0.5, spin);
 
-    vec_copy(linear_velocity, physics.linear_velocity);
-    vec_copy(angular_velocity, physics.angular_velocity);
+    vec_copy4f(linear_velocity, physics.linear_velocity);
+    vec_copy4f(angular_velocity, physics.angular_velocity);
     quat_copy(spin, physics.spin);
 
     return physics;
@@ -93,7 +93,7 @@ struct Physics physics_recalculate(struct Physics physics) {
 struct PhysicsDerivative physics_eval_time(struct Physics state, float t, physics_forces_func forces_func) {
     struct PhysicsDerivative output;
 
-    vec_copy(state.linear_velocity, output.velocity);
+    vec_copy4f(state.linear_velocity, output.velocity);
     quat_copy(state.spin, output.spin);
 
     (*forces_func)(state, t, 0.0f, output.force, output.torque);
@@ -103,7 +103,7 @@ struct PhysicsDerivative physics_eval_time(struct Physics state, float t, physic
 struct PhysicsDerivative physics_eval_future(struct Physics state, struct PhysicsDerivative derivative, float t, float dt, physics_forces_func forces_func) {
     Vec velocity;
     vec_mul1f(derivative.velocity, dt, velocity);
-    vec_add3f(state.pivot.position, velocity, state.pivot.position);
+    vec_add(state.pivot.position, velocity, state.pivot.position);
 
     Vec force;
     vec_mul1f(derivative.force, dt, force);
@@ -120,7 +120,7 @@ struct PhysicsDerivative physics_eval_future(struct Physics state, struct Physic
     state = physics_simulate(state);
 
     struct PhysicsDerivative output;
-    vec_copy(state.linear_velocity, output.velocity);
+    vec_copy4f(state.linear_velocity, output.velocity);
     quat_copy(state.spin, output.spin);
     (*forces_func)(state, t, dt, output.force, output.torque);
     return output;
@@ -137,7 +137,7 @@ struct Physics physics_integrate(struct Physics state, float t, float dt, physic
 
     //state.position += 1.0f/6.0f * dt * (a.velocity + 2.0f*(b.velocity + c.velocity) + d.velocity);
     VecP position_change = vmul1f(vadd(a.velocity, vadd( vmul1f(vadd(b.velocity, c.velocity), 2.0f), d.velocity)), 1.0f/6.0f * dt);
-    vec_add3f(state.pivot.position, position_change, state.pivot.position);
+    vec_add(state.pivot.position, position_change, state.pivot.position);
 
     //state.momentum += 1.0f/6.0f * dt * (a.force + 2.0f*(b.force + c.force) + d.force);
     VecP linear_momentum_change = vmul1f(vadd(a.force, vadd( vmul1f(vadd(b.force, c.force), 2.0f), d.force)), 1.0f/6.0f * dt);
@@ -233,7 +233,7 @@ void physics_inertia_transform(struct Physics physics, Mat r) {
     quat_to_mat(physics.pivot.orientation, transform);
 
     Mat inverted_transform = IDENTITY_MAT;
-    mat_transpose(transform, inverted_transform);
+    mat_transpose4f(transform, inverted_transform);
 
     mat_mul(transform, physics.inertia, r);
     mat_mul(r, inverted_transform, r);

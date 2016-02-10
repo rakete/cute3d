@@ -4,7 +4,7 @@ void picking_sphere_create(const struct TransformPivot* pivot, float radius, str
     sphere->target.pivot = pivot;
     sphere->target.type = PICKING_SPHERE;
     sphere->target.picked = false;
-    vec_copy((Vec){0.0f, 0.0f, 0.0f, 1.0f}, sphere->target.ray);
+    vec_copy4f((Vec){0.0f, 0.0f, 0.0f, 1.0f}, sphere->target.ray);
 
     sphere->radius = radius;
     sphere->near = -FLT_MIN;
@@ -18,7 +18,7 @@ bool picking_sphere_intersect_test(struct PickingSphere* sphere, const Vec origi
 
     sphere->near = -FLT_MIN;
     sphere->far = -FLT_MIN;
-    vec_copy(ray, sphere->target.ray);
+    vec_copy4f(ray, sphere->target.ray);
     sphere->target.picked = false;
 
     Vec L;
@@ -78,7 +78,7 @@ bool picking_click_event(const struct Camera* camera, struct PickingTarget** tar
 
         /* static Vec old_ray = {0,0,0,0}; */
         /* if( old_ray[3] == 0.0f || (old_ray[0] != click_ray[0] && old_ray[1] != click_ray[1] && old_ray[2] != click_ray[2]) ) { */
-        /*     vec_copy(click_ray, old_ray); */
+        /*     vec_copy4f(click_ray, old_ray); */
         /* } */
 
         /* draw_vec(&global_static_canvas, 0, old_ray, camera->pivot.position, 1.0f, 1.0f, (Color){255, 255, 0, 255}, (Mat)IDENTITY_MAT); */

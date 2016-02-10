@@ -61,7 +61,7 @@ void canvas_create_empty(struct Canvas* canvas) {
             }
         }
 
-        vec_copy((Vec4f){0, 0, 0, 1}, canvas->layer[i].cursor);
+        vec_copy4f((Vec4f){0, 0, 0, 1}, canvas->layer[i].cursor);
     }
 }
 
@@ -317,7 +317,7 @@ void canvas_clear(struct Canvas* canvas) {
             }
         }
 
-        vec_copy((Vec4f){0, 0, 0, 1}, canvas->layer[i].cursor);
+        vec_copy4f((Vec4f){0, 0, 0, 1}, canvas->layer[i].cursor);
     }
 
 }

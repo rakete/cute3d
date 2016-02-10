@@ -88,7 +88,7 @@ int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target) {
         Vec yaw_axis = {0};
         vec_cross(yaw_direction, forward_axis, yaw_axis);
         if( vnullp(yaw_axis) ) {
-            vec_copy(up_axis, yaw_axis);
+            vec_copy4f(up_axis, yaw_axis);
         }
 
         // - compute the yaw rotation
@@ -120,7 +120,7 @@ int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target) {
         Vec pitch_axis = {0};
         vec_cross(target_direction, yaw_forward_axis, pitch_axis);
         if( vnullp(pitch_axis) ) {
-            vec_copy(right_axis, pitch_axis);
+            vec_copy4f(right_axis, pitch_axis);
         }
 
         // - and finally compute the pitch rotation and combine it with the yaw_rotation
@@ -140,8 +140,8 @@ int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target) {
         //   flip_axis and then use the dot product between the flip_axis and up_axis
         //   to decide if I am flipped
         Vec flip_axis = {0};
-        vec_rotate(up_axis, inverted_orientation, flip_axis);
-        vec_rotate(flip_axis, yaw_pitch_rotation, flip_axis);
+        vec_rotate4f(up_axis, inverted_orientation, flip_axis);
+        vec_rotate4f(flip_axis, yaw_pitch_rotation, flip_axis);
 
         float dot = vdot(up_axis, flip_axis);
 
@@ -191,7 +191,7 @@ MatP pivot_local_transform(const struct TransformPivot* pivot, Mat local_transfo
     mat_identity(world_transform);
 
     pivot_world_transform(pivot, world_transform);
-    mat_invert(world_transform, NULL, local_transform);
+    mat_invert4f(world_transform, NULL, local_transform);
 
     return local_transform;
 }

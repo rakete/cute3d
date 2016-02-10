@@ -57,8 +57,8 @@ int32_t main(int32_t argc, char *argv[]) {
     if( init_canvas() ) {
         return 1;
     }
-    canvas_create_default(&global_dynamic_canvas);
-    canvas_create_default(&global_static_canvas);
+    canvas_create(&global_dynamic_canvas);
+    canvas_create(&global_static_canvas);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
@@ -152,8 +152,8 @@ int32_t main(int32_t argc, char *argv[]) {
         draw_basis(&text_canvas, 1, 1.0f, (Mat)IDENTITY_MAT);
 
         Mat text_matrix = {0};
-        mat_rotate(NULL, qfrom_axis_angle((Vec4f){1.0, 0.0, 0.0, 1.0}, PI/2), text_matrix);
-        mat_translate(text_matrix, (Vec4f){-3.5, -1.0, 6.25, 1.0}, text_matrix);
+        mat_rotate(NULL, qfrom_axis_angle((Vec){1.0, 0.0, 0.0, 1.0}, PI/2), text_matrix);
+        mat_translate(text_matrix, (Vec){-3.5, -1.0, 6.25, 1.0}, text_matrix);
 
         Vec4f world_cursor = {0,0,0,1};
         text_put_world(&text_canvas, world_cursor, 0, "default_font", 0.5, (Color){0, 255, 255, 255}, text_matrix, L"Dies ist ein Test\n");

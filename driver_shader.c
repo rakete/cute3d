@@ -356,7 +356,7 @@ GLint shader_set_uniform_matrices(const struct Shader* shader, const Mat project
 
     if( normal_loc > -1 ) {
         Mat normal_matrix = {0};
-        mat_copy(model_matrix, normal_matrix);
+        mat_copy4f(model_matrix, normal_matrix);
         ogl_debug( glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix) );
         ret = normal_loc;
     }

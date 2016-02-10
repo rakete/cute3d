@@ -15,17 +15,17 @@ void collider_unique_id(unsigned long* id) {
 void collider_plane(Vec normal, float offset, struct TransformPivot* pivot, struct ColliderPlane* plane) {
     plane->collider.type = COLLIDER_PLANE;
     plane->collider.pivot = pivot;
-    vec_copy((Vec)NULL_VEC, plane->collider.position);
+    vec_copy4f((Vec)NULL_VEC, plane->collider.position);
 
     vec_normalize(normal, normal);
-    vec_copy(normal, plane->normal);
+    vec_copy4f(normal, plane->normal);
     plane->offset = offset;
 }
 
 void collider_sphere(float radius, struct TransformPivot* pivot, struct ColliderSphere* sphere) {
     sphere->collider.type = COLLIDER_SPHERE;
     sphere->collider.pivot = pivot;
-    vec_copy((Vec)NULL_VEC, sphere->collider.position);
+    vec_copy4f((Vec)NULL_VEC, sphere->collider.position);
 
     sphere->radius = radius;
 }
@@ -33,7 +33,7 @@ void collider_sphere(float radius, struct TransformPivot* pivot, struct Collider
 void collider_obb(float width, float height, float depth, struct TransformPivot* pivot, struct ColliderOBB* obb) {
     obb->collider.type = COLLIDER_OBB;
     obb->collider.pivot = pivot;
-    vec_copy((Vec)NULL_VEC, obb->collider.position);
+    vec_copy4f((Vec)NULL_VEC, obb->collider.position);
 
     obb->width = width;
     obb->height = height;
@@ -45,11 +45,11 @@ void collider_obb(float width, float height, float depth, struct TransformPivot*
 void collider_capsule(Vec point_a, Vec point_b, float radius, struct TransformPivot* pivot, struct ColliderCapsule* capsule) {
     capsule->collider.type = COLLIDER_CAPSULE;
     capsule->collider.pivot = pivot;
-    vec_copy((Vec)NULL_VEC, capsule->collider.position);
+    vec_copy4f((Vec)NULL_VEC, capsule->collider.position);
 
     capsule->radius = radius;
-    vec_copy(point_a, capsule->point_a);
-    vec_copy(point_b, capsule->point_b);
+    vec_copy4f(point_a, capsule->point_a);
+    vec_copy4f(point_b, capsule->point_b);
 
     quat_identity(capsule->orientation);
 }
@@ -57,7 +57,7 @@ void collider_capsule(Vec point_a, Vec point_b, float radius, struct TransformPi
 void collider_convex(struct HalfEdgeMesh* mesh, struct TransformPivot* pivot, struct ColliderConvex* convex) {
     convex->collider.type = COLLIDER_CONVEX;
     convex->collider.pivot = pivot;
-    vec_copy((Vec)NULL_VEC, convex->collider.position);
+    vec_copy4f((Vec)NULL_VEC, convex->collider.position);
 
     convex->mesh = mesh;
 
@@ -130,7 +130,7 @@ static void convex_local_transform(struct ColliderConvex* const convex1,
 
     Vec convex1_local_translation = {0};
     vec_copy3f(convex1->collider.pivot->position, convex1_local_translation);
-    vec_add3f(convex1_local_translation, convex1->collider.position, convex1_local_translation);
+    vec_add(convex1_local_translation, convex1->collider.position, convex1_local_translation);
     vec_mul1f(convex1_local_translation, -1.0f, convex1_local_translation);
 
     Quat convex2_world_orientation = {0};
@@ -139,7 +139,7 @@ static void convex_local_transform(struct ColliderConvex* const convex1,
 
     Vec convex2_world_translation = {0};
     vec_copy3f(convex2->collider.pivot->position, convex2_world_translation);
-    vec_add3f(convex2_world_translation, convex2->collider.position, convex2_world_translation);
+    vec_add(convex2_world_translation, convex2->collider.position, convex2_world_translation);
 
     // both convex2_world_translation/orienation and convex1_local_translation/orientation
     // combined are the final vertex_translation/orientation
@@ -147,7 +147,7 @@ static void convex_local_transform(struct ColliderConvex* const convex1,
     quat_mul(convex2_world_orientation, convex1_local_orientation, vertex_orientation);
 
     Vec vertex_translation = {0};
-    vec_add3f(convex2_world_translation, convex1_local_translation, vertex_translation);
+    vec_add(convex2_world_translation, convex1_local_translation, vertex_translation);
 
     // the vertex_translation/orientation is then applied to every vertex of convex2->mesh resulting
     // in a new array of vertices which coordinates are now relative to convex1
@@ -156,7 +156,7 @@ static void convex_local_transform(struct ColliderConvex* const convex1,
         vec_copy3f(convex2->mesh->vertices.array[i].position, vertex);
 
         vec_rotate3f(vertex, vertex_orientation, vertex);
-        vec_add3f(vertex, vertex_translation, vertex);
+        vec_add(vertex, vertex_translation, vertex);
 
         transformed_vertices[i*3+0] = vertex[0];
         transformed_vertices[i*3+1] = vertex[1];
@@ -225,7 +225,7 @@ static void query_face_directions(struct ColliderConvex* const convex1,
         Vec3f plane_point = {0};
         int32_t vertex_i = mesh1->edges.array[mesh1->faces.array[face_i].edge].vertex;
         vec_copy3f(mesh1->vertices.array[vertex_i].position, plane_point);
-        vec_sub3f(support, plane_point, support);
+        vec_sub(support, plane_point, support);
         float distance = vdot(support, face_normal);
 
         // keep track of largest distance/penetration, the result should be the vertex face distance
@@ -301,13 +301,13 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
             vec_rotate3f(c, convex2_normal_orientation, c);
             vec_rotate3f(d, convex2_normal_orientation, d);
 
-            vec_mul3f1f(c, -1.0f, c);
-            vec_mul3f1f(d, -1.0f, d);
+            vec_mul1f(c, -1.0f, c);
+            vec_mul1f(d, -1.0f, d);
 
             Vec3f edge1_direction = {0};
             Vec3f edge1_head = {0};
             vec_copy3f(mesh1->vertices.array[edge1->vertex].position, edge1_head);
-            vec_sub3f(mesh1->vertices.array[other1->vertex].position, edge1_head, edge1_direction);
+            vec_sub(mesh1->vertices.array[other1->vertex].position, edge1_head, edge1_direction);
 
             Vec3f edge2_direction = {0};
             Vec3f edge2_head = {0};
@@ -317,10 +317,10 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
             mat_mul_vec3f(transform, edge2_head, edge2_head);
             Vec3f pos = {0};
             mat_mul_vec3f(transform, mesh2->vertices.array[other2->vertex].position, pos);
-            vec_sub3f(pos, edge2_head, edge2_direction);
+            vec_sub(pos, edge2_head, edge2_direction);
 
-            vec_normalize3f(edge1_direction, edge1_direction);
-            vec_normalize3f(edge2_direction, edge2_direction);
+            vec_normalize(edge1_direction, edge1_direction);
+            vec_normalize(edge2_direction, edge2_direction);
 
             if( fabs(vdot(edge1_direction, edge2_direction)) >= 1.0f - CUTE_EPSILON) {
                 continue;
@@ -342,17 +342,17 @@ static void query_edge_directions(struct ColliderConvex* const convex1,
             if( cba * dba < 0.0f && adc * bdc < 0.0f && cba * bdc > 0.0f ) {
                 // edge1 and edge2 form an minowski face
                 Vec3f center_direction = {0};
-                vec_sub3f((Vec3f){0,0,0}, edge1_head, center_direction);
-                vec_normalize3f(center_direction, center_direction);
+                vec_sub((Vec3f){0,0,0}, edge1_head, center_direction);
+                vec_normalize(center_direction, center_direction);
 
                 Vec3f plane_normal = {0};
-                vec_cross3f(edge1_direction, edge2_direction, plane_normal);
+                vec_cross(edge1_direction, edge2_direction, plane_normal);
                 if( vdot( center_direction, plane_normal ) > 0.0f ) {
-                    vec_mul3f1f(plane_normal, -1.0f, plane_normal);
+                    vec_mul1f(plane_normal, -1.0f, plane_normal);
                 }
 
                 Vec3f other_point = {0};
-                vec_sub3f(edge2_head, edge1_head, other_point);
+                vec_sub(edge2_head, edge1_head, other_point);
                 float distance = vdot(other_point, plane_normal);
                 if( distance > *best_distance ) {
                     *best_distance = distance;
@@ -432,9 +432,9 @@ void collisions_prepare(size_t n, struct Collision* collisions) {
             if( collisions[i].lifetime >= COLLISION_LIFETIME ) {
                 collisions[i].num_contacts = 0;
                 collisions[i].lifetime = 0;
-                vec_copy((Vec){0.0, 1.0, 0.0, 1.0}, collisions[i].normal);
+                vec_copy4f((Vec){0.0, 1.0, 0.0, 1.0}, collisions[i].normal);
 
-                vec_copy((Vec){0.0, 0.0, 0.0, 1.0}, collisions[i].contact[j].point);
+                vec_copy4f((Vec){0.0, 0.0, 0.0, 1.0}, collisions[i].contact[j].point);
                 collisions[i].contact[j].penetration = 0.0;
             } else {
                 collisions[i].lifetime += 1;
@@ -531,7 +531,7 @@ struct Physics collisions_resolve(struct Physics previous,
 /*         Vec3f p1, q1, e1; */
 /*         mat_mul_vec3f(transform, mesh1->vertices.array[other1->vertex].position, p1); */
 /*         mat_mul_vec3f(transform, mesh1->vertices.array[edge1->vertex].position, q1); */
-/*         vec_sub3f(q1, p1, e1); */
+/*         vec_sub(q1, p1, e1); */
 
 /*         Vec3f u1, v1; */
 /*         mat_mul_vec3f(transform_rotation, mesh1->faces.array[edge1->face].normal, u1); */
@@ -581,7 +581,7 @@ struct Physics collisions_resolve(struct Physics previous,
 /*                     vec_mul1f(e1xe2, 1.0f/length, normal); */
 
 /*                     Vec3f direction; */
-/*                     vec_sub3f(p1, center1, direction); */
+/*                     vec_sub(p1, center1, direction); */
 
 /*                     // Assure consistent normal orientation (here: Hull1 -> Hull2) */
 /*                     if( vdot( normal, direction ) < 0.0f ) { */
@@ -589,7 +589,7 @@ struct Physics collisions_resolve(struct Physics previous,
 /*                     } */
 
 /*                     Vec3f projection; */
-/*                     vec_sub3f(p2, p1, projection); */
+/*                     vec_sub(p2, p1, projection); */
 
 /*                     distance = vdot(normal, projection); */
 /*                 } */
