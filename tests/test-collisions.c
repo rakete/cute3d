@@ -82,30 +82,30 @@ int32_t main(int32_t argc, char *argv[]) {
 
     struct CollisionEntity entity_a = {0};
     entity_create("red", (Color){ 255, 0, 0, 255 }, &vbo, &entity_a);
-    //printf("size_a: %lu %lu %lu\n", entity_a.hemesh.vertices.occupied, entity_a.hemesh.faces.occupied, entity_a.hemesh.edges.occupied);
-    quat_mul_axis_angle(entity_a.pivot.orientation, (Vec)UP_AXIS, PI/4, entity_a.pivot.orientation);
-    vec_add(entity_a.pivot.position, (Vec){3.0, 0.0, 0.0, 1.0}, entity_a.pivot.position);
+    quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_a.pivot.orientation);
+    quat_mul_axis_angle(entity_a.pivot.orientation, pivot_local_axis(&entity_a.pivot, (Vec4f)UP_AXIS), PI/4, entity_a.pivot.orientation);
+    vec_add(entity_a.pivot.position, (Vec4f){3.0, 0.0, 0.0, 1.0}, entity_a.pivot.position);
 
     struct CollisionEntity entity_b = {0};
     entity_create("green", (Color){ 0, 255, 0, 255 }, &vbo, &entity_b);
-    quat_mul_axis_angle(entity_b.pivot.orientation, (Vec)UP_AXIS, PI/4, entity_b.pivot.orientation);
-    //quat_mul_axis_angle(entity_b.pivot.orientation, pivot_local_axis(&entity_b.pivot, (Vec)Z_AXIS), PI/4, entity_b.pivot.orientation);
-    vec_add(entity_b.pivot.position, (Vec){-3.0, 0.0, 0.0, 1.0}, entity_b.pivot.position);
+    quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_b.pivot.orientation);
+    quat_mul_axis_angle(entity_b.pivot.orientation, pivot_local_axis(&entity_b.pivot, (Vec4f)UP_AXIS), PI/4, entity_b.pivot.orientation);
+    vec_add(entity_b.pivot.position, (Vec4f){-3.0, 0.0, 0.0, 1.0}, entity_b.pivot.position);
 
     struct Shader flat_shader = {0};
     shader_create_flat("flat_shader", &flat_shader);
 
-    Vec light_direction = { 0.2, -0.5, -1.0 };
+    Vec4f light_direction = { 0.2, -0.5, -1.0 };
     shader_set_uniform_3f(&flat_shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
     Color ambiance = { 65, 25, 50, 255 };
     shader_set_uniform_4f(&flat_shader, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec){0.0, 0.0, 10.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, 1.0, 1000.0, &arcball);
+    arcball_create(window, (Vec4f){0.0, 0.0, 10.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0, 1000.0, &arcball);
 
     Quat grid_rotation = {0};
-    quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation);
+    quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
     Mat grid_transform = {0};
     quat_to_mat(grid_rotation, grid_transform);
 
@@ -139,8 +139,7 @@ int32_t main(int32_t argc, char *argv[]) {
                 }
             }
 
-            static int32_t last_x = -1;
-            static int32_t last_y = -1;
+
             if( picking_drag_event(&arcball.camera, (struct PickingTarget**)picking_spheres, num_entities, event) ) {
                 struct CollisionEntity* selected_entity = NULL;
                 float nearest = -FLT_MIN;
@@ -151,11 +150,25 @@ int32_t main(int32_t argc, char *argv[]) {
                     }
                 }
 
+                static int32_t last_x = -1;
+                static int32_t last_y = -1;
                 if( selected_entity != NULL ) {
-                    if( last_x > 0 && last_y > 0 ) {
-                        printf("//dragging: %s entity from %d %d to %d %d\n", selected_entity->name, last_x, last_y, event.motion.x, event.motion.y);
-                        printf("//difference: %d %d\n", last_x - event.motion.x, last_y - event.motion.y);
+                    if( last_x > -1 && last_y > -1 ) {
+                        float distance = selected_entity->picking_sphere.near;
 
+                        Vec4f a = {0};
+                        camera_ray(&arcball.camera, CAMERA_PERSPECTIVE, last_x, last_y, a);
+                        vec_mul1f(a, distance, a);
+
+                        Vec4f b = {0};
+                        camera_ray(&arcball.camera, CAMERA_PERSPECTIVE, event.motion.x, event.motion.y, b);
+                        vec_mul1f(b, distance, b);
+
+                        Vec4f move = {0};
+                        vec_sub(b, a, move);
+                        move[1] = 0.0f;
+                        vec_add(selected_entity->pivot.position, move, selected_entity->pivot.position);
+                    } else {
                     }
 
                     last_x = event.motion.x;
