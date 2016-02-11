@@ -87,7 +87,7 @@ int32_t main(int32_t argc, char** argv) {
     shader_set_uniform(&default_shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec){0.0, 4.0, 8.0, 1.0}, (Vec){0.0, 0.0, 0.0, 1.0}, 0.001, 1000.0, &arcball);
+    arcball_create(window, (Vec4f){0.0, 4.0, 8.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 0.001, 1000.0, &arcball);
 
     struct Cube cube = {0};
     solid_hexahedron(1.0, &cube);
@@ -140,7 +140,7 @@ int32_t main(int32_t argc, char** argv) {
         Mat identity = {0};
         mat_identity(identity);
 
-        Vec light_direction = { 0.4, -1.0, -0.2 };
+        Vec4f light_direction = { 0.4, -1.0, -0.2 };
         shader_set_uniform(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
 
         Color ambiance = { .1, .1, .3, 1.0 };
@@ -159,7 +159,7 @@ int32_t main(int32_t argc, char** argv) {
 
         quat_to_mat(cube_rotation, cube_transform);
 
-        mat_translate(cube_transform, (Vec){ -2.0, 0.0, 0.0, 1.0 }, cube_transform);
+        mat_translate(cube_transform, (Vec4f){ -2.0, 0.0, 0.0, 1.0 }, cube_transform);
 
         vbomesh_render(&cube_mesh, &default_shader, &arcball.camera, cube_transform);
         /* draw_normals_array(cube.vertices, */

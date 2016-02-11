@@ -54,7 +54,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_create_flat("flat_shader", &shader);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec){0.0,8.0,8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
+    arcball_create(window, (Vec4f){0.0,8.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
 
     while (true) {
         SDL_Event event;
@@ -79,7 +79,7 @@ int32_t main(int32_t argc, char *argv[]) {
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
 
 
-        Vec light_direction = { 0.2, -0.5, -1.0 };
+        Vec4f light_direction = { 0.2, -0.5, -1.0 };
         shader_set_uniform_3f(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
         Color ambiance = {50, 25, 150, 255};

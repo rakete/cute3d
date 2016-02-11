@@ -70,7 +70,7 @@ QuatP qnormalize(Quat q);
 void quat_to_mat(const Quat q, Mat r);
 //QuatP qto_mat(const Quat q, Mat m);
 
-void quat_to_axis_angle(const Quat q, Vec axis, float* angle);
+void quat_to_axis_angle(const Quat q, Vec4f axis, float* angle);
 //QuatP qto_axis_angle(Quat q);
 
 // quaternion interpolation

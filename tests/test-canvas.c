@@ -66,24 +66,24 @@ int32_t main(int32_t argc, char *argv[]) {
     /* struct Shader shader; */
     /* shader_flat(&shader); */
 
-    /* Vec light_direction = { 0.2, -0.5, -1.0 }; */
+    /* Vec4f light_direction = { 0.2, -0.5, -1.0 }; */
     /* shader_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction); */
 
     /* Color ambiance = { 0.25, 0.1, 0.2, 1.0 }; */
     /* shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance); */
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec){1.0,2.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 0.01, 1000.0, &arcball);
+    arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.01, 1000.0, &arcball);
 
     Quat grid_rotation1;
-    quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation1);
+    quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation1);
     Mat grid_transform1;
     mat_identity(grid_transform1);
     mat_rotate(grid_transform1, grid_rotation1, grid_transform1);
     mat_translate(grid_transform1, (Vec3f){0, -1, 0}, grid_transform1);
 
     Quat grid_rotation2;
-    quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){1.0, 0.0, 0.0, 1.0}, grid_rotation2);
+    quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){1.0, 0.0, 0.0, 1.0}, grid_rotation2);
     Mat grid_transform2;
     quat_to_mat(grid_rotation2, grid_transform2);
 
@@ -152,8 +152,8 @@ int32_t main(int32_t argc, char *argv[]) {
         draw_basis(&text_canvas, 1, 1.0f, (Mat)IDENTITY_MAT);
 
         Mat text_matrix = {0};
-        mat_rotate(NULL, qfrom_axis_angle((Vec){1.0, 0.0, 0.0, 1.0}, PI/2), text_matrix);
-        mat_translate(text_matrix, (Vec){-3.5, -1.0, 6.25, 1.0}, text_matrix);
+        mat_rotate(NULL, qfrom_axis_angle((Vec4f){1.0, 0.0, 0.0, 1.0}, PI/2), text_matrix);
+        mat_translate(text_matrix, (Vec4f){-3.5, -1.0, 6.25, 1.0}, text_matrix);
 
         Vec4f world_cursor = {0,0,0,1};
         text_put_world(&text_canvas, world_cursor, 0, "default_font", 0.5, (Color){0, 255, 255, 255}, text_matrix, L"Dies ist ein Test\n");

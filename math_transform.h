@@ -21,7 +21,7 @@
 #include "math_matrix.h"
 
 struct TransformPivot {
-    Vec position;
+    Vec4f position;
     Quat orientation;
 
     float zoom;
@@ -29,7 +29,7 @@ struct TransformPivot {
 };
 
 void pivot_create(struct TransformPivot* pivot);
-int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target);
+int32_t pivot_lookat(struct TransformPivot* pivot, const Vec4f target);
 
 VecP pivot_local_axis(const struct TransformPivot* pivot, Vec3f axis);
 

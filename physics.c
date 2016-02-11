@@ -55,10 +55,10 @@ struct Physics physics_interpolate(struct Physics a, struct Physics b, double al
 }
 
 struct Physics physics_simulate(struct Physics physics) {
-    Vec linear_velocity = {0};
+    Vec4f linear_velocity = {0};
     vec_mul1f(physics.linear_momentum, physics.inverse_mass, linear_velocity);
 
-    Vec angular_velocity = {0};
+    Vec4f angular_velocity = {0};
     mat_mul_vec4f(physics.inverse_inertia, physics.angular_momentum, angular_velocity);
 
     quat_normalize(physics.pivot.orientation, physics.pivot.orientation);
@@ -101,11 +101,11 @@ struct PhysicsDerivative physics_eval_time(struct Physics state, float t, physic
 }
 
 struct PhysicsDerivative physics_eval_future(struct Physics state, struct PhysicsDerivative derivative, float t, float dt, physics_forces_func forces_func) {
-    Vec velocity;
+    Vec4f velocity;
     vec_mul1f(derivative.velocity, dt, velocity);
     vec_add(state.pivot.position, velocity, state.pivot.position);
 
-    Vec force;
+    Vec4f force;
     vec_mul1f(derivative.force, dt, force);
     vec_add(state.linear_momentum, force, state.linear_momentum);
 
@@ -113,7 +113,7 @@ struct PhysicsDerivative physics_eval_future(struct Physics state, struct Physic
     quat_mul1f(derivative.spin, dt, spin);
     quat_add(state.pivot.orientation, spin, state.pivot.orientation);
 
-    Vec torque;
+    Vec4f torque;
     vec_mul1f(derivative.torque, dt, torque);
     vec_add(state.angular_momentum, torque, state.angular_momentum);
 

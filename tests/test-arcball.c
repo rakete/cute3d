@@ -78,10 +78,10 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_create_flat("flat_shader", &shader);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec){1.0,2.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 0.001, 1000.0, &arcball);
+    arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001, 1000.0, &arcball);
 
     Quat grid_rotation = {0};
-    quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation);
+    quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
     Mat grid_transform = {0};
     quat_to_mat(grid_rotation, grid_transform);
 
@@ -125,7 +125,7 @@ int32_t main(int32_t argc, char *argv[]) {
         canvas_render_layers(&global_dynamic_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);
 
-        Vec light_direction = { 0.2, -0.5, -1.0 };
+        Vec4f light_direction = { 0.2, -0.5, -1.0 };
         shader_set_uniform_3f(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
         Color ambiance = {50, 25, 150, 255};

@@ -82,7 +82,7 @@ struct Vbo {
 void vbo_create(struct Vbo* p);
 void vbo_destroy(struct Vbo* p);
 
-void vbo_print(FILE* f, struct Vbo* vbo);
+void vbo_print(struct Vbo* vbo);
 
 void vbo_add_buffer(struct Vbo* vbo,
                     uint32_t i,
@@ -176,7 +176,7 @@ struct VboMesh {
 void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh);
 void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh);
 
-void vbomesh_print(FILE* f, struct VboMesh* mesh);
+void vbomesh_print(struct VboMesh* mesh);
 
 // put a common pattern to check if a mesh is last in vbo in here so I don't wonder about it
 // everytime I come back to this code/have to only document it once, here

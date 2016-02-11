@@ -41,7 +41,7 @@ struct Collider {
     // for the specific collider in addition to the orientation in pivot
     struct TransformPivot* pivot;
     enum ColliderType type;
-    Vec position;
+    Vec4f position;
 };
 
 struct ColliderSphere {
@@ -53,7 +53,7 @@ struct ColliderSphere {
 struct ColliderPlane {
     struct Collider collider;
 
-    Vec normal;
+    Vec4f normal;
     float offset;
 };
 
@@ -80,8 +80,8 @@ struct ColliderCapsule {
 
     Quat orientation;
 
-    Vec point_a;
-    Vec point_b;
+    Vec4f point_a;
+    Vec4f point_b;
     float radius;
 };
 
@@ -94,10 +94,10 @@ struct ColliderConvex {
 };
 
 // each supported bounding volume data structure should have a constructor to initialize it
-void collider_plane(Vec normal, float offset, struct TransformPivot* pivot, struct ColliderPlane* plane);
+void collider_plane(Vec4f normal, float offset, struct TransformPivot* pivot, struct ColliderPlane* plane);
 void collider_sphere(float radius, struct TransformPivot* pivot, struct ColliderSphere* sphere);
 void collider_obb(float width, float height, float depth, struct TransformPivot* pivot, struct ColliderOBB* obb);
-void collider_capsule(Vec point_a, Vec point_b, float radius, struct TransformPivot* pivot, struct ColliderCapsule* capsule);
+void collider_capsule(Vec4f point_a, Vec4f point_b, float radius, struct TransformPivot* pivot, struct ColliderCapsule* capsule);
 void collider_convex(struct HalfEdgeMesh* mesh, struct TransformPivot* pivot, struct ColliderConvex* convex);
 
 // collision detection itself is actually two seperate things: collision testing and contact generation, these should both
@@ -120,14 +120,14 @@ bool collide_convex_plane(struct ColliderConvex* convex, struct ColliderPlane* p
 bool collide_convex_convex(struct ColliderConvex* convex1, struct ColliderConvex* convex2);
 
 struct Contact {
-    Vec point;
+    Vec4f point;
     float penetration;
 };
 
 struct Collision {
     uint32_t num_contacts;
     struct Contact contact[MAX_CONTACTS];
-    Vec normal;
+    Vec4f normal;
     uint32_t lifetime;
 };
 

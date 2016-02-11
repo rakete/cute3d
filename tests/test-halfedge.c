@@ -70,17 +70,17 @@ int main(int argc, char *argv[]) {
     struct Shader shader = {0};
     shader_create_flat("flat_shader", &shader);
 
-    Vec light_direction = { 0.2, -0.5, -1.0 };
+    Vec4f light_direction = { 0.2, -0.5, -1.0 };
     shader_set_uniform_3f(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
     Color ambiance = { 42, 12, 25, 255 };
     shader_set_uniform_4f(&shader, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec){1.0,2.0,6.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
+    arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
 
     Quat grid_rotation = {0};
-    quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation);
+    quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
     Mat grid_transform = {0};
     quat_to_mat(grid_rotation, grid_transform);
 

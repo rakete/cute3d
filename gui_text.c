@@ -155,13 +155,13 @@ void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projec
     }
 }
 
-void text_put_world(struct Canvas* canvas, Vec cursor, int32_t layer, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text) {
+void text_put_world(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text) {
     text_put(canvas, cursor, layer, CANVAS_PROJECT_WORLD, font_name, scale, color, model_matrix, unicode_text);
 }
 
-void text_put_screen(struct Canvas* canvas, Vec cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* unicode_text) {
+void text_put_screen(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* unicode_text) {
 
-    Vec translation = {x, -y, 0.0, 1.0};
+    Vec4f translation = {x, -y, 0.0, 1.0};
     Mat model_matrix = {0};
     mat_translate(NULL, translation, model_matrix);
 

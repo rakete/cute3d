@@ -37,7 +37,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_create_flat("flat_shader", &shader);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec){12.0,16.0,-8.0,1.0}, (Vec){0.0,0.0,0.0,1.0}, 0.001, 1000.0, &arcball);
+    arcball_create(window, (Vec4f){12.0,16.0,-8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001, 1000.0, &arcball);
 
     struct Character symbols[256] = {0};
     default_font_create(symbols);
@@ -71,7 +71,7 @@ int32_t main(int32_t argc, char *argv[]) {
         glClearColor(.0f, .0f, .0f, 1.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-        Vec light_direction = { 0.2, 0.5, 1.0 };
+        Vec4f light_direction = { 0.2, 0.5, 1.0 };
         shader_add_uniform(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
 
         Color ambiance = { 0.25, 0.1, 0.2, 1.0 };

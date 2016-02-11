@@ -35,7 +35,7 @@ void allegro_events(ALLEGRO_DISPLAY* display, ALLEGRO_EVENT_QUEUE** queue) {
     al_register_event_source((*queue), al_get_display_event_source(display));
 }
 
-void allegro_orbit_create(ALLEGRO_DISPLAY* display, Vec origin, Vec translation, struct Camera* camera) {
+void allegro_orbit_create(ALLEGRO_DISPLAY* display, Vec4f origin, Vec4f translation, struct Camera* camera) {
     int32_t width = al_get_display_width(display);
     int32_t height = al_get_display_height(display);
 

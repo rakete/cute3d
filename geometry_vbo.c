@@ -75,11 +75,11 @@ void vbo_destroy(struct Vbo* p) {
     log_assert( 0 == 1 );
 }
 
-void vbo_print(FILE* f, struct Vbo* vbo) {
+void vbo_print(struct Vbo* vbo) {
     log_assert( vbo != NULL );
 
-    fprintf(f, "vbo->capacity: %lu\n", vbo->capacity);
-    fprintf(f, "vbo->occupied: %lu\n", vbo->occupied);
+    printf("vbo->capacity: %lu\n", vbo->capacity);
+    printf("vbo->occupied: %lu\n", vbo->occupied);
 }
 
 void vbo_add_buffer(struct Vbo* vbo,
@@ -256,22 +256,22 @@ void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
     log_assert( 0 == 1 );
 }
 
-void vbomesh_print(FILE* f, struct VboMesh* mesh) {
+void vbomesh_print(struct VboMesh* mesh) {
     log_assert( mesh != NULL );
     log_assert( mesh->vbo != NULL );
 
-    vbo_print(f, mesh->vbo);
+    vbo_print(mesh->vbo);
 
-    fprintf(f, "\n");
+    printf("\n");
 
-    fprintf(f, "mesh->offset: %lu\n", mesh->offset);
-    fprintf(f, "mesh->capacity: %lu\n", mesh->capacity);
+    printf("mesh->offset: %lu\n", mesh->offset);
+    printf("mesh->capacity: %lu\n", mesh->capacity);
 
     for( int32_t i = 0; i < NUM_VBO_PHASES; i++ ) {
         for( int32_t j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
             if( mesh->occupied[j] > 0 ) {
-                fprintf(f, "mesh->occupied[%d]: %lu\n", j, mesh->occupied[j]);
-                fprintf(f, "mesh->vbo->buffer[%d][%d]:\n", i, j);
+                printf("mesh->occupied[%d]: %lu\n", j, mesh->occupied[j]);
+                printf("mesh->vbo->buffer[%d][%d]:\n", i, j);
                 switch(mesh->vbo->components[j].type) {
                     case GL_FLOAT: {
                         GLfloat* array = (GLfloat*)vbo_map(mesh->vbo, j, mesh->offset, mesh->capacity, GL_MAP_READ_BIT);
@@ -281,29 +281,29 @@ void vbomesh_print(FILE* f, struct VboMesh* mesh) {
                                     GLfloat a = array[k*mesh->vbo->components[j].size+0];
                                     GLfloat b = array[k*mesh->vbo->components[j].size+1];
                                     GLfloat c = array[k*mesh->vbo->components[j].size+2];
-                                    fprintf(f, "[%.2f %.2f %.2f]", a, b, c);
+                                    printf("[%.2f %.2f %.2f]", a, b, c);
                                 } else if( mesh->vbo->components[j].size == 4 ) {
                                     GLfloat a = array[k*mesh->vbo->components[j].size+0];
                                     GLfloat b = array[k*mesh->vbo->components[j].size+1];
                                     GLfloat c = array[k*mesh->vbo->components[j].size+2];
                                     GLfloat d = array[k*mesh->vbo->components[j].size+3];
-                                    fprintf(f, "[%.2f %.2f %.2f %.2f]", a, b, c, d);
+                                    printf("[%.2f %.2f %.2f %.2f]", a, b, c, d);
                                 }
 
                                 if( k == mesh->capacity - 1 ) {
-                                    fprintf(f, "\n");
+                                    printf("\n");
                                 } else {
-                                    fprintf(f, ", ");
+                                    printf(", ");
                                 }
                             }
                         } else {
-                            fprintf(f, "vbo_map returned NULL\n");
+                            printf("vbo_map returned NULL\n");
                         }
                         vbo_unmap(mesh->vbo, j);
                         break;
                     }
                     case GL_INT: {
-                        log_fail(f, __FILE__, __LINE__, "GL_INT case not implemented in vbomesh_print\n");
+                        log_fail(stderr, __FILE__, __LINE__, "GL_INT case not implemented in vbomesh_print\n");
                         break;
                     }
                 }
@@ -311,33 +311,33 @@ void vbomesh_print(FILE* f, struct VboMesh* mesh) {
         }
     }
 
-    fprintf(f, "mesh->primitives.type: %d\n", mesh->primitives.type);
-    fprintf(f, "mesh->primitives.size: %d\n", mesh->primitives.size);
+    printf("mesh->primitives.type: %d\n", mesh->primitives.type);
+    printf("mesh->primitives.size: %d\n", mesh->primitives.size);
 
-    fprintf(f, "mesh->index.type: %d\n", mesh->index.type);
-    fprintf(f, "mesh->index.bytes: %d\n", mesh->index.bytes);
-    fprintf(f, "mesh->indices->capacity: %lu\n", mesh->indices->capacity);
-    fprintf(f, "mesh->indices->occupied: %lu\n", mesh->indices->occupied);
+    printf("mesh->index.type: %d\n", mesh->index.type);
+    printf("mesh->index.bytes: %d\n", mesh->index.bytes);
+    printf("mesh->indices->capacity: %lu\n", mesh->indices->capacity);
+    printf("mesh->indices->occupied: %lu\n", mesh->indices->occupied);
 
-    fprintf(f, "mesh->indices:\n");
+    printf("mesh->indices:\n");
     switch(mesh->index.type) {
         case GL_UNSIGNED_INT: {
             GLuint* array = (GLuint*)vbomesh_map(mesh, 0, mesh->indices->capacity, GL_MAP_READ_BIT);
             if( array ) {
                 uint32_t primitive_size = mesh->primitives.size;
                 for( size_t k = 0; k < mesh->indices->capacity; k+=primitive_size ) {
-                    fprintf(f, "[");
+                    printf("[");
                     for( uint32_t l = 0; l < primitive_size; l++ ) {
-                        fprintf(f, "%d", array[k+l]);
+                        printf("%d", array[k+l]);
                         if( l < primitive_size - 1 ) {
-                            fprintf(f, ", ");
+                            printf(", ");
                         }
                     }
-                    fprintf(f, "]");
+                    printf("]");
                     if( k == mesh->indices->capacity - primitive_size ) {
-                        fprintf(f, "\n");
+                        printf("\n");
                     } else {
-                        fprintf(f, ", ");
+                        printf(", ");
                     }
                 }
             }

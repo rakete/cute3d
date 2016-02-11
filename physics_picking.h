@@ -18,7 +18,7 @@ struct PickingTarget {
     const struct TransformPivot* pivot;
     enum PickingTargetType type;
     bool picked;
-    Vec ray;
+    Vec4f ray;
 };
 
 struct PickingSphere {
@@ -30,7 +30,7 @@ struct PickingSphere {
 };
 
 void picking_sphere_create(const struct TransformPivot* pivot, float radius, struct PickingSphere* sphere);
-bool picking_sphere_intersect_test(struct PickingSphere* sphere, const Vec origin, const Vec ray);
+bool picking_sphere_intersect_test(struct PickingSphere* sphere, const Vec4f origin, const Vec4f ray);
 
 bool picking_click_event(const struct Camera* camera, struct PickingTarget** targets, size_t n, SDL_Event event);
 bool picking_drag_event(const struct Camera* camera, struct PickingTarget** targets, size_t n, SDL_Event event);

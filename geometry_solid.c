@@ -36,19 +36,19 @@ void solid_normals(struct Solid* solid) {
             uint32_t b = solid->indices[i*3+1];
             uint32_t c = solid->indices[i*3+2];
 
-            Vec u;
+            Vec4f u;
             u[0] = solid->vertices[a*3+0] - solid->vertices[b*3+0];
             u[1] = solid->vertices[a*3+1] - solid->vertices[b*3+1];
             u[2] = solid->vertices[a*3+2] - solid->vertices[b*3+2];
             u[3] = 1.0;
 
-            Vec v;
+            Vec4f v;
             v[0] = solid->vertices[a*3+0] - solid->vertices[c*3+0];
             v[1] = solid->vertices[a*3+1] - solid->vertices[c*3+1];
             v[2] = solid->vertices[a*3+2] - solid->vertices[c*3+2];
             v[3] = 1.0;
 
-            Vec normal;
+            Vec4f normal;
             vec_cross(u,v,normal);
             vec_normalize(normal,normal);
 
@@ -260,7 +260,7 @@ void solid_cube(float size, struct Cube* cube) {
     solid_hexahedron(size, cube);
 
     Quat q;
-    quat_from_axis_angle((Vec){0.0,0.0,1.0,1.0}, PI/4, q);
+    quat_from_axis_angle((Vec4f){0.0,0.0,1.0,1.0}, PI/4, q);
     for( uint32_t i = 0; i < 108; i+=3 ) {
         vec_rotate3f(cube->vertices+i, q, cube->vertices+i);
     }

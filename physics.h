@@ -31,12 +31,12 @@ struct Physics {
     struct TransformPivot pivot;
 
     // primary state
-    Vec linear_momentum;            ///< the momentum of the cube in kilogram meters per second.
-    Vec angular_momentum;           ///< angular momentum vector.
+    Vec4f linear_momentum;            ///< the momentum of the cube in kilogram meters per second.
+    Vec4f angular_momentum;           ///< angular momentum vector.
 
     // secondary state
-    Vec linear_velocity;            ///< velocity in meters per second (calculated from momentum).
-    Vec angular_velocity;           ///< angular velocity (calculated from angularMomentum).
+    Vec4f linear_velocity;            ///< velocity in meters per second (calculated from momentum).
+    Vec4f angular_velocity;           ///< angular velocity (calculated from angularMomentum).
     Quat spin;                      ///< quaternion rate of change in orientation.
 
     Mat world_transform;
@@ -58,13 +58,13 @@ struct Physics {
 };
 
 struct PhysicsDerivative {
-    Vec velocity;                ///< velocity is the derivative of position.
-    Vec force;                   ///< force in the derivative of momentum.
+    Vec4f velocity;                ///< velocity is the derivative of position.
+    Vec4f force;                   ///< force in the derivative of momentum.
     Quat spin;                   ///< spin is the derivative of the orientation quaternion.
-    Vec torque;                  ///< torque is the derivative of angular momentum.
+    Vec4f torque;                  ///< torque is the derivative of angular momentum.
 };
 
-typedef void (*physics_forces_func)(struct Physics state, float t, float dt, Vec force, Vec torque);
+typedef void (*physics_forces_func)(struct Physics state, float t, float dt, Vec4f force, Vec4f torque);
 
 void physics_create(float mass, Mat inertia, struct Physics* physics);
 

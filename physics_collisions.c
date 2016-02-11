@@ -12,10 +12,10 @@ void collider_unique_id(unsigned long* id) {
     *id = unique_id;
 }
 
-void collider_plane(Vec normal, float offset, struct TransformPivot* pivot, struct ColliderPlane* plane) {
+void collider_plane(Vec4f normal, float offset, struct TransformPivot* pivot, struct ColliderPlane* plane) {
     plane->collider.type = COLLIDER_PLANE;
     plane->collider.pivot = pivot;
-    vec_copy4f((Vec)NULL_VEC, plane->collider.position);
+    vec_copy4f((Vec4f)NULL_VEC, plane->collider.position);
 
     vec_normalize(normal, normal);
     vec_copy4f(normal, plane->normal);
@@ -25,7 +25,7 @@ void collider_plane(Vec normal, float offset, struct TransformPivot* pivot, stru
 void collider_sphere(float radius, struct TransformPivot* pivot, struct ColliderSphere* sphere) {
     sphere->collider.type = COLLIDER_SPHERE;
     sphere->collider.pivot = pivot;
-    vec_copy4f((Vec)NULL_VEC, sphere->collider.position);
+    vec_copy4f((Vec4f)NULL_VEC, sphere->collider.position);
 
     sphere->radius = radius;
 }
@@ -33,7 +33,7 @@ void collider_sphere(float radius, struct TransformPivot* pivot, struct Collider
 void collider_obb(float width, float height, float depth, struct TransformPivot* pivot, struct ColliderOBB* obb) {
     obb->collider.type = COLLIDER_OBB;
     obb->collider.pivot = pivot;
-    vec_copy4f((Vec)NULL_VEC, obb->collider.position);
+    vec_copy4f((Vec4f)NULL_VEC, obb->collider.position);
 
     obb->width = width;
     obb->height = height;
@@ -42,10 +42,10 @@ void collider_obb(float width, float height, float depth, struct TransformPivot*
     quat_identity(obb->orientation);
 }
 
-void collider_capsule(Vec point_a, Vec point_b, float radius, struct TransformPivot* pivot, struct ColliderCapsule* capsule) {
+void collider_capsule(Vec4f point_a, Vec4f point_b, float radius, struct TransformPivot* pivot, struct ColliderCapsule* capsule) {
     capsule->collider.type = COLLIDER_CAPSULE;
     capsule->collider.pivot = pivot;
-    vec_copy4f((Vec)NULL_VEC, capsule->collider.position);
+    vec_copy4f((Vec4f)NULL_VEC, capsule->collider.position);
 
     capsule->radius = radius;
     vec_copy4f(point_a, capsule->point_a);
@@ -57,7 +57,7 @@ void collider_capsule(Vec point_a, Vec point_b, float radius, struct TransformPi
 void collider_convex(struct HalfEdgeMesh* mesh, struct TransformPivot* pivot, struct ColliderConvex* convex) {
     convex->collider.type = COLLIDER_CONVEX;
     convex->collider.pivot = pivot;
-    vec_copy4f((Vec)NULL_VEC, convex->collider.position);
+    vec_copy4f((Vec4f)NULL_VEC, convex->collider.position);
 
     convex->mesh = mesh;
 
@@ -128,7 +128,7 @@ static void convex_local_transform(struct ColliderConvex* const convex1,
     quat_mul(convex1_local_orientation, convex1->orientation, convex1_local_orientation);
     quat_invert(convex1_local_orientation, convex1_local_orientation);
 
-    Vec convex1_local_translation = {0};
+    Vec4f convex1_local_translation = {0};
     vec_copy3f(convex1->collider.pivot->position, convex1_local_translation);
     vec_add(convex1_local_translation, convex1->collider.position, convex1_local_translation);
     vec_mul1f(convex1_local_translation, -1.0f, convex1_local_translation);
@@ -137,7 +137,7 @@ static void convex_local_transform(struct ColliderConvex* const convex1,
     quat_copy(convex2->collider.pivot->orientation, convex2_world_orientation);
     quat_mul(convex2_world_orientation, convex2->orientation, convex2_world_orientation);
 
-    Vec convex2_world_translation = {0};
+    Vec4f convex2_world_translation = {0};
     vec_copy3f(convex2->collider.pivot->position, convex2_world_translation);
     vec_add(convex2_world_translation, convex2->collider.position, convex2_world_translation);
 
@@ -146,13 +146,13 @@ static void convex_local_transform(struct ColliderConvex* const convex1,
     Quat vertex_orientation = {0};
     quat_mul(convex2_world_orientation, convex1_local_orientation, vertex_orientation);
 
-    Vec vertex_translation = {0};
+    Vec4f vertex_translation = {0};
     vec_add(convex2_world_translation, convex1_local_translation, vertex_translation);
 
     // the vertex_translation/orientation is then applied to every vertex of convex2->mesh resulting
     // in a new array of vertices which coordinates are now relative to convex1
     for( uint32_t i = 0; i < convex2->mesh->vertices.occupied && i*3 < size; i++ ) {
-        Vec vertex = {0};
+        Vec4f vertex = {0};
         vec_copy3f(convex2->mesh->vertices.array[i].position, vertex);
 
         vec_rotate3f(vertex, vertex_orientation, vertex);
@@ -432,9 +432,9 @@ void collisions_prepare(size_t n, struct Collision* collisions) {
             if( collisions[i].lifetime >= COLLISION_LIFETIME ) {
                 collisions[i].num_contacts = 0;
                 collisions[i].lifetime = 0;
-                vec_copy4f((Vec){0.0, 1.0, 0.0, 1.0}, collisions[i].normal);
+                vec_copy4f((Vec4f){0.0, 1.0, 0.0, 1.0}, collisions[i].normal);
 
-                vec_copy4f((Vec){0.0, 0.0, 0.0, 1.0}, collisions[i].contact[j].point);
+                vec_copy4f((Vec4f){0.0, 0.0, 0.0, 1.0}, collisions[i].contact[j].point);
                 collisions[i].contact[j].penetration = 0.0;
             } else {
                 collisions[i].lifetime += 1;

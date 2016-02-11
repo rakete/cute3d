@@ -29,7 +29,6 @@ typedef float* VecP;
 typedef float* MatP;
 typedef float* QuatP;
 
-typedef float Vec[4];
 typedef float Vec4f[4];
 typedef float Vec3f[3];
 typedef float Vec2f[2];
@@ -52,6 +51,6 @@ typedef float Texcoord[2];
 #define UP_AXIS { 0, 1, 0, 1 }
 #define FORWARD_AXIS { 0, 0, -1, 1 }
 
-#define CUTE_EPSILON 0.00001f
+#define CUTE_EPSILON FLT_EPSILON // 0.00001f
 
 #endif

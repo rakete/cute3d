@@ -17,7 +17,7 @@ void sdl2_window(const char* title, int32_t x, int32_t y, int32_t width, int32_t
     sdl2_debug({
             // these must be set before creating a window
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
             *window = SDL_CreateWindow(title, x, y, width, height,
                                        SDL_WINDOW_OPENGL |

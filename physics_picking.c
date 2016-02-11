@@ -4,14 +4,14 @@ void picking_sphere_create(const struct TransformPivot* pivot, float radius, str
     sphere->target.pivot = pivot;
     sphere->target.type = PICKING_SPHERE;
     sphere->target.picked = false;
-    vec_copy4f((Vec){0.0f, 0.0f, 0.0f, 1.0f}, sphere->target.ray);
+    vec_copy4f((Vec4f){0.0f, 0.0f, 0.0f, 1.0f}, sphere->target.ray);
 
     sphere->radius = radius;
     sphere->near = -FLT_MIN;
     sphere->far = -FLT_MIN;
 }
 
-bool picking_sphere_intersect_test(struct PickingSphere* sphere, const Vec origin, const Vec ray) {
+bool picking_sphere_intersect_test(struct PickingSphere* sphere, const Vec4f origin, const Vec4f ray) {
     log_assert( origin != NULL );
     log_assert( ray != NULL );
     log_assert( sphere != NULL );
@@ -21,7 +21,7 @@ bool picking_sphere_intersect_test(struct PickingSphere* sphere, const Vec origi
     vec_copy4f(ray, sphere->target.ray);
     sphere->target.picked = false;
 
-    Vec L;
+    Vec4f L;
     vec_sub(sphere->target.pivot->position, origin, L);
 
     // geometric solution
@@ -73,10 +73,10 @@ bool picking_click_event(const struct Camera* camera, struct PickingTarget** tar
     if( event.type == SDL_MOUSEBUTTONDOWN && event.button.button == INPUT_MOUSE_PICKING_CLICK ) {
         SDL_MouseButtonEvent mouse = event.button;
 
-        Vec click_ray;
+        Vec4f click_ray;
         camera_ray(camera, CAMERA_PERSPECTIVE, mouse.x, mouse.y, click_ray);
 
-        /* static Vec old_ray = {0,0,0,0}; */
+        /* static Vec4f old_ray = {0,0,0,0}; */
         /* if( old_ray[3] == 0.0f || (old_ray[0] != click_ray[0] && old_ray[1] != click_ray[1] && old_ray[2] != click_ray[2]) ) { */
         /*     vec_copy4f(click_ray, old_ray); */
         /* } */

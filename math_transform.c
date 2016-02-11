@@ -31,14 +31,14 @@ void pivot_create(struct TransformPivot* pivot) {
     pivot->eye_distance = 1.0;
 }
 
-int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target) {
+int32_t pivot_lookat(struct TransformPivot* pivot, const Vec4f target) {
     int32_t result = -1;
 
-    Vec right_axis = RIGHT_AXIS;
-    Vec up_axis = UP_AXIS;
-    Vec forward_axis = FORWARD_AXIS;
+    Vec4f right_axis = RIGHT_AXIS;
+    Vec4f up_axis = UP_AXIS;
+    Vec4f forward_axis = FORWARD_AXIS;
 
-    Vec target_direction;
+    Vec4f target_direction;
     vec_sub(target, pivot->position, target_direction);
     vec_length(target_direction, &pivot->eye_distance);
 
@@ -65,12 +65,12 @@ int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target) {
         // - to find the amount of yaw I project the target_direction into the
         //   up_axis plane, resulting in up_projection which is a vector that
         //   points from the up_axis plane to the tip of the target_direction
-        Vec up_projection = {0};
+        Vec4f up_projection = {0};
         vec_mul1f(up_axis, vdot(target_direction, up_axis), up_projection);
 
         // - so then by subtracting the up_projection from the target_direction,
         //   I get a vector lying in the up_axis plane, pointing towards the target
-        Vec yaw_direction = {0};
+        Vec4f yaw_direction = {0};
         vec_sub(target_direction, up_projection, yaw_direction);
 
         // - angle between yaw_direction and forward_axis is the amount of yaw we
@@ -85,7 +85,7 @@ int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target) {
 
         // - I have to compute the cross product between yaw_direction and
         //   forward_axis and use the resulting yaw_axis
-        Vec yaw_axis = {0};
+        Vec4f yaw_axis = {0};
         vec_cross(yaw_direction, forward_axis, yaw_axis);
         if( vnullp(yaw_axis) ) {
             vec_copy4f(up_axis, yaw_axis);
@@ -102,7 +102,7 @@ int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target) {
         //   toward the target, the yaw_direction, I just have to normalize it to make it
         //   an axis (and put the result in forward_axis, since it now is the forward_axis
         //   of the yaw turned camera)
-        Vec yaw_forward_axis = {0};
+        Vec4f yaw_forward_axis = {0};
         vec_normalize(yaw_direction, yaw_forward_axis);
 
         // - then use the new forward axis with the old target_direction to compute the angle
@@ -117,7 +117,7 @@ int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target) {
 
 
         // - and just as in the yaw case we compute an rotation pitch_axis
-        Vec pitch_axis = {0};
+        Vec4f pitch_axis = {0};
         vec_cross(target_direction, yaw_forward_axis, pitch_axis);
         if( vnullp(pitch_axis) ) {
             vec_copy4f(right_axis, pitch_axis);
@@ -139,13 +139,13 @@ int32_t pivot_lookat(struct TransformPivot* pivot, const Vec target) {
         // - to find out if I am flipped over, I compute a the flipped up_axis called
         //   flip_axis and then use the dot product between the flip_axis and up_axis
         //   to decide if I am flipped
-        Vec flip_axis = {0};
+        Vec4f flip_axis = {0};
         vec_rotate4f(up_axis, inverted_orientation, flip_axis);
         vec_rotate4f(flip_axis, yaw_pitch_rotation, flip_axis);
 
         float dot = vdot(up_axis, flip_axis);
 
-        Vec target_axis = {0};
+        Vec4f target_axis = {0};
         vec_normalize(target_direction, target_axis);
 
         // - check if we are flipped and if we are, set result to 1 meaning we are flipped

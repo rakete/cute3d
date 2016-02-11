@@ -50,7 +50,7 @@ void camera_matrices(const struct Camera* camera, enum CameraProjection projecti
 
         mat_identity(view_mat);
 
-        Vec inv_vec;
+        Vec4f inv_vec;
         vec_invert(camera->pivot.position, inv_vec);
         mat_translate(view_mat, inv_vec, view_mat);
 
@@ -60,20 +60,20 @@ void camera_matrices(const struct Camera* camera, enum CameraProjection projecti
     }
 }
 
-void camera_unproject(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec result) {
+void camera_unproject(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec4f result) {
     Mat projection_matrix = {0};
     Mat view_matrix = {0};
     camera_matrices(camera, projection_type, projection_matrix, view_matrix);
 
     //  3d Normalised Device Coordinates
-    Vec device_coordinates = {
+    Vec4f device_coordinates = {
         2.0f * x / camera->screen.width - 1.0f,
         1.0f - (2.0f * y) / camera->screen.height,
         1.0f, //camera->frustum.near,
         1.0f
     };
 
-    Vec clip_coordinates = {
+    Vec4f clip_coordinates = {
         device_coordinates[0],
         device_coordinates[1],
         device_coordinates[2],
@@ -92,7 +92,7 @@ void camera_unproject(const struct Camera* camera, enum CameraProjection project
     Mat inverse_view = {0};
     mat_invert4f(view_matrix, &det, inverse_view);
 
-    Vec eye_coordinates = {0};
+    Vec4f eye_coordinates = {0};
     mat_mul_vec4f(inverse_projection, clip_coordinates, eye_coordinates);
 
     eye_coordinates[2] = -1.0f; // -camera->frustum.near
@@ -104,20 +104,20 @@ void camera_unproject(const struct Camera* camera, enum CameraProjection project
     vec_copy4f(eye_coordinates, result);
 }
 
-void camera_ray(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec ray) {
+void camera_ray(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec4f ray) {
     Mat projection_matrix = {0};
     Mat view_matrix = {0};
     camera_matrices(camera, projection_type, projection_matrix, view_matrix);
 
     //  3d Normalised Device Coordinates
-    Vec device_coordinates = {
+    Vec4f device_coordinates = {
         2.0f * x / camera->screen.width - 1.0f,
         1.0f - (2.0f * y) / camera->screen.height,
         1.0f, //camera->frustum.near,
         1.0f
     };
 
-    Vec clip_coordinates = {
+    Vec4f clip_coordinates = {
         device_coordinates[0],
         device_coordinates[1],
         device_coordinates[2],

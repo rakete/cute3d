@@ -42,8 +42,8 @@ struct Ground {
     struct ColliderPlane collider;
 };
 
-void physics_forces(struct Physics state, float t, float dt, Vec force, Vec torque) {
-    vec_copy((Vec){0.0, 0.0, 0.0, 1.0}, force);
+void physics_forces(struct Physics state, float t, float dt, Vec4f force, Vec4f torque) {
+    vec_copy((Vec4f){0.0, 0.0, 0.0, 1.0}, force);
     vec_copy((Quat){0.0, 0.0, 0.0, 1.0}, torque);
 
     /* Mat local_transform; */
@@ -143,9 +143,9 @@ int32_t main(int32_t argc, char *argv[]) {
     physics_box_inertia(size, size, size, mass, inertia);
     physics_create(mass, inertia, &entity.current);
 
-    vec_copy((Vec){0.0f, 10.0f, 0.0f, 1.0f}, entity.current.pivot.position);
-    vec_copy((Vec){0.0f, 0.0f, 0.0f, 1.0f}, entity.current.linear_momentum);
-    vec_copy((Vec){0.0f, 0.0f, 0.0f, 1.0f}, entity.current.angular_momentum);
+    vec_copy((Vec4f){0.0f, 10.0f, 0.0f, 1.0f}, entity.current.pivot.position);
+    vec_copy((Vec4f){0.0f, 0.0f, 0.0f, 1.0f}, entity.current.linear_momentum);
+    vec_copy((Vec4f){0.0f, 0.0f, 0.0f, 1.0f}, entity.current.angular_momentum);
 
     entity.previous = entity.current;
     collider_obb(size, size, size, &entity.current.pivot, &entity.collider);
@@ -153,8 +153,8 @@ int32_t main(int32_t argc, char *argv[]) {
     /* Ground */
     struct Ground ground = {0};
     pivot_create(&ground.pivot);
-    collider_plane(((Vec){0.2, 0.8, 0.0, 1.0}), -4.0, &ground.pivot, &ground.collider);
-    //vec_copy((Vec){0.0, -4.0, 0.0, 1.0}, ground.pivot.position);
+    collider_plane(((Vec4f){0.2, 0.8, 0.0, 1.0}), -4.0, &ground.pivot, &ground.collider);
+    //vec_copy((Vec4f){0.0, -4.0, 0.0, 1.0}, ground.pivot.position);
 
     /* Shader */
     if( init_shader() ) {
@@ -164,7 +164,7 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Shader flat_shader = {0};
     shader_create_flat("flat_shader", &flat_shader);
 
-    Vec light_direction = { 0.0, -1.0, 0.0, 1.0 };
+    Vec4f light_direction = { 0.0, -1.0, 0.0, 1.0 };
     shader_set_uniform_3f(&flat_shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
     Color ambiance = { 0, 0, 12, 255 };
@@ -172,7 +172,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
     /* Matrices */
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec){0.0, 12.0, 32.0, 1.0}, (Vec){0.0,0.0,0.0,1.0}, 1.0f, 1000.0f, &arcball);
+    arcball_create(window, (Vec4f){0.0, 12.0, 32.0, 1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 1.0f, 1000.0f, &arcball);
 
     SDL_Delay(100);
 
@@ -237,13 +237,13 @@ int32_t main(int32_t argc, char *argv[]) {
         Mat grid_transform = IDENTITY_MAT;
 
         Quat grid_rotation1 = {0};
-        quat_from_vec_pair((Vec){0.0, 0.0, 1.0, 1.0}, (Vec){0.0, 1.0, 0.0, 1.0}, grid_rotation1);
+        quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation1);
         Quat grid_rotation2 = {0};
-        quat_from_vec_pair((Vec){0.0, 1.0, 0.0, 1.0}, ground.collider.normal, grid_rotation2);
+        quat_from_vec_pair((Vec4f){0.0, 1.0, 0.0, 1.0}, ground.collider.normal, grid_rotation2);
         mat_rotate(grid_transform, grid_rotation1, grid_transform);
         mat_rotate(grid_transform, grid_rotation2, grid_transform);
 
-        Vec point_on_grid = { ground.collider.normal[0] * ground.collider.offset,
+        Vec4f point_on_grid = { ground.collider.normal[0] * ground.collider.offset,
                               ground.collider.normal[1] * ground.collider.offset,
                               ground.collider.normal[2] * ground.collider.offset,
                               1.0 };
@@ -297,7 +297,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
         /* draw physics */
         /* draw_vec(entity.current.linear_velocity, */
-        /*          (Vec){0.0, 0.0, 0.0, 1.0}, */
+        /*          (Vec4f){0.0, 0.0, 0.0, 1.0}, */
         /*          1.0f, */
         /*          1.0f, */
         /*          (Color){1.0, 1.0, 0.0, 1.0}, */
@@ -325,7 +325,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
         //glEnable(GL_DEPTH_TEST);
 
-        Vec text_cursor = {0, 0, 0, 1};
+        Vec4f text_cursor = {0, 0, 0, 1};
         text_show_fps(NULL, text_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
 
         canvas_render_layers(&global_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);

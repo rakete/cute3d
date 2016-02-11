@@ -23,18 +23,18 @@ struct HalfEdge;
 struct HalfEdgeVertex {
     // position looks like it would be nice in struct HalfEdge, but its here because it is more
     // convenient to be able to insert the vertices seperately from the edges
-    Vec position;
+    Vec4f position;
     int32_t edge;
 };
 
 struct HalfEdgeFace {
-    Vec normal;
+    Vec4f normal;
     int32_t size;
     int32_t edge;
 };
 
 struct HalfEdge {
-    Vec normal;
+    Vec4f normal;
     Texcoord texcoord;
     Color color;
 

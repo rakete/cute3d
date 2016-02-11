@@ -1,7 +1,7 @@
 
 #include "math_arcball.h"
 
-void arcball_create(SDL_Window* window, Vec eye, Vec target, float near, float far, struct Arcball* arcball) {
+void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float near, float far, struct Arcball* arcball) {
     int32_t width,height;
     sdl2_debug( SDL_GL_GetDrawableSize(window, &width, &height) );
 
@@ -33,6 +33,7 @@ void arcball_create(SDL_Window* window, Vec eye, Vec target, float near, float f
 bool arcball_event(struct Arcball* arcball, SDL_Event event) {
     static int32_t mouse_down = 0;
     static const float rotation_slowness_factor = 0.25f;
+    static int32_t next_flipped = 0;
 
     // - arcball rotation is performed by dragging the mouse, so I just keep track of when
     //   a mouse button is pressed and released between calls to this function by setting a
@@ -41,6 +42,7 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
     if( event.type == SDL_MOUSEBUTTONDOWN && mouse_down == 0 ) {
         mouse_down = event.button.button;
     } else if( event.type == SDL_MOUSEBUTTONUP && mouse_down == event.button.button ) {
+        arcball->flipped = next_flipped;
         mouse_down = 0;
     }
 
@@ -58,13 +60,13 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
         // - the sideways translation is computed by taking the right_axis and orienting it with
         //   the cameras orientation, the way I set up the lookat implementation this should always
         //   result in a vector parallel to the x-z-plane
-        Vec right_axis = RIGHT_AXIS;
+        Vec4f right_axis = RIGHT_AXIS;
         vec_rotate4f(right_axis, inverted_orientation, right_axis);
         if( mouse.xrel != 0 ) {
             // - then we'll just multiply the resulting axis with the mouse x relative movement, inversely
             //   scaled by how far we are away from what we are looking at (farer means faster, nearer
             //   means slower), the translation_factor is just a value that felt good when this was implemented
-            Vec x_translation = {0};
+            Vec4f x_translation = {0};
             vec_mul1f(right_axis, (float)mouse.xrel/arcball->translation_factor*eye_distance, x_translation);
 
             // - finally just add the x_translation to the target and position so that the whole arcball moves
@@ -74,16 +76,16 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
 
         // - the z translation can't be done along the orientated forward axis because that would include
         //   the camera pitch, here, same as above, we need an axis that is parallel to the x-z-plane
-        Vec up_axis = UP_AXIS;
+        Vec4f up_axis = UP_AXIS;
         if( mouse.yrel != 0 ) {
             // - luckily such an axis is easily computed from the crossproduct of the orientated right_axis and
             //   the default up_axis, the result is an axis pointing in the direction of the cameras forward axis,
             //   while still being parallel to the x-z-plane
-            Vec forward_axis;
+            Vec4f forward_axis;
             vec_cross(right_axis, up_axis, forward_axis);
 
             // - same as above
-            Vec z_translation;
+            Vec4f z_translation;
             vec_mul1f(forward_axis, (float)mouse.yrel/arcball->translation_factor*eye_distance, z_translation);
 
             // - dito
@@ -104,7 +106,7 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
         // - the flipped value indicates if the camera is flipped over, so we'll just use that to
         //   change the sign of the yaw to make the mouse movement on the screen always correctly
         //   relates to the movement of the rotation
-        Vec up_axis = UP_AXIS;
+        Vec4f up_axis = UP_AXIS;
         Quat yaw_rotation = {0};
         quat_from_axis_angle(up_axis, arcball->flipped * PI/180 * mouse.xrel * rotation_slowness_factor, yaw_rotation);
 
@@ -113,7 +115,7 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
         Quat inverted_orientation = {0};
         quat_invert(arcball->camera.pivot.orientation, inverted_orientation);
 
-        Vec right_axis = RIGHT_AXIS;
+        Vec4f right_axis = RIGHT_AXIS;
         vec_rotate4f(right_axis, inverted_orientation, right_axis);
 
         Quat pitch_rotation = {0};
@@ -126,14 +128,14 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
         // - orbit is the position translated to the coordinate root
         // - the yaw and pitch rotation is applied to the orbit
         // - orbit is translated back and replaces the camera position
-        Vec orbit = {0};
+        Vec4f orbit = {0};
         vec_sub(arcball->camera.pivot.position, arcball->target, orbit);
         vec_rotate4f(orbit, rotation, orbit);
         vec_add(arcball->target, orbit, arcball->camera.pivot.position);
 
         // - after updating the position we just call lookat to compute the new
         //   orientation, and also set the flipped state
-        arcball->flipped = pivot_lookat(&arcball->camera.pivot, arcball->target);
+        next_flipped = pivot_lookat(&arcball->camera.pivot, arcball->target);
     }
 
     if( event.type == SDL_MOUSEWHEEL ) {
@@ -150,10 +152,10 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
             Quat inverted_orientation = {0};
             quat_invert(arcball->camera.pivot.orientation, inverted_orientation);
 
-            Vec forward_axis = FORWARD_AXIS;
+            Vec4f forward_axis = FORWARD_AXIS;
             vec_rotate4f(forward_axis, inverted_orientation, forward_axis);
 
-            Vec zoom = {0};
+            Vec4f zoom = {0};
             vec_mul1f(forward_axis, wheel.y/arcball->zoom_factor*(*eye_distance), zoom);
             vec_add(arcball->camera.pivot.position, zoom, arcball->camera.pivot.position);
 

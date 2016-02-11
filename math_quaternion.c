@@ -52,7 +52,7 @@ bool quat_from_axis_angle(const Vec3f axis, const float angle, Quat q) {
     /* q[2] = axis[2] * s; */
     /* q[3] = (float)cosf(half_angle); */
 
-    Vec normed_axis;
+    Vec4f normed_axis;
     double norm = sqrt( axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2] );
 
 #pragma GCC diagnostic push
@@ -77,7 +77,7 @@ QuatP qfrom_axis_angle(Quat axis, const float angle) {
 }
 
 bool quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
-    Vec axis;
+    Vec4f axis;
     vec_cross(b,a,axis);
 
     float angle;
@@ -288,7 +288,7 @@ QuatP qto_mat(const Quat q, Mat m) {
     return m;
 }
 
-void quat_to_axis_angle(const Quat p, Vec axis, float* angle) {
+void quat_to_axis_angle(const Quat p, Vec4f axis, float* angle) {
     Quat q;
     quat_copy(p, q);
     quat_normalize(q, q); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised

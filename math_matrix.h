@@ -26,7 +26,7 @@
 
 // - I don't like this code anymore
 // - some refactoring should be done:
-// - originally the plan was to only have one Vec type, but now I am stuck with three Vec(4f), Vec3f and Vec2f
+// - originally the plan was to only have one Vec4f type, but now I am stuck with three Vec(4f), Vec3f and Vec2f
 // - I tried making Vec3f and Vec2f the same as Vec(4f), but I did not like that, it worked, but I actually do
 // get type warnings telling me about mismatched sizes here and there, eventually I should look into that again
 // later
@@ -40,14 +40,14 @@
 // - I don't like the encoded float typename everywhere, the f in 3f and 4f, it should just be 3 and 4
 
 // vector creation
-void vec_copy4f(const Vec v, Vec r);
-VecP vcopy4(const Vec v, Vec r);
+void vec_copy4f(const Vec4f v, Vec4f r);
+VecP vcopy4(const Vec4f v, Vec4f r);
 
 void vec_copy3f(const Vec3f v, Vec3f r);
 VecP vcopy3f(const Vec3f v, Vec3f r);
 
-void vec_copy2f(const Vec v, Vec2f r);
-VecP vcopy2f(const Vec v, Vec2f r);
+void vec_copy2f(const Vec4f v, Vec2f r);
+VecP vcopy2f(const Vec4f v, Vec2f r);
 
 // vector comparison
 void vec_equal(const Vec3f a, const Vec3f b, int* r);
@@ -67,8 +67,8 @@ void vec_mul1f(const Vec3f v, float w, Vec3f r);
 VecP vmul1f(Vec3f v, float w);
 
 // vector operations
-void vec_invert(const Vec v, Vec r);
-VecP vinvert(Vec v);
+void vec_invert(const Vec4f v, Vec4f r);
+VecP vinvert(Vec4f v);
 
 void vec_dot(const Vec3f v, const Vec3f w, float* r);
 float vdot(const Vec3f v, const Vec3f w);
@@ -88,34 +88,34 @@ VecP vnormalize(Vec3f v);
 void vec_angle(const Vec3f v, const Vec3f w, float* r);
 float vangle(const Vec3f v, const Vec3f w);
 
-void vec_rotate4f(const Vec vec, const Quat q, Vec r);
+void vec_rotate4f(const Vec4f vec, const Quat q, Vec4f r);
 void vec_rotate3f(const Vec3f vec, const Quat q, Vec3f r);
 
 // vector tests
-void vec_nullp(const Vec v, bool* r);
-bool vnullp(const Vec v);
+void vec_nullp(const Vec4f v, bool* r);
+bool vnullp(const Vec4f v);
 
-void vec_unitp(const Vec v, bool* r);
-bool vunitp(const Vec v);
+void vec_unitp(const Vec4f v, bool* r);
+bool vunitp(const Vec4f v);
 
-void vec_sum(const Vec v, float* sum);
-float vsum(const Vec v);
+void vec_sum(const Vec4f v, float* sum);
+float vsum(const Vec4f v);
 
-void vec_sign(const Vec v, int* sign);
-int32_t vsign(const Vec v);
+void vec_sign(const Vec4f v, int* sign);
+int32_t vsign(const Vec4f v);
 
-void vec_perpendicular(const Vec v, Vec r);
-VecP vperpendicular(const Vec v);
+void vec_perpendicular(const Vec4f v, Vec4f r);
+VecP vperpendicular(const Vec4f v);
 
-void vec_basis(const Vec x, Vec y, Vec z);
+void vec_basis(const Vec4f x, Vec4f y, Vec4f z);
 
-void vec_print(FILE* f, const char* title, const Vec v);
+void vec_print(const char* title, const Vec4f v);
 
 // matrix creation
 void mat_copy4f(const Mat m, Mat r);
 void mat_copy3f(const Mat m, Mat r);
 
-void mat_basis(const Vec x, Mat r);
+void mat_basis(const Vec4f x, Mat r);
 
 void mat_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Mat m);
 void mat_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Mat m);
@@ -133,14 +133,14 @@ MatP minvert3f(Mat m, double* det);
 void mat_mul(const Mat m, const Mat n, Mat r);
 MatP mmul(const Mat m, Mat n);
 
-void mat_mul_vec4f(const Mat m, const Vec v, Vec r);
-MatP mmul_vec4f(const Mat m, Vec v);
+void mat_mul_vec4f(const Mat m, const Vec4f v, Vec4f r);
+MatP mmul_vec4f(const Mat m, Vec4f v);
 
 void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r);
 MatP mmul_vec3f(const Mat m, Vec3f v);
 
 void mat_translate(const Mat m, const Vec3f v, Mat r);
-MatP mtranslate(const Vec v, Mat m);
+MatP mtranslate(const Vec4f v, Mat m);
 
 void mat_rotate(const Mat m, const Quat q, Mat r);
 MatP mrotate(Mat m, const Quat q);
@@ -160,6 +160,6 @@ MatP mget_rotation(Mat m);
 void mat_get_translation(const Mat m, Mat r);
 MatP mget_translation(Mat m);
 
-void mat_print(FILE* f, const char* title, const Mat m);
+void mat_print(const char* title, const Mat m);
 
 #endif

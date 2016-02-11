@@ -55,8 +55,8 @@ void camera_matrices(const struct Camera* camera, enum CameraProjection projecti
 // - unproject computes the world coordinates of screen coordinates in the near clipping plane, that means
 // the result is a vector that points to those world coordinates on the near clipping plane, that get projected
 // on the given x and y pixel coordinates of the screen, therefore the name: un-project
-void camera_unproject(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec result);
+void camera_unproject(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec4f result);
 
-void camera_ray(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec ray);
+void camera_ray(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec4f ray);
 
 #endif
