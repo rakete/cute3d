@@ -27,8 +27,5 @@ dep = $(obj:.o=.d)
 .PHONY: clean
 clean:
 	rm -f $(obj)
-	rm -f $(tests_bin)
-
-.PHONY: cleandep
-cleandep:
 	rm -f $(dep)
+	rm -f $(tests_bin)
