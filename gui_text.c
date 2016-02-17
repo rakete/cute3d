@@ -183,25 +183,30 @@ void text_printf(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char*
 
 double text_show_fps(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, double delta) {
 
-    static int32_t frames_done = 0;
+    static size_t frames_done = 0;
     static double old_time = -1;
     static double game_time = 0;
     static double fps = 0;
+    static double frame_time = 0;
+    static double avg_frame_time_ms = 0;
 
     game_time += delta;
+    frame_time += delta;
 
     if( old_time < 0 ) {
         old_time = game_time;
     }
 
     if( (game_time - old_time) >= 1.0 ) {
+        avg_frame_time_ms = frame_time*1000 / frames_done;
+        frame_time = 0;
         fps = (double)frames_done / (game_time - old_time);
         frames_done = 0;
         old_time = game_time;
     }
     frames_done++;
 
-    text_printf(canvas, cursor, layer, font_name, scale, color, x, y, L"FPS :%.1f\n", fps);
+    text_printf(canvas, cursor, layer, font_name, scale, color, x, y, L"FPS: %.1f %.1f\n", fps, avg_frame_time_ms);
 
     return fps;
 }
