@@ -127,7 +127,7 @@ void camera_ray(const struct Camera* camera, enum CameraProjection projection_ty
 
     Mat inverse_projection = {0};
     mat_invert4f(projection_matrix, &det, inverse_projection);
-    mat_mul_vec4f(inverse_projection, clip_coordinates, ray);
+    mat_mul_vec3f(inverse_projection, clip_coordinates, ray);
 
     ray[2] = -1.0f;
     ray[3] = 1.0f;
