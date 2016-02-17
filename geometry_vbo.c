@@ -84,22 +84,28 @@ void vbo_print(struct Vbo* vbo) {
 
 void vbo_add_buffer(struct Vbo* vbo,
                     uint32_t i,
-                    uint32_t component_n,
-                    GLenum component_t,
+                    uint32_t components_size,
+                    GLenum components_type,
                     GLenum usage)
 {
     log_assert( vbo != NULL );
     log_assert( i < NUM_SHADER_ATTRIBUTES );
+    log_assert( components_size == 2 || components_size == 3 || components_size == 4,
+                "components_size(%d) == 2 || components_size(%d) == 3 || components_size(%d) == 4: the current implementation assumes attributes to have either 2, 3 or 4 components, you have given components_size %d\n",
+                components_size, components_size, components_size, components_size);
+    log_assert( components_type == GL_FLOAT || components_type == GL_UNSIGNED_BYTE,
+                "components_type(%d) == GL_FLOAT(%d) || components_type(%d) == GL_UNSIGNED_BYTE(%d): the current implementation assumes attributes to have either GL_FLOAT or GL_UNSIGNED_BYTE components, you have given components_type %d\n",
+                components_type, GL_FLOAT, components_type, GL_UNSIGNED_BYTE, components_type );
 
     ogl_debug( glGenBuffers(1, &vbo->buffer[i].id) );
 
     vbo->buffer[i].usage = usage;
 
-    vbo->components[i].size = component_n;
-    vbo->components[i].type = component_t;
-    vbo->components[i].bytes = (uint32_t)ogl_sizeof_type(component_t);
+    vbo->components[i].size = components_size;
+    vbo->components[i].type = components_type;
+    vbo->components[i].bytes = (uint32_t)ogl_sizeof_type(components_type);
 
-    size_t nbytes = vbo->capacity * component_n * ogl_sizeof_type(component_t);
+    size_t nbytes = vbo->capacity * components_size * ogl_sizeof_type(components_type);
     log_assert( nbytes < PTRDIFF_MAX );
     ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
                glBufferData(GL_ARRAY_BUFFER, (ptrdiff_t)nbytes, NULL, usage);
@@ -429,13 +435,24 @@ void vbomesh_clear_indices(struct VboMesh* mesh) {
     }
 }
 
-size_t vbomesh_append_buffer_generic(struct VboMesh* mesh, int32_t i, void* data, size_t n, uint32_t components_size, GLenum components_type) {
+size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, void* data, uint32_t components_size, GLenum components_type, size_t n) {
     log_assert( mesh != NULL );
     log_assert( mesh->vbo != NULL );
     log_assert( i >= 0 );
     log_assert( i < NUM_SHADER_ATTRIBUTES );
-    log_assert( mesh->vbo->buffer[i].id > 0 );
     log_assert( n > 0 );
+    log_assert( mesh->vbo->buffer[i].id > 0,
+                "mesh->vbo->buffer[i].id(%d) > 0: most likely cause is not calling vbo_add_buffer for the attribute %d before appending attributes\n",
+                mesh->vbo->buffer[i].id, i);
+    log_assert( components_size == mesh->vbo->components[i].size,
+                "components_size(%d) == mesh->vbo->components[i].size(%d): the component size of the data appended to the vbo (components_size) does not fit the components size stored in the vbo (mesh->vbo->components[i].size)\n",
+                components_size, mesh->vbo->components[i].size, i);
+    log_assert( n % mesh->vbo->components[i].size == 0,
+                "n(%lu) %% mesh->vbo->components[i].size(%d) == 0(%d): the appended data size (n) is not a multiple of the components size stored in the vbo (mesh->vbo->components[i].size)\n",
+                n, mesh->vbo->components[i].size, n % mesh->vbo->components[i].size, i);
+    log_assert( components_type == mesh->vbo->components[i].type,
+                "components_type(%d) == mesh->vbo->components[i].type(%d): the component type of the data appended to the vbo (components_type) does not fit the components type stored in the vbo (mesh->vbo->components[i].type)\n",
+                components_type, mesh->vbo->components[i].type, i)
 
     // only these depend on given size params => generic data append
     size_t attrib_bytes = components_size * ogl_sizeof_type(components_type);
@@ -481,13 +498,6 @@ size_t vbomesh_append_buffer_generic(struct VboMesh* mesh, int32_t i, void* data
     }
 
     return 0;
-}
-
-size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, void* data, size_t n) {
-    log_assert( mesh != NULL );
-    log_assert( mesh->vbo != NULL );
-
-    return vbomesh_append_buffer_generic(mesh, i, data, n, mesh->vbo->components[i].size, mesh->vbo->components[i].type);
 }
 
 size_t vbomesh_append_indices(struct VboMesh* mesh, void* data, size_t n) {

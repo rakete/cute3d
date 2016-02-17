@@ -26,9 +26,9 @@ void vbomesh_create_from_solid(struct Solid* solid, const uint8_t color[4], stru
     solid_normals(solid);
     solid_color(solid,color);
 
-    size_t vertices_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, solid->vertices, solid->size);
-    size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, solid->normals, solid->size);
-    size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, solid->colors, solid->size);
+    size_t vertices_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, solid->vertices, 3, GL_FLOAT, solid->size);
+    size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, solid->normals, 3, GL_FLOAT, solid->size);
+    size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, solid->colors, 4, GL_UNSIGNED_BYTE, solid->size);
     size_t indices_n = vbomesh_append_indices(mesh, solid->indices, solid->size);
 
     log_assert( vertices_n == solid->size );
