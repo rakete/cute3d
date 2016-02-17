@@ -14,24 +14,38 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "math_transform.h"
+#include "math_pivot.h"
 
-void pivot_create(struct TransformPivot* pivot) {
-    pivot->position[0] = 0.0;
-    pivot->position[1] = 0.0;
-    pivot->position[2] = 0.0;
-    pivot->position[3] = 1.0;
+void pivot_create(Vec3f position, Quat orientation, struct Pivot* pivot) {
+    if( position ) {
+        pivot->position[0] = position[0];
+        pivot->position[1] = position[1];
+        pivot->position[2] = position[2];
+        pivot->position[3] = 1.0;
+    } else {
+        pivot->position[0] = 0.0;
+        pivot->position[1] = 0.0;
+        pivot->position[2] = 0.0;
+        pivot->position[3] = 1.0;
+    }
 
-    pivot->orientation[0] = 0.0;
-    pivot->orientation[1] = 0.0;
-    pivot->orientation[2] = 0.0;
-    pivot->orientation[3] = 1.0;
+    if( orientation ) {
+        pivot->orientation[0] = orientation[0];
+        pivot->orientation[1] = orientation[1];
+        pivot->orientation[2] = orientation[2];
+        pivot->orientation[3] = orientation[3];
+    } else {
+        pivot->orientation[0] = 0.0;
+        pivot->orientation[1] = 0.0;
+        pivot->orientation[2] = 0.0;
+        pivot->orientation[3] = 1.0;
+    }
 
     pivot->zoom = 1.0;
     pivot->eye_distance = 1.0;
 }
 
-int32_t pivot_lookat(struct TransformPivot* pivot, const Vec4f target) {
+int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
     int32_t result = -1;
 
     Vec4f right_axis = RIGHT_AXIS;
@@ -170,12 +184,12 @@ int32_t pivot_lookat(struct TransformPivot* pivot, const Vec4f target) {
     return result;
 }
 
-VecP pivot_local_axis(const struct TransformPivot* pivot, Vec3f axis) {
+VecP pivot_local_axis(const struct Pivot* pivot, Vec3f axis) {
     vec_rotate3f(axis, pivot->orientation, axis);
     return axis;
 }
 
-MatP pivot_world_transform(const struct TransformPivot* pivot, Mat world_transform) {
+MatP pivot_world_transform(const struct Pivot* pivot, Mat world_transform) {
     Mat translation = {0};
     mat_translate(NULL, pivot->position, translation);
 
@@ -183,15 +197,42 @@ MatP pivot_world_transform(const struct TransformPivot* pivot, Mat world_transfo
     quat_to_mat(pivot->orientation, rotation);
 
     mat_mul(rotation, translation, world_transform);
+
     return world_transform;
 }
 
-MatP pivot_local_transform(const struct TransformPivot* pivot, Mat local_transform) {
-    Mat world_transform = {0};
-    mat_identity(world_transform);
+MatP pivot_local_transform(const struct Pivot* pivot, Mat local_transform) {
+    Mat rotation = {0};
+    quat_invert(pivot->orientation, rotation);
+    mat_rotate(NULL, rotation, rotation);
 
-    pivot_world_transform(pivot, world_transform);
-    mat_invert4f(world_transform, NULL, local_transform);
+    Mat translation = {0};
+    vec_invert(pivot->position, translation);
+    mat_translate(NULL, translation, translation);
+
+    mat_mul(translation, rotation, local_transform);
 
     return local_transform;
+}
+
+MatP pivot_between_transform(const struct Pivot* pivot1, const struct Pivot* pivot2, Mat between_transform) {
+    Mat local = {0};
+    pivot_local_transform(pivot1, local);
+
+    Mat world = {0};
+    pivot_world_transform(pivot2, world);
+
+    mat_mul(world, local, between_transform);
+
+    return between_transform;
+}
+
+void pivot_combine(const struct Pivot* pivot1, const struct Pivot* pivot2, struct Pivot* r) {
+    Vec4f concat_position = {0};
+    vec_add(pivot1->position, pivot2->position, concat_position);
+
+    Quat concat_orientation = {0};
+    quat_mul(pivot1->orientation, pivot2->orientation, concat_orientation);
+
+    pivot_create(concat_position, concat_orientation, r);
 }

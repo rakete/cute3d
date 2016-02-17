@@ -14,21 +14,28 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef PHYSICS_H
-#define PHYSICS_H
+#ifndef PHYSICS_RIGIDBODY_H
+#define PHYSICS_RIGIDBODY_H
 
 #include "math_types.h"
 #include "math_matrix.h"
-#include "math_transform.h"
+#include "math_pivot.h"
 
-enum PhysicsMode {
-    PhysicsStatic = 0x001,
-    PhysicsResting = 0x002,
-    PhysicsInactive = 0x004
+enum RigidBodyMode {
+    RigidBodyStatic = 0x001,
+    RigidBodyResting = 0x002,
+    RigidBodyInactive = 0x004
 };
 
-struct Physics {
-    struct TransformPivot pivot;
+struct RigidBodyDerivative {
+    Vec4f velocity;                ///< velocity is the derivative of position.
+    Vec4f force;                   ///< force in the derivative of momentum.
+    Quat spin;                   ///< spin is the derivative of the orientation quaternion.
+    Vec4f torque;                  ///< torque is the derivative of angular momentum.
+};
+
+struct RigidBody {
+    struct Pivot pivot;
 
     // primary state
     Vec4f linear_momentum;            ///< the momentum of the cube in kilogram meters per second.
@@ -54,42 +61,35 @@ struct Physics {
     double dt;
 
     // simulation mode flags
-    enum PhysicsMode mode;
+    enum RigidBodyMode mode;
 };
 
-struct PhysicsDerivative {
-    Vec4f velocity;                ///< velocity is the derivative of position.
-    Vec4f force;                   ///< force in the derivative of momentum.
-    Quat spin;                   ///< spin is the derivative of the orientation quaternion.
-    Vec4f torque;                  ///< torque is the derivative of angular momentum.
-};
+typedef void (*rigidbody_forces_func)(struct RigidBody state, float t, float dt, Vec4f force, Vec4f torque);
 
-typedef void (*physics_forces_func)(struct Physics state, float t, float dt, Vec4f force, Vec4f torque);
+void rigidbody_create(float mass, Mat inertia, struct RigidBody* physics);
 
-void physics_create(float mass, Mat inertia, struct Physics* physics);
+struct RigidBody rigidbody_interpolate(struct RigidBody a, struct RigidBody b, double alpha);
 
-struct Physics physics_interpolate(struct Physics a, struct Physics b, double alpha);
-
-struct Physics physics_simulate(struct Physics state);
-struct Physics physics_recalculate(struct Physics state);
+struct RigidBody rigidbody_simulate(struct RigidBody state);
+struct RigidBody rigidbody_recalculate(struct RigidBody state);
 
 /// Evaluate all derivative values for the physics state at time t.
 /// @param state the physics state of the cube.
-struct PhysicsDerivative physics_eval_time(struct Physics state, float t, physics_forces_func forces_func);
+struct RigidBodyDerivative rigidbody_eval_time(struct RigidBody state, float t, rigidbody_forces_func forces_func);
 
 /// Evaluate derivative values for the physics state at future time t+dt
 /// using the specified set of derivatives to advance dt seconds from the
 /// specified physics state.
-struct PhysicsDerivative physics_eval_future(struct Physics state, struct PhysicsDerivative derivative, float t, float dt, physics_forces_func forces_func);
+struct RigidBodyDerivative rigidbody_eval_future(struct RigidBody state, struct RigidBodyDerivative derivative, float t, float dt, rigidbody_forces_func forces_func);
 
 /// Integrate physics state forward by dt seconds.
 /// Uses an RK4 integrator to numerically integrate with error O(5).
-struct Physics physics_integrate(struct Physics state, float t, float dt, physics_forces_func forces_func);
+struct RigidBody rigidbody_integrate(struct RigidBody state, float t, float dt, rigidbody_forces_func forces_func);
 
-void physics_sphere_inertia(float size, float mass, Mat inertia);
+void rigidbody_sphere_inertia(float size, float mass, Mat inertia);
 
-void physics_box_inertia(float width, float height, float depth, float mass, Mat inertia);
+void rigidbody_box_inertia(float width, float height, float depth, float mass, Mat inertia);
 
-void physics_inertia_transform(struct Physics physics, Mat r);
+void rigidbody_inertia_transform(struct RigidBody physics, Mat r);
 
 #endif

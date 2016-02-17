@@ -15,7 +15,7 @@
 #include "render_canvas.h"
 
 #include "physics_collisions.h"
-#include "physics.h"
+#include "physics_rigidbody.h"
 
 /* man könnte vielleicht einfach ein array mit diesen components in ein struct
    wie den bouncing cube packen um dann in einem loop alle komponenten zu updaten
@@ -28,9 +28,9 @@
 
 struct BouncingCube {
     /* Physics */
-    struct Physics current;
-    struct Physics previous;
-    struct ColliderOBB collider;
+    struct RigidBody current;
+    struct RigidBody previous;
+    struct ColliderConvex collider;
 
     /* Mesh */
     struct Cube solid;
@@ -42,7 +42,7 @@ struct Ground {
     struct ColliderPlane collider;
 };
 
-void physics_forces(struct Physics state, float t, float dt, Vec4f force, Vec4f torque) {
+void physics_forces(struct RigidBody state, float t, float dt, Vec4f force, Vec4f torque) {
     vec_copy((Vec4f){0.0, 0.0, 0.0, 1.0}, force);
     vec_copy((Quat){0.0, 0.0, 0.0, 1.0}, torque);
 
@@ -148,12 +148,12 @@ int32_t main(int32_t argc, char *argv[]) {
     vec_copy((Vec4f){0.0f, 0.0f, 0.0f, 1.0f}, entity.current.angular_momentum);
 
     entity.previous = entity.current;
-    collider_obb(size, size, size, &entity.current.pivot, &entity.collider);
+    //collider_create_convex(, &entity.current.pivot, &entity.collider);
 
     /* Ground */
     struct Ground ground = {0};
-    pivot_create(&ground.pivot);
-    collider_plane(((Vec4f){0.2, 0.8, 0.0, 1.0}), -4.0, &ground.pivot, &ground.collider);
+    pivot_create(NULL, NULL, &ground.pivot);
+    collider_create_plane(((Vec4f){0.2, 0.8, 0.0, 1.0}), -4.0, &ground.pivot, &ground.collider);
     //vec_copy((Vec4f){0.0, -4.0, 0.0, 1.0}, ground.pivot.position);
 
     /* Shader */
@@ -201,12 +201,12 @@ int32_t main(int32_t argc, char *argv[]) {
     size_t world_size = 2;
 
     struct Collider* world_colliders[world_size];
-    struct Physics* world_bodies[world_size];
+    struct RigidBody* world_bodies[world_size];
     size_t candidates[world_size];
     size_t candidates_size = 0;
 
     struct Collision collisions[world_size];
-    struct Physics* bodies[world_size];
+    struct RigidBody* bodies[world_size];
     size_t collisions_size = 0;
 
     /* Eventloop */
@@ -259,7 +259,7 @@ int32_t main(int32_t argc, char *argv[]) {
             world_colliders[0] = (struct Collider*)&entity.collider;
             world_colliders[1] = (struct Collider*)&ground.collider;
 
-            world_bodies[0] = (struct Physics*)&entity.current;
+            world_bodies[0] = (struct RigidBody*)&entity.current;
             world_bodies[1] = NULL;
 
             candidates_size = collisions_broad(0, world_size, world_colliders, candidates);

@@ -1,7 +1,7 @@
 #include "math_camera.h"
 
 void camera_create(int32_t width, int32_t height, struct Camera* camera) {
-    pivot_create(&camera->pivot);
+    pivot_create(NULL, NULL, &camera->pivot);
 
     camera->screen.width = width;
     camera->screen.height = height;

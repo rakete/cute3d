@@ -8,19 +8,18 @@
 #include "gui_text.h"
 
 #include "render_vbomesh.h"
-#include "render_shader.h"
 #include "render_canvas.h"
 
 #include "geometry_vbo.h"
 #include "geometry_halfedgemesh.h"
 
-#include "physics_collisions.h"
+#include "physics_colliding.h"
 #include "physics_picking.h"
 
 struct CollisionEntity {
     const char* name;
-    struct TransformPivot pivot;
-    struct ColliderConvex collider;
+    struct Pivot pivot;
+    struct CollidingConvexShape colliding_convex;
     struct HalfEdgeMesh hemesh;
     struct Cube solid;
     struct VboMesh vbomesh;
@@ -30,7 +29,7 @@ struct CollisionEntity {
 static void entity_create(const char* name, Color color, struct Vbo* vbo, struct CollisionEntity* entity) {
     entity->name = name;
 
-    pivot_create(&entity->pivot);
+    pivot_create(NULL, NULL, &entity->pivot);
 
     solid_cube(1.0f, &entity->solid);
     vbomesh_create_from_solid((struct Solid*)&entity->solid, color, vbo, &entity->vbomesh);
@@ -38,9 +37,8 @@ static void entity_create(const char* name, Color color, struct Vbo* vbo, struct
     halfedgemesh_create(&entity->hemesh);
     halfedgemesh_append(&entity->hemesh, (struct Solid*)&entity->solid);
 
-    collider_convex(&entity->hemesh, &entity->pivot, &entity->collider);
-
-    picking_sphere_create(&entity->pivot, 1.0f, &entity->picking_sphere);
+    colliding_create_convex_shape(&entity->hemesh, &entity->pivot, &entity->colliding_convex);
+    picking_create_sphere(&entity->pivot, 1.0f, &entity->picking_sphere);
 }
 
 int32_t main(int32_t argc, char *argv[]) {
@@ -83,13 +81,13 @@ int32_t main(int32_t argc, char *argv[]) {
     struct CollisionEntity entity_a = {0};
     entity_create("red", (Color){ 255, 0, 0, 255 }, &vbo, &entity_a);
     quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_a.pivot.orientation);
-    quat_mul_axis_angle(entity_a.pivot.orientation, pivot_local_axis(&entity_a.pivot, (Vec4f)UP_AXIS), PI/4, entity_a.pivot.orientation);
+    /* quat_mul_axis_angle(entity_a.pivot.orientation, pivot_local_axis(&entity_a.pivot, (Vec4f)UP_AXIS), PI/4, entity_a.pivot.orientation); */
     vec_add(entity_a.pivot.position, (Vec4f){3.0, 0.0, 0.0, 1.0}, entity_a.pivot.position);
 
     struct CollisionEntity entity_b = {0};
     entity_create("green", (Color){ 0, 255, 0, 255 }, &vbo, &entity_b);
-    quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_b.pivot.orientation);
-    quat_mul_axis_angle(entity_b.pivot.orientation, pivot_local_axis(&entity_b.pivot, (Vec4f)UP_AXIS), PI/4, entity_b.pivot.orientation);
+    quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)RIGHT_AXIS, PI/4, entity_b.pivot.orientation);
+    quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)UP_AXIS, PI/2, entity_b.pivot.orientation);
     vec_add(entity_b.pivot.position, (Vec4f){-3.0, 0.0, 0.0, 1.0}, entity_b.pivot.position);
 
     struct Shader flat_shader = {0};
@@ -140,11 +138,11 @@ int32_t main(int32_t argc, char *argv[]) {
             }
 
 
-            if( picking_drag_event(&arcball.camera, (struct PickingTarget**)picking_spheres, num_entities, event) ) {
+            if( picking_drag_sphere_event(&arcball.camera, picking_spheres, num_entities, event) ) {
                 struct CollisionEntity* selected_entity = NULL;
                 float nearest = -FLT_MIN;
                 for( size_t i = 0; i < num_entities; i++ ) {
-                    if( picking_spheres[i]->target.picked && ( picking_spheres[i]->near < nearest || nearest < 0.0f ) ) {
+                    if( picking_spheres[i]->picked && ( picking_spheres[i]->near < nearest || nearest < 0.0f ) ) {
                         nearest = picking_spheres[i]->near;
                         selected_entity = picking_entities[i];
                     }
@@ -166,7 +164,13 @@ int32_t main(int32_t argc, char *argv[]) {
 
                         Vec4f move = {0};
                         vec_sub(b, a, move);
+                        float length = 0.0f;
+                        vec_length(move, &length);
+
                         move[1] = 0.0f;
+                        vec_normalize(move, move);
+                        vec_mul1f(move, length, move);
+
                         vec_add(selected_entity->pivot.position, move, selected_entity->pivot.position);
                     } else {
                     }
@@ -184,7 +188,7 @@ int32_t main(int32_t argc, char *argv[]) {
             }
         }
 
-        sdl2_gl_set_swap_interval(1);
+        sdl2_gl_set_swap_interval(0);
 
         gametime_advance(&time, sdl2_time_delta());
 
@@ -207,7 +211,15 @@ int32_t main(int32_t argc, char *argv[]) {
         pivot_world_transform(&entity_b.pivot, transform_b);
         vbomesh_render(&entity_b.vbomesh, &flat_shader, &arcball.camera, transform_b);
 
-        collide_convex_convex(&entity_a.collider, &entity_b.collider);
+        /* Mat between_transform = {0}; */
+        /* pivot_between_transform(&entity_a.pivot, &entity_b.pivot, between_transform); */
+
+        /* Vec3f foo = {0}; */
+        /* mat_mul_vec3f(between_transform, entity_a.hemesh.vertices.array[0].position, foo); */
+
+        /* draw_vec(&global_dynamic_canvas, 0, foo, NULL, 1.0f, 1.0f, (Color){255, 255, 0, 255}, transform_a); */
+
+        colliding_test_convex_convex(&entity_a.colliding_convex, &entity_b.colliding_convex);
 
         draw_grid(&global_dynamic_canvas, 0, 12.0f, 12.0f, 12, (Color){127, 127, 127, 255}, grid_transform);
 
@@ -215,9 +227,9 @@ int32_t main(int32_t argc, char *argv[]) {
         Vec4f screen_cursor = {0,0,0,1};
         text_show_fps(&global_dynamic_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
 
-        canvas_render_layers(&global_static_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
+        canvas_render_layers(&global_static_canvas, 0, 0, &arcball.camera, (Mat)IDENTITY_MAT);
 
-        canvas_render_layers(&global_dynamic_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
+        canvas_render_layers(&global_dynamic_canvas, 0, 0, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);
 
         sdl2_gl_swap_window(window);
@@ -225,5 +237,6 @@ int32_t main(int32_t argc, char *argv[]) {
 
 
 done:
+    SDL_Quit();
     return 0;
 }

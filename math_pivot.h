@@ -14,13 +14,13 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef MATH_TRANSFORM_H
-#define MATH_TRANSFORM_H
+#ifndef MATH_PIVOT_H
+#define MATH_PIVOT_H
 
 #include "math_types.h"
 #include "math_matrix.h"
 
-struct TransformPivot {
+struct Pivot {
     Vec4f position;
     Quat orientation;
 
@@ -28,12 +28,15 @@ struct TransformPivot {
     float eye_distance;
 };
 
-void pivot_create(struct TransformPivot* pivot);
-int32_t pivot_lookat(struct TransformPivot* pivot, const Vec4f target);
+void pivot_create(Vec3f position, Quat orientation, struct Pivot* pivot);
+int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target);
 
-VecP pivot_local_axis(const struct TransformPivot* pivot, Vec3f axis);
+VecP pivot_local_axis(const struct Pivot* pivot, Vec3f axis);
 
-MatP pivot_world_transform(const struct TransformPivot* pivot, Mat world_transform);
-MatP pivot_local_transform(const struct TransformPivot* pivot, Mat local_transform);
+MatP pivot_world_transform(const struct Pivot* pivot, Mat world_transform);
+MatP pivot_local_transform(const struct Pivot* pivot, Mat local_transform);
+MatP pivot_between_transform(const struct Pivot* pivot1, const struct Pivot* pivot2, Mat between_transform);
+
+void pivot_combine(const struct Pivot* pivot1, const struct Pivot* pivot2, struct Pivot* r);
 
 #endif

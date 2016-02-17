@@ -14,29 +14,29 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "physics.h"
+#include "physics_rigidbody.h"
 
-void physics_create(float mass, Mat inertia, struct Physics* physics) {
-    pivot_create(&physics->pivot);
+void rigidbody_create(float mass, Mat inertia, struct RigidBody* body) {
+    pivot_create(NULL, NULL, &body->pivot);
 
-    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, physics->linear_momentum);
-    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, physics->angular_momentum);
-    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, physics->linear_velocity);
-    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, physics->angular_velocity);
-    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, physics->spin);
+    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, body->linear_momentum);
+    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, body->angular_momentum);
+    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, body->linear_velocity);
+    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, body->angular_velocity);
+    vec_copy4f((Vec4f){ 0.0, 0.0, 0.0, 1.0 }, body->spin);
 
-    physics->mass = mass;
-    physics->inverse_mass = 1.0f/mass;
+    body->mass = mass;
+    body->inverse_mass = 1.0f/mass;
 
-    mat_copy4f(inertia, physics->inertia);
-    mat_transpose4f(inertia, physics->inverse_inertia);
+    mat_copy4f(inertia, body->inertia);
+    mat_transpose4f(inertia, body->inverse_inertia);
 
-    physics->t = -1.0f;
-    physics->dt = -1.0f;
+    body->t = -1.0f;
+    body->dt = -1.0f;
 }
 
-struct Physics physics_interpolate(struct Physics a, struct Physics b, double alpha) {
-    struct Physics state = b;
+struct RigidBody rigidbody_interpolate(struct RigidBody a, struct RigidBody b, double alpha) {
+    struct RigidBody state = b;
 
     //state.position = a.position*(1-alpha) + b.position*alpha;
     vec_copy4f(vadd(vmul1f(a.pivot.position, alpha), vmul1f(b.pivot.position, 1-alpha)), state.pivot.position);
@@ -51,17 +51,17 @@ struct Physics physics_interpolate(struct Physics a, struct Physics b, double al
     //state.angularMomentum = a.angularMomentum*(1-alpha) + b.angularMomentum*alpha;
     vec_copy4f(vadd(vmul1f(a.angular_momentum, alpha), vmul1f(b.angular_momentum, 1-alpha)), state.angular_momentum);
 
-    return physics_recalculate(state);
+    return rigidbody_recalculate(state);
 }
 
-struct Physics physics_simulate(struct Physics physics) {
+struct RigidBody rigidbody_simulate(struct RigidBody body) {
     Vec4f linear_velocity = {0};
-    vec_mul1f(physics.linear_momentum, physics.inverse_mass, linear_velocity);
+    vec_mul1f(body.linear_momentum, body.inverse_mass, linear_velocity);
 
     Vec4f angular_velocity = {0};
-    mat_mul_vec4f(physics.inverse_inertia, physics.angular_momentum, angular_velocity);
+    mat_mul_vec3f(body.inverse_inertia, body.angular_momentum, angular_velocity);
 
-    quat_normalize(physics.pivot.orientation, physics.pivot.orientation);
+    quat_normalize(body.pivot.orientation, body.pivot.orientation);
 
     // 0.5 * w * q where q is current orientation, and w is angular_velocity as quaternion
     // results in derivative dq/dt
@@ -69,29 +69,29 @@ struct Physics physics_simulate(struct Physics physics) {
                   angular_velocity[1],
                   angular_velocity[2],
                   0.0 };
-    quat_mul(spin, physics.pivot.orientation, spin);
+    quat_mul(spin, body.pivot.orientation, spin);
     quat_mul1f(spin, 0.5, spin);
 
-    vec_copy4f(linear_velocity, physics.linear_velocity);
-    vec_copy4f(angular_velocity, physics.angular_velocity);
-    quat_copy(spin, physics.spin);
+    vec_copy4f(linear_velocity, body.linear_velocity);
+    vec_copy4f(angular_velocity, body.angular_velocity);
+    quat_copy(spin, body.spin);
 
-    return physics;
+    return body;
 }
 
-struct Physics physics_recalculate(struct Physics physics) {
-    physics = physics_simulate(physics);
+struct RigidBody rigidbody_recalculate(struct RigidBody body) {
+    body = rigidbody_simulate(body);
 
-    pivot_world_transform(&physics.pivot, physics.world_transform);
-    pivot_local_transform(&physics.pivot, physics.local_transform);
+    pivot_world_transform(&body.pivot, body.world_transform);
+    pivot_local_transform(&body.pivot, body.local_transform);
 
-    physics_inertia_transform(physics, physics.world_inverse_inertia);
+    rigidbody_inertia_transform(body, body.world_inverse_inertia);
 
-    return physics;
+    return body;
 }
 
-struct PhysicsDerivative physics_eval_time(struct Physics state, float t, physics_forces_func forces_func) {
-    struct PhysicsDerivative output;
+struct RigidBodyDerivative rigidbody_eval_time(struct RigidBody state, float t, rigidbody_forces_func forces_func) {
+    struct RigidBodyDerivative output;
 
     vec_copy4f(state.linear_velocity, output.velocity);
     quat_copy(state.spin, output.spin);
@@ -100,7 +100,7 @@ struct PhysicsDerivative physics_eval_time(struct Physics state, float t, physic
     return output;
 }
 
-struct PhysicsDerivative physics_eval_future(struct Physics state, struct PhysicsDerivative derivative, float t, float dt, physics_forces_func forces_func) {
+struct RigidBodyDerivative rigidbody_eval_future(struct RigidBody state, struct RigidBodyDerivative derivative, float t, float dt, rigidbody_forces_func forces_func) {
     Vec4f velocity;
     vec_mul1f(derivative.velocity, dt, velocity);
     vec_add(state.pivot.position, velocity, state.pivot.position);
@@ -117,23 +117,23 @@ struct PhysicsDerivative physics_eval_future(struct Physics state, struct Physic
     vec_mul1f(derivative.torque, dt, torque);
     vec_add(state.angular_momentum, torque, state.angular_momentum);
 
-    state = physics_simulate(state);
+    state = rigidbody_simulate(state);
 
-    struct PhysicsDerivative output;
+    struct RigidBodyDerivative output;
     vec_copy4f(state.linear_velocity, output.velocity);
     quat_copy(state.spin, output.spin);
     (*forces_func)(state, t, dt, output.force, output.torque);
     return output;
 }
 
-struct Physics physics_integrate(struct Physics state, float t, float dt, physics_forces_func forces_func) {
+struct RigidBody rigidbody_integrate(struct RigidBody state, float t, float dt, rigidbody_forces_func forces_func) {
     state.t = t;
     state.dt = dt;
 
-    struct PhysicsDerivative a = physics_eval_time(state, t, forces_func);
-    struct PhysicsDerivative b = physics_eval_future(state, a, t, dt * 0.5f, forces_func);
-    struct PhysicsDerivative c = physics_eval_future(state, b, t, dt * 0.5f, forces_func);
-    struct PhysicsDerivative d = physics_eval_future(state, c, t, dt, forces_func);
+    struct RigidBodyDerivative a = rigidbody_eval_time(state, t, forces_func);
+    struct RigidBodyDerivative b = rigidbody_eval_future(state, a, t, dt * 0.5f, forces_func);
+    struct RigidBodyDerivative c = rigidbody_eval_future(state, b, t, dt * 0.5f, forces_func);
+    struct RigidBodyDerivative d = rigidbody_eval_future(state, c, t, dt, forces_func);
 
     //state.position += 1.0f/6.0f * dt * (a.velocity + 2.0f*(b.velocity + c.velocity) + d.velocity);
     VecP position_change = vmul1f(vadd(a.velocity, vadd( vmul1f(vadd(b.velocity, c.velocity), 2.0f), d.velocity)), 1.0f/6.0f * dt);
@@ -151,10 +151,10 @@ struct Physics physics_integrate(struct Physics state, float t, float dt, physic
     VecP angular_momentum_change = vmul1f(vadd(a.torque, vadd( vmul1f(vadd(b.torque, c.torque), 2.0f), d.torque)), 1.0f/6.0f * dt);
     vec_add(state.angular_momentum, angular_momentum_change, state.angular_momentum);
 
-    return physics_recalculate(state);
+    return rigidbody_recalculate(state);
 }
 
-void physics_sphere_inertia(float radius, float mass, Mat inertia) {
+void rigidbody_sphere_inertia(float radius, float mass, Mat inertia) {
     mat_identity(inertia);
 
     float i = 2.0/5.0 * mass * radius * radius;
@@ -163,7 +163,7 @@ void physics_sphere_inertia(float radius, float mass, Mat inertia) {
     inertia[10] = i;
 }
 
-void physics_box_inertia(float width, float height, float depth, float mass, Mat inertia) {
+void rigidbody_box_inertia(float width, float height, float depth, float mass, Mat inertia) {
     mat_identity(inertia);
 
     float i = 1.0/12.0 * mass * (width*width + depth*depth);
@@ -175,7 +175,7 @@ void physics_box_inertia(float width, float height, float depth, float mass, Mat
     inertia[10] = k;
 }
 
-void physics_inertia_transform(struct Physics physics, Mat r) {
+void rigidbody_inertia_transform(struct RigidBody body, Mat r) {
     // r = transform * inertia * minvert(transform);
 
     // 0:0 1:4  2:8   3:12
@@ -230,12 +230,12 @@ void physics_inertia_transform(struct Physics physics, Mat r) {
     /* mat_transpose(r, r); */
 
     Mat transform = IDENTITY_MAT;
-    quat_to_mat(physics.pivot.orientation, transform);
+    quat_to_mat(body.pivot.orientation, transform);
 
     Mat inverted_transform = IDENTITY_MAT;
     mat_transpose4f(transform, inverted_transform);
 
-    mat_mul(transform, physics.inertia, r);
+    mat_mul(transform, body.inertia, r);
     mat_mul(r, inverted_transform, r);
     //mat_transpose(r, r);
 }
