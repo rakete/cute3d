@@ -35,7 +35,10 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
 
-    strncpy(font->name, name, name_length+1);
+    //strncpy(font->name, name, name_length+1);
+    font->name[0] = '\0';
+    strncat(font->name, name, name_length);
+
     for( int32_t i = 0; i < NUM_FONT_GLYPHS; i++ ) {
         font->alphabet[i] = false;
         font->glyphs[i] = (struct Glyph){0, 0, 0, 0};

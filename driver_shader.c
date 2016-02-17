@@ -50,7 +50,9 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
 
-    strncpy(p->name, name, name_length+1);
+    //strncpy(p->name, name, name_length+1);
+    p->name[0] = '\0';
+    strncat(p->name, name, name_length);
 
     if( vertex_file && fragment_file ) {
         p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, vertex_file);
@@ -91,7 +93,9 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
 
-    strncpy(p->name, name, name_length+1);
+    //strncpy(p->name, name, name_length+1);
+    p->name[0] = '\0';
+    strncat(p->name, name, name_length);
 
     log_assert( vertex_source );
     log_assert( fragment_source );
@@ -141,7 +145,10 @@ GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const
         // there is a shader_add_attribute/uniform somewhere thats going to fail when I uncomment some input
         if( location > -1 ) {
             shader->attribute[attribute_index].location = location;
-            strncpy(shader->attribute[attribute_index].name, name, strlen(name)+1);
+
+            //strncpy(shader->attribute[attribute_index].name, name, strlen(name)+1);
+            shader->attribute[attribute_index].name[0] = '\0';
+            strncat(shader->attribute[attribute_index].name, name, strlen(name));
         } else {
             log_warn(stderr, __FILE__, __LINE__, "could not add attribute %d location \"%s\" to shader \"%s\"\n", attribute_index, name, shader->name);
         }
@@ -165,8 +172,10 @@ GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const cha
 
         if( location > - 1 ) {
             shader->uniform[uniform_index].location = location;
-            strncpy(shader->uniform[uniform_index].name, name, strlen(name)+1);
 
+            //strncpy(shader->uniform[uniform_index].name, name, strlen(name)+1);
+            shader->uniform[uniform_index].name[0] = '\0';
+            strncat(shader->uniform[uniform_index].name, name, strlen(name));
         } else {
             log_warn(stderr, __FILE__, __LINE__, "could not add uniform %d location \"%s\" to shader \"%s\"\n", uniform_index, name, shader->name);
         }
