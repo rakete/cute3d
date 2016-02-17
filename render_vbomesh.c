@@ -37,32 +37,6 @@ void vbomesh_create_from_solid(struct Solid* solid, const uint8_t color[4], stru
     log_assert( indices_n == solid->size );
 }
 
-struct VboMesh wtf(struct Solid* solid, uint8_t color[4], struct Vbo* vbo) {
-    log_assert( solid != NULL );
-    log_assert( color != NULL );
-    log_assert( vbo != NULL );
-
-    struct VboMesh mesh = {0};
-    vbomesh_create(vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &mesh);
-
-    solid_normals(solid);
-    solid_color(solid,color);
-
-    size_t vertices_n = vbomesh_append_attributes(&mesh, SHADER_ATTRIBUTE_VERTICES, solid->vertices, solid->size);
-    size_t normals_n = vbomesh_append_attributes(&mesh, SHADER_ATTRIBUTE_NORMALS, solid->normals, solid->size);
-    size_t colors_n = vbomesh_append_attributes(&mesh, SHADER_ATTRIBUTE_COLORS, solid->colors, solid->size);
-    printf("%lu\n", mesh.indices->occupied);
-    size_t indices_n = vbomesh_append_indices(&mesh, solid->indices, solid->size);
-    printf("%lu\n", mesh.indices->occupied);
-
-    log_assert( vertices_n == solid->size );
-    log_assert( normals_n == solid->size );
-    log_assert( colors_n == solid->size );
-    log_assert( indices_n == solid->size );
-
-    return mesh;
-}
-
 void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, const Mat model_matrix) {
     log_assert( mesh != NULL );
     log_assert( shader != NULL );
@@ -82,8 +56,6 @@ void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, con
         uint32_t c_bytes = mesh->vbo->components[array_id].bytes;
         size_t offset = mesh->offset * c_num * c_bytes;
 
-        log_assert( c_num < INT_MAX );
-
         loc[array_id] = -1;
         if( c_num == 0 || c_bytes == 0 ) {
             continue;
@@ -98,6 +70,7 @@ void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, con
             continue;
         }
 
+        log_assert( c_num <= 4, "%d <= 4: glVertexAttribPointer will not work with attribute component size > 4\n", c_num);
         if( mesh->vbo->buffer[array_id].id && loc[array_id] > -1 ) {
             ogl_debug( glEnableVertexAttribArray((GLuint)loc[array_id]);
                        glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[array_id].id);

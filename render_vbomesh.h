@@ -19,10 +19,11 @@
 
 #include "driver_ogl.h"
 #include "driver_log.h"
+
 #include "math_camera.h"
-#include "render_shader.h"
+#include "math_pivot.h"
+
 #include "geometry_vbo.h"
-#include "math_transform.h"
 #include "geometry_solid.h"
 
 void vbomesh_create_from_solid(struct Solid* solid, const uint8_t color[4], struct Vbo* const vbo, struct VboMesh* mesh);
