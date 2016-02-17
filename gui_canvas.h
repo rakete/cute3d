@@ -16,7 +16,7 @@
 #endif
 
 #ifndef NUM_CANVAS_LAYERS
-#define NUM_CANVAS_LAYERS 32
+#define NUM_CANVAS_LAYERS 8
 #endif
 
 #ifndef NUM_CANVAS_SHADER
@@ -24,11 +24,11 @@
 #endif
 
 #ifndef NUM_CANVAS_UNIFORMS
-#define NUM_CANVAS_UNIFORMS 16
+#define NUM_CANVAS_UNIFORMS 8
 #endif
 
 #ifndef NUM_CANVAS_FONTS
-#define NUM_CANVAS_FONTS 8
+#define NUM_CANVAS_FONTS 4
 #endif
 
 #ifndef NUM_CANVAS_PROJECTIONS
