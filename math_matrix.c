@@ -340,7 +340,7 @@ void vec_perpendicular(const Vec4f v, Vec4f r) {
     r[3] = v[3];
 }
 
-void vec_basis(const Vec4f x, Vec4f y, Vec4f z) {
+void vec_basis(const Vec3f x, Vec3f y, Vec3f z) {
     if( fabsf(x[0]) > fabsf(x[1]) ) {
         // Scaling factor to ensure the results are normalised
         const float s = 1.0f/sqrtf(x[2]*x[2] + x[0]*x[0]);
@@ -349,26 +349,39 @@ void vec_basis(const Vec4f x, Vec4f y, Vec4f z) {
         z[0] = x[2]*s;
         z[1] = 0.0;
         z[2] = -x[0]*s;
-        z[3] = 1.0;
 
         // The new Y-axis is at right angles to the new X- and Z- axes
         y[0] = x[1]*z[0];
         y[1] = x[2]*z[0] - x[0]*z[2];
         y[2] = -x[1]*z[0];
-        y[3] = 1.0;
     } else {
         const float s = 1.0f/sqrtf(x[2]*x[2] + x[1]*x[1]);
 
         z[0] = 0;
         z[1] = -x[2]*s;
         z[2] = x[1]*s;
-        z[3] = 1.0;
 
         y[0] = x[1]*z[2] - x[2]*z[1];
         y[1] = -x[0]*z[2];
         y[2] = x[0]*z[1];
-        y[3] = 1.0;
     }
+
+    /* // From Box2D. */
+    /* // Suppose vector a has all equal components and is a unit vector: a = (s, s, s) */
+    /* // Then 3*s*s = 1, s = sqrt(1/3) = 0.57735. This means that at least one component of a */
+    /* // unit vector must be greater or equal to 0.57735. */
+    /* if ( fabs(x[0]) >= 0.57735027 ) { */
+    /*     y[0] = x[1]; */
+    /*     y[1] = -x[0]; */
+    /*     y[2] = 0.0f; */
+    /* } else { */
+    /*     y[0] = 0.0f; */
+    /*     y[1] = x[2]; */
+    /*     y[2] = -x[1]; */
+    /* } */
+
+    /* vec_normalize(y, y); */
+    /* vec_cross(x, y, z); */
 }
 
 void vec_print(const char* title, const Vec4f v) {

@@ -107,7 +107,7 @@ int32_t vsign(const Vec4f v);
 void vec_perpendicular(const Vec4f v, Vec4f r);
 VecP vperpendicular(const Vec4f v);
 
-void vec_basis(const Vec4f x, Vec4f y, Vec4f z);
+void vec_basis(const Vec3f x, Vec3f y, Vec3f z);
 
 void vec_print(const char* title, const Vec4f v);
 
