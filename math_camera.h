@@ -17,7 +17,7 @@
 #ifndef MATH_CAMERA_H
 #define MATH_CAMERA_H
 
-#include "math_transform.h"
+#include "math_pivot.h"
 
 enum CameraProjection {
     CAMERA_PERSPECTIVE = 0,
@@ -28,7 +28,7 @@ enum CameraProjection {
 };
 
 struct Camera {
-    struct TransformPivot pivot;
+    struct Pivot pivot;
 
     struct {
         int32_t width;
