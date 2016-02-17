@@ -679,6 +679,10 @@ MatP mmul(const Mat m, Mat n) {
 }
 
 void mat_mul_vec4f(const Mat m, const Vec4f v, Vec4f r) {
+    if( v[3] != 1.0f ) {
+        log_warn(stderr, __FILE__, __LINE__, "mat_mul_vec4f vec argument with vec[3] ! = 1.0f\n");
+    }
+
     Vec4f t;
     t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]*v[3];
     t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]*v[3];
