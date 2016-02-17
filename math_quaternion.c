@@ -152,15 +152,10 @@ void quat_mul(const Quat qa, const Quat qb, Quat r) {
     x1 = qa[0];  y1 = qa[1];  z1 = qa[2];  w1 = qa[3];
     x2 = qb[0];  y2 = qb[1];  z2 = qb[2];  w2 = qb[3];
 
-    float qw = w1*w2 - x1*x2 - y1*y2 - z1*z2;
-    float qx = w1*x2 + x1*w2 + y1*z2 - z1*y2;
-    float qy = w1*y2 - x1*z2 + y1*w2 + z1*x2;
-    float qz = w1*z2 + x1*y2 - y1*x2 + z1*w2;
-
-    r[0] = qx;
-    r[1] = qy;
-    r[2] = qz;
-    r[3] = qw;
+    r[0] = w1*x2 + x1*w2 + y1*z2 - z1*y2;
+    r[1] = w1*y2 - x1*z2 + y1*w2 + z1*x2;
+    r[2] = w1*z2 + x1*y2 - y1*x2 + z1*w2;
+    r[3] = w1*w2 - x1*x2 - y1*y2 - z1*z2;
 }
 
 QuatP qmul(const Quat qa, Quat qb) {
