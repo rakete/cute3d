@@ -165,9 +165,9 @@ void draw_vec( struct Canvas* canvas,
     vec_length(v, &length);
     mat_scale(arrow_matrix, scale * length, arrow_matrix);
 
-    mat_translate(arrow_matrix, pos, arrow_matrix);
-    mat_mul(arrow_matrix, model_matrix, arrow_matrix);
-
+    if( pos ) {
+        mat_translate(arrow_matrix, pos, arrow_matrix);
+    }
 
     // move the arrow along scaled vector down so that the value given in arrow will fit the
     // 1.0f == arrow at the top, 0.0f arrow invisible scheme
@@ -176,6 +176,11 @@ void draw_vec( struct Canvas* canvas,
     Vec4f arrow_translation = {0};
     vec_mul1f(v, arrow * scale, arrow_translation);
     mat_translate(arrow_matrix, arrow_translation, arrow_offset_matrix);
+
+    if( model_matrix ) {
+        mat_mul(arrow_matrix, model_matrix, arrow_matrix);
+        mat_mul(arrow_offset_matrix, model_matrix, arrow_offset_matrix);
+    }
 
     static float vec_vertices[2*3] =
         { 0.0f,  0.0f,  0.0f,
@@ -190,11 +195,11 @@ void draw_vec( struct Canvas* canvas,
     canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, vec_elements, 1*2, offset);
 
     static float arrow_vertices[5*3] =
-        { 0.0f,  0.0f,  0.1f,
-          0.05f,  0.0f,  0.0f,
-          0.0f,  0.05f,  0.0f,
-          -0.05f, 0.0f,  0.0f,
-          0.0f,  -0.05f, 0.0f };
+        { 0.0f,  0.0f,  0.0f,
+          0.05f,  0.0f,  -0.1f,
+          0.0f,  0.05f,  -0.1f,
+          -0.05f, 0.0f,  -0.1f,
+          0.0f,  -0.05f, -0.1f };
 
     static uint32_t arrow_elements[8*2] =
         { 2, 3,
