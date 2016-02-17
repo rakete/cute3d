@@ -698,21 +698,12 @@ MatP mmul_vec4f(const Mat m, Vec4f v) {
 }
 
 void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r) {
-    /* Vec4f t; */
-    /* t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]; */
-    /* t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]; */
-    /* t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]; */
+    Vec3f t;
+    t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12];
+    t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13];
+    t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14];
 
-    /* r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; */
-
-    Vec4f w;
-    vec_copy3f(v, w);
-    w[3] = 1.0f;
-
-    Vec4f t;
-    mat_mul_vec4f(m, w, t);
-
-    vec_copy3f(t, r);
+    r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
 }
 
 MatP mmul_vec3f(const Mat m, Vec3f v) {
