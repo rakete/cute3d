@@ -95,8 +95,6 @@ size_t vbo_alloc(struct Vbo* vbo, size_t n) __attribute__((warn_unused_result));
 size_t vbo_available_capacity(struct Vbo* vbo) __attribute__((warn_unused_result));
 size_t vbo_available_bytes(struct Vbo* vbo, int32_t i) __attribute__((warn_unused_result));
 
-void vbo_fill_value(struct Vbo* vbo, int32_t i, size_t offset_n, size_t size_n, uint8_t value);
-
 void* vbo_map(struct Vbo* vbo, int32_t i, size_t offset, size_t length, GLbitfield access);
 GLboolean vbo_unmap(struct Vbo* vbo, int32_t i);
 

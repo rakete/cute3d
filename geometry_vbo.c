@@ -155,27 +155,6 @@ size_t vbo_available_bytes(struct Vbo* vbo, int32_t i) {
     return freespace;
 }
 
-void vbo_fill_value(struct Vbo* vbo, int32_t i, size_t offset_n, size_t size_n, uint8_t value) {
-    log_assert( vbo != NULL );
-    log_assert( vbo->buffer[i].id > 0 );
-    log_assert( offset_n < vbo->capacity );
-    log_assert( offset_n > 0 );
-    log_assert( size_n <= vbo->capacity );
-    log_assert( size_n > 0 );
-
-    void* array = malloc( ogl_sizeof_type(vbo->components[i].type) * size_n );
-    size_t array_offset = offset_n * vbo->components[i].size;
-    size_t array_size = size_n * vbo->components[i].size;
-    log_assert( array_offset < INTPTR_MAX );
-    log_assert( array_size < INTPTR_MAX );
-
-    memset(array, (int)value, array_size);
-
-    ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
-               glBufferSubData(GL_ARRAY_BUFFER, (intptr_t)array_offset, (intptr_t)array_size, array);
-               glBindBuffer(GL_ARRAY_BUFFER, 0); );
-}
-
 void* vbo_map(struct Vbo* vbo, int32_t i, size_t offset, size_t length, GLbitfield access) {
     log_assert( offset < vbo->capacity );
     log_assert( vbo != NULL );
