@@ -44,7 +44,6 @@ void camera_matrices(const struct Camera* camera, enum CameraProjection projecti
             right *= (camera->pivot.eye_distance * (1.0/near)) * camera->pivot.zoom;
             top *= (camera->pivot.eye_distance * (1.0/near)) * camera->pivot.zoom;
             bottom *= (camera->pivot.eye_distance * (1.0/near)) * camera->pivot.zoom;
-            printf("%f %f %f %f %f %f\n", left, right, top, bottom, near, far);
             mat_orthographic(left, right, top, bottom, near, far, projection_mat);
         }
 
