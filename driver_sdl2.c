@@ -34,6 +34,27 @@ void sdl2_window(const char* title, int32_t x, int32_t y, int32_t width, int32_t
         });
 }
 
+void sdl2_fullscreen(const char* title, int32_t width, int32_t height, SDL_Window** window) {
+    sdl2_debug({
+            // these must be set before creating a window
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+
+            *window = SDL_CreateWindow(title, 0, 0, width, height,
+                                       SDL_WINDOW_OPENGL |
+                                       SDL_WINDOW_SHOWN |
+                                       SDL_WINDOW_FULLSCREEN);
+
+            // these can be set before creating an opengl context
+            SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        });
+}
+
 void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context) {
 
     int32_t width,height;

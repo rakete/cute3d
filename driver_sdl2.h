@@ -26,6 +26,8 @@
 int32_t init_sdl2() __attribute__((warn_unused_result));
 
 void sdl2_window(const char* title, int32_t x, int32_t y, int32_t width, int32_t height, SDL_Window** window);
+void sdl2_fullscreen(const char* title, int32_t width, int32_t height, SDL_Window** window);
+
 void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context);
 
 double sdl2_time_delta();
