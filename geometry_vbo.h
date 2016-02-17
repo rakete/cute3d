@@ -157,8 +157,11 @@ struct VboMesh {
     // - given the last two points, I want to make this seperate from VboMesh, but, my initial
     // thinking it should be part of Vbo, is not optimal I believe, it should be seperate,
     // I want an Ibo struct in addition to an Vbo struct, which I then point to from VboMesh,
-    // that reflects better the notion that attribute data is 'fixed', whereas indices can
+    // that also reflects better the notion that attribute data is 'fixed', whereas indices can
     // be streamed in for every frame, or may be completely replaced
+    // - when I do this, I could wrap the vbo pointer above together with offset, occupied and
+    // capacity in a attributes struct, and then have the same, but with an ibo pointer, in an
+    // indices struct
     struct VboMeshIndexBuffer {
         uint32_t id; // index buffer
         GLenum usage;

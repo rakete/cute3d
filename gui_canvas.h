@@ -123,6 +123,9 @@ int32_t init_canvas() __attribute__((warn_unused_result));
 
 void canvas_create_empty(struct Canvas* canvas);
 void canvas_create(struct Canvas* canvas);
+// - I use malloc for the arrays, I should implement a destructor eventually, but since the canvas
+// is meant to be present throughout the whole runtime of the program this is not a priority
+void canvas_destroy(struct Canvas* canvas);
 
 // - the _add_ in general just initialise settings or something like, they are not neccessary to be
 // called every frame, just once after creating the canvas
