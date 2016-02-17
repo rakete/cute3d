@@ -67,8 +67,8 @@ void vec_mul1f(const Vec3f v, float w, Vec3f r);
 VecP vmul1f(Vec3f v, float w);
 
 // vector operations
-void vec_invert(const Vec4f v, Vec4f r);
-VecP vinvert(Vec4f v);
+void vec_invert(const Vec3f v, Vec3f r);
+VecP vinvert(Vec3f v);
 
 void vec_dot(const Vec3f v, const Vec3f w, float* r);
 float vdot(const Vec3f v, const Vec3f w);

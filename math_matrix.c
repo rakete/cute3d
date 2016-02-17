@@ -110,13 +110,13 @@ VecP vmul1f(Vec3f v, float w) {
     return v;
 }
 
-void vec_invert(const Vec4f v, Vec4f r) {
+void vec_invert(const Vec3f v, Vec3f r) {
     r[0] = -v[0];
     r[1] = -v[1];
     r[2] = -v[2];
 }
 
-VecP vinvert(Vec4f v) {
+VecP vinvert(Vec3f v) {
     vec_invert(v,v);
     return v;
 }
