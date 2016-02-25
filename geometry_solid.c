@@ -16,15 +16,6 @@
 
 #include "geometry_solid.h"
 
-void solid_create(size_t size, uint32_t* indices, float* vertices, uint32_t* triangles, float* normals, uint8_t* colors, float* texcoords, struct Solid* solid) {
-    solid->size = size;
-    solid->vertices = vertices;
-    solid->indices = indices;
-    solid->triangles = triangles;
-    solid->normals = normals;
-    solid->colors = colors;
-    solid->texcoords = texcoords;
-}
 
 void solid_normals(struct Solid* solid) {
     log_assert(solid->normals != NULL);
