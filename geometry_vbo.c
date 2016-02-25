@@ -226,7 +226,6 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
     }
     mesh->indices = &mesh->_internal_indices[0];
 
-    ogl_debug( glGenBuffers(1, &mesh->indices->id) );
 }
 
 void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
@@ -376,8 +375,12 @@ size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
 
 size_t vbomesh_alloc_indices(struct VboMesh* mesh, size_t n) {
     log_assert( mesh != NULL );
-    log_assert( mesh->indices->id > 0 );
     log_assert( n > 0 );
+
+    if( ! mesh->indices->id ) {
+        ogl_debug( glGenBuffers(1, &mesh->indices->id) );
+    }
+    log_assert( mesh->indices->id > 0 );
 
     size_t size_bytes = mesh->indices->capacity * mesh->index.bytes;
     size_t alloc_bytes = n * mesh->index.bytes;
@@ -481,7 +484,6 @@ size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, void* data, ui
 
 size_t vbomesh_append_indices(struct VboMesh* mesh, void* data, size_t n) {
     log_assert( mesh != NULL );
-    log_assert( mesh->indices->id > 0 );
     log_assert( n > 0 );
 
     if( mesh->indices->occupied + n > mesh->indices->capacity ) {
@@ -490,6 +492,7 @@ size_t vbomesh_append_indices(struct VboMesh* mesh, void* data, size_t n) {
         log_assert( result == alloc );
     }
 
+    log_assert( mesh->indices->id > 0 );
     log_assert( mesh->indices->occupied + n <= mesh->indices->capacity );
 
     size_t append_bytes = n * mesh->index.bytes;

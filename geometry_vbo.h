@@ -172,6 +172,10 @@ struct VboMesh {
         size_t occupied; // space already used
     } _internal_indices[NUM_VBO_PHASES];
     struct VboMeshIndexBuffer* indices;
+
+    // - to prevent z fighting a random small offset value is put here that can be
+    // used in a rendering function to offset the mesh by a small amount
+    float z_offset;
 };
 
 void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh);
