@@ -34,8 +34,8 @@ struct Solid {
     float* texcoords;
 };
 
-void solid_normals(struct Solid* solid);
-void solid_color(struct Solid* solid, const uint8_t color[4]);
+void solid_compute_normals(struct Solid* solid);
+void solid_set_color(struct Solid* solid, const uint8_t color[4]);
 
 struct Tetrahedron {
     struct Solid solid;

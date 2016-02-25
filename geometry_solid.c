@@ -16,16 +16,15 @@
 
 #include "geometry_solid.h"
 
-
-void solid_normals(struct Solid* solid) {
+void solid_compute_normals(struct Solid* solid) {
     log_assert(solid->normals != NULL);
 
     if( solid->vertices && solid->indices ) {
         size_t size = solid->size/3;
-        for( uint32_t i = 0; i < size; i++ ) {
-            uint32_t a = solid->indices[i*3+0];
-            uint32_t b = solid->indices[i*3+1];
-            uint32_t c = solid->indices[i*3+2];
+        for( size_t i = 0; i < size; i++ ) {
+            size_t a = solid->indices[i*3+0];
+            size_t b = solid->indices[i*3+1];
+            size_t c = solid->indices[i*3+2];
 
             Vec4f u;
             u[0] = solid->vertices[a*3+0] - solid->vertices[b*3+0];
@@ -58,12 +57,12 @@ void solid_normals(struct Solid* solid) {
     }
 }
 
-void solid_color(struct Solid* solid, const uint8_t color[4]) {
+void solid_set_color(struct Solid* solid, const uint8_t color[4]) {
     log_assert(solid->colors != NULL);
 
     if( solid->vertices && solid->indices ) {
         size_t n = solid->size;
-        for( uint32_t i = 0; i < n; i++ ) {
+        for( size_t i = 0; i < n; i++ ) {
             solid->colors[i*4+0] = color[0];
             solid->colors[i*4+1] = color[1];
             solid->colors[i*4+2] = color[2];
