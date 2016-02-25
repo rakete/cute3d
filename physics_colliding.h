@@ -21,9 +21,12 @@
 #include "math_matrix.h"
 #include "math_pivot.h"
 
-#include "geometry_halfedgemesh.h"
+#include "gui_draw.h"
 
-#include "physics_sat.h"
+#include "geometry_halfedgemesh.h"
+#include "geometry_sat.h"
+#include "geometry_draw.h"
+
 #include "physics_rigidbody.h"
 
 #define NUM_COLLISION_CONTACTS 4

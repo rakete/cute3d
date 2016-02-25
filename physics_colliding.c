@@ -19,29 +19,45 @@ bool colliding_test_convex_convex(const struct CollidingConvexShape* convex1, co
     uint32_t vertex_index2 = UINT_MAX;
     uint32_t edge_index1 = UINT_MAX;
     uint32_t edge_index2 = UINT_MAX;
-    Vec3f axis = {0.0, 0.0, 0.0};
+    Vec3f normal = {0.0, 0.0, 0.0};
 
     struct Pivot pivot1 = {0};
     pivot_combine(convex1->shape.world_pivot, &convex1->shape.local_pivot, &pivot1);
     struct HalfEdgeMesh* mesh1 = convex1->mesh;
+    Mat pivot1_world = {0};
+    pivot_world_transform(&pivot1, pivot1_world);
 
     struct Pivot pivot2 = {0};
     pivot_combine(convex2->shape.world_pivot, &convex2->shape.local_pivot, &pivot2);
     struct HalfEdgeMesh* mesh2 = convex2->mesh;
+    Mat pivot2_world = {0};
+    pivot_world_transform(&pivot2, pivot2_world);
 
-    query_face_directions(&pivot1, mesh1, &pivot2, mesh2, axis, &distance, &face_index1, &vertex_index1);
+    sat_test_faces(&pivot1, mesh1, &pivot2, mesh2, normal, &distance, &face_index1, &vertex_index2);
     printf("//distance1: %f\n", distance);
+
+    draw_halfedgemesh_face(&global_dynamic_canvas, 0, pivot1_world, (Color){255, 255, 0, 255}, mesh1, face_index1);
+    draw_halfedgemesh_vertex(&global_dynamic_canvas, 0, pivot2_world, (Color){255, 255, 0, 255}, mesh2, vertex_index2, 0.2f);
+
+    /* Vec4f pos1 = {0,0,0,1}; */
+    /* vec_copy3f(mesh1->vertices.array[mesh1->edges.array[mesh1->faces.array[face_index1].edge].vertex].position, pos1); */
+    /* draw_vec(&global_dynamic_canvas, 0, pivot1_world, (Color){255, 255, 0, 255}, normal, pos1, 1.0f, 1.0f); */
+
+    /* Vec4f support = {0,0,0,1}; */
+    /* vec_copy3f(mesh2->vertices.array[vertex_index2].position, support); */
+    /* draw_vec(&global_dynamic_canvas, 0, pivot2_world, (Color){255, 255, 0, 255}, support, (Vec4f)NULL_VEC, 1.0f, 1.1f); */
+
     if( distance > 0.0f ) {
         return false;
     }
 
-    query_face_directions(&pivot2, mesh2, &pivot1, mesh1, axis, &distance, &face_index2, &vertex_index2);
+    sat_test_faces(&pivot2, mesh2, &pivot1, mesh1, normal, &distance, &face_index2, &vertex_index1);
     printf("//distance2: %f\n", distance);
     if( distance > 0.0f ) {
         return false;
     }
 
-    query_edge_directions(&pivot1, mesh1, &pivot2, mesh2, axis, &distance, &edge_index1, &edge_index2);
+    sat_test_edges(&pivot1, mesh1, &pivot2, mesh2, normal, &distance, &edge_index1, &edge_index2);
     printf("//distance3: %f\n", distance);
     if( distance > 0.0f ) {
         return false;
