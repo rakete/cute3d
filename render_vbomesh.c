@@ -74,18 +74,23 @@ void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, con
         if( mesh->vbo->buffer[array_id].id && loc[array_id] > -1 ) {
             ogl_debug( glEnableVertexAttribArray((GLuint)loc[array_id]);
                        glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[array_id].id);
-                       glVertexAttribPointer((GLuint)loc[array_id], (GLint)c_num, c_type, GL_TRUE, 0, (void*)(intptr_t)offset); );
+                       // - the offset here is what makes things work out with the indices starting at 0
+                       // - I came here from trying to figure out why I had *triangles and *indices in solids,
+                       // the reason is that most of my solids simply don't need indices and render fine with
+                       // just a glDrawArrays call
+                       glVertexAttribPointer((GLuint)loc[array_id], (GLint)c_num, c_type, GL_TRUE, 0, (void*)(intptr_t)offset) );
         }
     }
 
     if( mesh->indices->id ) {
         ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indices->id); );
-    }
-
-    if( mesh->indices->id ) {
         ogl_debug( glDrawElementsBaseVertex(mesh->primitives.type, mesh->indices->occupied, mesh->index.type, 0, mesh->indices->base); );
+        ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) );
     } else {
-        ogl_debug( glDrawArrays(mesh->primitives.type, mesh->offset, mesh->occupied[SHADER_ATTRIBUTE_VERTICES]); );
+        // - the offset is 0 here because we specify the offset already in the glVertexAttribPointer call above
+        // - in this case we'd actually better just render the whole buffer as one batch anyways, and that
+        // would be better done in another function
+        ogl_debug( glDrawArrays(mesh->primitives.type, 0, mesh->occupied[SHADER_ATTRIBUTE_VERTICES]) );
     }
 
     for( int32_t array_id = 0; array_id < NUM_SHADER_ATTRIBUTES; array_id++ ) {
@@ -95,6 +100,5 @@ void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, con
     }
 
     ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, 0);
-               glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
                glUseProgram(0); );
 }
