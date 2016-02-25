@@ -45,6 +45,143 @@ void vbomesh_create_from_solid(const struct Solid* solid, struct Vbo* vbo, struc
         log_assert( indices_n == solid->indices_size );
     }
 }
+
+void shitty_triangulate(float* vertices, int32_t n, int32_t* triangles, int32_t m) {
+    log_assert( n >= 3 );
+    log_assert( n < INT_MAX/3 );
+    log_assert( m <= 3 * n - 2);
+
+    if( n == 3 || n == 4 ) {
+        triangles[0] = 0;
+        triangles[1] = 1;
+        triangles[2] = 2;
+    }
+
+    // #YOLO
+    if( n == 4 ) {
+        static bool warn_once = 1;
+        if( warn_once ) {
+            log_warn(stderr, __FILE__, __LINE__, "using completely shitty_triangulate function!\n");
+            warn_once = 0;
+        }
+        triangles[3] = 2;
+        triangles[4] = 3;
+        triangles[5] = 0;
+    }
+
+    log_assert( n == 3 || n == 4 );
+}
+
+void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct VboMesh* mesh) {
+    log_assert( halfedgemesh->size >= 0 );
+
+    uint32_t triangles[halfedgemesh->size];
+    uint32_t optimal[halfedgemesh->size];
+    uint32_t indices[halfedgemesh->size];
+    float vertices[halfedgemesh->size*3];
+    float normals[halfedgemesh->size*3];
+    uint8_t colors[halfedgemesh->size*4];
+    float texcoords[halfedgemesh->size*2];
+
+    log_assert( halfedgemesh->size > 0 );
+    struct Solid solid = {
+        .size = (uint32_t)halfedgemesh->size,
+        .indices_size = (uint32_t)halfedgemesh->size,
+
+        .triangles = triangles,
+        .optimal = optimal,
+        .indices = indices,
+
+        .vertices = vertices,
+        .normals = normals,
+        .colors = colors,
+        .texcoords = texcoords
+    };
+
+    uint32_t vertices_offset = 0;
+    uint32_t normals_offset = 0;
+    uint32_t colors_offset = 0;
+    uint32_t texcoords_offset = 0;
+    uint32_t indices_offset = 0;
+    uint32_t optimal_offset = 0;
+    uint32_t triangles_offset = 0;
+
+    for( uint32_t i = 0; i < halfedgemesh->faces.occupied; i++ ) {
+        struct HalfEdgeFace* face = &halfedgemesh->faces.array[i];
+
+        if( face->edge == -1 ) {
+            continue;
+        }
+
+        float face_vertices[face->size*3];
+        float edge_normals[face->size*3];
+        uint8_t edge_colors[face->size*4];
+        float edge_texcoords[face->size*2];
+        uint32_t face_triangles[face->size];
+
+        struct HalfEdge* current_edge = &halfedgemesh->edges.array[face->edge];
+        for( int32_t face_vertex_i = 0; face_vertex_i < face->size; face_vertex_i++ ) {
+            face_vertices[face_vertex_i*3+0] = halfedgemesh->vertices.array[current_edge->vertex].position[0];
+            face_vertices[face_vertex_i*3+1] = halfedgemesh->vertices.array[current_edge->vertex].position[1];
+            face_vertices[face_vertex_i*3+2] = halfedgemesh->vertices.array[current_edge->vertex].position[2];
+
+            edge_normals[face_vertex_i*3+0] = current_edge->normal[0];
+            edge_normals[face_vertex_i*3+1] = current_edge->normal[1];
+            edge_normals[face_vertex_i*3+2] = current_edge->normal[2];
+
+            edge_colors[face_vertex_i*4+0] = current_edge->color[0];
+            edge_colors[face_vertex_i*4+1] = current_edge->color[1];
+            edge_colors[face_vertex_i*4+2] = current_edge->color[2];
+            edge_colors[face_vertex_i*4+3] = current_edge->color[3];
+
+            edge_texcoords[face_vertex_i*2+0] = current_edge->texcoord[0];
+            edge_texcoords[face_vertex_i*2+1] = current_edge->texcoord[1];
+
+            log_assert( current_edge->vertex >= 0 );
+            face_triangles[face_vertex_i] = (uint32_t)current_edge->vertex;
+
+            current_edge = &halfedgemesh->edges.array[current_edge->next];
+        }
+
+        int32_t tesselation_size = 3 * (face->size - 2);
+        int32_t face_tesselation[tesselation_size];
+        shitty_triangulate(face_vertices, face->size, face_tesselation, tesselation_size);
+
+        for( int32_t j = 0; j < tesselation_size ; j++ ) {
+            int32_t k = face_tesselation[j];
+
+            solid.vertices[vertices_offset+0] = face_vertices[k*3+0];
+            solid.vertices[vertices_offset+1] = face_vertices[k*3+1];
+            solid.vertices[vertices_offset+2] = face_vertices[k*3+2];
+            vertices_offset += 3;
+
+            solid.normals[normals_offset+0] = edge_normals[k*3+0];
+            solid.normals[normals_offset+1] = edge_normals[k*3+1];
+            solid.normals[normals_offset+2] = edge_normals[k*3+2];
+            normals_offset += 3;
+
+            solid.colors[colors_offset+0] = edge_colors[k*4+0];
+            solid.colors[colors_offset+1] = edge_colors[k*4+1];
+            solid.colors[colors_offset+2] = edge_colors[k*4+2];
+            solid.colors[colors_offset+3] = edge_colors[k*4+3];
+            colors_offset += 4;
+
+            solid.texcoords[texcoords_offset+0] = edge_texcoords[k*2+0];
+            solid.texcoords[texcoords_offset+1] = edge_texcoords[k*2+1];
+            texcoords_offset += 2;
+
+            solid.indices[indices_offset] = indices_offset;
+            indices_offset += 1;
+
+            solid.optimal[optimal_offset] = face_triangles[k];
+            optimal_offset += 1;
+
+            solid.triangles[triangles_offset] = face_triangles[k];
+            triangles_offset += 1;
+        }
+    }
+
+    vbomesh_create_from_solid(&solid, vbo, mesh);
 }
 
 void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, const Mat model_matrix) {

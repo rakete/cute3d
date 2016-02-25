@@ -25,8 +25,10 @@
 
 #include "geometry_vbo.h"
 #include "geometry_solid.h"
+#include "geometry_halfedgemesh.h"
 
 void vbomesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct VboMesh* mesh);
+void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct VboMesh* mesh);
 
 void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, const Mat model_matrix);
 
