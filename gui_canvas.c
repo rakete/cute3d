@@ -129,6 +129,7 @@ int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader) {
     }
 
     if( shader_i == NUM_CANVAS_SHADER ) {
+        log_warn(stderr, __FILE__, __LINE__, "no more space available in canvas for adding shader \"%s\"\n", shader->name);
         return NUM_CANVAS_SHADER;
     }
 
