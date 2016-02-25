@@ -16,13 +16,13 @@
 
 #include "gui_draw.h"
 
-void draw_grid( struct Canvas* canvas,
-                int32_t layer_i,
-                float width,
-                float height,
-                uint32_t steps,
-                const Color color,
-                const Mat model_matrix )
+void draw_grid(struct Canvas* canvas,
+               int32_t layer_i,
+               const Mat model_matrix,
+               const Color color,
+               float width,
+               float height,
+               uint32_t steps)
 {
     uint32_t size = (steps+1)*2 + (steps+1)*2;
 
@@ -70,12 +70,12 @@ void draw_grid( struct Canvas* canvas,
 
 void draw_arrow( struct Canvas* canvas,
                  int32_t layer_i,
-                 const Vec4f v,
-                 const Vec4f pos,
-                 float offset,
-                 float scale,
+                 const Mat model_matrix,
                  const Color color,
-                 const Mat model_matrix)
+                 const Vec3f v,
+                 const Vec3f pos,
+                 float offset,
+                 float scale)
 {
 
     Mat arrow_matrix = {0};
@@ -136,19 +136,21 @@ void draw_arrow( struct Canvas* canvas,
     canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, elements, 8*2, 0);
 }
 
-void draw_vec( struct Canvas* canvas,
-               int32_t layer_i,
-               const Vec4f v,
-               const Vec4f pos,
-               float arrow,
-               float scale,
-               const Color color,
-               const Mat model_matrix)
+void draw_vec(struct Canvas* canvas,
+              int32_t layer_i,
+              const Mat model_matrix,
+              const Color color,
+              const Vec3f v,
+              const Vec3f pos,
+              float arrow,
+              float scale)
 {
 
     Mat arrow_matrix = {0};
     mat_identity(arrow_matrix);
 
+    // - I wish I could remeber why I did this rotation madness just to display a vector,
+    // it baffles me that it even works, correctly even it seems
     Vec4f z = { 0.0, 0.0, 1.0, 1.0 };
     Vec4f axis = {0};
     vec_cross(v,z,axis);
@@ -163,8 +165,10 @@ void draw_vec( struct Canvas* canvas,
     quat_from_axis_angle(axis, angle, rotation);
     quat_to_mat(rotation, arrow_matrix);
 
-    // mesh length is always 1.0f, so not only scale it with scale, but also scale it with the
+    // - length is always 1.0f, so not only scale it with scale, but also scale it with the
     // actual length it should have
+    // - mysterious comment, what I meant to say is that it just gets longer when its supposed
+    // to be longer
     float length = 1.0f;
     vec_length(v, &length);
     mat_scale(arrow_matrix, scale * length, arrow_matrix);
@@ -224,13 +228,13 @@ void draw_vec( struct Canvas* canvas,
     }
 }
 
-void draw_quat( struct Canvas* canvas,
-                int32_t layer_i,
-                const Quat q,
-                float scale,
-                const Color color1,
-                const Color color2,
-                const Mat model_matrix )
+void draw_quat(struct Canvas* canvas,
+               int32_t layer_i,
+               const Mat model_matrix,
+               const Color color1,
+               const Color color2,
+               const Quat q,
+               float scale)
 {
 
     // visualizing quaternions is nasty, I am just drawing an axis-angle representation, that kind of sort of
@@ -252,13 +256,13 @@ void draw_quat( struct Canvas* canvas,
         // we also draw two axis in different colors, that will swap, to indicate the two rotation phases of the quaternion
         // thats why this is in here and in the else with swapped colors, and thats why we flip the axis again (this time,
         // to get the actual inverse)
-        draw_vec(canvas, layer_i, axis, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, color1, model_matrix);
+        draw_vec(canvas, layer_i, model_matrix, color1, axis, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale);
         vec_mul1f(axis, -1.0f, axis_inverse);
-        draw_vec(canvas, layer_i, axis_inverse, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, color2, model_matrix);
+        draw_vec(canvas, layer_i, model_matrix, color2, axis_inverse, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale);
     } else {
-        draw_vec(canvas, layer_i, axis, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, color2, model_matrix);
+        draw_vec(canvas, layer_i, model_matrix, color2, axis, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale);
         vec_mul1f(axis, -1.0f, axis_inverse);
-        draw_vec(canvas, layer_i, axis_inverse, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, color1, model_matrix);
+        draw_vec(canvas, layer_i, model_matrix, color1, axis_inverse, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale);
     }
 
     // draw two circles from 0 to angle, and from angle to 2*PI, so we'll get a full circle consisting
@@ -270,18 +274,18 @@ void draw_quat( struct Canvas* canvas,
     quat_to_mat(circle_rotation, circle_transform);
     mat_mul(circle_transform, model_matrix, circle_transform);
 
-    draw_circle(canvas, layer_i, scale, 0.0f, angle, 1.0f, color1, circle_transform);
-    draw_circle(canvas, layer_i, scale, angle, 2*PI, 0.0f, color2, circle_transform);
+    draw_circle(canvas, layer_i, circle_transform, color1, scale, 0.0f, angle, 1.0f);
+    draw_circle(canvas, layer_i, circle_transform, color2, scale, angle, 2*PI, 0.0f);
 }
 
-void draw_circle( struct Canvas* canvas,
-                  int32_t layer,
-                  float radius,
-                  float start,
-                  float end,
-                  float arrow,
-                  const Color color,
-                  const Mat model_matrix )
+void draw_circle(struct Canvas* canvas,
+                 int32_t layer,
+                 const Mat model_matrix,
+                 const Color color,
+                 float radius,
+                 float start,
+                 float end,
+                 float arrow)
 {
 
     if( end > 2*PI || end < 0.0f ) {
@@ -352,7 +356,7 @@ void draw_circle( struct Canvas* canvas,
         b[3] = 1.0;
 
         vec_sub(a,b,v);
-        draw_arrow(canvas, layer, v, a, 0.0f, radius/2.0f, color, arrow_matrix);
+        draw_arrow(canvas, layer, arrow_matrix, color, v, a, 0.0f, radius/2.0f);
     }
 
     draw_add_gl_lines_shader(canvas, "gl_lines_shader");
@@ -362,22 +366,21 @@ void draw_circle( struct Canvas* canvas,
     canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, elements, 360*2, 0);
 }
 
-void draw_basis( struct Canvas* canvas,
-                 int32_t layer,
-                 float scale,
-                 const Mat model_matrix )
+void draw_basis(struct Canvas* canvas,
+                int32_t layer,
+                const Mat model_matrix,
+                float scale)
 {
-
-    draw_vec(canvas, layer, (Vec4f){2.0, 0.0, 0.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, (Color){1.0, 0.0, 0.0, 1.0}, model_matrix);
-    draw_vec(canvas, layer, (Vec4f){0.0, 2.0, 0.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, (Color){0.0, 1.0, 0.0, 1.0}, model_matrix);
-    draw_vec(canvas, layer, (Vec4f){0.0, 0.0, 2.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale, (Color){0.0, 0.0, 1.0, 1.0}, model_matrix);
+    draw_vec(canvas, layer, model_matrix, (Color){255, 0, 0, 255}, (Vec4f){2.0, 0.0, 0.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale);
+    draw_vec(canvas, layer, model_matrix, (Color){0, 255, 0, 255}, (Vec4f){0.0, 2.0, 0.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale);
+    draw_vec(canvas, layer, model_matrix, (Color){0, 0, 255, 255}, (Vec4f){0.0, 0.0, 2.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0f, scale);
 }
 
-void draw_reticle( struct Canvas* canvas,
-                   int32_t layer,
-                   float scale,
-                   const Color color,
-                   const Mat model_matrix )
+void draw_reticle(struct Canvas* canvas,
+                  int32_t layer,
+                  const Mat model_matrix,
+                  const Color color,
+                  float scale)
 {
 
     // bitmap: reticle
@@ -443,89 +446,14 @@ void draw_reticle( struct Canvas* canvas,
 
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 8, reticle_matrix);
     canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 8, color);
-    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, elements, 4*2, 0);
-}
-
-void draw_contact( struct Canvas* canvas,
-                   int32_t layer,
-                   const Vec4f contact_point,
-                   const Vec4f contact_normal,
-                   float contact_penetration,
-                   float scale,
-                   const Mat model_matrix )
-{
-
-    Mat contact_matrix = {0};
-    mat_translate(model_matrix, contact_point, contact_matrix);
-
-    draw_vec(canvas, layer, contact_normal, (Vec4f)NULL_VEC, 1.0f, scale, (Color){0.1f, 0.9f, 0.7f, 1.0f}, contact_matrix);
-
-    Quat q = {0};
-    quat_from_vec_pair((Vec4f)FORWARD_AXIS, (Vec4f)UP_AXIS, q);
-    quat_mul_axis_angle(q, (Vec4f)UP_AXIS, PI/4, q);
-
-    Mat quad_matrix1;
-    quat_to_mat(q, quad_matrix1);
-    mat_mul(quad_matrix1, contact_matrix, quad_matrix1);
-    //draw_color_quad(scale/2.0, (Color){0.1f, 0.9f, 0.7f, 1.0f}, projection_matrix, view_matrix, quad_matrix1);
-
-    quat_mul_axis_angle(q, (Vec4f)RIGHT_AXIS, PI/2, q);
-
-    Mat quad_matrix2 = {0};
-    quat_to_mat(q, quad_matrix2);
-    mat_mul(quad_matrix2, contact_matrix, quad_matrix2);
-    //draw_color_quad(scale/2.0, (Color){0.1f, 0.9f, 0.7f, 1.0f}, projection_matrix, view_matrix, quad_matrix2);
-
-    quat_mul_axis_angle(q, (Vec4f)UP_AXIS, PI/2, q);
-
-    Mat quad_matrix3 = {0};
-    quat_to_mat(q, quad_matrix3);
-    mat_mul(quad_matrix3, contact_matrix, quad_matrix3);
-    //draw_color_quad(scale/2.0, (Color){0.1f, 0.9f, 0.7f, 1.0f}, projection_matrix, view_matrix, quad_matrix3);
-
-    Quat reticle_rotation = {0};
-    quat_from_vec_pair((Vec4f){0.0f, 0.0f, 1.0f, 1.0f}, (Vec4f){0.0f, 1.0f, 0.0f, 1.0f}, reticle_rotation);
-
-    Mat reticle_transform = {0};
-    quat_to_mat(reticle_rotation, reticle_transform);
-    mat_mul(reticle_transform, contact_matrix, reticle_transform);
-    draw_reticle(canvas, layer, scale/2.0f, (Color){1.0f, 0.2f, 0.7f, 1.0f}, reticle_transform);
-
-    Vec4f contact_normal_flipped;
-    vec_mul1f(contact_normal, -1.0f, contact_normal_flipped);
-    draw_vec(canvas, layer, contact_normal_flipped, (Vec4f)NULL_VEC, 0.0f, scale, (Color){1.0f, 0.2f, 0.7f, 1.0f}, contact_matrix);
-
-}
-
-void draw_normals_array( struct Canvas* canvas,
-                         int32_t layer,
-                         const float* vertices,
-                         const float* normals,
-                         int32_t n,
-                         float scale,
-                         const Color color,
-                         const Mat model_matrix )
-{
-
-    for( int32_t i = 0; i < n; i++ ) {
-        Mat arrow_matrix = {0};
-        mat_identity(arrow_matrix);
-
-        Vec4f normal = { normals[i*3+0], normals[i*3+1], normals[i*3+2], 1.0f };
-        Vec4f vertex = { vertices[i*3+0], vertices[i*3+1], vertices[i*3+2], 1.0 };
-
-        draw_vec(canvas, layer, normal, vertex, 0.0f, scale, color, model_matrix);
-    }
-
     canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, elements, 4*2, 0);
 }
 
 void draw_camera(struct Canvas* canvas,
                  int32_t layer,
-                 const struct Camera* camera,
-                 float scale,
+                 const Mat model_matrix,
                  const Color color,
-                 const Mat model_matrix)
+                 const struct Camera* camera)
 {
     float near = camera->frustum.near;
     float left = camera->frustum.left;
@@ -560,341 +488,3 @@ void draw_camera(struct Canvas* canvas,
     canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 5, color);
     canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, camera_elements, 8*2, offset);
 }
-
-/* void draw_texture_quad( float scale, */
-/*                         GLuint texture_id, */
-/*                         const Mat projection_matrix, */
-/*                         const Mat view_matrix, */
-/*                         const Mat model_matrix ) */
-/* { */
-/*     const char* vertex_source = */
-/*         GLSL( uniform mat4 projection_matrix; */
-/*               uniform mat4 model_matrix; */
-/*               uniform mat4 view_matrix; */
-/*               in vec3 vertex; */
-/*               in vec2 texcoord; */
-/*               out vec4 frag_color; */
-/*               out vec2 frag_texcoord; */
-/*               void main() { */
-/*                   gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex,1.0); */
-/*                   frag_texcoord = texcoord; */
-/*               }); */
-
-/*     const char* fragment_source = */
-/*         GLSL( uniform sampler2D diffuse; */
-/*               in vec2 frag_texcoord; */
-/*               void main() { */
-/*                   gl_FragColor = texture(diffuse, frag_texcoord); */
-/*               }); */
-
-/*     static GLuint program = 0; */
-/*     if( ! program ) { */
-/*         program = glsl_make_program(vertex_source, fragment_source); */
-/*     } */
-
-/*     static GLuint quad = 0; */
-/*     static GLuint vertices_id = 0; */
-/*     static GLuint texcoords_id = 0; */
-/*     static GLuint elements_id = 0; */
-/*     GLfloat vertices[6*3] = */
-/*         { -0.5, 0.5, 0.0, */
-/*           0.5, 0.5, 0.0, */
-/*           0.5, -0.5, 0.0, */
-/*           0.5, -0.5, 0.0, */
-/*           -0.5, -0.5, 0.0, */
-/*           -0.5, 0.5, 0.0 }; */
-/*     GLfloat texcoords[6*2] = */
-/*         { 0.0, 1.0, */
-/*           1.0, 1.0, */
-/*           1.0, 0.0, */
-/*           1.0, 0.0, */
-/*           0.0, 0.0, */
-/*           0.0, 1.0 }; */
-/*     GLuint elements[6] = */
-/*         { 0, 1, 2, */
-/*           3, 4, 5 }; */
-
-/*     if( ! quad && program ) { */
-/*         glGenVertexArrays(1, &quad); */
-/*         glBindVertexArray(quad); */
-
-/*         // vertices */
-/*         glGenBuffers(1, &vertices_id); */
-/*         glBindBuffer(GL_ARRAY_BUFFER, vertices_id); */
-/*         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); */
-
-/*         GLint vertex_position = glGetAttribLocation(program, "vertex"); */
-/*         glEnableVertexAttribArray(vertex_position); */
-/*         glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 0, 0); */
-
-/*         // texcoords */
-/*         glGenBuffers(1, &texcoords_id); */
-/*         glBindBuffer(GL_ARRAY_BUFFER, texcoords_id); */
-/*         glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW); */
-
-/*         GLint texcoord_position = glGetAttribLocation(program, "texcoord"); */
-/*         glEnableVertexAttribArray(texcoord_position); */
-/*         glVertexAttribPointer(texcoord_position, 2, GL_FLOAT, GL_FALSE, 0, 0); */
-
-/*         // elements */
-/*         glGenBuffers(1, &elements_id); */
-/*         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elements_id); */
-/*         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW); */
-
-/*         glBindVertexArray(0); */
-/*         glBindBuffer(GL_ARRAY_BUFFER, 0); */
-/*         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); */
-/*     } */
-
-/*     if( quad && program ) { */
-/*         glBindVertexArray(quad); */
-
-/*         glUseProgram(program); */
-
-/*         static GLint projection_loc = -1; */
-/*         if( projection_loc < 0 ) { */
-/*             projection_loc = glGetUniformLocation(program, "projection_matrix"); */
-/*         } */
-/*         glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix); */
-
-/*         static GLint view_loc = -1; */
-/*         if( view_loc < 0 ) { */
-/*             view_loc = glGetUniformLocation(program, "view_matrix"); */
-/*         } */
-/*         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix); */
-
-/*         Mat quad_matrix = IDENTITY_MAT; */
-/*         mat_scale(quad_matrix, scale, quad_matrix); */
-/*         mat_mul(quad_matrix, model_matrix, quad_matrix); */
-
-/*         static GLint model_loc = -1; */
-/*         if( model_loc < 0 ) { */
-/*             model_loc = glGetUniformLocation(program, "model_matrix"); */
-/*         } */
-/*         glUniformMatrix4fv(model_loc, 1, GL_FALSE, quad_matrix); */
-
-/*         GLint diffuse_loc = glGetUniformLocation(program, "diffuse"); */
-/*         glUniform1i(diffuse_loc, 0); */
-
-/*         glActiveTexture(GL_TEXTURE0); */
-/*         glBindTexture(GL_TEXTURE_2D, texture_id); */
-
-/*         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); */
-
-/*         glBindVertexArray(0); */
-/*     } */
-/* } */
-
-/* void draw_color_quad( float scale, */
-/*                       const Color color, */
-/*                       const Mat projection_matrix, */
-/*                       const Mat view_matrix, */
-/*                       const Mat model_matrix ) */
-/* { */
-/*     const char* vertex_source = */
-/*         GLSL( uniform mat4 projection_matrix; */
-/*               uniform mat4 model_matrix; */
-/*               uniform mat4 view_matrix; */
-/*               uniform vec4 color; */
-/*               in vec3 vertex; */
-/*               out vec4 frag_color; */
-/*               void main() { */
-/*                   gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex,1.0); */
-/*                   frag_color = color; */
-/*               }); */
-
-/*     const char* fragment_source = */
-/*         GLSL( in vec4 frag_color; */
-/*               void main() { */
-/*                   gl_FragColor = frag_color; */
-/*               }); */
-
-/*     static GLuint program = 0; */
-/*     if( ! program ) { */
-/*         program = glsl_make_program(vertex_source, fragment_source); */
-/*     } */
-
-/*     static GLuint quad = 0; */
-/*     static GLuint vertices_id = 0; */
-/*     static GLuint elements_id = 0; */
-/*     GLfloat vertices[6*3] = */
-/*         { -0.5, 0.5, 0.0, */
-/*           0.5, 0.5, 0.0, */
-/*           0.5, -0.5, 0.0, */
-/*           0.5, -0.5, 0.0, */
-/*           -0.5, -0.5, 0.0, */
-/*           -0.5, 0.5, 0.0 }; */
-/*     GLuint elements[6] = */
-/*         { 0, 1, 2, */
-/*           3, 4, 5 }; */
-
-/*     if( ! quad && program ) { */
-/*         glGenVertexArrays(1, &quad); */
-/*         glBindVertexArray(quad); */
-
-/*         // vertices */
-/*         glGenBuffers(1, &vertices_id); */
-/*         glBindBuffer(GL_ARRAY_BUFFER, vertices_id); */
-/*         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); */
-
-/*         GLint vertex_position = glGetAttribLocation(program, "vertex"); */
-/*         glEnableVertexAttribArray(vertex_position); */
-/*         glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 0, 0); */
-
-/*         // elements */
-/*         glGenBuffers(1, &elements_id); */
-/*         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elements_id); */
-/*         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW); */
-
-/*         glBindVertexArray(0); */
-/*         glBindBuffer(GL_ARRAY_BUFFER, 0); */
-/*         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); */
-/*     } */
-
-/*     if( quad && program ) { */
-/*         glBindVertexArray(quad); */
-
-/*         glUseProgram(program); */
-
-/*         static GLint color_loc = -1; */
-/*         if( color_loc < 0 ) { */
-/*             color_loc = glGetUniformLocation(program, "color"); */
-/*         } */
-/*         glUniform4f(color_loc, color[0], color[1], color[2], color[3]); */
-
-/*         static GLint projection_loc = -1; */
-/*         if( projection_loc < 0 ) { */
-/*             projection_loc = glGetUniformLocation(program, "projection_matrix"); */
-/*         } */
-/*         glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix); */
-
-/*         static GLint view_loc = -1; */
-/*         if( view_loc < 0 ) { */
-/*             view_loc = glGetUniformLocation(program, "view_matrix"); */
-/*         } */
-/*         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix); */
-
-/*         Mat quad_matrix = IDENTITY_MAT; */
-/*         mat_scale(quad_matrix, scale, quad_matrix); */
-/*         mat_mul(quad_matrix, model_matrix, quad_matrix); */
-
-/*         static GLint model_loc = -1; */
-/*         if( model_loc < 0 ) { */
-/*             model_loc = glGetUniformLocation(program, "model_matrix"); */
-/*         } */
-/*         glUniformMatrix4fv(model_loc, 1, GL_FALSE, quad_matrix); */
-
-/*         GLint diffuse_loc = glGetUniformLocation(program, "diffuse"); */
-/*         glUniform1i(diffuse_loc, 0); */
-
-/*         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); */
-
-/*         glBindVertexArray(0); */
-/*     } */
-/* } */
-
-/* void draw_line_quad( float scale, */
-/*                      const Color color, */
-/*                      const Mat projection_matrix, */
-/*                      const Mat view_matrix, */
-/*                      const Mat model_matrix ) */
-/* { */
-/*     const char* vertex_source = */
-/*         GLSL( uniform mat4 projection_matrix; */
-/*               uniform mat4 model_matrix; */
-/*               uniform mat4 view_matrix; */
-/*               in vec3 vertex; */
-/*               uniform vec4 color; */
-/*               out vec4 frag_color; */
-/*               uniform float scale; */
-/*               void main() { */
-/*                   gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex, 1.0); */
-/*                   frag_color = color; */
-/*               }); */
-
-/*     const char* fragment_source = */
-/*         GLSL( in vec4 frag_color; */
-/*               void main() { */
-/*                   gl_FragColor = frag_color; */
-/*               }); */
-
-/*     static GLuint program = 0; */
-/*     if( ! program ) { */
-/*         program = glsl_make_program(vertex_source, fragment_source); */
-/*     } */
-
-/*     static GLuint quad = 0; */
-/*     static GLuint vertices_id = 0; */
-/*     static GLuint elements_id = 0; */
-/*     GLfloat vertices[4*3] = */
-/*         { -0.5, 0.5, 0.0, */
-/*           0.5, 0.5, 0.0, */
-/*           0.5, -0.5, 0.0, */
-/*           -0.5, -0.5, 0.0 }; */
-/*     GLuint elements[8] = */
-/*         { 0, 1, */
-/*           1, 2, */
-/*           2, 3, */
-/*           3, 0 }; */
-
-/*     if( ! quad && program ) { */
-/*         glGenVertexArrays(1, &quad); */
-/*         glBindVertexArray(quad); */
-
-/*         // vertices */
-/*         glGenBuffers(1, &vertices_id); */
-/*         glBindBuffer(GL_ARRAY_BUFFER, vertices_id); */
-/*         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); */
-
-/*         GLint vertex_position = glGetAttribLocation(program, "vertex"); */
-/*         glEnableVertexAttribArray(vertex_position); */
-/*         glVertexAttribPointer(vertex_position, 3, GL_FLOAT, GL_FALSE, 0, 0); */
-
-/*         // elements */
-/*         glGenBuffers(1, &elements_id); */
-/*         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elements_id); */
-/*         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW); */
-
-/*         glBindVertexArray(0); */
-/*         glBindBuffer(GL_ARRAY_BUFFER, 0); */
-/*         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); */
-/*     } */
-
-/*     if( quad && program ) { */
-/*         glBindVertexArray(quad); */
-
-/*         glUseProgram(program); */
-
-/*         static GLint color_loc = -1; */
-/*         if( color_loc < 0 ) { */
-/*             color_loc = glGetUniformLocation(program, "color"); */
-/*         } */
-/*         glUniform4f(color_loc, color[0], color[1], color[2], color[3]); */
-
-/*         static GLint projection_loc = -1; */
-/*         if( projection_loc < 0 ) { */
-/*             projection_loc = glGetUniformLocation(program, "projection_matrix"); */
-/*         } */
-/*         glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix); */
-
-/*         static GLint view_loc = -1; */
-/*         if( view_loc < 0 ) { */
-/*             view_loc = glGetUniformLocation(program, "view_matrix"); */
-/*         } */
-/*         glUniformMatrix4fv(view_loc, 1, GL_FALSE, view_matrix); */
-
-/*         Mat quad_matrix = IDENTITY_MAT; */
-/*         mat_scale(quad_matrix, scale, quad_matrix); */
-/*         mat_mul(quad_matrix, model_matrix, quad_matrix); */
-
-/*         static GLint model_loc = -1; */
-/*         if( model_loc < 0 ) { */
-/*             model_loc = glGetUniformLocation(program, "model_matrix"); */
-/*         } */
-/*         glUniformMatrix4fv(model_loc, 1, GL_FALSE, quad_matrix); */
-
-/*         glDrawElements(GL_LINES, 8, GL_UNSIGNED_INT, 0); */
-
-/*         glBindVertexArray(0); */
-/*     } */
-/* } */

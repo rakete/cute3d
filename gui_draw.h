@@ -56,98 +56,62 @@
 
 void draw_grid(struct Canvas* canvas,
                int32_t layer,
+               const Mat model_matrix,
+               const Color color,
                float width,
                float height,
-               uint32_t steps,
-               const Color color,
-               const Mat model_matrix);
+               uint32_t steps);
 
 void draw_arrow(struct Canvas* canvas,
                 int32_t layer,
-                const Vec4f v,
-                const Vec4f pos,
-                float offset,
-                float scale,
+                const Mat model_matrix,
                 const Color color,
-                const Mat model_matrix);
+                const Vec3f v,
+                const Vec3f pos,
+                float offset,
+                float scale);
 
 void draw_vec(struct Canvas* canvas,
               int32_t layer,
-              const Vec4f v,
-              const Vec4f pos,
-              float arrow,
-              float scale,
+              const Mat model_matrix,
               const Color color,
-              const Mat model_matrix);
+              const Vec3f v,
+              const Vec3f pos,
+              float arrow,
+              float scale);
 
 void draw_quat(struct Canvas* canvas,
                int32_t layer,
-               const Quat q,
-               float scale,
+               const Mat model_matrix,
                const Color color1,
                const Color color2,
-               const Mat model_matrix);
+               const Quat q,
+               float scale);
 
 void draw_circle(struct Canvas* canvas,
                  int32_t layer,
+                 const Mat model_matrix,
+                 const Color color,
                  float radius,
                  float start,
                  float end,
-                 float arrow,
-                 const Color color,
-                 const Mat model_matrix);
+                 float arrow);
 
 void draw_basis(struct Canvas* canvas,
                 int32_t layer,
-                float scale,
-                const Mat model_matrix);
+                const Mat model_matrix,
+                float scale);
 
 void draw_reticle(struct Canvas* canvas,
                   int32_t layer,
-                  float scale,
+                  const Mat model_matrix,
                   const Color color,
-                  const Mat model_matrix);
-
-void draw_contact(struct Canvas* canvas,
-                  int32_t layer,
-                  const Vec4f contact_point,
-                  const Vec4f contact_normal,
-                  float contact_penetration,
-                  float scale,
-                  const Mat model_matrix);
-
-void draw_normals_array(struct Canvas* canvas,
-                        int32_t layer,
-                        const float* vertices,
-                        const float* normals,
-                        int32_t n,
-                        float scale,
-                        const Color color,
-                        const Mat model_matrix);
+                  float scale);
 
 void draw_camera(struct Canvas* canvas,
                  int32_t layer,
-                 const struct Camera* camera,
-                 float scale,
+                 const Mat model_matrix,
                  const Color color,
-                 const Mat model_matrix);
-
-/* void draw_texture_quad( float scale, */
-/*                         GLuint texture_id, */
-/*                         const Mat projection_matrix, */
-/*                         const Mat view_matrix, */
-/*                         const Mat model_matrix); */
-
-/* void draw_color_quad( float scale, */
-/*                       const Color color, */
-/*                       const Mat projection_matrix, */
-/*                       const Mat view_matrix, */
-/*                       const Mat model_matrix); */
-
-/* void draw_line_quad( float scale, */
-/*                      const Color color, */
-/*                      const Mat projection_matrix, */
-/*                      const Mat view_matrix, */
-/*                      const Mat model_matrix); */
+                 const struct Camera* camera);
 
 #endif
