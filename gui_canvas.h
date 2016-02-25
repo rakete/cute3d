@@ -6,7 +6,10 @@
 #include "driver_ogl.h"
 #include "driver_shader.h"
 #include "driver_log.h"
+
 #include "math_matrix.h"
+
+#include "geometry_types.h"
 
 #include "gui_font.h"
 #include "gui_default_font.h"
