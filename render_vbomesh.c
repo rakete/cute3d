@@ -16,25 +16,35 @@
 
 #include "render_vbomesh.h"
 
-void vbomesh_create_from_solid(struct Solid* solid, const uint8_t color[4], struct Vbo* vbo, struct VboMesh* mesh) {
+void vbomesh_create_from_solid(const struct Solid* solid, struct Vbo* vbo, struct VboMesh* mesh) {
     log_assert( solid != NULL );
-    log_assert( color != NULL );
     log_assert( mesh != NULL );
 
     vbomesh_create(vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, mesh);
 
-    solid_normals(solid);
-    solid_color(solid,color);
-
     size_t vertices_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, solid->vertices, 3, GL_FLOAT, solid->size);
-    size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, solid->normals, 3, GL_FLOAT, solid->size);
-    size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, solid->colors, 4, GL_UNSIGNED_BYTE, solid->size);
-    size_t indices_n = vbomesh_append_indices(mesh, solid->indices, solid->size);
-
     log_assert( vertices_n == solid->size );
-    log_assert( normals_n == solid->size );
-    log_assert( colors_n == solid->size );
-    log_assert( indices_n == solid->size );
+
+    if( vbo->buffer[SHADER_ATTRIBUTE_NORMALS].id ) {
+        size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, solid->normals, 3, GL_FLOAT, solid->size);
+        log_assert( normals_n == solid->size );
+    }
+
+    if( vbo->buffer[SHADER_ATTRIBUTE_COLORS].id ) {
+        size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, solid->colors, 4, GL_UNSIGNED_BYTE, solid->size);
+        log_assert( colors_n == solid->size );
+    }
+
+    if( vbo->buffer[SHADER_ATTRIBUTE_TEXCOORDS].id ) {
+        size_t texcoords_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_TEXCOORDS, solid->texcoords, 2, GL_FLOAT, solid->size);
+        log_assert( texcoords_n == solid->size );
+    }
+
+    if( solid->size < solid->indices_size ) {
+        size_t indices_n = vbomesh_append_indices(mesh, solid->indices, solid->indices_size);
+        log_assert( indices_n == solid->indices_size );
+    }
+}
 }
 
 void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, const Mat model_matrix) {
