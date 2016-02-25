@@ -430,9 +430,6 @@ size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, void* data, ui
     log_assert( components_size == mesh->vbo->components[i].size,
                 "components_size(%d) == mesh->vbo->components[i].size(%d): the component size of the data appended to the vbo (components_size) does not fit the components size stored in the vbo (mesh->vbo->components[i].size)\n",
                 components_size, mesh->vbo->components[i].size, i);
-    log_assert( n % mesh->vbo->components[i].size == 0,
-                "n(%lu) %% mesh->vbo->components[i].size(%d) == 0(%d): the appended data size (n) is not a multiple of the components size stored in the vbo (mesh->vbo->components[i].size)\n",
-                n, mesh->vbo->components[i].size, n % mesh->vbo->components[i].size, i);
     log_assert( components_type == mesh->vbo->components[i].type,
                 "components_type(%d) == mesh->vbo->components[i].type(%d): the component type of the data appended to the vbo (components_type) does not fit the components type stored in the vbo (mesh->vbo->components[i].type)\n",
                 components_type, mesh->vbo->components[i].type, i)
