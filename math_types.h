@@ -37,10 +37,6 @@ typedef float Mat[16];
 
 typedef float Quat[4];
 
-typedef uint8_t Color[4];
-
-typedef float Texcoord[2];
-
 #define NULL_VEC { 0, 0, 0, 1 }
 #define NULL_MAT { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }
 

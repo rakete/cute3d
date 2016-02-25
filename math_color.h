@@ -22,6 +22,9 @@
 #include "math.h"
 
 #include "math_types.h"
+#include "geometry_types.h"
+
+#define RED (Color){255, 0, 0, 255}
 
 void color_copy(const Color c, Color r);
 
