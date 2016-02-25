@@ -226,6 +226,7 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
     }
     mesh->indices = &mesh->_internal_indices[0];
 
+    mesh->z_offset = (float)(((double)rand()/(double)(RAND_MAX/0.001)) - 0.0005);
 }
 
 void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {

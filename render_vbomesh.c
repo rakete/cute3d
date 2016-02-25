@@ -194,6 +194,7 @@ void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, con
     Mat projection_matrix = {0};
     Mat view_matrix = {0};
     camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
+    projection_matrix[14] += mesh->z_offset;
     log_assert( shader_set_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix) > -1 );
 
     GLint loc[NUM_SHADER_ATTRIBUTES] = {0};
