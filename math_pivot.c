@@ -217,10 +217,10 @@ MatP pivot_local_transform(const struct Pivot* pivot, Mat local_transform) {
 
 MatP pivot_between_transform(const struct Pivot* pivot1, const struct Pivot* pivot2, Mat between_transform) {
     Mat local = {0};
-    pivot_local_transform(pivot1, local);
+    pivot_local_transform(pivot2, local);
 
     Mat world = {0};
-    pivot_world_transform(pivot2, world);
+    pivot_world_transform(pivot1, world);
 
     mat_mul(world, local, between_transform);
 
