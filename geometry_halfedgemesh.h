@@ -35,6 +35,9 @@ struct HalfEdgeFace {
 };
 
 struct HalfEdge {
+    // - why put these here, and not in vertex? because we want to represent all kinds of meshes,
+    // but mostly ones with vertices that each have their own normal/color/texcoord, just like
+    // I do for solids so I can get hard edges when rendering
     Vec4f normal;
     Texcoord texcoord;
     Color color;
@@ -84,24 +87,24 @@ size_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, size_t n);
 // in a certain format, so I choose to use only this instead of a more generic function
 void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid);
 
-// flush is supposed to put the data into contiuous arrays suitable for gl buffers, so for rendering
-// this is probably most usefull for testing, I don't think the data structure should be used to
-// hold renderables
-void halfedgemesh_flush(const struct HalfEdgeMesh* mesh, struct Solid* solid);
-
-int32_t halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int32_t face_i, int32_t all_edges, Vec3f equal_normal, Vec3f average_normal, Vec3f cross_normal);
+int32_t halfedgemesh_face_normal(struct HalfEdgeMesh* mesh, int32_t face_i, int32_t all_edges, Vec3f equal_normal, Vec3f average_normal);
 int32_t halfedgemesh_face_iterate(struct HalfEdgeMesh* mesh, int32_t face_i, struct HalfEdge** edge, int32_t* edge_i, int32_t* i);
 int32_t halfedgemesh_vertex_iterate(struct HalfEdgeMesh* mesh, int32_t vertex_i, struct HalfEdge** edge, int32_t* edge_i, int32_t* i);
 
-// compress is supposed to look at faces and collapse smaller faces into a larger face with size face_size,
+// optimize is supposed to look at faces and collapse smaller faces into a larger face with size face_size,
 // if the normals are equal. so for example a box made out of triangles could be compressed into a box of
 // quads
 // - if I implement this to only collapse faces into convex polygons, I could support face_size > 3 and would
 // not have to implement a complex triangulation algorithm
 // - this could also clean up and shrink arrays in case I'd ever implement something that needs to delete vertices,
 // edges or faces
-void halfedgemesh_compress(struct HalfEdgeMesh* mesh);
+void halfedgemesh_optimize(struct HalfEdgeMesh* mesh);
 
-void halfedgemesh_verify(struct HalfEdgeMesh* mesh);
+void halfedgemesh_verify(const struct HalfEdgeMesh* mesh);
+
+void halfedgemesh_transform(const struct HalfEdgeMesh* mesh,
+                            const Mat transform,
+                            float transformed_vertices[],
+                            size_t size);
 
 #endif
