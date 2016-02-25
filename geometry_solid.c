@@ -71,23 +71,213 @@ void solid_set_color(struct Solid* solid, const uint8_t color[4]) {
     }
 }
 
-void solid_tetrahedron(float radius, struct Tetrahedron* tet) {
+size_t solid_optimize(const struct Solid* solid, struct Solid* result) {
+    log_assert( result && solid );
+    log_assert( result->size == solid->size );
+    log_assert( result->indices_size == solid->indices_size );
+
+    log_assert( result->triangles && solid->triangles );
+    log_assert( result->optimal && solid->optimal );
+    log_assert( result->indices && solid->indices );
+
+    log_assert( result->vertices && solid->vertices );
+    log_assert( result->normals && solid->normals );
+    log_assert( result->colors && solid->colors );
+    log_assert( result->texcoords && solid->texcoords );
+
+    if( solid->size == solid->indices_size ) {
+        float old_vertices[solid->size*3];
+        memcpy(old_vertices, solid->vertices, sizeof(float) * solid->size * 3);
+
+        float old_normals[solid->size*3];
+        memcpy(old_normals, solid->normals, sizeof(float) * solid->size * 3);
+
+        uint8_t old_colors[solid->size*4];
+        memcpy(old_colors, solid->colors, sizeof(uint8_t) * solid->size * 4);
+
+        float old_texcoords[solid->size*2];
+        memcpy(old_texcoords, solid->texcoords, sizeof(float) * solid->size * 2);
+
+        uint32_t old_indices[solid->size];
+        memcpy(old_indices, solid->indices, sizeof(uint32_t) * solid->size);
+
+        bool processed_map[solid->size];
+        memset(processed_map, false, sizeof(bool) * solid->size);
+
+        size_t new_size = 0;
+        for( size_t i = 0; i < solid->size; i++ ) {
+            uint32_t optimal_index = solid->optimal[i];
+            uint32_t old_index = old_indices[i];
+
+            if( ! processed_map[optimal_index] ) {
+                result->vertices[optimal_index*3+0] = old_vertices[old_index*3+0];
+                result->vertices[optimal_index*3+1] = old_vertices[old_index*3+1];
+                result->vertices[optimal_index*3+2] = old_vertices[old_index*3+2];
+
+                result->normals[optimal_index*3+0] = old_normals[old_index*3+0];
+                result->normals[optimal_index*3+1] = old_normals[old_index*3+1];
+                result->normals[optimal_index*3+2] = old_normals[old_index*3+2];
+
+                result->colors[optimal_index*4+0] = old_colors[old_index*4+0];
+                result->colors[optimal_index*4+1] = old_colors[old_index*4+1];
+                result->colors[optimal_index*4+2] = old_colors[old_index*4+2];
+                result->colors[optimal_index*4+3] = old_colors[old_index*4+3];
+
+                result->texcoords[optimal_index*2+0] = old_texcoords[old_index*2+0];
+                result->texcoords[optimal_index*2+1] = old_texcoords[old_index*2+1];
+
+                processed_map[optimal_index] = true;
+            }
+
+            result->triangles[i] = solid->triangles[i];
+            result->optimal[i] = optimal_index;
+            result->indices[i] = optimal_index;
+
+            if( optimal_index > new_size ) {
+                new_size = optimal_index;
+            }
+        }
+
+        result->size = new_size+1;
+        result->indices_size = solid->indices_size;
+    } else {
+        log_warn(stderr, __FILE__, __LINE__, "can not optimize an already optimized or compressed solid\n");
+
+        memcpy(result->triangles, solid->triangles, sizeof(uint32_t) * solid->size);
+        memcpy(result->indices, solid->indices, sizeof(uint32_t) * solid->size);
+
+        memcpy(result->vertices, solid->vertices, sizeof(float) * solid->size * 3);
+        memcpy(result->normals, solid->normals, sizeof(float) * solid->size * 3);
+        memcpy(result->colors, solid->colors, sizeof(uint8_t) * solid->size * 4);
+        memcpy(result->texcoords, solid->texcoords, sizeof(float) * solid->size * 2);
+    }
+
+    return result->indices_size - result->size;
+}
+
+size_t solid_compress(const struct Solid* solid, struct Solid* result) {
+    log_assert( result && solid );
+    log_assert( result->size == solid->size );
+    log_assert( result->indices_size == solid->indices_size );
+
+    log_assert( result->triangles && solid->triangles );
+    log_assert( result->optimal && solid->optimal );
+    log_assert( result->indices && solid->indices );
+
+    log_assert( result->vertices && solid->vertices );
+    log_assert( result->normals && solid->normals );
+    log_assert( result->colors && solid->colors );
+    log_assert( result->texcoords && solid->texcoords );
+
+    if( solid->size == solid->indices_size ) {
+        float old_vertices[solid->size*3];
+        memcpy(old_vertices, solid->vertices, sizeof(float) * solid->size * 3);
+
+        float old_normals[solid->size*3];
+        memcpy(old_normals, solid->normals, sizeof(float) * solid->size * 3);
+
+        uint8_t old_colors[solid->size*4];
+        memcpy(old_colors, solid->colors, sizeof(uint8_t) * solid->size * 4);
+
+        float old_texcoords[solid->size*2];
+        memcpy(old_texcoords, solid->texcoords, sizeof(float) * solid->size * 2);
+
+        uint32_t old_indices[solid->size];
+        memcpy(old_indices, solid->indices, sizeof(uint32_t) * solid->size);
+
+        bool processed_map[solid->size];
+        memset(processed_map, false, sizeof(bool) * solid->size);
+
+        size_t new_size = 0;
+        for( size_t i = 0; i < solid->size; i++ ) {
+            uint32_t triangle_index = solid->triangles[i];
+            uint32_t old_index = old_indices[i];
+
+            if( ! processed_map[triangle_index] ) {
+                result->vertices[triangle_index*3+0] = old_vertices[old_index*3+0];
+                result->vertices[triangle_index*3+1] = old_vertices[old_index*3+1];
+                result->vertices[triangle_index*3+2] = old_vertices[old_index*3+2];
+
+                Vec3f average_normal = {0};
+                size_t k = 1;
+                for( size_t j = 0; j < solid->size; j++ ) {
+                    uint32_t j_triangle_index = solid->triangles[j];
+                    uint32_t j_old_index = old_indices[j];
+                    if( j_triangle_index == triangle_index ) {
+                        average_normal[0] += old_normals[j_old_index*3+0];
+                        average_normal[1] += old_normals[j_old_index*3+1];
+                        average_normal[2] += old_normals[j_old_index*3+2];
+                    }
+                }
+                average_normal[0] /= k;
+                average_normal[1] /= k;
+                average_normal[2] /= k;
+
+                result->normals[triangle_index*3+0] = average_normal[0];
+                result->normals[triangle_index*3+1] = average_normal[1];
+                result->normals[triangle_index*3+2] = average_normal[2];
+
+                result->colors[triangle_index*4+0] = old_colors[old_index*4+0];
+                result->colors[triangle_index*4+1] = old_colors[old_index*4+1];
+                result->colors[triangle_index*4+2] = old_colors[old_index*4+2];
+                result->colors[triangle_index*4+3] = old_colors[old_index*4+3];
+
+                result->texcoords[triangle_index*2+0] = old_texcoords[old_index*2+0];
+                result->texcoords[triangle_index*2+1] = old_texcoords[old_index*2+1];
+
+                processed_map[triangle_index] == true;
+            }
+
+            result->triangles[i] = triangle_index;
+            result->optimal[i] = solid->optimal[i];
+            result->indices[i] = triangle_index;
+
+            if( triangle_index > new_size ) {
+                new_size = triangle_index;
+            }
+
+        }
+
+        result->size = new_size+1;
+        result->indices_size = solid->indices_size;
+    } else {
+        log_warn(stderr, __FILE__, __LINE__, "can not optimize an already optimized or compressed solid\n");
+
+        memcpy(result->triangles, solid->triangles, sizeof(uint32_t) * solid->size);
+        memcpy(result->indices, solid->indices, sizeof(uint32_t) * solid->size);
+
+        memcpy(result->vertices, solid->vertices, sizeof(float) * solid->size * 3);
+        memcpy(result->normals, solid->normals, sizeof(float) * solid->size * 3);
+        memcpy(result->colors, solid->colors, sizeof(uint8_t) * solid->size * 4);
+        memcpy(result->texcoords, solid->texcoords, sizeof(float) * solid->size * 2);
+    }
+
+    return result->indices_size - result->size;
+}
+
+void solid_create_tetrahedron(float radius, const uint8_t color[4], struct Tetrahedron* tet) {
     *tet = (struct Tetrahedron){ .vertices = { 0 },
                                  .triangles = { 0, 1, 2,
                                                 0, 2, 3,
                                                 0, 3, 1,
-                                                1, 2, 3 },
+                                                3, 2, 1 },
+                                 .optimal = { 0, 1, 2,
+                                              3, 4, 5,
+                                              6, 7, 8,
+                                              9, 10, 11 },
                                  .indices = { 0 },
                                  .colors = { 0 },
                                  .normals = { 0 },
                                  .texcoords = { 0 },
+                                 .solid.indices_size = 4*3,
                                  .solid.size = 4*3,
-                                 .solid.vertices = tet->vertices,
-                                 .solid.indices = tet->indices,
                                  .solid.triangles = tet->triangles,
+                                 .solid.optimal = tet->optimal,
+                                 .solid.indices = tet->indices,
+                                 .solid.vertices = tet->vertices,
                                  .solid.colors = tet->colors,
                                  .solid.normals = tet->normals,
-                                 .solid.texcoords = NULL
+                                 .solid.texcoords = tet->texcoords
     };
 
     float phiaa  = -19.471220333f; /* the phi angle needed for generation */
@@ -131,28 +321,13 @@ void solid_tetrahedron(float radius, struct Tetrahedron* tet) {
 
         tet->indices[i*3+2] = i*3+2;
     }
+
+    solid_compute_normals((struct Solid*)tet);
+    solid_set_color((struct Solid*)tet, color);
 }
 
-void solid_hexahedron(float radius, struct Cube* cube) {
-    // 1 2 3
-    // 0 1 3
-
-    // 6 5 4
-    // 7 6 4
-
-    // 5 1 0
-    // 4 5 0
-
-    // 6 2 1
-    // 1 5 6
-
-    // 3 2 7
-    // 2 6 7
-
-    // 7 0 3
-    // 4 0 7
-    *cube = (struct Cube){ .vertices = { 0 },
-                           .triangles = { 1, 2, 3,
+void solid_create_hexahedron(float radius, const uint8_t color[4], struct Cube* cube) {
+    *cube = (struct Cube){ .triangles = { 1, 2, 3,
                                           0, 1, 3,
                                           6, 5, 4,
                                           7, 6, 4,
@@ -164,17 +339,32 @@ void solid_hexahedron(float radius, struct Cube* cube) {
                                           2, 6, 7,
                                           7, 0, 3,
                                           4, 0, 7 },
+                           .optimal = { 1, 2, 3,
+                                        0, 1, 3,
+                                        6, 5, 4,
+                                        7, 6, 4,
+                                        11, 9, 8,
+                                        10, 11, 8,
+                                        15, 13, 12,
+                                        12, 14, 15,
+                                        17, 16, 19,
+                                        16, 18, 19,
+                                        23, 20, 21,
+                                        22, 20, 23 },
                            .indices = { 0 },
-                           .colors = { 0 },
+                           .vertices = { 0 },
                            .normals = { 0 },
+                           .colors = { 0 },
                            .texcoords = { 0 },
+                           .solid.indices_size = 12*3,
                            .solid.size = 12*3,
-                           .solid.vertices = cube->vertices,
-                           .solid.indices = cube->indices,
                            .solid.triangles = cube->triangles,
+                           .solid.optimal = cube->optimal,
+                           .solid.indices = cube->indices,
+                           .solid.vertices = cube->vertices,
                            .solid.colors = cube->colors,
                            .solid.normals = cube->normals,
-                           .solid.texcoords = NULL
+                           .solid.texcoords = cube->texcoords
     };
 
     float points[24]; /* 8 vertices with x, y, z coordinate */
@@ -244,32 +434,39 @@ void solid_hexahedron(float radius, struct Cube* cube) {
 
         cube->indices[i*6+5] = i*6+5;
     }
+
+    solid_compute_normals((struct Solid*)cube);
+    solid_set_color((struct Solid*)cube, color);
 }
 
-void solid_cube(float size, struct Cube* cube) {
-    solid_hexahedron(size, cube);
+void solid_create_cube(float size, const uint8_t color[4], struct Cube* cube) {
+    solid_create_hexahedron(size, color, cube);
 
     Quat q;
     quat_from_axis_angle((Vec4f){0.0,0.0,1.0,1.0}, PI/4, q);
     for( uint32_t i = 0; i < 108; i+=3 ) {
         vec_rotate3f(cube->vertices+i, q, cube->vertices+i);
     }
+    solid_compute_normals((struct Solid*)cube);
 }
 
-void solid_sphere16(float radius, struct Sphere16* sphere) {
-    *sphere = (struct Sphere16){ .vertices = { 0 },
-                                 .triangles = { 0 },
+void solid_create_sphere16(float radius, const uint8_t color[4], struct Sphere16* sphere) {
+    *sphere = (struct Sphere16){ .triangles = { 0 },
+                                 .optimal = { 0 },
                                  .indices = { 0 },
-                                 .colors = { 0 },
+                                 .vertices = { 0 },
                                  .normals = { 0 },
+                                 .colors = { 0 },
                                  .texcoords = { 0 },
+                                 .solid.indices_size = (16*6*2+16*2)*3,
                                  .solid.size = (16*6*2+16*2)*3,
-                                 .solid.vertices = sphere->vertices,
-                                 .solid.indices = sphere->indices,
                                  .solid.triangles = sphere->triangles,
+                                 .solid.optimal = sphere->optimal,
+                                 .solid.indices = sphere->indices,
+                                 .solid.vertices = sphere->vertices,
                                  .solid.colors = sphere->colors,
                                  .solid.normals = sphere->normals,
-                                 .solid.texcoords = NULL
+                                 .solid.texcoords = sphere->texcoords
     };
 
     float points[16*7*3+2*3];
@@ -391,35 +588,44 @@ void solid_sphere16(float radius, struct Sphere16* sphere) {
         sphere->vertices[i*9+2] = points[a*3+2];
 
         sphere->indices[i*3+0] = i*3+0;
+        sphere->optimal[i*3+0] = i*3+0;
 
         sphere->vertices[i*9+3] = points[b*3+0];
         sphere->vertices[i*9+4] = points[b*3+1];
         sphere->vertices[i*9+5] = points[b*3+2];
 
         sphere->indices[i*3+1] = i*3+1;
+        sphere->optimal[i*3+1] = i*3+1;
 
         sphere->vertices[i*9+6] = points[c*3+0];
         sphere->vertices[i*9+7] = points[c*3+1];
         sphere->vertices[i*9+8] = points[c*3+2];
 
         sphere->indices[i*3+2] = i*3+2;
+        sphere->optimal[i*3+2] = i*3+2;
     }
+
+    solid_compute_normals((struct Solid*)sphere);
+    solid_set_color((struct Solid*)sphere, color);
 }
 
-void solid_sphere32(float radius, struct Sphere32* sphere) {
-    *sphere = (struct Sphere32){ .vertices = { 0 },
-                                 .triangles = { 0 },
+void solid_create_sphere32(float radius, const uint8_t color[4], struct Sphere32* sphere) {
+    *sphere = (struct Sphere32){ .triangles = { 0 },
+                                 .optimal = { 0 },
                                  .indices = { 0 },
-                                 .colors = { 0 },
+                                 .vertices = { 0 },
                                  .normals = { 0 },
+                                 .colors = { 0 },
                                  .texcoords = { 0 },
+                                 .solid.indices_size = (32*14*2+32*2)*3,
                                  .solid.size = (32*14*2+32*2)*3,
-                                 .solid.vertices = sphere->vertices,
-                                 .solid.indices = sphere->indices,
                                  .solid.triangles = sphere->triangles,
+                                 .solid.optimal = sphere->optimal,
+                                 .solid.indices = sphere->indices,
+                                 .solid.vertices = sphere->vertices,
                                  .solid.colors = sphere->colors,
                                  .solid.normals = sphere->normals,
-                                 .solid.texcoords = NULL
+                                 .solid.texcoords = sphere->texcoords
     };
 
     float points[32*15*3+2*3];
@@ -480,17 +686,23 @@ void solid_sphere32(float radius, struct Sphere32* sphere) {
         sphere->vertices[i*9+2] = points[a*3+2];
 
         sphere->indices[i*3+0] = i*3+0;
+        sphere->optimal[i*3+0] = i*3+0;
 
         sphere->vertices[i*9+3] = points[b*3+0];
         sphere->vertices[i*9+4] = points[b*3+1];
         sphere->vertices[i*9+5] = points[b*3+2];
 
         sphere->indices[i*3+1] = i*3+1;
+        sphere->optimal[i*3+1] = i*3+1;
 
         sphere->vertices[i*9+6] = points[c*3+0];
         sphere->vertices[i*9+7] = points[c*3+1];
         sphere->vertices[i*9+8] = points[c*3+2];
 
         sphere->indices[i*3+2] = i*3+2;
+        sphere->optimal[i*3+2] = i*3+2;
     }
+
+    solid_compute_normals((struct Solid*)sphere);
+    solid_set_color((struct Solid*)sphere, color);
 }
