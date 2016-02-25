@@ -84,7 +84,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projec
             } else if( ! glyph_warnings[(int)c] ) {
                 if( c == '\0') {
                     log_assert(i == text_length);
-                } else {
+                } else if( c != ' ' ) {
                     log_warn(stderr, __FILE__, __LINE__, "font %s does not contain glyph \"%c\"\n", font->name, c);
                     glyph_warnings[(int)c] = true;
                 }
