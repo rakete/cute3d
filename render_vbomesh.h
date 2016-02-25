@@ -28,6 +28,9 @@
 #include "geometry_halfedgemesh.h"
 
 void vbomesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct VboMesh* mesh);
+
+// - this used to be halfedgemesh_flush function which I rewrote and put here because this originally
+// used a struct Solid as output, which was a very unfitting choise, so this now fills a vbomesh instead
 void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct VboMesh* mesh);
 
 void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, const Mat model_matrix);

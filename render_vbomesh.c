@@ -40,6 +40,8 @@ void vbomesh_create_from_solid(const struct Solid* solid, struct Vbo* vbo, struc
         log_assert( texcoords_n == solid->size );
     }
 
+    // - if solid->size is smaller then solid->indices_size, the solid has been optimized or compressed and needs
+    // to have indices uploaded to render correctly
     if( solid->size < solid->indices_size ) {
         size_t indices_n = vbomesh_append_indices(mesh, solid->indices, solid->indices_size);
         log_assert( indices_n == solid->indices_size );
@@ -84,6 +86,9 @@ void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, s
     float texcoords[halfedgemesh->size*2];
 
     log_assert( halfedgemesh->size > 0 );
+
+    // - I use a solid internally because this code originally filled a solid, since it is only used locally
+    // and as input for vbomesh_create_from_solid below, this is not a problem
     struct Solid solid = {
         .size = (uint32_t)halfedgemesh->size,
         .indices_size = (uint32_t)halfedgemesh->size,
@@ -181,6 +186,12 @@ void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, s
         }
     }
 
+    // - running solid_optimize on the solid before making a vbomesh out of it results in cool looking meshes,
+    // but not what I expect, the face_triangles don't take into account which vertices have equal normals, so
+    // optimizing is currently not possible, or rather its the same as compressing
+    //solid_optimize(&solid, &solid);
+
+    // using a solid as input somewhere else is ok
     vbomesh_create_from_solid(&solid, vbo, mesh);
 }
 

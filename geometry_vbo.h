@@ -129,7 +129,7 @@ struct VboMesh {
         uint32_t size; // how many attributes per primitive
     } primitives;
 
-    // this is the buffer that contains the actual indices making up the primitives
+    // - this is the buffer that contains the actual indices making up the primitives
     // - I could put this into vbo instead, it is possible since glDrawElements can take an
     // offset into a buffer as last argument, I don't remember why I originally put this
     // in vbomesh instead, but I suspect because it made things somehow easier to implement
@@ -159,9 +159,15 @@ struct VboMesh {
     // I want an Ibo struct in addition to an Vbo struct, which I then point to from VboMesh,
     // that also reflects better the notion that attribute data is 'fixed', whereas indices can
     // be streamed in for every frame, or may be completely replaced
+    // - the reason I don't want to put it into the struct Vbo is because I will need to have to
+    // implement all the alloc/management functions for the ibo, and I don't want to have to deal
+    // with the conflicting names of the vbo functions
     // - when I do this, I could wrap the vbo pointer above together with offset, occupied and
     // capacity in a attributes struct, and then have the same, but with an ibo pointer, in an
     // indices struct
+    // - when I do this I also should check that a mesh can be created without indices, because
+    // often my simple solids can be render just fine with glDrawArrays, and I should just make
+    // sure that everthing works when I just not call vbomesh_append_indices at all
     struct VboMeshIndexBuffer {
         uint32_t id; // index buffer
         GLenum usage;

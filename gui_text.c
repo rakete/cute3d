@@ -200,7 +200,11 @@ double text_show_fps(struct Canvas* canvas, Vec4f cursor, int32_t layer, const c
     if( (game_time - old_time) >= 1.0 ) {
         avg_frame_time_ms = frame_time*1000 / frames_done;
         frame_time = 0;
-        fps = (double)frames_done / (game_time - old_time);
+
+        // - this division here should automatically convert from whatever time interval
+        // we use in the condition above to seconds
+        fps = ((double)frames_done / (game_time - old_time));
+
         frames_done = 0;
         old_time = game_time;
     }

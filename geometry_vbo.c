@@ -226,7 +226,13 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
     }
     mesh->indices = &mesh->_internal_indices[0];
 
-    mesh->z_offset = (float)(((double)rand()/(double)(RAND_MAX/0.001)) - 0.0005);
+    // - the value here is difficult, RAND_MAX/0.0002 - 0.0001 is large enough for not getting
+    // z fighting from most angles, with smaller values I observed z fighting
+    // - but, the bigger problem is that if I set this too large, and the user creates a camera
+    // with a near value smaller or around the same size as this offset, things go awfully pear
+    // shaped, what happens is that you get seemingly random depth errors where stuff is drawn in
+    // front of other stuff when it shouldn't
+    mesh->z_offset = (float)(((double)rand()/(double)(RAND_MAX/0.0002)) - 0.0001);
 }
 
 void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
