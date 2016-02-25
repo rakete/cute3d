@@ -143,8 +143,8 @@ int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name) {
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
 
-    static int32_t check_first = 0;
-    if( check_first > 0 &&
+    static int32_t check_first = -1;
+    if( check_first > -1 &&
         check_first < NUM_CANVAS_SHADER &&
         strncmp(canvas->shader[check_first].name, shader_name, 256) == 0 )
     {
@@ -154,10 +154,6 @@ int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name) {
     int32_t shader_i = 0;
     while( shader_i < NUM_CANVAS_SHADER && strncmp(canvas->shader[shader_i].name, shader_name, 256) != 0 ) {
         shader_i += 1;
-    }
-
-    if( shader_i == NUM_CANVAS_SHADER && check_first == 0 ) {
-        log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" not found\n", shader_name);
     }
 
     check_first = shader_i;
@@ -251,6 +247,11 @@ size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t proj
 
     int32_t shader_i = canvas_find_shader(canvas, shader_name);
     if( shader_i == NUM_CANVAS_SHADER ) {
+        shader_i = canvas_find_shader(canvas, "default_shader");
+    }
+
+    if( shader_i == NUM_CANVAS_SHADER ) {
+        log_fail(stderr, __FILE__, __LINE__, "no shader could be found in canvas when trying to allocate\n");
         return 0;
     }
 
@@ -472,6 +473,17 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t pro
 
     int32_t shader_i = canvas_find_shader(canvas, shader_name);
     if( shader_i == NUM_CANVAS_SHADER ) {
+        static int warn_once = 1;
+        if( warn_once ) {
+            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" not found\n", shader_name);
+            log_warn(stderr, __FILE__, __LINE__, "using \"default_shader\" instead of \"%s\"\n", shader_name);
+            warn_once = 0;
+        }
+        shader_i = canvas_find_shader(canvas, "default_shader");
+    }
+
+    if( shader_i == NUM_CANVAS_SHADER ) {
+        log_fail(stderr, __FILE__, __LINE__, "no shader could be found in canvas when trying to append indices\n");
         return 0;
     }
 
