@@ -1,7 +1,14 @@
+#include "math_arcball.h"
+
+#include "gui_canvas.h"
+#include "gui_draw.h"
+
 #include "geometry_vbo.h"
 #include "geometry_solid.h"
+#include "geometry_draw.h"
+
 #include "render_vbomesh.h"
-#include "math_arcball.h"
+#include "render_canvas.h"
 
 int32_t main(int32_t argc, char *argv[]) {
     if( init_sdl2() ) {
@@ -26,6 +33,12 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
+    if( init_canvas() ) {
+        return 1;
+    }
+    canvas_create(&global_dynamic_canvas);
+    canvas_create(&global_static_canvas);
+
     struct Vbo vbo = {0};
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
@@ -37,18 +50,24 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Cube cube = {0};
     struct Sphere16 sphere16 = {0};
     struct Sphere32 sphere32 = {0};
-    solid_tetrahedron(1.0, &tetrahedron);
-    solid_hexahedron(1.0, &hexahedron);
-    solid_cube(1.0, &cube);
-    solid_sphere16(1.0, &sphere16);
-    solid_sphere32(1.0, &sphere32);
+    solid_create_tetrahedron(1.0, (Color){255, 0, 0, 255}, &tetrahedron);
+    solid_create_hexahedron(1.0, (Color){0, 255, 0, 255}, &hexahedron);
+    solid_create_cube(1.0, (Color){255, 0, 255, 255}, &cube);
+    solid_create_sphere16(1.0, (Color){0, 255, 255, 255}, &sphere16);
+    solid_create_sphere32(1.0, (Color){255, 255, 0, 255}, &sphere32);
+
+    solid_optimize((struct Solid*)&tetrahedron);
+    solid_optimize((struct Solid*)&hexahedron);
+    solid_optimize((struct Solid*)&cube);
+    solid_optimize((struct Solid*)&sphere16);
+    solid_optimize((struct Solid*)&sphere32);
 
     struct VboMesh tetrahedron_mesh,hexahedron_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
-    vbomesh_create_from_solid((struct Solid*)&tetrahedron, (Color){255, 0, 0, 255}, &vbo, &tetrahedron_mesh);
-    vbomesh_create_from_solid((struct Solid*)&hexahedron, (Color){0, 255, 0, 255}, &vbo, &hexahedron_mesh);
-    vbomesh_create_from_solid((struct Solid*)&cube, (Color){255, 0, 255, 255}, &vbo, &cube_mesh);
-    vbomesh_create_from_solid((struct Solid*)&sphere16, (Color){0, 255, 255, 255}, &vbo, &sphere16_mesh);
-    vbomesh_create_from_solid((struct Solid*)&sphere32, (Color){255, 255, 0, 255}, &vbo, &sphere32_mesh);
+    vbomesh_create_from_solid((struct Solid*)&tetrahedron, &vbo, &tetrahedron_mesh);
+    vbomesh_create_from_solid((struct Solid*)&hexahedron, &vbo, &hexahedron_mesh);
+    vbomesh_create_from_solid((struct Solid*)&cube, &vbo, &cube_mesh);
+    vbomesh_create_from_solid((struct Solid*)&sphere16, &vbo, &sphere16_mesh);
+    vbomesh_create_from_solid((struct Solid*)&sphere32, &vbo, &sphere32_mesh);
 
     struct Shader shader = {0};
     shader_create_flat("flat_shader", &shader);
@@ -70,9 +89,11 @@ int32_t main(int32_t argc, char *argv[]) {
                     break;
                 }
             }
+
+            arcball_event(&arcball, event);
         }
 
-        sdl2_debug( SDL_GL_SetSwapInterval(1) );
+        sdl2_gl_set_swap_interval(1);
 
         ogl_debug( glClearDepth(1.0f);
                    glClearColor(.0f, .0f, .0f, 1.0f);
@@ -104,7 +125,22 @@ int32_t main(int32_t argc, char *argv[]) {
         vbomesh_render(&sphere16_mesh, &shader, &arcball.camera, sphere16_transform);
         vbomesh_render(&sphere32_mesh, &shader, &arcball.camera, sphere32_transform);
 
-        sdl2_debug( SDL_GL_SwapWindow(window) );
+        Quat grid_rotation = {0};
+        quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
+        Mat grid_transform = {0};
+        quat_to_mat(grid_rotation, grid_transform);
+        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 12.0f, 12.0f, 12);
+
+        draw_solid_normals(&global_dynamic_canvas, 0, tetrahedron_transform, (Color){255, 255, 0, 255}, (struct Solid*)&tetrahedron, 0.05f);
+        draw_solid_normals(&global_dynamic_canvas, 0, hexahedron_transform, (Color){255, 255, 0, 255}, (struct Solid*)&hexahedron, 0.05f);
+        draw_solid_normals(&global_dynamic_canvas, 0, cube_transform, (Color){255, 255, 0, 255}, (struct Solid*)&cube, 0.05f);
+        draw_solid_normals(&global_dynamic_canvas, 0, sphere16_transform, (Color){255, 255, 0, 255}, (struct Solid*)&sphere16, 0.05f);
+        draw_solid_normals(&global_dynamic_canvas, 0, sphere32_transform, (Color){255, 255, 0, 255}, (struct Solid*)&sphere32, 0.05f);
+
+        canvas_render_layers(&global_dynamic_canvas, 0, 0, &arcball.camera, (Mat)IDENTITY_MAT);
+        canvas_clear(&global_dynamic_canvas);
+
+        sdl2_gl_swap_window(window);
     }
 
 done:

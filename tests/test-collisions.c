@@ -12,6 +12,7 @@
 
 #include "geometry_vbo.h"
 #include "geometry_halfedgemesh.h"
+#include "geometry_draw.h"
 
 #include "physics_colliding.h"
 #include "physics_picking.h"
@@ -22,6 +23,7 @@ struct CollisionEntity {
     struct CollidingConvexShape colliding_convex;
     struct HalfEdgeMesh hemesh;
     struct Cube solid;
+    struct Cube optimized_solid;
     struct VboMesh vbomesh;
     struct PickingSphere picking_sphere;
 };
@@ -31,11 +33,14 @@ static void entity_create(const char* name, Color color, struct Vbo* vbo, struct
 
     pivot_create(NULL, NULL, &entity->pivot);
 
-    solid_cube(1.0f, &entity->solid);
-    vbomesh_create_from_solid((struct Solid*)&entity->solid, color, vbo, &entity->vbomesh);
+    solid_create_cube(1.0f, color, &entity->solid);
+    solid_create_cube(1.0f, color, &entity->optimized_solid);
+    //solid_copy((struct Solid*)&entity->solid, (struct Solid*)&entity->optimized_solid);
+    vbomesh_create_from_solid((struct Solid*)&entity->optimized_solid, vbo, &entity->vbomesh);
 
     halfedgemesh_create(&entity->hemesh);
     halfedgemesh_append(&entity->hemesh, (struct Solid*)&entity->solid);
+    halfedgemesh_optimize(&entity->hemesh);
 
     colliding_create_convex_shape(&entity->hemesh, &entity->pivot, &entity->colliding_convex);
     picking_create_sphere(&entity->pivot, 1.0f, &entity->picking_sphere);
@@ -80,14 +85,14 @@ int32_t main(int32_t argc, char *argv[]) {
 
     struct CollisionEntity entity_a = {0};
     entity_create("red", (Color){ 255, 0, 0, 255 }, &vbo, &entity_a);
-    quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_a.pivot.orientation);
+    /* quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_a.pivot.orientation); */
     /* quat_mul_axis_angle(entity_a.pivot.orientation, pivot_local_axis(&entity_a.pivot, (Vec4f)UP_AXIS), PI/4, entity_a.pivot.orientation); */
     vec_add(entity_a.pivot.position, (Vec4f){3.0, 0.0, 0.0, 1.0}, entity_a.pivot.position);
 
     struct CollisionEntity entity_b = {0};
     entity_create("green", (Color){ 0, 255, 0, 255 }, &vbo, &entity_b);
-    quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)RIGHT_AXIS, PI/4, entity_b.pivot.orientation);
-    quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)UP_AXIS, PI/2, entity_b.pivot.orientation);
+    /* quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)RIGHT_AXIS, PI/4, entity_b.pivot.orientation); */
+    /* quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)UP_AXIS, PI/2, entity_b.pivot.orientation); */
     vec_add(entity_b.pivot.position, (Vec4f){-3.0, 0.0, 0.0, 1.0}, entity_b.pivot.position);
 
     struct Shader flat_shader = {0};
@@ -172,7 +177,6 @@ int32_t main(int32_t argc, char *argv[]) {
                         vec_mul1f(move, length, move);
 
                         vec_add(selected_entity->pivot.position, move, selected_entity->pivot.position);
-                    } else {
                     }
 
                     last_x = event.motion.x;
@@ -211,17 +215,23 @@ int32_t main(int32_t argc, char *argv[]) {
         pivot_world_transform(&entity_b.pivot, transform_b);
         vbomesh_render(&entity_b.vbomesh, &flat_shader, &arcball.camera, transform_b);
 
-        /* Mat between_transform = {0}; */
-        /* pivot_between_transform(&entity_a.pivot, &entity_b.pivot, between_transform); */
+        Mat between_transform = {0};
+        pivot_between_transform(&entity_a.pivot, &entity_b.pivot, between_transform);
 
-        /* Vec3f foo = {0}; */
-        /* mat_mul_vec3f(between_transform, entity_a.hemesh.vertices.array[0].position, foo); */
+        Vec3f foo = {0};
+        mat_mul_vec3f(between_transform, entity_a.hemesh.vertices.array[0].position, foo);
 
-        /* draw_vec(&global_dynamic_canvas, 0, foo, NULL, 1.0f, 1.0f, (Color){255, 255, 0, 255}, transform_a); */
+        //draw_vec(&global_dynamic_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 255, 0, 255}, foo, NULL, 1.0f, 1.0f);
 
-        colliding_test_convex_convex(&entity_a.colliding_convex, &entity_b.colliding_convex);
+        static int32_t collision_counter = 1;
+        if( colliding_test_convex_convex(&entity_a.colliding_convex, &entity_b.colliding_convex) ) {
+            printf("//collision: %d\n", collision_counter);
+            collision_counter++;
+        }
 
-        draw_grid(&global_dynamic_canvas, 0, 12.0f, 12.0f, 12, (Color){127, 127, 127, 255}, grid_transform);
+        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 12.0f, 12.0f, 12);
+
+        //draw_solid_normals(&global_dynamic_canvas, 0, transform_a, (Color){255, 255, 0, 255}, (struct Solid*)&entity_a.solid, 0.2f);
 
         gametime_integrate(&time);
         Vec4f screen_cursor = {0,0,0,1};
