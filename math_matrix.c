@@ -49,19 +49,20 @@ VecP vcopy2f(const Vec4f v, Vec2f r) {
     return r;
 }
 
-void vec_equal(const Vec4f a, const Vec4f b, int* r) {
+void vec_equal(const Vec4f a, const Vec4f b, bool* r) {
     *r = 0;
 
-    if( fabs(a[0] - b[0]) <= CUTE_EPSILON &&
-        fabs(a[1] - b[1]) <= CUTE_EPSILON &&
-        fabs(a[2] - b[2]) <= CUTE_EPSILON )
+    // having these somewhat larger (larger then FLT_EPSILON at least) works better
+    if( fabs(a[0] - b[0]) <= 0.00001f &&
+        fabs(a[1] - b[1]) <= 0.00001f &&
+        fabs(a[2] - b[2]) <= 0.00001f )
     {
         *r = 1;
     }
 }
 
-int32_t vequal(const Vec4f a, const Vec4f b) {
-    int32_t r;
+bool vequal(const Vec4f a, const Vec4f b) {
+    bool r;
     vec_equal(a,b,&r);
     return r;
 }

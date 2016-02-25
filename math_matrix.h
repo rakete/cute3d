@@ -50,8 +50,8 @@ void vec_copy2f(const Vec4f v, Vec2f r);
 VecP vcopy2f(const Vec4f v, Vec2f r);
 
 // vector comparison
-void vec_equal(const Vec3f a, const Vec3f b, int* r);
-int32_t vequal(const Vec3f a, const Vec3f b);
+void vec_equal(const Vec3f a, const Vec3f b, bool* r);
+bool vequal(const Vec3f a, const Vec3f b);
 
 // vector arithmetic
 void vec_add(const Vec3f v, const Vec3f w, Vec3f r);
