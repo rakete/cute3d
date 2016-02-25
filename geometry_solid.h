@@ -74,8 +74,15 @@ struct Solid {
 void solid_compute_normals(struct Solid* solid);
 void solid_set_color(struct Solid* solid, const uint8_t color[4]);
 
-size_t solid_optimize(const struct Solid* solid, struct Solid* result);
-size_t solid_compress(const struct Solid* solid, struct Solid* result);
+// - optimize takes the indices from the optimal array, looks through it and merges attributes
+// which have the same index in the optimal array so that those become shared attributes between
+// multiple triangles
+// - compress does the same, but uses the triangles array instead of the optimal array
+// - these had two solid arguments before, so they automatically copy stuff into a new solid, but
+// I decided to remove that because most of my functions behave like that and if I ever need to,
+// I'd better implement a solid_copy function to use before using solid_optimize/compress
+size_t solid_optimize(struct Solid* solid);
+size_t solid_compress(struct Solid* solid);
 
 struct Tetrahedron {
     struct Solid solid;
