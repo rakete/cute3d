@@ -15,6 +15,14 @@ void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float near, flo
         eye[2] += CUTE_EPSILON;
     }
 
+    if( near < 0.01f ) {
+        log_warn(stderr, __FILE__, __LINE__,
+                 "you are trying to create a camera with a very small near value, "
+                 "this would cause problems when rendering vbomeshes with a z_offset, "
+                 "this function (arcball_create) will clamp the near value to 0.01f\n");
+        near = 0.01f;
+    }
+
     camera_create(width, height, &arcball->camera);
     float top = (near/width) * height/2.0f;
     float bottom = -top;
