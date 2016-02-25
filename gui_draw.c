@@ -61,9 +61,11 @@ void draw_grid( struct Canvas* canvas,
         elements[i * 4 + 3] = offset + i * 4 + 3;
     }
 
+    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, size, NULL);
     canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, size, NULL);
-    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, elements, size, 0);
+    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, elements, size, 0);
 }
 
 void draw_arrow( struct Canvas* canvas,
@@ -127,9 +129,11 @@ void draw_arrow( struct Canvas* canvas,
           3, 4,
           4, 1 };
 
+    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 5, arrow_matrix);
     canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 5, color);
-    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, elements, 8*2, 0);
+    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, elements, 8*2, 0);
 }
 
 void draw_vec( struct Canvas* canvas,
@@ -189,10 +193,12 @@ void draw_vec( struct Canvas* canvas,
     static uint32_t vec_elements[1*2] =
         { 0, 1 };
 
+    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+
     uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
     canvas_append_vertices(canvas, vec_vertices, 3, GL_FLOAT, 2, arrow_matrix);
     canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 2, color);
-    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, vec_elements, 1*2, offset);
+    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, vec_elements, 1*2, offset);
 
     static float arrow_vertices[5*3] =
         { 0.0f,  0.0f,  0.0f,
@@ -214,7 +220,7 @@ void draw_vec( struct Canvas* canvas,
     if( arrow > 0.0f ) {
         canvas_append_vertices(canvas, arrow_vertices, 3, GL_FLOAT, 5, arrow_offset_matrix);
         canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 5, color);
-        canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, arrow_elements, 8*2, offset);
+        canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, arrow_elements, 8*2, offset);
     }
 }
 
@@ -349,9 +355,11 @@ void draw_circle( struct Canvas* canvas,
         draw_arrow(canvas, layer, v, a, 0.0f, radius/2.0f, color, arrow_matrix);
     }
 
+    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 360, arrow_matrix);
     canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 360, color);
-    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, elements, 360*2, 0);
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, elements, 360*2, 0);
 }
 
 void draw_basis( struct Canvas* canvas,
@@ -431,6 +439,8 @@ void draw_reticle( struct Canvas* canvas,
           4, 5,
           6, 7 };
 
+    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+
     canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 8, reticle_matrix);
     canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 8, color);
     canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, elements, 4*2, 0);
@@ -507,6 +517,7 @@ void draw_normals_array( struct Canvas* canvas,
         draw_vec(canvas, layer, normal, vertex, 0.0f, scale, color, model_matrix);
     }
 
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, elements, 4*2, 0);
 }
 
 void draw_camera(struct Canvas* canvas,
@@ -542,10 +553,12 @@ void draw_camera(struct Canvas* canvas,
     Mat camera_matrix = {0};
     pivot_world_transform(&camera->pivot, camera_matrix);
 
+    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+
     uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
     canvas_append_vertices(canvas, camera_vertices, 3, GL_FLOAT, 5, camera_matrix);
     canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 5, color);
-    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "default_shader", GL_LINES, camera_elements, 8*2, offset);
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, camera_elements, 8*2, offset);
 }
 
 /* void draw_texture_quad( float scale, */

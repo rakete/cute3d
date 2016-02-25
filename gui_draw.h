@@ -14,8 +14,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef RENDER_DRAW_H
-#define RENDER_DRAW_H
+#ifndef GUI_DRAW_H
+#define GUI_DRAW_H
 
 #include "stdio.h"
 #include "stdlib.h"
@@ -31,6 +31,28 @@
 #include "driver_glsl.h"
 
 #include "gui_canvas.h"
+
+#define draw_add_gl_lines_shader(canvas, name) do {                     \
+        static int32_t found_gl_lines_shader = -1;                      \
+        if( found_gl_lines_shader < 0 ) {                               \
+            if( canvas_find_shader(canvas, name) == NUM_CANVAS_SHADER ) { \
+                struct Shader gl_lines_shader;                          \
+                shader_create_gl_lines(name, &gl_lines_shader);         \
+                found_gl_lines_shader = canvas_add_shader(canvas, &gl_lines_shader); \
+            }                                                           \
+        }                                                               \
+    }while(0);
+
+#define draw_add_flat_shader(canvas, name) do {                         \
+        static int32_t found_flat_shader = -1;                          \
+        if( found_flat_shader < 0 ) {                                   \
+            if( canvas_find_shader(canvas, name) == NUM_CANVAS_SHADER ) { \
+                struct Shader flat_shader;                              \
+                shader_create_flat(name, &gl_lines_shader);             \
+                found_flat_shader = canvas_add_shader(canvas, &flat_shader); \
+            }                                                           \
+        }                                                               \
+    }while(0);
 
 void draw_grid(struct Canvas* canvas,
                int32_t layer,
