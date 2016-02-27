@@ -103,6 +103,21 @@ union SatResult sat_test_edges(const struct Pivot* pivot1,
         .edge_test.normal = {0,0,0}
     };
 
+    Quat inverted_orientation2 = {0};
+    quat_invert(pivot2->orientation, inverted_orientation2);
+
+    Quat inverted_orientation2_normed;
+    quat_normalize(inverted_orientation2, inverted_orientation2_normed);
+
+    Quat inverted_orientation2_conj;
+    quat_conjugate(inverted_orientation2_normed, inverted_orientation2_conj);
+
+    Quat orientation1_normed;
+    quat_normalize(pivot1->orientation, orientation1_normed);
+
+    Quat orientation1_conj;
+    quat_conjugate(orientation1_normed, orientation1_conj);
+
     Mat pivot2_to_pivot1_transform = {0};
     pivot_between_transform(pivot2, pivot1, pivot2_to_pivot1_transform);
 
@@ -134,18 +149,50 @@ union SatResult sat_test_edges(const struct Pivot* pivot1,
         // instead of cross product I should be able to just use the edges between a b and d c
         const VecP bxa = edge1_direction;
 
-        for( uint32_t j = 0; j < mesh2->edges.occupied; j += 2 ) {
+        for( uint32_t j = 1; j < mesh2->edges.occupied; j += 2 ) {
             struct HalfEdge* edge2 = &mesh2->edges.array[j];
             struct HalfEdge* other2 = &mesh2->edges.array[edge2->other];
 
-            Vec3f c = {0};
-            Vec3f d = {0};
+            Vec4f c = {0,0,0,1};
+            Vec4f d = {0,0,0,1};
             vec_copy3f(mesh2->faces.array[edge2->face].normal, c);
             vec_copy3f(mesh2->faces.array[other2->face].normal, d);
-            mat_mul_vec3f(pivot2_to_pivot1_transform, c, c);
-            mat_mul_vec3f(pivot2_to_pivot1_transform, d, d);
-            vec_mul1f(c, -1.0f, c);
-            vec_mul1f(d, -1.0f, d);
+
+            // - I noticed some issues with the collision detection that I could not fully comprehend
+            // most problematic an issue where a seperating edge-edge axis is detected although there
+            // is clearly an overlap
+            // - I am fairly convinced that the normal orientation computed in the following section is
+            // the main culprit, I found through experimentation that the order of the inversion and
+            // transformation blocks is significant and changes the behaviour of the function slightly
+            vec_invert(c, c);
+            vec_invert(d, d);
+
+            // - this commented section is what I used first, I just transform the normals with the same
+            // matrix as I use for the vertices, but this seems to work really not that well for the normals
+            /* mat_mul_vec4f(pivot2_to_pivot1_transform, c, c); */
+            /* mat_mul_vec4f(pivot2_to_pivot1_transform, d, d); */
+            /* vec_normalize(c, c); */
+            /* vec_normalize(d, d); */
+            // - this commented section works better then using the pivot2_to_pivot1_transform matrix
+            // to transform the normals, here we just rotate the normal, without any translation, in
+            // theory this should be exactly the same as using pivot2_to_pivot1_transform and then
+            // normalizing the result, but in practice it isn't
+            /* vec_rotate4f(c, inverted_orientation2, c); */
+            /* vec_rotate4f(c, pivot1->orientation, c); */
+            /* vec_rotate4f(d, inverted_orientation2, d); */
+            /* vec_rotate4f(d, pivot1->orientation, d); */
+            // - this is actually the same as the commented section before, but a little more optimized,
+            // I put everything that I could outside of the for loop, and only do what I have to here
+            // - the reusing of c and d in the functions looks like it could be wrong, but it checks out,
+            // it should be equivalent to using an extra quat as storage
+            quat_mul(inverted_orientation2_normed, c, c);
+            quat_mul(c, inverted_orientation2_conj, c);
+            quat_mul(orientation1_normed, c, c);
+            quat_mul(c, orientation1_conj, c);
+            quat_mul(inverted_orientation2_normed, d, d);
+            quat_mul(d, inverted_orientation2_conj, d);
+            quat_mul(orientation1_normed, d, d);
+            quat_mul(d, orientation1_conj, d);
 
             Vec3f edge2_direction = {0};
             const VecP edge2_head = &transformed_vertices[edge2->vertex*3];
@@ -167,12 +214,12 @@ union SatResult sat_test_edges(const struct Pivot* pivot1,
             // this is true, then we can do the actual computation of the distance between two edges
             if( cba * dba < 0.0f && adc * bdc < 0.0f && cba * bdc > 0.0f ) {
                 Vec3f center_direction = {0};
-                vec_sub((Vec3f){0,0,0}, edge1_head, center_direction);
+                vec_invert(edge1_head, center_direction);
                 vec_normalize(center_direction, center_direction);
 
                 Vec3f plane_normal = {0};
                 vec_cross(edge1_direction, edge2_direction, plane_normal);
-                if( vdot( center_direction, plane_normal ) > 0.0f ) {
+                if( vdot(center_direction, plane_normal) > 0.0f ) {
                     vec_mul1f(plane_normal, -1.0f, plane_normal);
                 }
 
