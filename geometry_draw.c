@@ -26,7 +26,6 @@ void draw_halfedgemesh_wire(struct Canvas* canvas,
                             const Color color,
                             const struct HalfEdgeMesh* mesh)
 {
-
     uint32_t num_attributes = mesh->vertices.occupied;
     uint32_t num_edges = mesh->edges.occupied;
 
@@ -70,8 +69,11 @@ void draw_halfedgemesh_face(struct Canvas* canvas,
                             const Mat model_matrix,
                             const Color color,
                             const struct HalfEdgeMesh* mesh,
-                            int32_t face_i)
+                            uint32_t face_i)
 {
+    log_assert( mesh != NULL );
+    log_assert( face_i < mesh->faces.occupied );
+
     const struct HalfEdgeFace* face = &mesh->faces.array[face_i];
     log_assert(face->size > 0);
 
@@ -103,8 +105,11 @@ void draw_halfedgemesh_edge(struct Canvas* canvas,
                             const Mat model_matrix,
                             const Color color,
                             const struct HalfEdgeMesh* mesh,
-                            int32_t edge_i)
+                            uint32_t edge_i)
 {
+    log_assert( mesh != NULL );
+    log_assert( edge_i < mesh->edges.occupied );
+
     const struct HalfEdge* edge = &mesh->edges.array[edge_i];
     const struct HalfEdge* other = &mesh->edges.array[edge->other];
 
@@ -127,9 +132,12 @@ void draw_halfedgemesh_vertex(struct Canvas* canvas,
                               const Mat model_matrix,
                               const Color color,
                               const struct HalfEdgeMesh* mesh,
-                              int32_t vertex_i,
+                              uint32_t vertex_i,
                               float scale)
 {
+    log_assert( mesh != NULL );
+    log_assert( vertex_i < mesh->vertices.occupied );
+
     const struct HalfEdgeVertex* vertex = &mesh->vertices.array[vertex_i];
     const struct HalfEdge* edge = &mesh->edges.array[vertex->edge];
     do {

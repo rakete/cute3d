@@ -34,21 +34,21 @@ void draw_halfedgemesh_face(struct Canvas* canvas,
                             const Mat model_matrix,
                             const Color color,
                             const struct HalfEdgeMesh* mesh,
-                            int32_t face);
+                            uint32_t face);
 
 void draw_halfedgemesh_edge(struct Canvas* canvas,
                             int32_t layer,
                             const Mat model_matrix,
                             const Color color,
                             const struct HalfEdgeMesh* mesh,
-                            int32_t edge);
+                            uint32_t edge);
 
 void draw_halfedgemesh_vertex(struct Canvas* canvas,
                               int32_t layer,
                               const Mat model_matrix,
                               const Color color,
                               const struct HalfEdgeMesh* mesh,
-                              int32_t vertex,
+                              uint32_t vertex,
                               float scale);
 
 #endif
