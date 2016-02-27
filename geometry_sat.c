@@ -2,15 +2,19 @@
 
 // helper that does the face normal projection part of the sat collision test, this
 // is supposed to be called twice, one time with pivot1 and pivot2 flipped
-void sat_test_faces(const struct Pivot* pivot1,
-                    const struct HalfEdgeMesh* mesh1,
-                    const struct Pivot* pivot2,
-                    const struct HalfEdgeMesh* mesh2,
-                    Vec3f best_normal,
-                    float* best_distance,
-                    uint32_t* face_index,
-                    uint32_t* vertex_index)
+union SatResult sat_test_faces(const struct Pivot* pivot1,
+                               const struct HalfEdgeMesh* mesh1,
+                               const struct Pivot* pivot2,
+                               const struct HalfEdgeMesh* mesh2)
 {
+    union SatResult result = {
+        .face_test.found_result = false,
+        .face_test.distance = -FLT_MAX,
+        .face_test.face_index = UINT32_MAX,
+        .face_test.vertex_index = UINT32_MAX,
+        .face_test.normal = {0,0,0}
+    };
+
     // - we'll do the projections in the coordinate system local to pivot1, notice this
     // means when this function is called with pivot1 and pivot2 flipped the best_normal
     // (seperation axis) orientation will be in pivot2 coordinates instead of pivot1
@@ -69,13 +73,16 @@ void sat_test_faces(const struct Pivot* pivot1,
 
         // keep track of largest distance/penetration, the result should be the vertex face distance
         // of the pair where the largest penetration into our mesh occurs
-        if( distance > *best_distance ) {
-            *best_distance = distance;
-            *face_index = face_i;
-            *vertex_index = support_j;
-            vec_copy3f(face_normal, best_normal);
+        if( distance > result.face_test.distance ) {
+            result.face_test.found_result = true;
+            result.face_test.distance = distance;
+            result.face_test.face_index = face_i;
+            result.face_test.vertex_index = support_j;
+            vec_copy3f(face_normal, result.face_test.normal);
         }
     }
+
+    return result;
 }
 
 // helper for the edge edge collisions, this thing is _slow_, I implemented the most
@@ -83,15 +90,19 @@ void sat_test_faces(const struct Pivot* pivot1,
 // http://twvideo01.ubm-us.net/o1/vault/gdc2013/slides/822403Gregorius_Dirk_TheSeparatingAxisTest.pdf
 // but still, it is fine for small objects, but becomes unuseable pretty quickly once the number
 // of edges goes up (complexity should be O(n^2))
-void sat_test_edges(const struct Pivot* pivot1,
-                    const struct HalfEdgeMesh* mesh1,
-                    const struct Pivot* pivot2,
-                    const struct HalfEdgeMesh* mesh2,
-                    Vec3f best_normal,
-                    float* best_distance,
-                    uint32_t* best_index1,
-                    uint32_t* best_index2)
+union SatResult sat_test_edges(const struct Pivot* pivot1,
+                               const struct HalfEdgeMesh* mesh1,
+                               const struct Pivot* pivot2,
+                               const struct HalfEdgeMesh* mesh2)
 {
+    union SatResult result = {
+        .edge_test.found_result = false,
+        .edge_test.distance = -FLT_MAX,
+        .edge_test.edge_index1 = UINT32_MAX,
+        .edge_test.edge_index2 = UINT32_MAX,
+        .edge_test.normal = {0,0,0}
+    };
+
     Mat pivot2_to_pivot1_transform = {0};
     pivot_between_transform(pivot2, pivot1, pivot2_to_pivot1_transform);
 
@@ -168,13 +179,16 @@ void sat_test_edges(const struct Pivot* pivot1,
                 Vec3f other_point = {0};
                 vec_sub(edge2_head, edge1_head, other_point);
                 float distance = vdot(other_point, plane_normal);
-                if( distance > *best_distance ) {
-                    *best_distance = distance;
-                    *best_index1 = i;
-                    *best_index2 = j;
-                    vec_copy3f(plane_normal, best_normal);
+                if( distance > result.edge_test.distance ) {
+                    result.edge_test.found_result = true;
+                    result.edge_test.distance = distance;
+                    result.edge_test.edge_index1 = i;
+                    result.edge_test.edge_index2 = j;
+                    vec_copy3f(plane_normal, result.edge_test.normal);
                 }
             }
         }
     }
+
+    return result;
 }
