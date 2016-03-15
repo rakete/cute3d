@@ -145,10 +145,10 @@ void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projec
         }
     }
 
-    canvas_append_vertices(canvas, vertices, vertex_size, GL_FLOAT, glyph_counter*4, NULL);
-    canvas_append_colors(canvas, colors, color_size, GL_UNSIGNED_BYTE, glyph_counter*4, NULL);
-    canvas_append_texcoords(canvas, texcoords, texcoord_size, GL_FLOAT, glyph_counter*4);
-    canvas_append_text(canvas, layer, projection, font_name, indices, glyph_counter*6, 0);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, vertex_size, GL_FLOAT, glyph_counter*4, vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, color_size, GL_UNSIGNED_BYTE, glyph_counter*4, colors);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_TEXCOORDS, texcoord_size, GL_FLOAT, glyph_counter*4, texcoords);
+    canvas_append_text(canvas, layer, projection, font_name, glyph_counter*6, indices, 0);
 
     if( cursor != NULL ) {
         vec_copy4f(cursor_translation, cursor);

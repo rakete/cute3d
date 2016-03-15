@@ -492,7 +492,7 @@ size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t compo
     return 0;
 }
 
-size_t vbomesh_append_indices(struct VboMesh* mesh, void* data, size_t n) {
+size_t vbomesh_append_indices(struct VboMesh* mesh, size_t n, void* data) {
     log_assert( mesh != NULL );
     log_assert( n > 0 );
 

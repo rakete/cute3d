@@ -22,28 +22,28 @@ void vbomesh_create_from_solid(const struct Solid* solid, struct Vbo* vbo, struc
 
     vbomesh_create(vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, mesh);
 
-    size_t vertices_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, solid->vertices, 3, GL_FLOAT, solid->size);
+    size_t vertices_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, solid->size, solid->vertices);
     log_assert( vertices_n == solid->size );
 
     if( vbo->buffer[SHADER_ATTRIBUTE_NORMALS].id ) {
-        size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, solid->normals, 3, GL_FLOAT, solid->size);
+        size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, solid->size, solid->normals);
         log_assert( normals_n == solid->size );
     }
 
     if( vbo->buffer[SHADER_ATTRIBUTE_COLORS].id ) {
-        size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, solid->colors, 4, GL_UNSIGNED_BYTE, solid->size);
+        size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, solid->size, solid->colors);
         log_assert( colors_n == solid->size );
     }
 
     if( vbo->buffer[SHADER_ATTRIBUTE_TEXCOORDS].id ) {
-        size_t texcoords_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_TEXCOORDS, solid->texcoords, 2, GL_FLOAT, solid->size);
+        size_t texcoords_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT, solid->size, solid->texcoords);
         log_assert( texcoords_n == solid->size );
     }
 
     // - if solid->size is smaller then solid->indices_size, the solid has been optimized or compressed and needs
     // to have indices uploaded to render correctly
     if( solid->size < solid->indices_size ) {
-        size_t indices_n = vbomesh_append_indices(mesh, solid->indices, solid->indices_size);
+        size_t indices_n = vbomesh_append_indices(mesh, solid->indices_size, solid->indices);
         log_assert( indices_n == solid->indices_size );
     }
 }

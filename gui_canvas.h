@@ -126,7 +126,6 @@ extern struct Canvas global_static_canvas;
 
 int32_t init_canvas() __attribute__((warn_unused_result));
 
-void canvas_create_empty(struct Canvas* canvas);
 void canvas_create(struct Canvas* canvas);
 // - I use malloc for the arrays, I should implement a destructor eventually, but since the canvas
 // is meant to be present throughout the whole runtime of the program this is not a priority
@@ -164,18 +163,12 @@ void canvas_clear(struct Canvas* canvas);
 
 // - the _append_ functions are used to fill the arrays with data, they always append to the end of the already occupied space
 // - these check the allocated capacity and call the alloc functions if there is not enough space available for the new data
-// - append_vertices and append_colors take one extra argument:
-//   the append_vertices takes an optional model_matrix that should be applied to the vertices before appending
-size_t canvas_append_vertices(struct Canvas* canvas, void* vertices, uint32_t size, GLenum type, size_t n, const Mat model_matrix);
-//   the append_colors takes an optional color that can be used instead of an array consisting entirely of just one color
-size_t canvas_append_colors(struct Canvas* canvas, void* colors, uint32_t size, GLenum type, size_t n, const Color color);
-size_t canvas_append_texcoords(struct Canvas* canvas, void* texcoords, uint32_t size, GLenum type, size_t n);
-size_t canvas_append_normals(struct Canvas* canvas, void* normals, uint32_t size, GLenum type, size_t n);
+size_t canvas_append_attributes(struct Canvas* canvas, uint32_t attribute_i, uint32_t size, GLenum type, size_t n, void* attributes);
 
 // - the append functions for the indices, they take all neccessary arguments to distinguish drawn stuff for rendering,
 // e.g. what to render with what shader, what projection, etc.
 // - then the functions also takes an offset that is to be added to every index before appending
-size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* shader_name, GLenum primitive_type, uint32_t* indices, size_t n, size_t offset);
-size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* font_name, uint32_t* indices, size_t n, size_t offset);
+size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* shader_name, GLenum primitive_type, size_t n, uint32_t* indices, size_t offset);
+size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* font_name, size_t n, uint32_t* indices, size_t offset);
 
 #endif

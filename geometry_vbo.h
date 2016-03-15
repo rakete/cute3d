@@ -203,9 +203,8 @@ void vbomesh_clear_attributes(struct VboMesh* mesh);
 void vbomesh_clear_indices(struct VboMesh* mesh);
 
 // append adds new stuff at the end of occupied, allocates new capacity if neccessary
-size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, void* data, uint32_t components_size, GLenum components_type, size_t n) __attribute__((warn_unused_result));
-
-size_t vbomesh_append_indices(struct VboMesh* mesh, void* data, size_t n) __attribute__((warn_unused_result));
+size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t components_size, GLenum components_type, size_t n, void* data) __attribute__((warn_unused_result));
+size_t vbomesh_append_indices(struct VboMesh* mesh, size_t n, void* data) __attribute__((warn_unused_result));
 
 // mapping whole mesh into host memory, probably untested
 void* vbomesh_map(struct VboMesh* mesh, size_t offset, size_t length, GLbitfield access) __attribute__((warn_unused_result));
