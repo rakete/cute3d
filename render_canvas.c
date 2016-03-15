@@ -6,15 +6,15 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
     }
 
     log_assert( layer_start >= 0 );
-    log_assert( layer_end <= NUM_CANVAS_LAYERS );
+    log_assert( layer_end <= MAX_CANVAS_LAYERS );
     log_assert( layer_start < layer_end );
     log_assert( canvas != NULL );
 
     // - first for loop binds the buffers and fills them with the attribute data
     // I used to have this in the shader loop
     // - now also sets up the vertex attribute pointers for all shaders
-    GLint loc[NUM_SHADER_ATTRIBUTES];
     for( int32_t attribute_i = 0; attribute_i < NUM_SHADER_ATTRIBUTES; attribute_i++ ) {
+    GLint loc[MAX_SHADER_ATTRIBUTES];
         size_t occupied_attributes = canvas->attributes[attribute_i].occupied;
         size_t occupied_buffer = canvas->buffer[attribute_i].occupied;
 
@@ -59,7 +59,7 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
     }
 
     // second loop goes through all shaders, binds their locations, then loops through all layers, uploads the indices and renders
-    for( int32_t shader_i = 0; shader_i < NUM_CANVAS_SHADER; shader_i++ ) {
+    for( int32_t shader_i = 0; shader_i < MAX_CANVAS_SHADER; shader_i++ ) {
         if( strlen(canvas->shader[shader_i].name) == 0 ) {
             continue;
         }
@@ -70,7 +70,7 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
 
         Mat projection_matrix = {0};
         Mat view_matrix = {0};
-        for( uint32_t projection_i = 0; projection_i < NUM_CANVAS_PROJECTIONS; projection_i++ ) {
+        for( uint32_t projection_i = 0; projection_i < MAX_CANVAS_PROJECTIONS; projection_i++ ) {
             // binding matrices to uniforms
             if( projection_i == CANVAS_PROJECT_SCREEN ) {
                 mat_identity(projection_matrix);
@@ -85,7 +85,7 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
             }
 
             for( int32_t layer_i = layer_start; layer_i < layer_end; layer_i++ ) {
-                for( uint32_t primitive_i = 0; primitive_i < NUM_OGL_PRIMITIVES; primitive_i++ ) {
+                for( uint32_t primitive_i = 0; primitive_i < MAX_OGL_PRIMITIVES; primitive_i++ ) {
                     if( canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].occupied == 0 ) {
                         continue;
                     }
@@ -114,7 +114,7 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
     }
 
     // third loop goes through fonts and renders text
-    for( int32_t font_i = 0; font_i < NUM_CANVAS_FONTS; font_i++ ) {
+    for( int32_t font_i = 0; font_i < MAX_CANVAS_FONTS; font_i++ ) {
         if( strlen(canvas->fonts[font_i].name) == 0 ) {
             continue;
         }
@@ -132,7 +132,7 @@ void canvas_render_layers(struct Canvas* const canvas, int32_t layer_start, int3
 
         Mat projection_matrix = {0};
         Mat view_matrix = {0};
-        for( int32_t projection_i = 0; projection_i < NUM_CANVAS_PROJECTIONS; projection_i++ ) {
+        for( int32_t projection_i = 0; projection_i < MAX_CANVAS_PROJECTIONS; projection_i++ ) {
             // yeah, well, perspective or ortho or what?
             if( projection_i == CANVAS_PROJECT_SCREEN ) {
                 mat_identity(projection_matrix);

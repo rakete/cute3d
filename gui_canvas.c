@@ -13,7 +13,7 @@ int32_t init_canvas() {
 void canvas_create_empty(struct Canvas* canvas) {
     log_assert( canvas != NULL );
 
-    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         canvas->components[i].size = 0;
         if( i == SHADER_ATTRIBUTE_COLORS ) {
             canvas->components[i].type = GL_UNSIGNED_BYTE;
@@ -32,18 +32,18 @@ void canvas_create_empty(struct Canvas* canvas) {
         canvas->buffer[i].usage = GL_STREAM_READ;
     }
 
-    for( int32_t i = 0; i < NUM_CANVAS_SHADER; i++ ) {
+    for( int32_t i = 0; i < MAX_CANVAS_SHADER; i++ ) {
         shader_create_empty(&canvas->shader[i]);
     }
 
-    for( int32_t i = 0; i < NUM_CANVAS_FONTS; i++ ) {
+    for( int32_t i = 0; i < MAX_CANVAS_FONTS; i++ ) {
         font_create_empty(&canvas->fonts[i]);
     }
 
-    for( int32_t i = 0; i < NUM_CANVAS_LAYERS; i++ ) {
-        for( int32_t j = 0; j < NUM_CANVAS_SHADER; j++ ) {
-            for( int32_t k = 0; k < NUM_CANVAS_PROJECTIONS; k++ ) {
-                for( int32_t l = 0; l < NUM_OGL_PRIMITIVES; l++ ) {
+    for( int32_t i = 0; i < MAX_CANVAS_LAYERS; i++ ) {
+        for( int32_t j = 0; j < MAX_CANVAS_SHADER; j++ ) {
+            for( int32_t k = 0; k < MAX_CANVAS_PROJECTIONS; k++ ) {
+                for( int32_t l = 0; l < MAX_OGL_PRIMITIVES; l++ ) {
                     canvas->layer[i].indices[j][k][l].array = NULL;
                     canvas->layer[i].indices[j][k][l].id = 0;
                     canvas->layer[i].indices[j][k][l].occupied = 0;
@@ -52,8 +52,8 @@ void canvas_create_empty(struct Canvas* canvas) {
             }
         }
 
-        for( int32_t j = 0; j < NUM_CANVAS_FONTS; j++ ) {
-            for( int32_t k = 0; k < NUM_CANVAS_PROJECTIONS; k++ ) {
+        for( int32_t j = 0; j < MAX_CANVAS_FONTS; j++ ) {
+            for( int32_t k = 0; k < MAX_CANVAS_PROJECTIONS; k++ ) {
                 canvas->layer[i].text[j][k].array = NULL;
                 canvas->layer[i].text[j][k].id = 0;
                 canvas->layer[i].text[j][k].occupied = 0;
@@ -75,7 +75,7 @@ void canvas_create(struct Canvas* canvas) {
 
     struct Shader shader = {0};
     shader_create_gl_lines("default_shader", &shader);
-    log_assert( canvas_add_shader(canvas, &shader) < NUM_CANVAS_SHADER );
+    log_assert( canvas_add_shader(canvas, &shader) < MAX_CANVAS_SHADER );
 
     struct Character symbols[256] = {0};
     default_font_create(symbols);
@@ -83,12 +83,12 @@ void canvas_create(struct Canvas* canvas) {
     struct Font font = {0};
     font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font", &font);
 
-    log_assert( canvas_add_font(canvas, &font) < NUM_CANVAS_FONTS );
+    log_assert( canvas_add_font(canvas, &font) < MAX_CANVAS_FONTS );
 }
 
 void canvas_add_attribute(struct Canvas* canvas, int32_t added_attribute, uint32_t size, GLenum type) {
     log_assert( canvas != NULL );
-    log_assert( added_attribute >= 0 && added_attribute < NUM_SHADER_ATTRIBUTES );
+    log_assert( added_attribute >= 0 && added_attribute < MAX_SHADER_ATTRIBUTES );
     log_assert( size > 0 );
 
     if( canvas->components[added_attribute].size <= 0 ) {
@@ -119,7 +119,7 @@ int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader) {
     log_assert( shader != NULL );
 
     int32_t shader_i = 0;
-    while( shader_i < NUM_CANVAS_SHADER && strlen(canvas->shader[shader_i].name) != 0 ) {
+    while( shader_i < MAX_CANVAS_SHADER && strlen(canvas->shader[shader_i].name) != 0 ) {
         if( strncmp(canvas->shader[shader_i].name, shader->name, 256) == 0 ) {
             log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" already added to canvas\n", shader->name);
             return shader_i;
@@ -128,9 +128,9 @@ int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader) {
         shader_i += 1;
     }
 
-    if( shader_i == NUM_CANVAS_SHADER ) {
+    if( shader_i == MAX_CANVAS_SHADER ) {
         log_warn(stderr, __FILE__, __LINE__, "no more space available in canvas for adding shader \"%s\"\n", shader->name);
-        return NUM_CANVAS_SHADER;
+        return MAX_CANVAS_SHADER;
     }
 
     memcpy(&canvas->shader[shader_i], shader, sizeof(struct Shader));
@@ -145,14 +145,14 @@ int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name) {
 
     static int32_t check_first = -1;
     if( check_first > -1 &&
-        check_first < NUM_CANVAS_SHADER &&
+        check_first < MAX_CANVAS_SHADER &&
         strncmp(canvas->shader[check_first].name, shader_name, 256) == 0 )
     {
         return check_first;
     }
 
     int32_t shader_i = 0;
-    while( shader_i < NUM_CANVAS_SHADER && strncmp(canvas->shader[shader_i].name, shader_name, 256) != 0 ) {
+    while( shader_i < MAX_CANVAS_SHADER && strncmp(canvas->shader[shader_i].name, shader_name, 256) != 0 ) {
         shader_i += 1;
     }
 
@@ -165,7 +165,7 @@ int32_t canvas_add_font(struct Canvas* canvas, const struct Font* font) {
     log_assert( font != NULL );
 
     int32_t font_i = 0;
-    while( font_i < NUM_CANVAS_FONTS && strlen(canvas->fonts[font_i].name) != 0 ) {
+    while( font_i < MAX_CANVAS_FONTS && strlen(canvas->fonts[font_i].name) != 0 ) {
         if( strncmp(canvas->fonts[font_i].name, font->name, 256) == 0 ) {
             log_warn(stderr, __FILE__, __LINE__, "font \"%s\" already added to canvas\n", font->name);
             return font_i;
@@ -174,8 +174,8 @@ int32_t canvas_add_font(struct Canvas* canvas, const struct Font* font) {
         font_i += 1;
     }
 
-    if( font_i == NUM_CANVAS_FONTS ) {
-        return NUM_CANVAS_FONTS;
+    if( font_i == MAX_CANVAS_FONTS ) {
+        return MAX_CANVAS_FONTS;
     }
 
     memcpy(&canvas->fonts[font_i], font, sizeof(struct Font));
@@ -190,18 +190,18 @@ int32_t canvas_find_font(struct Canvas* canvas, const char* font_name) {
 
     static int32_t check_first = 0;
     if( check_first > 0 &&
-        check_first < NUM_CANVAS_FONTS &&
+        check_first < MAX_CANVAS_FONTS &&
         strncmp(canvas->fonts[check_first].name, font_name, 256) == 0 )
     {
         return check_first;
     }
 
     int32_t font_i = 0;
-    while( font_i < NUM_CANVAS_FONTS && strncmp(canvas->fonts[font_i].name, font_name, 256) != 0 ) {
+    while( font_i < MAX_CANVAS_FONTS && strncmp(canvas->fonts[font_i].name, font_name, 256) != 0 ) {
         font_i += 1;
     }
 
-    if( font_i == NUM_CANVAS_FONTS && check_first == 0 ) {
+    if( font_i == MAX_CANVAS_FONTS && check_first == 0 ) {
         log_warn(stderr, __FILE__, __LINE__, "font \"%s\" not found\n", font_name);
     }
 
@@ -212,7 +212,7 @@ int32_t canvas_find_font(struct Canvas* canvas, const char* font_name) {
 
 size_t canvas_alloc_attributes(struct Canvas* canvas, int32_t attribute_i, size_t n) {
     log_assert( canvas != NULL );
-    log_assert( attribute_i >= 0 && attribute_i < NUM_SHADER_ATTRIBUTES );
+    log_assert( attribute_i >= 0 && attribute_i < MAX_SHADER_ATTRIBUTES );
 
     if( n == 0 ) {
         return 0;
@@ -246,11 +246,11 @@ size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t proj
     }
 
     int32_t shader_i = canvas_find_shader(canvas, shader_name);
-    if( shader_i == NUM_CANVAS_SHADER ) {
+    if( shader_i == MAX_CANVAS_SHADER ) {
         shader_i = canvas_find_shader(canvas, "default_shader");
     }
 
-    if( shader_i == NUM_CANVAS_SHADER ) {
+    if( shader_i == MAX_CANVAS_SHADER ) {
         log_fail(stderr, __FILE__, __LINE__, "no shader could be found in canvas when trying to allocate\n");
         return 0;
     }
@@ -278,7 +278,7 @@ size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i,
     }
 
     int32_t font_i = canvas_find_font(canvas, font_name);
-    if( font_i == NUM_CANVAS_FONTS ) {
+    if( font_i == MAX_CANVAS_FONTS ) {
         return 0;
     }
 
@@ -299,22 +299,22 @@ size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i,
 void canvas_clear(struct Canvas* canvas) {
     log_assert( canvas != NULL );
 
-    for( int32_t j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
+    for( int32_t j = 0; j < MAX_SHADER_ATTRIBUTES; j++ ) {
         canvas->attributes[j].occupied = 0;
         canvas->buffer[j].occupied = 0;
     }
 
-    for( int32_t i = 0; i < NUM_CANVAS_LAYERS; i++ ) {
-        for( int32_t j = 0; j < NUM_CANVAS_SHADER; j++ ) {
-            for( int32_t k = 0; k < NUM_CANVAS_PROJECTIONS; k++ ) {
-                for( int32_t l = 0; l < NUM_OGL_PRIMITIVES; l++ ) {
+    for( int32_t i = 0; i < MAX_CANVAS_LAYERS; i++ ) {
+        for( int32_t j = 0; j < MAX_CANVAS_SHADER; j++ ) {
+            for( int32_t k = 0; k < MAX_CANVAS_PROJECTIONS; k++ ) {
+                for( int32_t l = 0; l < MAX_OGL_PRIMITIVES; l++ ) {
                     canvas->layer[i].indices[j][k][l].occupied = 0;
                 }
             }
         }
 
-        for( int32_t j = 0; j < NUM_CANVAS_FONTS; j++ ) {
-            for( int32_t k = 0; k < NUM_CANVAS_PROJECTIONS; k++ ) {
+        for( int32_t j = 0; j < MAX_CANVAS_FONTS; j++ ) {
+            for( int32_t k = 0; k < MAX_CANVAS_PROJECTIONS; k++ ) {
                 canvas->layer[i].text[j][k].occupied = 0;
             }
         }
@@ -472,7 +472,7 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t pro
     }
 
     int32_t shader_i = canvas_find_shader(canvas, shader_name);
-    if( shader_i == NUM_CANVAS_SHADER ) {
+    if( shader_i == MAX_CANVAS_SHADER ) {
         static int warn_once = 1;
         if( warn_once ) {
             log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" not found\n", shader_name);
@@ -482,7 +482,7 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t pro
         shader_i = canvas_find_shader(canvas, "default_shader");
     }
 
-    if( shader_i == NUM_CANVAS_SHADER ) {
+    if( shader_i == MAX_CANVAS_SHADER ) {
         log_fail(stderr, __FILE__, __LINE__, "no shader could be found in canvas when trying to append indices\n");
         return 0;
     }
@@ -521,7 +521,7 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t pro
     // vertices/colors/texcoords but then only call append_vertices and append_texcoords, but still
     // advance the colors so that when we later _do_ call append_colors, the vertices and texcoords
     // and colors in the single, huge attribute buffers all line up correctly
-    for( int32_t i = 1; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 1; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         size_t attribute_capacity = canvas->attributes[i].capacity;
         uint32_t attribute_size = canvas->components[i].size;
 
@@ -566,7 +566,7 @@ size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i
     }
 
     int32_t font_i = canvas_find_font(canvas, font_name);
-    if( font_i == NUM_CANVAS_FONTS ) {
+    if( font_i == MAX_CANVAS_FONTS ) {
         return 0;
     }
 
@@ -596,7 +596,7 @@ size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i
 
     log_assert( SHADER_ATTRIBUTE_VERTICES == 0 );
 
-    for( int32_t i = 1; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 1; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         size_t attribute_capacity = canvas->attributes[i].capacity;
         uint32_t attribute_size = canvas->components[i].size;
 

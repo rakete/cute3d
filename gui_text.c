@@ -30,7 +30,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projec
     uint32_t indices[text_length * 6];
 
     int32_t font_i = canvas_find_font(canvas, font_name);
-    if( font_i == NUM_CANVAS_FONTS ) {
+    if( font_i == MAX_CANVAS_FONTS ) {
         log_warn(stderr, __FILE__, __LINE__, "font %s not found\n", font_name);
         return;
     }
@@ -58,7 +58,7 @@ void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projec
     for( uint32_t i = 0; i <= text_length; i++ ) {
         struct Glyph* glyph = NULL;
 
-        static bool glyph_warnings[NUM_FONT_GLYPHS] = {0};
+        static bool glyph_warnings[MAX_FONT_GLYPHS] = {0};
         if( font->unicode ) {
             wchar_t c = unicode_text[i];
             if( c == '\n' ) {

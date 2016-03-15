@@ -18,24 +18,24 @@
 #define DEFAULT_CANVAS_ALLOC 512
 #endif
 
-#ifndef NUM_CANVAS_LAYERS
-#define NUM_CANVAS_LAYERS 8
+#ifndef MAX_CANVAS_LAYERS
+#define MAX_CANVAS_LAYERS 8
 #endif
 
-#ifndef NUM_CANVAS_SHADER
-#define NUM_CANVAS_SHADER 8
+#ifndef MAX_CANVAS_SHADER
+#define MAX_CANVAS_SHADER 8
 #endif
 
-#ifndef NUM_CANVAS_UNIFORMS
-#define NUM_CANVAS_UNIFORMS 8
+#ifndef MAX_CANVAS_UNIFORMS
+#define MAX_CANVAS_UNIFORMS 8
 #endif
 
-#ifndef NUM_CANVAS_FONTS
-#define NUM_CANVAS_FONTS 4
+#ifndef MAX_CANVAS_FONTS
+#define MAX_CANVAS_FONTS 4
 #endif
 
-#ifndef NUM_CANVAS_PROJECTIONS
-#define NUM_CANVAS_PROJECTIONS 2
+#ifndef MAX_CANVAS_PROJECTIONS
+#define MAX_CANVAS_PROJECTIONS 2
 #endif
 
 #define CANVAS_PROJECT_WORLD 0
@@ -51,14 +51,14 @@ struct Canvas {
         uint32_t size;
         GLenum type;
         uint32_t bytes;
-    } components[NUM_SHADER_ATTRIBUTES];
+    } components[MAX_SHADER_ATTRIBUTES];
 
     // array pointers that get allocated with malloc and filled, one per attribute
     struct CanvasAttributes {
         void* array;
         size_t capacity;
         size_t occupied;
-    } attributes[NUM_SHADER_ATTRIBUTES];
+    } attributes[MAX_SHADER_ATTRIBUTES];
 
     // - vbos that are supposed to be filled by an external render function, one per attribute
     // - these are one big buffer that are supposed to be bound once before rendering all the
@@ -69,7 +69,7 @@ struct Canvas {
         size_t occupied;
 
         GLenum usage;
-    } buffer[NUM_SHADER_ATTRIBUTES];
+    } buffer[MAX_SHADER_ATTRIBUTES];
 
     // - shaders can be appended too, I put this here because I basicly give up all means
     // to distinguish 'stuff' that I want to draw, once I appended it into an array, so
@@ -77,7 +77,7 @@ struct Canvas {
     // which belong to different shaders
     // - adding them like this makes it more convenient to implement render functions, I
     // probably could also have solved this with an argument give to render functions
-    struct Shader shader[NUM_CANVAS_SHADER];
+    struct Shader shader[MAX_CANVAS_SHADER];
 
     // - I decided to make text rendering a special case and put fonts in here too,
     // a font is just a special shader with some extra info, so maybe this could have
@@ -87,7 +87,7 @@ struct Canvas {
     // I also did not want to redo the font creation stuff in here
     // - I'll probably have to add more special cases anyways, widget for example
     // come to mind
-    struct Font fonts[NUM_CANVAS_FONTS];
+    struct Font fonts[MAX_CANVAS_FONTS];
 
     // - the arrays and vbos above only hold vertex data, the indices are kept in these
     // structs, the struct are indexed by all the things that are needed to distinguish
@@ -105,7 +105,7 @@ struct Canvas {
 
             size_t capacity;
             size_t occupied;
-        } indices[NUM_CANVAS_SHADER][NUM_CANVAS_PROJECTIONS][NUM_OGL_PRIMITIVES];
+        } indices[MAX_CANVAS_SHADER][MAX_CANVAS_PROJECTIONS][MAX_OGL_PRIMITIVES];
 
         struct CanvasText {
             GLuint* array;
@@ -113,10 +113,14 @@ struct Canvas {
 
             size_t capacity;
             size_t occupied;
-        } text[NUM_CANVAS_FONTS][NUM_CANVAS_PROJECTIONS];
+        } text[MAX_CANVAS_FONTS][MAX_CANVAS_PROJECTIONS];
 
         Vec4f cursor;
-    } layer[NUM_CANVAS_LAYERS];
+    } layer[MAX_CANVAS_LAYERS];
+
+#ifndef CUTE_DISABLE_VAO
+    GLuint vao;
+#endif
 };
 
 extern struct Canvas global_dynamic_canvas;

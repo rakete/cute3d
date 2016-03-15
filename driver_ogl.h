@@ -36,21 +36,19 @@ void ogl_error_print(GLenum error);
 #define ogl_debug(line) line
 #endif
 
-#define NUM_OGL_PRIMITIVES GL_TRIANGLE_FAN+1
+#define MAX_OGL_PRIMITIVES GL_TRIANGLE_FAN+1
 
-#define NUM_OGL_ATTRIBUTES 4
+#define MAX_OGL_ATTRIBUTES 4
 #define OGL_VERTICES 0
 #define OGL_NORMALS 1
 #define OGL_COLORS 2
 #define OGL_TEXCOORDS 3
 
-/* #ifndef NUM_CUTE_ATTRIBUTES */
+/* #ifndef MAX_CUTE_ATTRIBUTES */
 /* enum CuteAttributeType { */
 /*     CUTE_SOMETHING */
 /* }; */
 /* #endif */
-
-int32_t init_ogl(int32_t width, int32_t height, const uint8_t clear_color[4]) __attribute__((warn_unused_result));
 
 size_t ogl_buffer_resize(GLuint* buffer, size_t old_nbytes, size_t new_nbytes) __attribute__((warn_unused_result));
 

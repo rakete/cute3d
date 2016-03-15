@@ -35,12 +35,12 @@ void shader_create_empty(struct Shader* p) {
     p->vertex_shader = 0;
     p->fragment_shader = 0;
 
-    for( int32_t j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
+    for( int32_t j = 0; j < MAX_SHADER_ATTRIBUTES; j++ ) {
         p->attribute[j].location = -1;
         p->attribute[j].name[0] = '\0';
     }
 
-    for( int32_t j = 0; j < NUM_SHADER_UNIFORMS; j++ ) {
+    for( int32_t j = 0; j < MAX_SHADER_UNIFORMS; j++ ) {
         p->uniform[j].location = -1;
         p->uniform[j].name[0] = '\0';
     }
@@ -78,12 +78,12 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
     p->program = glsl_link_program(p->program);
     log_assert( p->program > 0 );
 
-    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         p->attribute[i].name[0] = '\0';
         p->attribute[i].location = -1;
     }
 
-    for( int32_t i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
+    for( int32_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
         p->uniform[i].name[0] = '\0';
         p->uniform[i].location = -1;
     }
@@ -118,12 +118,12 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     p->program = glsl_link_program(p->program);
     log_assert( p->program > 0 );
 
-    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         p->attribute[i].name[0] = '\0';
         p->attribute[i].location = -1;
     }
 
-    for( int32_t i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
+    for( int32_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
         p->uniform[i].name[0] = '\0';
         p->uniform[i].location = -1;
     }
@@ -262,14 +262,14 @@ void shader_print(FILE* f, const struct Shader* shader) {
     fprintf(f, "shader->fragment_shader: %d\n", shader->fragment_shader);
     fprintf(f, "shader->program: %d\n", shader->program);
 
-    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         if( strlen(shader->attribute[i].name) > 0 ) {
             fprintf(f, "shader->attribute[%d].name: %s\n", i, shader->attribute[i].name);
             fprintf(f, "shader->attribute[%d].location: %d\n", i, shader->attribute[i].location);
         }
     }
 
-    for( int32_t i = 0; i < NUM_SHADER_UNIFORMS; i++ ) {
+    for( int32_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
         if( strlen(shader->uniform[i].name) > 0 ) {
             fprintf(f, "shader->uniform[%d].name: %s\n", i, shader->uniform[i].name);
             fprintf(f, "shader->uniform[%d].location: %d\n", i, shader->uniform[i].location);
@@ -377,7 +377,7 @@ GLint shader_set_uniform_matrices(const struct Shader* shader, const Mat project
 GLint shader_set_uniform_3f(const struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
     log_assert( shader->program > 0 );
     log_assert( uniform_index >= 0 );
-    log_assert( uniform_index <= NUM_SHADER_UNIFORMS );
+    log_assert( uniform_index <= MAX_SHADER_UNIFORMS );
     log_assert( size <= 4 );
     log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
     log_assert( data != NULL );
@@ -422,9 +422,10 @@ GLint shader_set_uniform_3f(const struct Shader* shader, int32_t uniform_index, 
 }
 
 GLint shader_set_uniform_4f(const struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
+    log_assert( shader != NULL );
     log_assert( shader->program > 0 );
     log_assert( uniform_index >= 0 );
-    log_assert( uniform_index <= NUM_SHADER_UNIFORMS );
+    log_assert( uniform_index <= MAX_SHADER_UNIFORMS );
     log_assert( size <= 4 );
     log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
     log_assert( data != NULL );
@@ -471,7 +472,7 @@ GLint shader_set_uniform_4f(const struct Shader* shader, int32_t uniform_index, 
 
 GLint shader_set_attribute(const struct Shader* shader, int32_t attribute_i, GLuint buffer, size_t n, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p) {
     log_assert( attribute_i >= SHADER_ATTRIBUTE_VERTICES );
-    log_assert( attribute_i < NUM_SHADER_ATTRIBUTES );
+    log_assert( attribute_i < MAX_SHADER_ATTRIBUTES );
     log_assert( c_num >= 0 );
     log_assert( c_num <= 4 );
 

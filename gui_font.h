@@ -13,8 +13,8 @@
 #include "driver_glsl.h"
 #include "driver_shader.h"
 
-#ifndef NUM_FONT_GLYPHS
-#define NUM_FONT_GLYPHS 256
+#ifndef MAX_FONT_GLYPHS
+#define MAX_FONT_GLYPHS 256
 #endif
 
 struct Character {
@@ -35,12 +35,12 @@ struct Font {
 
     // a glyph is a texture point plus width and height for every character that can be displayed
     // with this font
-    struct Glyph glyphs[NUM_FONT_GLYPHS];
+    struct Glyph glyphs[MAX_FONT_GLYPHS];
 
     // the glyphs will only be initialized if the alphabet string given to font_create contains it,
     // so this array can be used to check if a character can be displayed with this font, if its
     // glyph is initialized
-    bool alphabet[NUM_FONT_GLYPHS];
+    bool alphabet[MAX_FONT_GLYPHS];
 
     bool unicode;
 

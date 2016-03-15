@@ -208,12 +208,12 @@ void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, con
     projection_matrix[14] += mesh->z_offset;
     log_assert( shader_set_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix) > -1 );
 
-    GLint loc[NUM_SHADER_ATTRIBUTES] = {0};
     for( int32_t array_id = 0; array_id < NUM_SHADER_ATTRIBUTES; array_id++ ) {
         uint32_t c_num = mesh->vbo->components[array_id].size;
         GLenum c_type = mesh->vbo->components[array_id].type;
         uint32_t c_bytes = mesh->vbo->components[array_id].bytes;
         size_t offset = mesh->offset * c_num * c_bytes;
+    GLint loc[MAX_SHADER_ATTRIBUTES] = {0};
 
         loc[array_id] = -1;
         if( c_num == 0 || c_bytes == 0 ) {

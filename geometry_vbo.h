@@ -25,10 +25,11 @@
 
 #include "driver_log.h"
 #include "driver_ogl.h"
+#include "driver_sdl2.h"
 #include "driver_shader.h"
 
-#ifndef NUM_VBO_PHASES
-#define NUM_VBO_PHASES 1
+#ifndef MAX_VBO_PHASES
+#define MAX_VBO_PHASES 1
 #endif
 
 int32_t init_vbo() __attribute__((warn_unused_result));
@@ -54,14 +55,14 @@ struct Vbo {
     struct VboBuffer {
         GLuint id;
         GLenum usage;
-    } _internal_buffer[NUM_VBO_PHASES][NUM_SHADER_ATTRIBUTES];
+    } _internal_buffer[MAX_VBO_PHASES][MAX_SHADER_ATTRIBUTES];
     struct VboBuffer* buffer;
 
     struct VboComponents {
         uint32_t size; // the number of components per element (eg a vertex3 element has three components)
         GLenum type; // the gl type of the individual components (probably GL_float)
         uint32_t bytes; // size of a single component (sizeof GL_float)
-    } components[NUM_SHADER_ATTRIBUTES];
+    } components[MAX_SHADER_ATTRIBUTES];
 
     // - the units of these are in attributes, capacity is universally used for the different attribute buffers,
     //   which may all have different numbers of components, so then these must indicate for example how many
@@ -72,8 +73,8 @@ struct Vbo {
 
     struct VboScheduler{
         uint32_t phase;
-        int32_t dirty[NUM_VBO_PHASES];
-        GLsync fence[NUM_VBO_PHASES];
+        int32_t dirty[MAX_VBO_PHASES];
+        GLsync fence[MAX_VBO_PHASES];
         enum VboScheduling type;
         size_t offset;
     } scheduler;
@@ -115,7 +116,7 @@ struct VboMesh {
     // - occupied in vbomesh is the actual used space that has attributes in it
     // - same unit as the ones in struct Vbo
     size_t capacity; // capacity of mesh in vbo
-    size_t occupied[NUM_SHADER_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer
+    size_t occupied[MAX_SHADER_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer
 
     // information about the index type used in the primitives buffer
     struct VboMeshIndex {
@@ -176,7 +177,7 @@ struct VboMesh {
         // the unit here is indices, not primitives
         size_t capacity; // size of the buffer
         size_t occupied; // space already used
-    } _internal_indices[NUM_VBO_PHASES];
+    } _internal_indices[MAX_VBO_PHASES];
     struct VboMeshIndexBuffer* indices;
 
     // - to prevent z fighting a random small offset value is put here that can be

@@ -3,14 +3,14 @@
 void font_create_empty(struct Font* font) {
     font->name[0] = '\0';
 
-    for( size_t i = 0; i < NUM_FONT_GLYPHS; i++ ) {
+    for( size_t i = 0; i < MAX_FONT_GLYPHS; i++ ) {
         font->glyphs[i].x = 0;
         font->glyphs[i].y = 0;
         font->glyphs[i].w = 0;
         font->glyphs[i].h = 0;
     }
 
-    for( size_t i = 0; i < NUM_FONT_GLYPHS; i++ ) {
+    for( size_t i = 0; i < MAX_FONT_GLYPHS; i++ ) {
         font->alphabet[i] = false;
     }
 
@@ -39,7 +39,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
     font->name[0] = '\0';
     strncat(font->name, name, name_length);
 
-    for( int32_t i = 0; i < NUM_FONT_GLYPHS; i++ ) {
+    for( int32_t i = 0; i < MAX_FONT_GLYPHS; i++ ) {
         font->alphabet[i] = false;
         font->glyphs[i] = (struct Glyph){0, 0, 0, 0};
     }

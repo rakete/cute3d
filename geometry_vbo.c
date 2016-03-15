@@ -53,15 +53,15 @@ int32_t init_vbo() {
 void vbo_create(struct Vbo* p) {
     log_assert( p != NULL );
 
-    for( int32_t i = 0; i < NUM_VBO_PHASES; i++ ) {
-        for( int32_t j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
+    for( int32_t i = 0; i < MAX_VBO_PHASES; i++ ) {
+        for( int32_t j = 0; j < MAX_SHADER_ATTRIBUTES; j++ ) {
             p->_internal_buffer[i][j].id = 0;
             p->_internal_buffer[i][j].usage = GL_STATIC_DRAW;
         }
     }
     p->buffer = p->_internal_buffer[0];
 
-    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         p->components[i].size = 0;
         p->components[i].type = 0;
         p->components[i].bytes = 0;
@@ -70,7 +70,7 @@ void vbo_create(struct Vbo* p) {
     p->capacity = 0;
     p->occupied = 0;
 
-    for( int32_t i = 0; i < NUM_VBO_PHASES; i++ ) {
+    for( int32_t i = 0; i < MAX_VBO_PHASES; i++ ) {
         p->scheduler.fence[i] = 0;
     }
     p->scheduler.phase = 0;
@@ -96,9 +96,9 @@ void vbo_add_buffer(struct Vbo* vbo,
                     GLenum usage)
 {
     log_assert( vbo != NULL );
-    log_assert( i < NUM_SHADER_ATTRIBUTES );
-    log_assert( components_size == 2 || components_size == 3 || components_size == 4,
-                "components_size(%d) == 2 || components_size(%d) == 3 || components_size(%d) == 4: the current implementation assumes attributes to have either 2, 3 or 4 components, you have given components_size %d\n",
+    log_assert( i < MAX_SHADER_ATTRIBUTES, "%d %d\n", i, MAX_SHADER_ATTRIBUTES );
+    log_assert( components_size > 0 && components_size <= 4,
+                "components_size > 0 && components_size(%d) <= 4: the current implementation assumes attributes to have 0-4 components, you have given components_size %d\n",
                 components_size, components_size, components_size, components_size);
     log_assert( components_type == GL_FLOAT || components_type == GL_UNSIGNED_BYTE,
                 "components_type(%d) == GL_FLOAT(%d) || components_type(%d) == GL_UNSIGNED_BYTE(%d): the current implementation assumes attributes to have either GL_FLOAT or GL_UNSIGNED_BYTE components, you have given components_type %d\n",
@@ -125,7 +125,7 @@ size_t vbo_alloc(struct Vbo* vbo, size_t n) {
     log_assert( n > 0 );
 
     size_t resized_bytes = 0;
-    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         if( vbo->buffer[i].id ) {
             size_t new_bytes = (vbo->capacity + n) * vbo->components[i].size * vbo->components[i].bytes;
             size_t old_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
@@ -204,7 +204,6 @@ GLboolean vbo_unmap(struct Vbo* vbo, int32_t i) {
     return result;
 }
 
-
 void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh) {
     log_assert( vbo != NULL );
     log_assert( mesh != NULL );
@@ -214,7 +213,7 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
     mesh->offset = vbo->occupied;
     mesh->capacity = 0;
 
-    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         mesh->occupied[i] = 0;
     }
 
@@ -224,7 +223,7 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
     mesh->index.type = index_type;
     mesh->index.bytes = (uint32_t)ogl_sizeof_type(index_type);
 
-    for( int32_t i = 0; i < NUM_VBO_PHASES; i++ ) {
+    for( int32_t i = 0; i < MAX_VBO_PHASES; i++ ) {
         mesh->_internal_indices[i].id = 0;
         mesh->_internal_indices[i].usage = usage;
         mesh->_internal_indices[i].base = 0;
@@ -265,8 +264,8 @@ void vbomesh_print(struct VboMesh* mesh) {
     printf("mesh->offset: %lu\n", mesh->offset);
     printf("mesh->capacity: %lu\n", mesh->capacity);
 
-    for( int32_t i = 0; i < NUM_VBO_PHASES; i++ ) {
-        for( int32_t j = 0; j < NUM_SHADER_ATTRIBUTES; j++ ) {
+    for( int32_t i = 0; i < MAX_VBO_PHASES; i++ ) {
+        for( int32_t j = 0; j < MAX_SHADER_ATTRIBUTES; j++ ) {
             if( mesh->occupied[j] > 0 ) {
                 printf("mesh->occupied[%d]: %lu\n", j, mesh->occupied[j]);
                 printf("mesh->vbo->buffer[%d][%d]:\n", i, j);
@@ -418,7 +417,7 @@ size_t vbomesh_alloc_indices(struct VboMesh* mesh, size_t n) {
 void vbomesh_clear_attributes(struct VboMesh* mesh) {
     log_assert( mesh != NULL );
 
-    for( int32_t i = 0; i < NUM_SHADER_ATTRIBUTES; i++ ) {
+    for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         mesh->occupied[i] = 0;
     }
 }
@@ -426,16 +425,16 @@ void vbomesh_clear_attributes(struct VboMesh* mesh) {
 void vbomesh_clear_indices(struct VboMesh* mesh) {
     log_assert( mesh != NULL );
 
-    for( int32_t i = 0; i < NUM_VBO_PHASES; i++ ) {
+    for( int32_t i = 0; i < MAX_VBO_PHASES; i++ ) {
         mesh->_internal_indices[i].occupied = 0;
     }
 }
 
-size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, void* data, uint32_t components_size, GLenum components_type, size_t n) {
+size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t components_size, GLenum components_type, size_t n, void* data) {
     log_assert( mesh != NULL );
     log_assert( mesh->vbo != NULL );
     log_assert( i >= 0 );
-    log_assert( i < NUM_SHADER_ATTRIBUTES );
+    log_assert( i < MAX_SHADER_ATTRIBUTES );
     log_assert( n > 0 );
     log_assert( mesh->vbo->buffer[i].id > 0,
                 "mesh->vbo->buffer[i].id(%d) > 0: most likely cause is not calling vbo_add_buffer for the attribute %d before appending attributes\n",
