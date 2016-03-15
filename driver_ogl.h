@@ -1,7 +1,7 @@
 #ifndef DRIVER_OGL_H
 #define DRIVER_OGL_H
 
-#include "GL/glew.h"
+#include "gl_core_3_2.h"
 #include "GL/gl.h"
 
 #include "assert.h"

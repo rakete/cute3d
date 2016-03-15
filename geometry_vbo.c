@@ -19,26 +19,33 @@
 int32_t init_vbo() {
     int32_t ret = 0;
 
-    glewInit();
-    if( ! glewGetExtension("GL_ARB_copy_buffer") &&
-        ! glewGetExtension("GL_EXT_copy_buffer") )
+    if( ! SDL_GL_ExtensionSupported("GL_ARB_copy_buffer") &&
+        ! SDL_GL_ExtensionSupported("GL_EXT_copy_buffer") )
     {
         log_fail(stderr, __FILE__, __LINE__, "copy_buffer extension not found!\n");
         ret = 1;
     }
 
-    if( ! glewGetExtension("GL_ARB_vertex_array_object") &&
-        ! glewGetExtension("GL_EXT_vertex_array_object") )
+    if( ! SDL_GL_ExtensionSupported ("GL_ARB_vertex_array_object") &&
+        ! SDL_GL_ExtensionSupported("GL_EXT_vertex_array_object") )
     {
         log_fail(stderr, __FILE__, __LINE__, "vertex_array_object extension not found!\n");
         ret = 1;
     }
 
-    /* if( ! glewGetExtension("GL_ARB_buffer_storage" ) ) { */
-    /*     printf("ERROR: buffer_storage extension not found!\n"); */
-    /*     ret = 1; */
-    /* } */
+    if( ! SDL_GL_ExtensionSupported("GL_ARB_buffer_storage" ) ) {
+        log_fail(stderr, __FILE__, __LINE__, "buffer_storage extension not found!\n");
+        ret = 1;
+    }
 
+#if OPENGLES2
+    // - opengl es 2 does not have mapping of buffers! that sucks because I use it,
+    // so I need to check for this extension
+    if( ! SDL_GL_ExtensionSupported("GL_OES_mapbuffer") ) {
+        log_fail(stderr, __FILE__, __LINE__, "mapbuffer extension not found!\n");
+        ret = 1;
+    }
+#endif
 
     return ret;
 }

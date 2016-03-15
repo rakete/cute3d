@@ -17,6 +17,7 @@
 #define LOG_ANSI_COLOR_RESET   "\x1b[0m"
 
 #define log_stringify(a) #a
+#define log_tostring(x) log_stringify(x)
 
 bool log_info(FILE* f, const char* filename, int32_t linenumber, const char* format, ...);
 bool log_warn(FILE* f, const char* filename, int32_t linenumber, const char* format, ...);

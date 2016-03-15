@@ -16,18 +16,15 @@
 
 #include "driver_glsl.h"
 
-void glsl_debug_info_log( GLuint object,
-                     PFNGLGETSHADERIVPROC glGet__iv,
-                     PFNGLGETSHADERINFOLOGPROC glGet__InfoLog )
-{
+void glsl_debug_info_log(GLuint object) {
     GLint log_length;
     char *log;
 
-    glGet__iv(object, GL_INFO_LOG_LENGTH, &log_length);
+    glGetShaderiv(object, GL_INFO_LOG_LENGTH, &log_length);
 
     log_assert( log_length > 0 );
     log = malloc((size_t)log_length);
-    glGet__InfoLog(object, log_length, NULL, log);
+    glGetShaderInfoLog(object, log_length, NULL, log);
     fprintf(stderr, "%s", log);
     free(log);
 }
@@ -85,8 +82,8 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
     GLint shader_ok;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_ok);
     if ( ! shader_ok ) {
-        fprintf(stderr, "failed to compile: %s\n", shader_source);
-        glsl_debug_info_log(shader, glGetShaderiv, glGetShaderInfoLog);
+        log_fail(stderr, __FILE__, __LINE__, "failed to compile:\n %s%s\n", compat_source, shader_source);
+        glsl_debug_info_log(shader);
         glDeleteShader(shader);
         return 0;
     }
@@ -146,7 +143,7 @@ GLuint glsl_link_program(GLuint program) {
     glGetProgramiv(program, GL_LINK_STATUS, &program_ok);
     if( ! program_ok ) {
         fprintf(stderr, "failed to link shader program:\n");
-        glsl_debug_info_log(program, glGetProgramiv, glGetProgramInfoLog);
+        glsl_debug_info_log(program);
         glDeleteProgram(program);
         return 0;
     }

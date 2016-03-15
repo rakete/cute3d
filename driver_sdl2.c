@@ -1,6 +1,10 @@
 #include "driver_sdl2.h"
 
-int32_t init_sdl2() {
+int32_t init_sdl2(int major, int minor) {
+    log_assert(ogl_LoadFunctions() != ogl_LOAD_FAILED);
+    log_assert( major == 2 || major == 3 || major == 4 );
+    log_assert( minor >= 0 && minor < 10 );
+
     if( SDL_Init(SDL_INIT_EVERYTHING) < 0 ) {
         log_fail(stderr, __FILE__, __LINE__, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
@@ -10,63 +14,101 @@ int32_t init_sdl2() {
         return 1;
     }
 
+#ifdef CUTE_DISABLE_VAO
+    log_warn(stderr, __FILE__, __LINE__, "OpenGL %d.%d needs VAOs to be enabled, falling to 2.1!\n", major, minor);
+    major = 2;
+    minor = 1;
+#endif
+
+    // - this _must_ be set before creating a gl context
+    if( major >= 3 ) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    } else {
+        // - all of these are do not work in 3.0+ and make context creation
+        // fail if I set them and then try to create a 3.0+ context
+        // - these can be set before creating an opengl context
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+        // - setting this to 32 fails on nvidia+linux
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+        // - these must be set before creating a window
+        // - I'll implement multisampling as glsl shader, or figure out how to setup
+        // a fbo then render to that with GL_MULTISAMPLE enabled, thats more portable
+        // then setting it here globally
+        /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); */
+        /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16); */
+    }
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
+
     return 0;
 }
 
 void sdl2_window(const char* title, int32_t x, int32_t y, int32_t width, int32_t height, SDL_Window** window) {
     sdl2_debug({
-            // these must be set before creating a window
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-
             *window = SDL_CreateWindow(title, x, y, width, height,
                                        SDL_WINDOW_OPENGL |
                                        SDL_WINDOW_SHOWN |
                                        SDL_WINDOW_RESIZABLE);
-
-            // these can be set before creating an opengl context
-            SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         });
 }
 
 void sdl2_fullscreen(const char* title, int32_t width, int32_t height, SDL_Window** window) {
     sdl2_debug({
-            // these must be set before creating a window
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-
             *window = SDL_CreateWindow(title, 0, 0, width, height,
                                        SDL_WINDOW_OPENGL |
                                        SDL_WINDOW_SHOWN |
                                        SDL_WINDOW_FULLSCREEN);
 
-            // these can be set before creating an opengl context
-            SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-            SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         });
 }
 
-void sdl2_glcontext(SDL_Window* window, SDL_GLContext** context) {
+void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLContext** context) {
 
     int32_t width,height;
+
     sdl2_debug({
+            SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+
+            // - check which gl version we are going to request and inform the user about it
+            int major_version = -1;
+            int minor_version = -1;
+            SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major_version);
+            SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor_version);
+            log_info(stderr, __FILE__, __LINE__, "creating OpenGL %d.%d context\n", major_version, minor_version);
             *context = SDL_GL_CreateContext(window);
 
-            // i can only set these after creating an opengl context
-            SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-
             SDL_GL_GetDrawableSize(window, &width, &height);
+        });
+
+    // - this had glEnable(GL_MULTISAMPLING) in it and was in driver_ogl
+    ogl_debug({
+            glViewport(0,0,width,height);
+
+            const char* gl_version = (const char*)glGetString(GL_VERSION);
+            log_info(stderr, __FILE__, __LINE__, "glGetString(GL_VERSION) == \"%s\"\n", gl_version);
+
+            glDepthMask(GL_TRUE);
+            glDepthFunc(GL_LESS);
+            glEnable(GL_DEPTH_TEST);
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            glEnable(GL_LINE_SMOOTH);
+            glHint(GL_LINE_SMOOTH_HINT,  GL_NICEST);
+
+            glClearColor((float)clear_color[0] / 255.0,
+                         (float)clear_color[1] / 255.0,
+                         (float)clear_color[2] / 255.0,
+                         (float)clear_color[3] / 255.0);
+            glClearDepth(1);
         });
 }
 

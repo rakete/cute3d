@@ -18,40 +18,8 @@ void ogl_error_print(GLenum error) {
         case GL_OUT_OF_MEMORY:
             printf("glGetError: GL_OUT_OF_MEMORY\n");
             break;
-        case GL_STACK_UNDERFLOW:
-            printf("glGetError: GL_STACK_UNDERFLOW\n");
-            break;
-        case GL_STACK_OVERFLOW:
-            printf("glGetError: GL_STACK_OVERFLOW\n");
-            break;
         default: break;
     }
-}
-
-int32_t init_ogl(int32_t width, int32_t height, const uint8_t clear_color[4]) {
-    ogl_debug({
-            const char* gl_version = (const char*)glGetString(GL_VERSION);
-            log_info(stderr, __FILE__, __LINE__, "%s\n", gl_version);
-
-            glViewport(0,0,width,height);
-
-            glDepthMask(GL_TRUE);
-            glDepthFunc(GL_LESS);
-            glEnable(GL_DEPTH_TEST);
-
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-            glEnable(GL_MULTISAMPLE);
-
-            glClearColor((float)clear_color[0] / 255.0,
-                         (float)clear_color[1] / 255.0,
-                         (float)clear_color[2] / 255.0,
-                         (float)clear_color[3] / 255.0);
-            glClearDepth(1);
-        });
-
-    return 0;
 }
 
 // a helper function to resize a vbo, it takes a buffer argument and the old size
@@ -108,7 +76,6 @@ size_t ogl_sizeof_primitive(GLenum primitive) {
         case GL_POINTS: return 1;
         case GL_LINES: return 2;
         case GL_TRIANGLES: return 3;
-        case GL_PATCHES: return 4;
         default: return 0;
     }
     return 0;

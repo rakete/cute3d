@@ -25,10 +25,7 @@
 #include "driver_log.h"
 #include "driver_ogl.h"
 
-void glsl_debug_info_log( GLuint object,
-                          PFNGLGETSHADERIVPROC glGet__iv,
-                          PFNGLGETSHADERINFOLOGPROC glGet__InfoLog );
-
+void glsl_debug_info_log(GLuint object);
 
 // I need this compatibilty crap if I want to be able to deploy stuff on webgl/android
 // GLSL ES compatibilty is a MESS, targeted versions are:
@@ -97,7 +94,7 @@ void glsl_debug_info_log( GLuint object,
     "\0"
 
 #define GLSL( source )                          \
-    "//CUTE\n"                                  \
+    "//CUTE@" __FILE__ ":" log_tostring(__LINE__) "\n"  \
     #source "\0"
 
 GLuint glsl_compile_source(GLenum type, const char* source);

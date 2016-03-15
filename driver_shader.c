@@ -19,8 +19,9 @@
 int32_t init_shader() {
     int32_t ret = 0;
 
-    glewInit();
-    if( ! glewGetExtension("GL_ARB_uniform_buffer_object") ) {
+    // - we don't actually need this, but I want to check anyways because ubo's are
+    // so useful and I would like to known when I can't use them in the future
+    if( ! SDL_GL_ExtensionSupported("GL_ARB_uniform_buffer_object") ) {
         log_fail(stderr, __FILE__, __LINE__, "uniform_buffer_object extension not found!\n");
         ret = 1;
     }

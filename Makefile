@@ -3,8 +3,12 @@ obj = $(src:.c=.o)
 tests_src = $(wildcard tests/*.c)
 tests_bin = $(tests_src:tests/%.c=%)
 
-CFLAGS=-std=c99 -Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -pedantic -g -DDEBUG -fPIC -flto=4 -march=native
-LDFLAGS=-lm -lSDL2 -lSDL2main -lGL -lGLEW
+# eventually I'll have to deal with all those vla's I have been allocating on the stack: -Wstack-usage=100000
+FEATURES=-pg -DDEBUG # -DCUTE_DISABLE_VAO
+WARNINGS=-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -pedantic
+OPTIMIZATION=-fPIC -flto=4 -march=native
+CFLAGS=-std=c99 $(WARNINGS) $(FEATURES) $(OPTIMIZATION)
+LDFLAGS=-lm -lSDL2 -lSDL2main -lGL
 
 # the default that make defines for every .c file is enough to compile all cute3d sources into .o's
 cute3d: $(obj)
