@@ -30,6 +30,7 @@ void draw_halfedgemesh_wire(struct Canvas* canvas,
     uint32_t num_edges = mesh->edges.occupied;
 
     float vertices[num_attributes*3];
+    uint8_t colors[num_attributes*4];
     uint32_t lines[num_edges];
 
     bool processed_vertices[num_attributes];
@@ -43,6 +44,7 @@ void draw_halfedgemesh_wire(struct Canvas* canvas,
         if( ! processed_vertices[this_edge->vertex] ) {
             int32_t this_index = this_edge->vertex;
             mat_mul_vec3f(model_matrix, mesh->vertices.array[this_index].position, &vertices[this_index*3]);
+            color_copy(color, &colors[this_index*4]);
 
             log_assert( offset + this_index >= 0 );
             lines[edge_i+0] = (uint32_t)(offset + this_index);
@@ -51,17 +53,18 @@ void draw_halfedgemesh_wire(struct Canvas* canvas,
         if( ! processed_vertices[other_edge->vertex] ) {
             int32_t other_index = other_edge->vertex;
             mat_mul_vec3f(model_matrix, mesh->vertices.array[other_index].position, &vertices[other_index*3]);
+            color_copy(color, &colors[other_index*4]);
 
             log_assert( offset + other_index >= 0 );
             lines[edge_i+1] = (uint32_t)(offset + other_index);
         }
     }
 
-    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+    draw_add_shader(canvas, gl_lines, "gl_lines_shader");
 
-    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, num_attributes, (Mat)IDENTITY_MAT);
-    canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, num_attributes, color);
-    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, lines, num_edges, 0);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, num_attributes, vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, num_attributes, colors);
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, num_edges, lines, 0);
 }
 
 void draw_halfedgemesh_face(struct Canvas* canvas,
@@ -78,6 +81,7 @@ void draw_halfedgemesh_face(struct Canvas* canvas,
     log_assert(face->size > 0);
 
     float vertices[face->size*3];
+    uint8_t colors[face->size*4];
     uint32_t lines[face->size*2];
 
     uint32_t i = 0;
@@ -89,15 +93,17 @@ void draw_halfedgemesh_face(struct Canvas* canvas,
         lines[i*2+1] = offset + i+1;
         edge = &mesh->edges.array[edge->next];
 
+        color_copy(color, &colors[i*4]);
+
         i += 1;
     } while(edge->this != face->edge);
     lines[i*2-1] = offset;
 
-    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+    draw_add_shader(canvas, gl_lines, "gl_lines_shader");
 
-    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, (size_t)face->size, (Mat)IDENTITY_MAT);
-    canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, (size_t)face->size, color);
-    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, lines, (size_t)face->size*2, 0);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, (size_t)face->size, vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, (size_t)face->size, colors);
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, (size_t)face->size*2, lines, 0);
 }
 
 void draw_halfedgemesh_edge(struct Canvas* canvas,
@@ -120,11 +126,15 @@ void draw_halfedgemesh_edge(struct Canvas* canvas,
     mat_mul_vec3f(model_matrix, mesh->vertices.array[edge->vertex].position, &vertices[0]);
     mat_mul_vec3f(model_matrix, mesh->vertices.array[other->vertex].position, &vertices[3]);
 
-    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+    uint8_t colors[2*4] =
+        { color[0], color[1], color[2], color[3],
+          color[0], color[1], color[2], color[3] };
 
-    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 2, (Mat)IDENTITY_MAT);
-    canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 2, color);
-    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, line, 2, 0);
+    draw_add_shader(canvas, gl_lines, "gl_lines_shader");
+
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, 2, vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, 2, colors);
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, 2, line, 0);
 }
 
 void draw_halfedgemesh_vertex(struct Canvas* canvas,

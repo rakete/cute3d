@@ -74,6 +74,10 @@ void canvas_create(struct Canvas* canvas) {
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_NEXT_VERTEX, 3, GL_FLOAT);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_PREV_VERTEX, 3, GL_FLOAT);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_EDGE_DIRECTION, 1, GL_FLOAT);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_LINE_THICKNESS, 1, GL_FLOAT);
 
     struct Shader shader = {0};
     shader_create_gl_lines("default_shader", &shader);

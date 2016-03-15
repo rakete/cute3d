@@ -32,27 +32,23 @@
 
 #include "gui_canvas.h"
 
-#define draw_add_gl_lines_shader(canvas, name) do {                     \
-        static int32_t found_gl_lines_shader = -1;                      \
-        if( found_gl_lines_shader < 0 ) {                               \
-            if( canvas_find_shader(canvas, name) == NUM_CANVAS_SHADER ) { \
-                struct Shader gl_lines_shader;                          \
-                shader_create_gl_lines(name, &gl_lines_shader);         \
-                found_gl_lines_shader = canvas_add_shader(canvas, &gl_lines_shader); \
+#define draw_add_shader(canvas, shader, name) do {                      \
+        static int32_t found_##shader##_shader = -1;                    \
+        if( found_##shader##_shader < 0 ) {                             \
+            if( canvas_find_shader(canvas, name) == MAX_CANVAS_SHADER ) { \
+                struct Shader shader##_shader;                        \
+                shader_create_##shader(name, &shader##_shader);     \
+                found_##shader##_shader = canvas_add_shader(canvas, &shader##_shader); \
             }                                                           \
         }                                                               \
     }while(0);
 
-#define draw_add_flat_shader(canvas, name) do {                         \
-        static int32_t found_flat_shader = -1;                          \
-        if( found_flat_shader < 0 ) {                                   \
-            if( canvas_find_shader(canvas, name) == NUM_CANVAS_SHADER ) { \
-                struct Shader flat_shader;                              \
-                shader_create_flat(name, &gl_lines_shader);             \
-                found_flat_shader = canvas_add_shader(canvas, &flat_shader); \
-            }                                                           \
-        }                                                               \
-    }while(0);
+void draw_transform_vertices(size_t vertex_size,
+                             GLenum component_type,
+                             size_t num_vertices,
+                             const float vertices_in[vertex_size*num_vertices],
+                             const Mat transform,
+                             const float vertices_out[vertex_size*num_vertices]);
 
 void draw_grid(struct Canvas* canvas,
                int32_t layer,

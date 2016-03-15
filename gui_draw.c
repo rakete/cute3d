@@ -16,6 +16,24 @@
 
 #include "gui_draw.h"
 
+void draw_transform_vertices(size_t vertex_size,
+                             GLenum component_type,
+                             size_t num_vertices,
+                             const float vertices_in[vertex_size*num_vertices],
+                             const Mat transform,
+                             const float vertices_out[vertex_size*num_vertices])
+{
+    log_assert( component_type == GL_FLOAT );
+
+    size_t component_bytes = ogl_sizeof_type(component_type);
+
+    for( size_t i = 0; i < num_vertices; i++ ) {
+        float* src = (float*)((char*)vertices_in + i*vertex_size*component_bytes);
+        float* dst = (float*)((char*)vertices_out + i*vertex_size*component_bytes);
+        mat_mul_vec3f(transform, src, dst);
+    }
+}
+
 void draw_grid(struct Canvas* canvas,
                int32_t layer_i,
                const Mat model_matrix,
@@ -24,48 +42,121 @@ void draw_grid(struct Canvas* canvas,
                float height,
                uint32_t steps)
 {
-    uint32_t size = (steps+1)*2 + (steps+1)*2;
+    log_assert( steps > 0 );
+    //log_assert( thickness <= width/steps );
+    //log_assert( thickness <= height/steps );
 
-    float vertices[size * 3];
-    uint8_t colors[size * 4];
-    uint32_t elements[size];
-    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    draw_add_shader(canvas, screen_space_thick_lines, "screen_space_thick_lines_shader");
+
+    uint8_t colors[8*4];
+    float line_thickness[8];
+    for( size_t i = 0; i < 8; i++ ) {
+        color_copy(color, &colors[i*4]);
+        line_thickness[i] = 0.07f;
+    }
+
 
     // 1  5  9 10----11
     // |  |  |
     // |  |  | 6-----7
     // |  |  |
     // 0  4  8 2-----3
-    for( uint32_t i = 0; i < (steps+1); i++ ) {
+    //
+    //a          b
+    // 0--------4
+    // |\      /|
+    // | \    / |
+    // |  1--5  |
+    // |  |  |  |
+    // |  3--6  |
+    // | /    \ |
+    // |/      \|
+    // 2--------7
+    //d          c
+    //
+    for( size_t i = 0; i < steps; i++ ) {
+        if( i == 0 ) {
+            Vec3f a, b, c, d;
+            mat_mul_vec3f(model_matrix, (Vec3f){-width/2.0f, height/2.0f, 0.0}, a);
+            mat_mul_vec3f(model_matrix, (Vec3f){width/2.0f, height/2.0f, 0.0}, b);
+            mat_mul_vec3f(model_matrix, (Vec3f){width/2.0f, -height/2.0f, 0.0}, c);
+            mat_mul_vec3f(model_matrix, (Vec3f){-width/2.0f, -height/2.0f, 0.0}, d);
 
-        float xf = -width/2.0f + (float)i * (width / (float)steps);
-        float yf = -height/2.0f + (float)i * (height / (float)steps);
+            uint32_t triangles[24] =
+                { 0, 1, 2,
+                  2, 1, 3,
+                  0, 4, 1,
+                  5, 1, 4,
+                  4, 5, 6,
+                  6, 5, 7,
+                  2, 3, 6,
+                  6, 3, 7 };
 
-        // a step includes one horizontal and one vertical line
-        // made up of 2 vertices each, which makes 4 vertices in total
-        // with 3 components which results in the number 12 below
-        mat_mul_vec3f(model_matrix, (Vec3f){xf, -height/2.0f, 0.0}, vertices + i*12 + 0);
-        color_copy(color, colors + i * 16 + 0);
-        elements[i * 4 + 0] = offset + i * 4 + 0;
+            float vertices[8*3] =
+                { a[0], a[1], a[2],
+                  a[0], a[1], a[2],
+                  d[0], d[1], d[2],
+                  d[0], d[1], d[2],
+                  b[0], b[1], b[2],
+                  b[0], b[1], b[2],
+                  c[0], c[1], c[2],
+                  c[0], c[1], c[2] };
 
-        mat_mul_vec3f(model_matrix, (Vec3f){xf, height/2.0f, 0.0}, vertices + i*12 + 3);
-        color_copy(color, colors + i * 16 + 4);
-        elements[i * 4 + 1] = offset + i * 4 + 1;
+            float prev_vertices[8*3] =
+                { d[0], d[1], d[2],
+                  b[0], b[1], b[2],
+                  c[0], c[1], c[2],
+                  a[0], a[1], a[2],
+                  a[0], a[1], a[2],
+                  c[0], c[1], c[2],
+                  b[0], b[1], b[2],
+                  d[0], d[1], d[2] };
 
-        mat_mul_vec3f(model_matrix, (Vec3f){-width/2.0f, yf, 0.0}, vertices + i*12 + 6);
-        color_copy(color, colors + i * 16 + 8);
-        elements[i * 4 + 2] = offset + i * 4 + 2;
+            float next_vertices[8*3] =
+                { b[0], b[1], b[2],
+                  d[0], d[1], d[2],
+                  a[0], a[1], a[2],
+                  c[0], c[1], c[2],
+                  c[0], c[1], c[2],
+                  a[0], a[1], a[2],
+                  d[0], d[1], d[2],
+                  b[0], b[1], b[2] };
 
-        mat_mul_vec3f(model_matrix, (Vec3f){width/2.0f, yf, 0.0}, vertices + i*12 + 9);
-        color_copy(color, colors + i * 16 + 12);
-        elements[i * 4 + 3] = offset + i * 4 + 3;
+            float edge_directions[8] =
+                { 1, 1, 1, 1, 1, 1, 1, 1 };
+
+            uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+            canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, 8, vertices);
+            canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, 8, colors);
+            canvas_append_attributes(canvas, SHADER_ATTRIBUTE_PREV_VERTEX, 3, GL_FLOAT, 8, prev_vertices);
+            canvas_append_attributes(canvas, SHADER_ATTRIBUTE_NEXT_VERTEX, 3, GL_FLOAT, 8, next_vertices);
+            canvas_append_attributes(canvas, SHADER_ATTRIBUTE_EDGE_DIRECTION, 1, GL_FLOAT, 8, edge_directions);
+            canvas_append_attributes(canvas, SHADER_ATTRIBUTE_LINE_THICKNESS, 1, GL_FLOAT, 8, line_thickness);
+            canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "screen_space_thick_lines_shader", GL_TRIANGLES, 24, triangles, offset);
+        } else {
+            float xf = -width/2.0f + (float)i * (width / (float)steps);
+            float yf = -height/2.0f + (float)i * (height / (float)steps);
+
+            // - a step includes one horizontal and one vertical line
+            // made up of 2 vertices each, which makes 4 vertices in total
+            // with 3 components which results in the number 12 below
+            /* mat_mul_vec3f(model_matrix, (Vec3f){xf, -height/2.0f, 0.0}, vertices + i*12 + 0); */
+            /* color_copy(color, colors + i * 16 + 0); */
+            /* triangles[i * 4 + 0] = offset + i * 4 + 0; */
+
+            /* mat_mul_vec3f(model_matrix, (Vec3f){xf, height/2.0f, 0.0}, vertices + i*12 + 3); */
+            /* color_copy(color, colors + i * 16 + 4); */
+            /* triangles[i * 4 + 1] = offset + i * 4 + 1; */
+
+            /* mat_mul_vec3f(model_matrix, (Vec3f){-width/2.0f, yf, 0.0}, vertices + i*12 + 6); */
+            /* color_copy(color, colors + i * 16 + 8); */
+            /* triangles[i * 4 + 2] = offset + i * 4 + 2; */
+
+            /* mat_mul_vec3f(model_matrix, (Vec3f){width/2.0f, yf, 0.0}, vertices + i*12 + 9); */
+            /* color_copy(color, colors + i * 16 + 12); */
+            /* triangles[i * 4 + 3] = offset + i * 4 + 3; */
+        }
     }
-
-    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
-
-    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, size, NULL);
-    canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, size, NULL);
-    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, elements, size, 0);
 }
 
 void draw_arrow( struct Canvas* canvas,
@@ -129,11 +220,12 @@ void draw_arrow( struct Canvas* canvas,
           3, 4,
           4, 1 };
 
-    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+    draw_add_shader(canvas, gl_lines, "gl_lines_shader");
+    draw_transform_vertices(3, GL_FLOAT, 5, vertices, arrow_matrix, vertices);
 
-    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 5, arrow_matrix);
-    canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 5, color);
-    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, elements, 8*2, 0);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, 5, vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, 5, colors);
+    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, 8*2, elements, 0);
 }
 
 void draw_vec(struct Canvas* canvas,
@@ -190,41 +282,55 @@ void draw_vec(struct Canvas* canvas,
         mat_mul(arrow_offset_matrix, model_matrix, arrow_offset_matrix);
     }
 
-    static float vec_vertices[2*3] =
+    float vec_vertices[2*3] =
         { 0.0f,  0.0f,  0.0f,
           0.0f,  0.0f,  1.0f };
+
+    float vec_colors[2*4] =
+        { color[0], color[1], color[2], color[3],
+          color[0], color[1], color[2], color[3] };
 
     static uint32_t vec_elements[1*2] =
         { 0, 1 };
 
-    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+    draw_add_shader(canvas, gl_lines, "gl_lines_shader");
+    draw_transform_vertices(3, GL_FLOAT, 2, vec_vertices, arrow_matrix, vec_vertices);
 
     uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
-    canvas_append_vertices(canvas, vec_vertices, 3, GL_FLOAT, 2, arrow_matrix);
-    canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 2, color);
-    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, vec_elements, 1*2, offset);
-
-    static float arrow_vertices[5*3] =
-        { 0.0f,  0.0f,  0.0f,
-          0.05f,  0.0f,  -0.1f,
-          0.0f,  0.05f,  -0.1f,
-          -0.05f, 0.0f,  -0.1f,
-          0.0f,  -0.05f, -0.1f };
-
-    static uint32_t arrow_elements[8*2] =
-        { 2, 3,
-          2, 4,
-          2, 5,
-          2, 6,
-          3, 4,
-          4, 5,
-          5, 6,
-          6, 3 };
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, 2, vec_vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, 2, vec_colors);
+    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, 1*2, vec_elements, offset);
 
     if( arrow > 0.0f ) {
-        canvas_append_vertices(canvas, arrow_vertices, 3, GL_FLOAT, 5, arrow_offset_matrix);
-        canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 5, color);
-        canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, arrow_elements, 8*2, offset);
+        float arrow_vertices[5*3] =
+            { 0.0f,  0.0f,  0.0f,
+              0.05f,  0.0f,  -0.1f,
+              0.0f,  0.05f,  -0.1f,
+              -0.05f, 0.0f,  -0.1f,
+              0.0f,  -0.05f, -0.1f };
+
+        float arrow_colors[5*4] =
+            { color[0], color[1], color[2], color[3],
+              color[0], color[1], color[2], color[3],
+              color[0], color[1], color[2], color[3],
+              color[0], color[1], color[2], color[3],
+              color[0], color[1], color[2], color[3] };
+
+        static uint32_t arrow_elements[8*2] =
+            { 2, 3,
+              2, 4,
+              2, 5,
+              2, 6,
+              3, 4,
+              4, 5,
+              5, 6,
+              6, 3 };
+
+        draw_transform_vertices(3, GL_FLOAT, 5, arrow_vertices, arrow_offset_matrix, arrow_vertices);
+
+        canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, 5, arrow_vertices);
+        canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, 5, arrow_colors);
+        canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, 8*2, arrow_elements, offset);
     }
 }
 
@@ -359,11 +465,12 @@ void draw_circle(struct Canvas* canvas,
         draw_arrow(canvas, layer, arrow_matrix, color, v, a, 0.0f, radius/2.0f);
     }
 
-    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+    draw_add_shader(canvas, gl_lines, "gl_lines_shader");
+    draw_transform_vertices(3, GL_FLOAT, 360, vertices, arrow_matrix, vertices);
 
-    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 360, arrow_matrix);
-    canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 360, color);
-    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, elements, 360*2, 0);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, 360, vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, 360, colors);
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, 360*2, elements, 0);
 }
 
 void draw_basis(struct Canvas* canvas,
@@ -442,11 +549,12 @@ void draw_reticle(struct Canvas* canvas,
           4, 5,
           6, 7 };
 
-    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+    draw_add_shader(canvas, gl_lines, "gl_lines_shader");
+    draw_transform_vertices(3, GL_FLOAT, 8, vertices, reticle_matrix, vertices);
 
-    canvas_append_vertices(canvas, vertices, 3, GL_FLOAT, 8, reticle_matrix);
-    canvas_append_colors(canvas, colors, 4, GL_UNSIGNED_BYTE, 8, color);
-    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, elements, 4*2, 0);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, 8, vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, 8, colors);
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, 4*2, elements, 0);
 }
 
 void draw_camera(struct Canvas* canvas,
@@ -468,6 +576,13 @@ void draw_camera(struct Canvas* canvas,
            left, bottom,  -near,
           right, bottom,  -near };
 
+    float camera_colors[5*4] =
+        { color[0], color[1], color[2], color[3],
+          color[0], color[1], color[2], color[3],
+          color[0], color[1], color[2], color[3],
+          color[0], color[1], color[2], color[3],
+          color[0], color[1], color[2], color[3] };
+
     static uint32_t camera_elements[8*2] =
         { 0, 1,
           0, 2,
@@ -481,10 +596,11 @@ void draw_camera(struct Canvas* canvas,
     Mat camera_matrix = {0};
     pivot_world_transform(&camera->pivot, camera_matrix);
 
-    draw_add_gl_lines_shader(canvas, "gl_lines_shader");
+    draw_add_shader(canvas, gl_lines, "gl_lines_shader");
+    draw_transform_vertices(3, GL_FLOAT, 5, camera_vertices, camera_matrix, camera_vertices);
 
     uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
-    canvas_append_vertices(canvas, camera_vertices, 3, GL_FLOAT, 5, camera_matrix);
-    canvas_append_colors(canvas, NULL, 4, GL_UNSIGNED_BYTE, 5, color);
-    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, camera_elements, 8*2, offset);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, 5, camera_vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, 5, camera_colors);
+    canvas_append_indices(canvas, layer, CANVAS_PROJECT_WORLD, "gl_lines_shader", GL_LINES, 8*2, camera_elements, offset);
 }

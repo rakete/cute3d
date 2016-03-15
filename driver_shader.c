@@ -254,6 +254,101 @@ void shader_create_gl_lines(const char* name, struct Shader* shader) {
     shader_add_uniform(shader, SHADER_UNIFORM_MVP_MATRIX, "mvp_matrix");
 }
 
+void shader_create_screen_space_thick_lines(const char* name, struct Shader* shader) {
+    const char* vertex_source =
+        GLSL( uniform mat4 mvp_matrix;
+
+              shader_in vec3 vertex;
+              shader_in vec4 color;
+
+              shader_in vec3 next_vertex;
+              shader_in vec3 prev_vertex;
+              shader_in float edge_direction;
+              shader_in float line_thickness;
+
+              shader_out vec4 frag_color;
+
+              uniform float aspect_ratio;
+              uniform int disable_miter;
+
+              void main() {
+                  float safe_aspect = 800.0/600.0;
+                  if( aspect_ratio > 0.0 ) {
+                      safe_aspect = aspect_ratio;
+                  }
+
+                  vec2 aspect_vec = vec2(safe_aspect, 1.0);
+                  vec4 prev_projected = mvp_matrix * vec4(prev_vertex, 1.0);
+                  vec4 current_projected = mvp_matrix * vec4(vertex, 1.0);
+                  vec4 next_projected = mvp_matrix * vec4(next_vertex, 1.0);
+
+                  // - get 2D screen space with W divide and aspect correction
+                  vec2 current_screen = (current_projected.xy / current_projected.w) * aspect_vec;
+                  vec2 prev_screen = (prev_projected.xy / prev_projected.w) * aspect_vec;
+                  vec2 next_screen = (next_projected.xy / next_projected.w) * aspect_vec;
+
+                  float temp_thickness = line_thickness;
+
+                  vec2 dir = vec2(0,0);
+                  if( current_screen == prev_screen ) {
+                      // - starting point uses (next - current)
+                      dir = normalize(next_screen - current_screen);
+                  } else if (current_screen == next_screen) {
+                      // - ending point uses (current - previous)
+                      dir = normalize(current_screen - prev_screen);
+                  } else {
+                      // - somewhere in middle, needs a join
+                      // - get directions from (C - B) and (B - A)
+                      vec2 dirA = normalize(current_screen - prev_screen);
+                      if( disable_miter == 0 ) {
+                          vec2 dirB = normalize(next_screen - current_screen);
+
+                          // - now compute the miter join normal and length
+                          vec2 tangent = normalize(dirA + dirB);
+                          vec2 perp = vec2(-dirA.y, dirA.x);
+                          vec2 miter_vec = vec2(-tangent.y, tangent.x);
+                          dir = tangent;
+                          float miter_adjust = dot(miter_vec, perp);
+                          temp_thickness = line_thickness / miter_adjust;
+                          if( temp_thickness > 10.0 && line_thickness < 0.1 ) {
+                              temp_thickness = line_thickness;
+                          }
+                      } else {
+                          dir = dirA;
+                      }
+                  }
+
+                  vec2 normal = vec2(-dir.y, dir.x);
+                  normal *= temp_thickness/2.0;
+                  normal.x /= safe_aspect;
+
+                  vec4 offset = vec4(normal, 0.0, 0.0)*(current_projected.z/10.0);
+                  gl_Position = current_projected + offset;
+                  //gl_PointSize = 1.0;
+
+                  frag_color = color;
+              });
+
+    const char* fragment_source =
+        GLSL( shader_in vec4 frag_color;
+
+              void main() {
+                  gl_FragColor = frag_color;
+              });
+
+    shader_create_from_sources(vertex_source, fragment_source, name, shader);
+
+    shader_add_attribute(shader, SHADER_ATTRIBUTE_VERTICES, global_shader_attribute_names[SHADER_ATTRIBUTE_VERTICES]);
+    shader_add_attribute(shader, SHADER_ATTRIBUTE_COLORS, global_shader_attribute_names[SHADER_ATTRIBUTE_COLORS]);
+    shader_add_attribute(shader, SHADER_ATTRIBUTE_PREV_VERTEX, global_shader_attribute_names[SHADER_ATTRIBUTE_PREV_VERTEX]);
+    shader_add_attribute(shader, SHADER_ATTRIBUTE_NEXT_VERTEX, global_shader_attribute_names[SHADER_ATTRIBUTE_NEXT_VERTEX]);
+    shader_add_attribute(shader, SHADER_ATTRIBUTE_EDGE_DIRECTION, global_shader_attribute_names[SHADER_ATTRIBUTE_EDGE_DIRECTION]);
+    shader_add_attribute(shader, SHADER_ATTRIBUTE_LINE_THICKNESS, global_shader_attribute_names[SHADER_ATTRIBUTE_LINE_THICKNESS]);
+
+    shader_add_uniform(shader, SHADER_UNIFORM_MVP_MATRIX, global_shader_uniform_names[SHADER_UNIFORM_MVP_MATRIX]);
+    shader_add_uniform(shader, SHADER_UNIFORM_ASPECT_RATIO, global_shader_uniform_names[SHADER_UNIFORM_ASPECT_RATIO]);
+    shader_add_uniform(shader, SHADER_UNIFORM_DISABLE_MITER, global_shader_uniform_names[SHADER_UNIFORM_DISABLE_MITER]);
+}
 
 GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name) {
     size_t name_length = strlen(name);
