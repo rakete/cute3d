@@ -16,6 +16,9 @@
 
 #include "driver_shader.h"
 
+const char* global_shader_attribute_names[MAX_SHADER_ATTRIBUTES] = {0};
+const char* global_shader_uniform_names[MAX_SHADER_UNIFORMS] = {0};
+
 int32_t init_shader() {
     int32_t ret = 0;
 
@@ -25,6 +28,58 @@ int32_t init_shader() {
         log_fail(stderr, __FILE__, __LINE__, "uniform_buffer_object extension not found!\n");
         ret = 1;
     }
+
+    for( size_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
+        global_shader_attribute_names[i] = "invalid_attribute";
+    }
+
+    for( size_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
+        global_shader_uniform_names[i] = "invalid_uniform";
+    }
+
+    /* #define SHADER_NAME_VERTICES "vertex" */
+    /* #define SHADER_NAME_NORMALS "normal" */
+    /* #define SHADER_NAME_COLORS "color" */
+    /* #define SHADER_NAME_TEXCOORDS "texcoord" */
+    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTICES] = "vertex";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_NORMALS] = "normal";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_COLORS] = "color";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_TEXCOORDS] = "texcoord";
+
+    /* #define SHADER_NAME_INSTANCE_ID "instance_id" */
+    /* #define SHADER_NAME_PREV_VERTEX "prev_vertex" */
+    /* #define SHADER_NAME_NEXT_VERTEX "next_vertex" */
+    /* #define SHADER_NAME_EDGE_DIRECTION "edge_direction" */
+    global_shader_attribute_names[SHADER_ATTRIBUTE_INSTANCE_ID] = "instance_id";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_PREV_VERTEX] = "prev_vertex";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_NEXT_VERTEX] = "next_vertex";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_EDGE_DIRECTION] = "edge_direction";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_LINE_THICKNESS] = "line_thickness";
+
+    /* #define SHADER_NAME_MVP_MATRIX "mvp_matrix" */
+    /* #define SHADER_NAME_MODEL_MATRIX "model_matrix" */
+    /* #define SHADER_NAME_VIEW_MATRIX "view_matrix" */
+    /* #define SHADER_NAME_PROJECTION_MATRIX "projection_matrix" */
+    /* #define SHADER_NAME_NORMAL_MATRIX "normal_matrix" */
+    global_shader_uniform_names[SHADER_UNIFORM_MVP_MATRIX] = "mvp_matrix";
+    global_shader_uniform_names[SHADER_UNIFORM_MODEL_MATRIX] = "model_matrix";
+    global_shader_uniform_names[SHADER_UNIFORM_VIEW_MATRIX] = "view_matrix";
+    global_shader_uniform_names[SHADER_UNIFORM_PROJECTION_MATRIX] = "projection_matrix";
+    global_shader_uniform_names[SHADER_UNIFORM_NORMAL_MATRIX] = "normal_matrix";
+
+    /* #define SHADER_NAME_LIGHT_DIRECTION "light_direction" */
+    /* #define SHADER_NAME_AMBIENT_COLOR "ambient_color" */
+    /* #define SHADER_NAME_DIFFUSE_COLOR "diffuse_color" */
+    /* #define SHADER_NAME_DIFFUSE_TEXTURE "diffuse_texture" */
+    global_shader_uniform_names[SHADER_UNIFORM_LIGHT_DIRECTION] = "light_direction";
+    global_shader_uniform_names[SHADER_UNIFORM_AMBIENT_COLOR] = "ambient_color";
+    global_shader_uniform_names[SHADER_UNIFORM_DIFFUSE_COLOR] = "diffuse_color";
+    global_shader_uniform_names[SHADER_UNIFORM_DIFFUSE_TEXTURE] = "diffuse_texture";
+
+    /* #define SHADER_NAME_ASPECT_RATIO "aspect_ratio" */
+    /* #define SHADER_NAME_LINE_MITER "line_miter" */
+    global_shader_uniform_names[SHADER_UNIFORM_ASPECT_RATIO] = "aspect_ratio";
+    global_shader_uniform_names[SHADER_UNIFORM_DISABLE_MITER] = "disable_miter";
 
     return ret;
 }
@@ -70,10 +125,9 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
     p->program = glsl_create_program(p->vertex_shader, p->fragment_shader);
     log_assert( p->program > 0 );
 
-    glBindAttribLocation(p->program, SHADER_LOCATION_VERTICES, SHADER_NAME_VERTICES);
-    glBindAttribLocation(p->program, SHADER_LOCATION_NORMALS, SHADER_NAME_NORMALS);
-    glBindAttribLocation(p->program, SHADER_LOCATION_COLORS, SHADER_NAME_COLORS);
-    glBindAttribLocation(p->program, SHADER_LOCATION_TEXCOORDS, SHADER_NAME_TEXCOORDS);
+    for( uint32_t attribute_i = 0; attribute_i < MAX_SHADER_ATTRIBUTES; attribute_i++ ) {
+        glBindAttribLocation(p->program, attribute_i, global_shader_attribute_names[attribute_i]);
+    }
 
     p->program = glsl_link_program(p->program);
     log_assert( p->program > 0 );
@@ -110,10 +164,9 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     p->program = glsl_create_program(p->vertex_shader, p->fragment_shader);
     log_assert( p->program > 0 );
 
-    glBindAttribLocation(p->program, SHADER_LOCATION_VERTICES, SHADER_NAME_VERTICES);
-    glBindAttribLocation(p->program, SHADER_LOCATION_NORMALS, SHADER_NAME_NORMALS);
-    glBindAttribLocation(p->program, SHADER_LOCATION_COLORS, SHADER_NAME_COLORS);
-    glBindAttribLocation(p->program, SHADER_LOCATION_TEXCOORDS, SHADER_NAME_TEXCOORDS);
+    for( uint32_t attribute_i = 0; attribute_i < MAX_SHADER_ATTRIBUTES; attribute_i++ ) {
+        glBindAttribLocation(p->program, attribute_i, global_shader_attribute_names[attribute_i]);
+    }
 
     p->program = glsl_link_program(p->program);
     log_assert( p->program > 0 );
@@ -128,6 +181,79 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
         p->uniform[i].location = -1;
     }
 }
+
+void shader_create_flat(const char* name, struct Shader* shader) {
+    const char* vertex_source =
+        GLSL( uniform mat4 mvp_matrix;
+              uniform mat4 normal_matrix;
+              uniform vec3 light_direction;
+
+              shader_in vec3 vertex;
+              shader_in vec4 color;
+              shader_in vec3 normal;
+
+              shader_out vec4 frag_color;
+              shader_out float intensity;
+
+              void main() {
+                  intensity = 0.5 - dot(vec4(normalize(light_direction), 0.0), normal_matrix * vec4(normalize(normal),0.0))/2.0;
+
+                  gl_Position = mvp_matrix * vec4(vertex,1.0);
+
+                  frag_color = color;
+              });
+
+    const char* fragment_source =
+        GLSL( shader_in vec4 frag_color;
+              shader_in float intensity;
+
+              uniform vec4 ambient_color;
+
+              void main() {
+                  gl_FragColor = ambient_color*(1.0 - intensity) + frag_color*intensity;
+                  //gl_FragColor = ambient_color*intensity;
+              });
+
+    shader_create_from_sources(vertex_source, fragment_source, name, shader);
+
+    shader_add_attribute(shader, SHADER_ATTRIBUTE_VERTICES, global_shader_attribute_names[SHADER_ATTRIBUTE_VERTICES]);
+    shader_add_attribute(shader, SHADER_ATTRIBUTE_COLORS, global_shader_attribute_names[SHADER_ATTRIBUTE_COLORS]);
+    shader_add_attribute(shader, SHADER_ATTRIBUTE_NORMALS, global_shader_attribute_names[SHADER_ATTRIBUTE_NORMALS]);
+
+    shader_add_uniform(shader, SHADER_UNIFORM_MVP_MATRIX, global_shader_uniform_names[SHADER_UNIFORM_MVP_MATRIX]);
+    shader_add_uniform(shader, SHADER_UNIFORM_NORMAL_MATRIX, global_shader_uniform_names[SHADER_UNIFORM_NORMAL_MATRIX]);
+    shader_add_uniform(shader, SHADER_UNIFORM_LIGHT_DIRECTION, global_shader_uniform_names[SHADER_UNIFORM_LIGHT_DIRECTION]);
+    shader_add_uniform(shader, SHADER_UNIFORM_AMBIENT_COLOR, global_shader_uniform_names[SHADER_UNIFORM_AMBIENT_COLOR]);
+}
+
+void shader_create_gl_lines(const char* name, struct Shader* shader) {
+    const char* vertex_source =
+        GLSL( uniform mat4 mvp_matrix;
+
+              shader_in vec3 vertex;
+              shader_in vec4 color;
+
+              shader_out vec4 frag_color;
+              void main() {
+                  gl_Position = mvp_matrix * vec4(vertex,1.0);
+                  frag_color = color;
+              });
+
+    const char* fragment_source =
+        GLSL( shader_in vec4 frag_color;
+
+              void main() {
+                  gl_FragColor = frag_color;
+              });
+
+    shader_create_from_sources(vertex_source, fragment_source, name, shader);
+
+    shader_add_attribute(shader, SHADER_ATTRIBUTE_VERTICES, "vertex");
+    shader_add_attribute(shader, SHADER_ATTRIBUTE_COLORS, "color");
+
+    shader_add_uniform(shader, SHADER_UNIFORM_MVP_MATRIX, "mvp_matrix");
+}
+
 
 GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name) {
     size_t name_length = strlen(name);
@@ -185,78 +311,6 @@ GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const cha
     return location;
 }
 
-void shader_create_flat(const char* name, struct Shader* shader) {
-    const char* vertex_source =
-        GLSL( uniform mat4 mvp_matrix;
-              uniform mat4 normal_matrix;
-              uniform vec3 light_direction;
-
-              shader_in vec3 vertex;
-              shader_in vec4 color;
-              shader_in vec3 normal;
-
-              shader_out vec4 frag_color;
-              shader_out float intensity;
-
-              void main() {
-                  intensity = 0.5 - dot(vec4(normalize(light_direction), 0.0), normal_matrix * vec4(normalize(normal),0.0))/2.0;
-
-                  gl_Position = mvp_matrix * vec4(vertex,1.0);
-
-                  frag_color = color;
-              });
-
-    const char* fragment_source =
-        GLSL( shader_in vec4 frag_color;
-              shader_in float intensity;
-
-              uniform vec4 ambient_color;
-
-              void main() {
-                  gl_FragColor = ambient_color*(1.0 - intensity) + frag_color*intensity;
-                  //gl_FragColor = ambient_color*intensity;
-              });
-
-    shader_create_from_sources(vertex_source, fragment_source, name, shader);
-
-    shader_add_attribute(shader, SHADER_ATTRIBUTE_VERTICES, SHADER_NAME_VERTICES);
-    shader_add_attribute(shader, SHADER_ATTRIBUTE_COLORS, SHADER_NAME_COLORS);
-    shader_add_attribute(shader, SHADER_ATTRIBUTE_NORMALS, SHADER_NAME_NORMALS);
-
-    shader_add_uniform(shader, SHADER_UNIFORM_MVP_MATRIX, SHADER_NAME_MVP_MATRIX);
-    shader_add_uniform(shader, SHADER_UNIFORM_NORMAL_MATRIX, SHADER_NAME_NORMAL_MATRIX);
-    shader_add_uniform(shader, SHADER_UNIFORM_LIGHT_DIRECTION, SHADER_NAME_LIGHT_DIRECTION);
-    shader_add_uniform(shader, SHADER_UNIFORM_AMBIENT_COLOR, SHADER_NAME_AMBIENT_COLOR);
-}
-
-void shader_create_gl_lines(const char* name, struct Shader* shader) {
-    const char* vertex_source =
-        GLSL( uniform mat4 mvp_matrix;
-
-              shader_in vec3 vertex;
-              shader_in vec4 color;
-
-              shader_out vec4 frag_color;
-              void main() {
-                  gl_Position = mvp_matrix * vec4(vertex,1.0);
-                  frag_color = color;
-              });
-
-    const char* fragment_source =
-        GLSL( shader_in vec4 frag_color;
-
-              void main() {
-                  gl_FragColor = frag_color;
-              });
-
-    shader_create_from_sources(vertex_source, fragment_source, name, shader);
-
-    shader_add_attribute(shader, SHADER_ATTRIBUTE_VERTICES, "vertex");
-    shader_add_attribute(shader, SHADER_ATTRIBUTE_COLORS, "color");
-
-    shader_add_uniform(shader, SHADER_UNIFORM_MVP_MATRIX, "mvp_matrix");
-}
-
 void shader_print(FILE* f, const struct Shader* shader) {
     fprintf(f, "shader->vertex_shader: %d\n", shader->vertex_shader);
     fprintf(f, "shader->fragment_shader: %d\n", shader->fragment_shader);
@@ -291,7 +345,7 @@ GLint shader_set_uniform_matrices(const struct Shader* shader, const Mat project
     } else if( strlen(shader->uniform[SHADER_UNIFORM_MVP_MATRIX].name) > 0 ) {
         ogl_debug( mvp_loc = glGetUniformLocation(shader->program, "mvp_matrix") );
         if( mvp_loc > -1 ) {
-            log_warn(stderr, __FILE__, __LINE__, "uniform %d location \"%s\" of shader \"%s\" not cached\n", SHADER_UNIFORM_MVP_MATRIX, SHADER_NAME_MVP_MATRIX, shader->name);
+            log_warn(stderr, __FILE__, __LINE__, "uniform %d location \"%s\" of shader \"%s\" not cached\n", SHADER_UNIFORM_MVP_MATRIX, global_shader_uniform_names[SHADER_UNIFORM_MVP_MATRIX], shader->name);
         }
     }
 
@@ -308,7 +362,7 @@ GLint shader_set_uniform_matrices(const struct Shader* shader, const Mat project
         } else if( strlen(shader->uniform[SHADER_UNIFORM_PROJECTION_MATRIX].name) > 0 ) {
             ogl_debug( projection_loc = glGetUniformLocation(shader->program, "projection_matrix") );
             if( projection_loc > -1 ) {
-                log_warn(stderr, __FILE__, __LINE__, "uniform %d location \"%s\" of shader \"%s\" not cached\n", SHADER_UNIFORM_PROJECTION_MATRIX, SHADER_NAME_PROJECTION_MATRIX, shader->name);
+                log_warn(stderr, __FILE__, __LINE__, "uniform %d location \"%s\" of shader \"%s\" not cached\n", SHADER_UNIFORM_PROJECTION_MATRIX, global_shader_uniform_names[SHADER_UNIFORM_PROJECTION_MATRIX], shader->name);
             }
         }
 
@@ -325,7 +379,7 @@ GLint shader_set_uniform_matrices(const struct Shader* shader, const Mat project
         } else if( strlen(shader->uniform[SHADER_UNIFORM_VIEW_MATRIX].name) > 0 ) {
             ogl_debug( view_loc = glGetUniformLocation(shader->program, "view_matrix") );
             if( view_loc > -1 ) {
-                log_warn(stderr, __FILE__, __LINE__, "uniform %d location \"%s\" of shader \"%s\" not cached\n", SHADER_UNIFORM_VIEW_MATRIX, SHADER_NAME_VIEW_MATRIX, shader->name);
+                log_warn(stderr, __FILE__, __LINE__, "uniform %d location \"%s\" of shader \"%s\" not cached\n", SHADER_UNIFORM_VIEW_MATRIX, global_shader_uniform_names[SHADER_UNIFORM_VIEW_MATRIX], shader->name);
             }
         }
 
@@ -342,7 +396,7 @@ GLint shader_set_uniform_matrices(const struct Shader* shader, const Mat project
         } else if( strlen(shader->uniform[SHADER_UNIFORM_MODEL_MATRIX].name) > 0 ) {
             ogl_debug( model_loc = glGetUniformLocation(shader->program, "model_matrix") );
             if( model_loc > -1 ) {
-                log_warn(stderr, __FILE__, __LINE__, "uniform %d location \"%s\" of shader \"%s\" not cached\n", SHADER_UNIFORM_MODEL_MATRIX, SHADER_NAME_MODEL_MATRIX, shader->name);
+                log_warn(stderr, __FILE__, __LINE__, "uniform %d location \"%s\" of shader \"%s\" not cached\n", SHADER_UNIFORM_MODEL_MATRIX, global_shader_uniform_names[SHADER_UNIFORM_MODEL_MATRIX], shader->name);
             }
         }
 
@@ -360,7 +414,7 @@ GLint shader_set_uniform_matrices(const struct Shader* shader, const Mat project
     } else if( strlen(shader->uniform[SHADER_UNIFORM_NORMAL_MATRIX].name) > 0 ) {
         ogl_debug( normal_loc = glGetUniformLocation(shader->program, "normal_matrix") );
         if( normal_loc > -1 ) {
-            log_warn(stderr, __FILE__, __LINE__, "uniform %d location \"%s\" of shader \"%s\" not cached\n", SHADER_UNIFORM_NORMAL_MATRIX, SHADER_NAME_NORMAL_MATRIX, shader->name);
+            log_warn(stderr, __FILE__, __LINE__, "uniform %d location \"%s\" of shader \"%s\" not cached\n", SHADER_UNIFORM_NORMAL_MATRIX, global_shader_uniform_names[SHADER_UNIFORM_NORMAL_MATRIX], shader->name);
         }
     }
 
@@ -470,41 +524,38 @@ GLint shader_set_uniform_4f(const struct Shader* shader, int32_t uniform_index, 
     return location;
 }
 
-GLint shader_set_attribute(const struct Shader* shader, int32_t attribute_i, GLuint buffer, size_t n, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p) {
+GLint shader_set_attribute(const struct Shader* shader, int32_t attribute_i, GLuint buffer, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p) {
+    log_assert( shader != NULL );
     log_assert( attribute_i >= SHADER_ATTRIBUTE_VERTICES );
     log_assert( attribute_i < MAX_SHADER_ATTRIBUTES );
     log_assert( c_num >= 0 );
     log_assert( c_num <= 4 );
 
     GLint location = -1;
-    if( buffer == 0 || n == 0 || c_num == 0 ) {
+    if( buffer == 0 || c_num == 0 ) {
         return location;
     }
 
-    if( shader == NULL ) {
-        switch(attribute_i) {
-            case SHADER_ATTRIBUTE_VERTICES: location = SHADER_LOCATION_VERTICES; break;
-            case SHADER_ATTRIBUTE_NORMALS: location = SHADER_LOCATION_NORMALS; break;
-            case SHADER_ATTRIBUTE_COLORS: location = SHADER_LOCATION_COLORS; break;
-            case SHADER_ATTRIBUTE_TEXCOORDS: location = SHADER_LOCATION_TEXCOORDS; break;
-            default: log_assert( SHADER_ATTRIBUTE_VERTICES == 0 && attribute_i >= SHADER_ATTRIBUTE_VERTICES && attribute_i < NUM_SHADER_ATTRIBUTES );
-        }
-    } else if( shader->attribute[attribute_i].location > -1 ) {
+    if( shader->attribute[attribute_i].location > -1 ) {
         location = shader->attribute[attribute_i].location;
     } else if( strlen(shader->attribute[attribute_i].name) > 0 ) {
+        // - I could actually just cache the location here, but I don't, I'd rather find out about
+        // the mistake that I made (not calling glBindAttribLocation etc. somewhere else), then
+        // quietly correct it here
+        // - might just warn about it and still cache it though in the future
         ogl_debug( location = glGetAttribLocation(shader->program, shader->attribute[attribute_i].name) );
         if( location > -1 ) {
             log_warn(stderr, __FILE__, __LINE__, "attribute %d location \"%s\" of shader \"%s\" not cached\n", attribute_i, shader->attribute[attribute_i].name, shader->name);
         }
-    } else if( strlen(shader->attribute[attribute_i].name) == 0 ) {
-        log_warn(stderr, __FILE__, __LINE__, "attribute %d has no name or location in shader \"%s\"\n", attribute_i, shader->name);
     } else {
-        log_warn(stderr, __FILE__, __LINE__, "attribute %d has no location \"%s\" in shader \"%s\"\n", attribute_i, shader->attribute[attribute_i].name, shader->name);
+        log_warn(stderr, __FILE__, __LINE__, "attribute %d has no name or location in shader \"%s\"\n", attribute_i, shader->name);
     }
 
     if( location > -1 ) {
         ogl_debug( glEnableVertexAttribArray((GLuint)location);
                    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+                   // - glVertexAttribPointer requires a vao to be bound in core 3.0+, if none is bound,
+                   // rendering will fail here
                    glVertexAttribPointer((GLuint)location, c_num, c_type, GL_TRUE, stride, p); );
     }
 

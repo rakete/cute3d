@@ -6,38 +6,28 @@
 #include "math_matrix.h"
 #include "driver_log.h"
 #include "driver_ogl.h"
+#include "driver_sdl2.h"
 #include "driver_glsl.h"
 #include "driver_shader.h"
 
-// names for locations
-#define SHADER_NAME_VERTICES "vertex"
-#define SHADER_NAME_NORMALS "normal"
-#define SHADER_NAME_COLORS "color"
-#define SHADER_NAME_TEXCOORDS "texcoord"
-#define SHADER_NAME_MVP_MATRIX "mvp_matrix"
-#define SHADER_NAME_MODEL_MATRIX "model_matrix"
-#define SHADER_NAME_VIEW_MATRIX "view_matrix"
-#define SHADER_NAME_PROJECTION_MATRIX "projection_matrix"
-#define SHADER_NAME_NORMAL_MATRIX "normal_matrix"
-#define SHADER_NAME_LIGHT_DIRECTION "light_direction"
-#define SHADER_NAME_AMBIENT_COLOR "ambient_color"
-#define SHADER_NAME_DIFFUSE_COLOR "diffuse_color"
-#define SHADER_NAME_DIFFUSE_TEXTURE "diffuse_texture"
-
 // sooner or later I am going to need to supply custom attributes to shaders,
 // defining them here like this seems to be the most sane way
-#define NUM_CUSTOM_ATTRIBUTES 1
-#define SHADER_ATTRIBUTE_INSTANCE_ID NUM_OGL_ATTRIBUTES+1
+#define MAX_CUSTOM_ATTRIBUTES 5
+#define SHADER_ATTRIBUTE_INSTANCE_ID MAX_OGL_ATTRIBUTES+0
+#define SHADER_ATTRIBUTE_PREV_VERTEX MAX_OGL_ATTRIBUTES+1
+#define SHADER_ATTRIBUTE_NEXT_VERTEX MAX_OGL_ATTRIBUTES+2
+#define SHADER_ATTRIBUTE_EDGE_DIRECTION MAX_OGL_ATTRIBUTES+3
+#define SHADER_ATTRIBUTE_LINE_THICKNESS MAX_OGL_ATTRIBUTES+4
 
 // attribute ids for arrays (and maybe locations)
-#define NUM_SHADER_ATTRIBUTES NUM_CUSTOM_ATTRIBUTES+NUM_OGL_ATTRIBUTES
+#define MAX_SHADER_ATTRIBUTES MAX_CUSTOM_ATTRIBUTES+MAX_OGL_ATTRIBUTES
 #define SHADER_ATTRIBUTE_VERTICES OGL_VERTICES
 #define SHADER_ATTRIBUTE_NORMALS OGL_NORMALS
 #define SHADER_ATTRIBUTE_COLORS OGL_COLORS
 #define SHADER_ATTRIBUTE_TEXCOORDS OGL_TEXCOORDS
 
 // uniform ids for arrays (and maybe locations)
-#define NUM_SHADER_UNIFORMS 32
+#define MAX_SHADER_UNIFORMS 16
 #define SHADER_UNIFORM_MVP_MATRIX 0
 #define SHADER_UNIFORM_MODEL_MATRIX 1
 #define SHADER_UNIFORM_VIEW_MATRIX 2
@@ -47,11 +37,9 @@
 #define SHADER_UNIFORM_AMBIENT_COLOR 6
 #define SHADER_UNIFORM_DIFFUSE_COLOR 7
 
-// default locations when using glBindAttribLocation
-#define SHADER_LOCATION_VERTICES SHADER_ATTRIBUTE_VERTICES
-#define SHADER_LOCATION_NORMALS SHADER_ATTRIBUTE_NORMALS
-#define SHADER_LOCATION_COLORS SHADER_ATTRIBUTE_COLORS
-#define SHADER_LOCATION_TEXCOORDS SHADER_ATTRIBUTE_TEXCOORDS
+// names for locations
+extern const char* global_shader_attribute_names[MAX_SHADER_ATTRIBUTES];
+extern const char* global_shader_uniform_names[MAX_SHADER_UNIFORMS];
 
 struct Shader {
     char name[256];
@@ -67,7 +55,7 @@ struct Shader {
     struct {
         GLint location;
         char name[256];
-    } attribute[NUM_SHADER_ATTRIBUTES];
+    } attribute[MAX_SHADER_ATTRIBUTES];
 
     // - I was thinking about using uniform buffer objects and how they would fit in here,
     // the verdict was that instead of locations from glGetUniformLocation I could store
@@ -88,7 +76,7 @@ struct Shader {
     struct {
         GLint location;
         char name[256];
-    } uniform[NUM_SHADER_UNIFORMS];
+    } uniform[MAX_SHADER_UNIFORMS];
 };
 
 int32_t init_shader() __attribute__((warn_unused_result));
@@ -97,17 +85,18 @@ void shader_create_empty(struct Shader* p);
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p);
 void shader_create_from_sources(const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p);
 
-GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name);
-GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const char* name);
-
 void shader_create_flat(const char* name, struct Shader* shader);
 void shader_create_gl_lines(const char* name, struct Shader* shader);
+void shader_create_screen_space_thick_lines(const char* name, struct Shader* shader);
+
+GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name);
+GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const char* name);
 
 void shader_print(FILE* f, const struct Shader* shader);
 
 GLint shader_set_uniform_matrices(const struct Shader* shader, const Mat projection_matrix, const Mat view_matrix, const Mat model_matrix);
 GLint shader_set_uniform_3f(const struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
 GLint shader_set_uniform_4f(const struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
-GLint shader_set_attribute(const struct Shader* shader, int32_t attribute_i, GLuint buffer, size_t n, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p);
+GLint shader_set_attribute(const struct Shader* shader, int32_t attribute_i, GLuint buffer, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p);
 
 #endif
