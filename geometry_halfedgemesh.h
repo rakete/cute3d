@@ -4,8 +4,8 @@
 #include "limits.h"
 
 #include "math_types.h"
+
 #include "geometry_solid.h"
-#include "geometry_types.h"
 
 struct HalfEdge;
 

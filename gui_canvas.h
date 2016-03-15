@@ -9,8 +9,6 @@
 
 #include "math_matrix.h"
 
-#include "geometry_types.h"
-
 #include "gui_font.h"
 #include "gui_default_font.h"
 
