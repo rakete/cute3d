@@ -173,9 +173,8 @@ void text_printf(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char*
     va_list args;
     va_start(args, format);
 
-    const size_t text_size = 8192;
-    wchar_t text[text_size];
-    vswprintf(text, text_size, format, args);
+    wchar_t text[8192];
+    vswprintf(text, 8192, format, args);
     va_end(args);
 
     text_put_screen(canvas, cursor, layer, font_name, scale, color, x, y, text);
