@@ -41,6 +41,8 @@ MatP pivot_local_transform(const struct Pivot* pivot, Mat local_transform);
 // them to where they should be if pivot2 was at the origin (0,0,0)
 // - between_transform moves pivot1 vertices to where they should be relative to pivot2
 MatP pivot_between_transform(const struct Pivot* pivot1, const struct Pivot* pivot2, Mat between_transform);
+QuatP pivot_between_orientation(const struct Pivot* pivot1, const struct Pivot* pivot2, Quat between_rotation);
+VecP pivot_between_translation(const struct Pivot* pivot1, const struct Pivot* pivot2, Vec3f between_translation);
 
 void pivot_combine(const struct Pivot* pivot1, const struct Pivot* pivot2, struct Pivot* r);
 

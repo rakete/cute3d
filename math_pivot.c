@@ -227,6 +227,20 @@ MatP pivot_between_transform(const struct Pivot* pivot1, const struct Pivot* piv
     return between_transform;
 }
 
+QuatP pivot_between_orientation(const struct Pivot* pivot1, const struct Pivot* pivot2, Quat between_rotation) {
+    Quat inverted_from;
+    quat_invert(pivot1->orientation, inverted_from);
+    quat_mul(pivot2->orientation, inverted_from, between_rotation);
+
+    return between_rotation;
+}
+
+VecP pivot_between_translation(const struct Pivot* pivot1, const struct Pivot* pivot2, Vec3f between_translation) {
+    vec_sub(pivot1->position, pivot2->position, between_translation);
+
+    return between_translation;
+}
+
 void pivot_combine(const struct Pivot* pivot1, const struct Pivot* pivot2, struct Pivot* r) {
     Vec4f concat_position = {0};
     vec_add(pivot1->position, pivot2->position, concat_position);
