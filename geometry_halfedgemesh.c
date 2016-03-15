@@ -131,9 +131,9 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         edges_map[c][b] = -1;
     }
 
-    // we need to make sure that we'll have enough space occupied in the mesh for all
+    // - we need to make sure that we'll have enough space occupied in the mesh for all
     // the data that we are going to add
-    // this ist lacking error handling
+    // - this is lacking error handling
     size_t free_vertices_capacity = mesh->vertices.capacity - mesh->vertices.occupied;
     if( free_vertices_capacity < num_unique_vertices ) {
         halfedgemesh_alloc_vertices(mesh, num_unique_vertices - free_vertices_capacity);
@@ -400,9 +400,10 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
         Vec4f vec_b = {0};
         vec_sub(mesh->vertices.array[unique_vertex_map[a]].position, mesh->vertices.array[unique_vertex_map[b]].position, vec_a);
         vec_sub(mesh->vertices.array[unique_vertex_map[b]].position, mesh->vertices.array[unique_vertex_map[c]].position, vec_b);
-        vec_normalize(vec_a, vec_a);
-        vec_normalize(vec_b, vec_b);
+        /* vec_normalize(vec_a, vec_a); */
+        /* vec_normalize(vec_b, vec_b); */
         vec_cross(vec_a, vec_b, face_ptr->normal);
+        vec_normalize(face_ptr->normal, face_ptr->normal);
 
         // we need to keep track about how many faces and edges we added to the mesh with
         // these index counters that indicate the position where we'll add the next face/edge
@@ -888,15 +889,15 @@ void halfedgemesh_verify(const struct HalfEdgeMesh* mesh) {
     log_assert( mesh->edges.occupied < INT32_MAX );
     log_assert( mesh->faces.occupied < INT32_MAX );
 
+    int32_t seen_vertices[mesh->vertices.occupied];
+    for( int32_t i = 0; i < (int32_t)mesh->vertices.occupied; i++ ) {
+        seen_vertices[i] = 0;
+    }
+
     for( int32_t face_i = 0; face_i < (int32_t)mesh->faces.occupied; face_i++ ) {
         struct HalfEdgeFace* face = &mesh->faces.array[face_i];
         if( face->edge == -1 ) {
             continue;
-        }
-
-        int32_t seen_vertices[mesh->vertices.occupied];
-        for( int32_t i = 0; i < (int32_t)mesh->vertices.occupied; i++ ) {
-            seen_vertices[i] = 0;
         }
 
         struct HalfEdge* this = &mesh->edges.array[face->edge];
