@@ -226,7 +226,9 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
     for( int32_t i = 0; i < MAX_VBO_PHASES; i++ ) {
         mesh->_internal_indices[i].id = 0;
         mesh->_internal_indices[i].usage = usage;
+#ifndef EMSCRIPTEN
         mesh->_internal_indices[i].base = 0;
+#endif
         mesh->_internal_indices[i].capacity = 0;
         mesh->_internal_indices[i].occupied = 0;
     }
@@ -239,6 +241,10 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
     // shaped, what happens is that you get seemingly random depth errors where stuff is drawn in
     // front of other stuff when it shouldn't
     mesh->z_offset = (float)(((double)rand()/(double)(RAND_MAX/0.0002)) - 0.0001);
+
+#ifndef CUTE_DISABLE_VAO
+    mesh->vao = 0;
+#endif
 }
 
 void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {

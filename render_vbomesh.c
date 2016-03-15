@@ -195,7 +195,7 @@ void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, s
     vbomesh_create_from_solid(&solid, vbo, mesh);
 }
 
-void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, const Mat model_matrix) {
+void vbomesh_render(struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, const Mat model_matrix) {
     log_assert( mesh != NULL );
     log_assert( shader != NULL );
     log_assert( camera != NULL );
@@ -208,42 +208,41 @@ void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, con
     projection_matrix[14] += mesh->z_offset;
     log_assert( shader_set_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix) > -1 );
 
-    for( int32_t array_id = 0; array_id < NUM_SHADER_ATTRIBUTES; array_id++ ) {
-        uint32_t c_num = mesh->vbo->components[array_id].size;
-        GLenum c_type = mesh->vbo->components[array_id].type;
-        uint32_t c_bytes = mesh->vbo->components[array_id].bytes;
-        size_t offset = mesh->offset * c_num * c_bytes;
     GLint loc[MAX_SHADER_ATTRIBUTES] = {0};
+    bool not_binding_vao = true;
 
-        loc[array_id] = -1;
-        if( c_num == 0 || c_bytes == 0 ) {
-            continue;
-        }
+#ifndef CUTE_DISABLE_VAO
+    if( mesh->vao == 0 ) {
+        glGenVertexArrays(1, &mesh->vao);
+    } else {
+        not_binding_vao = false;
+    }
+    glBindVertexArray(mesh->vao);
+#endif
 
-        if( shader->attribute[array_id].location > -1 ) {
-            loc[array_id] = shader->attribute[array_id].location;
-        } else if( strlen(shader->attribute[array_id].name) > 0 ) {
-            ogl_debug( loc[array_id] = glGetAttribLocation(shader->program, shader->attribute[array_id].name) );
-            log_warn(stderr, __FILE__, __LINE__, "attribute %d location \"%s\" of shader \"%s\" not cached\n", array_id, shader->attribute[array_id].name, shader->name);
-        } else {
-            continue;
-        }
+    if( not_binding_vao ) {
+        for( int32_t array_id = 0; array_id < MAX_SHADER_ATTRIBUTES; array_id++ ) {
+            uint32_t c_num = mesh->vbo->components[array_id].size;
+            GLenum c_type = mesh->vbo->components[array_id].type;
+            uint32_t c_bytes = mesh->vbo->components[array_id].bytes;
+            size_t offset = mesh->offset * c_num * c_bytes;
 
-        log_assert( c_num <= 4, "%d <= 4: glVertexAttribPointer will not work with attribute component size > 4\n", c_num);
-        if( mesh->vbo->buffer[array_id].id && loc[array_id] > -1 ) {
-            ogl_debug( glEnableVertexAttribArray((GLuint)loc[array_id]);
-                       glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[array_id].id);
-                       // - the offset here is what makes things work out with the indices starting at 0
-                       // - I came here from trying to figure out why I had *triangles and *indices in solids,
-                       // the reason is that most of my solids simply don't need indices and render fine with
-                       // just a glDrawArrays call
-                       glVertexAttribPointer((GLuint)loc[array_id], (GLint)c_num, c_type, GL_TRUE, 0, (void*)(intptr_t)offset) );
+            loc[array_id] = -1;
+            if( c_num == 0 || c_bytes == 0 ) {
+                if( shader->attribute[array_id].location > -1 ) {
+                    log_warn(stderr, __FILE__, __LINE__, "the shader \"%s\" has a location for attribute %d but the vbomesh that is rendered has no such attributes\n", shader->name, array_id);
+                }
+                continue;
+            }
+
+            log_assert( c_num < INT_MAX );
+            loc[array_id] = shader_set_attribute(shader, array_id, mesh->vbo->buffer[array_id].id, (GLint)c_num, c_type, 0, (void*)(intptr_t)offset);
         }
     }
 
     if( mesh->indices->id ) {
         ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indices->id); );
-        ogl_debug( glDrawElementsBaseVertex(mesh->primitives.type, mesh->indices->occupied, mesh->index.type, 0, mesh->indices->base); );
+        ogl_debug( glDrawElements(mesh->primitives.type, mesh->indices->occupied, mesh->index.type, 0); );
         ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) );
     } else {
         // - the offset is 0 here because we specify the offset already in the glVertexAttribPointer call above
@@ -252,12 +251,22 @@ void vbomesh_render(const struct VboMesh* mesh, const struct Shader* shader, con
         ogl_debug( glDrawArrays(mesh->primitives.type, 0, mesh->occupied[SHADER_ATTRIBUTE_VERTICES]) );
     }
 
-    for( int32_t array_id = 0; array_id < NUM_SHADER_ATTRIBUTES; array_id++ ) {
-        if( loc[array_id] > -1 ) {
-            ogl_debug( glDisableVertexAttribArray((GLuint)loc[array_id]) );
+#ifndef CUTE_DISABLE_VAO
+    if( mesh->vao > 0 ) {
+        glBindVertexArray(0);
+    }
+#endif
+
+    if( not_binding_vao ) {
+        for( int32_t array_id = 0; array_id < MAX_SHADER_ATTRIBUTES; array_id++ ) {
+            if( loc[array_id] > -1 ) {
+                ogl_debug( glDisableVertexAttribArray((GLuint)loc[array_id]) );
+            }
         }
+
+        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, 0); );
     }
 
-    ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, 0);
-               glUseProgram(0); );
+    ogl_debug( glUseProgram(0); );
+
 }

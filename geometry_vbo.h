@@ -170,9 +170,13 @@ struct VboMesh {
     // often my simple solids can be render just fine with glDrawArrays, and I should just make
     // sure that everthing works when I just not call vbomesh_append_indices at all
     struct VboMeshIndexBuffer {
-        uint32_t id; // index buffer
+        GLuint id; // index buffer
         GLenum usage;
+#ifndef EMSCRIPTEN
+        // glDrawElementsBaseVertex is not in OpenGL ES 2.0, so I disable this here when I compile
+        // with emscripten so that I get errors when I use it elsewhere
         size_t base; // base vertex index
+#endif
 
         // the unit here is indices, not primitives
         size_t capacity; // size of the buffer
@@ -183,6 +187,10 @@ struct VboMesh {
     // - to prevent z fighting a random small offset value is put here that can be
     // used in a rendering function to offset the mesh by a small amount
     float z_offset;
+
+#ifndef CUTE_DISABLE_VAO
+    GLuint vao;
+#endif
 };
 
 void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh);
