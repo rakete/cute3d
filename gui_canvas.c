@@ -245,7 +245,7 @@ size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t proj
     log_assert( canvas != NULL );
     log_assert( layer_i >= 0 );
     log_assert( projection_i >= 0 );
-    log_assert( primitive_type == GL_LINES || primitive_type == GL_TRIANGLES || primitive_type == GL_QUADS );
+    log_assert( primitive_type == GL_LINES || primitive_type == GL_TRIANGLES );
 
     if( n == 0 ) {
         return 0;
