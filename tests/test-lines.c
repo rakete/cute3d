@@ -6,6 +6,7 @@
 
 #include "geometry_vbo.h"
 #include "geometry_halfedgemesh.h"
+#include "geometry_draw.h"
 
 #include "gui_draw.h"
 #include "gui_text.h"
@@ -16,7 +17,7 @@
 int32_t main(int32_t argc, char *argv[]) {
     printf("<<watchlist//>>\n");
 
-    if( init_sdl2() ) {
+    if( init_sdl2(3,2) ) {
         return 1;
     }
 
@@ -24,11 +25,7 @@ int32_t main(int32_t argc, char *argv[]) {
     sdl2_window("test-arcball", 0, 0, 800, 600, &window);
 
     SDL_GLContext* context;
-    sdl2_glcontext(window, &context);
-
-    if( init_ogl(800, 600, (Color){0.0f, 0.0f, 0.0f, 1.0f}) ) {
-        return 1;
-    }
+    sdl2_glcontext(window, (Color){0.0f, 0.0f, 0.0f, 1.0f}, &context);
 
     if( init_shader() ) {
         return 1;
@@ -43,9 +40,13 @@ int32_t main(int32_t argc, char *argv[]) {
     }
     canvas_create(&global_dynamic_canvas);
 
-    struct Cube solid_in = {0};
-    solid_create_cube(1.0, (Color){255, 0, 255, 255}, &solid_in);
-    solid_compute_normals((struct Solid*)&solid_in);
+    struct Cube solid_cube = {0};
+    solid_create_cube(1.0, (Color){255, 0, 255, 255}, &solid_cube);
+    solid_compute_normals((struct Solid*)&solid_cube);
+
+    struct HalfEdgeMesh hemesh_cube = {0};
+    halfedgemesh_create(&hemesh_cube);
+    halfedgemesh_append(&hemesh_cube, (struct Solid*)&solid_cube);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
@@ -54,7 +55,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
     struct VboMesh vbomesh = {0};
-    vbomesh_create_from_solid((struct Solid*)&solid_in, &vbo, &vbomesh);
+    vbomesh_create_from_solid((struct Solid*)&solid_cube, &vbo, &vbomesh);
 
     struct Shader shader = {0};
     shader_create_flat("flat_shader", &shader);
@@ -106,13 +107,14 @@ int32_t main(int32_t argc, char *argv[]) {
         Mat identity;
         mat_identity(identity);
         vbomesh_render(&vbomesh, &shader, &arcball.camera, identity);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 0, identity, (Color){255, 255, 0, 255}, &hemesh_cube);
 
-        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){20, 180, 240, 255}, 12.0f, 12.0f, 12);
+        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){20, 180, 240, 255}, 12.0f, 12.0f, 1);
 
         Vec4f screen_cursor = {0,0,0,1};
         text_show_fps(&global_dynamic_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
 
-        canvas_render_layers(&global_dynamic_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
+        canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);
 
         sdl2_gl_swap_window(window);

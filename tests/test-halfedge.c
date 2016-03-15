@@ -13,7 +13,7 @@
 int32_t main(int32_t argc, char *argv[]) {
     printf("<<watchlist//>>\n");
 
-    if( init_sdl2() ) {
+    if( init_sdl2(3,2) ) {
         return 1;
     }
 
@@ -21,11 +21,7 @@ int32_t main(int32_t argc, char *argv[]) {
     sdl2_window("test-halfedge", 0, 0, 800, 600, &window);
 
     SDL_GLContext* context;
-    sdl2_glcontext(window, &context);
-
-    if( init_ogl(800, 600, (Color){0, 0, 0, 255}) ) {
-        return 1;
-    }
+    sdl2_glcontext(window, (Color){0, 0, 0, 255}, &context);
 
     if( init_shader() ) {
         return 1;
@@ -116,7 +112,6 @@ int32_t main(int32_t argc, char *argv[]) {
         sdl2_gl_set_swap_interval(1);
 
         ogl_debug( glClearDepth(1.0f);
-                   glClearColor(.0f, .0f, .0f, 1.0f);
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
 
 
@@ -166,9 +161,7 @@ int32_t main(int32_t argc, char *argv[]) {
         draw_halfedgemesh_wire(&global_dynamic_canvas, 1, sphere16_transform, (Color){255, 255, 0, 255}, &sphere16_hemesh);
         draw_halfedgemesh_wire(&global_dynamic_canvas, 1, sphere32_transform, (Color){255, 255, 0, 255}, &sphere32_hemesh);
 
-        glLineWidth(2.0f);
         canvas_render_layers(&global_dynamic_canvas, 1, 1, &arcball.camera, (Mat)IDENTITY_MAT);
-        glLineWidth(1.0f);
 
         canvas_render_layers(&global_dynamic_canvas, 0, 0, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);
