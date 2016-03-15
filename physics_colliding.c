@@ -1,141 +1,87 @@
 #include "physics_colliding.h"
 
 void colliding_create_convex_shape(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct CollidingConvexShape* convex) {
-    convex->shape.type = COLLIDING_CONVEX_SHAPE;
-    convex->shape.world_pivot = pivot;
-    pivot_create(NULL, NULL, &convex->shape.local_pivot);
+    convex->base_shape.type = COLLIDING_CONVEX_SHAPE;
+    convex->base_shape.world_pivot = pivot;
+    pivot_create(NULL, NULL, &convex->base_shape.local_pivot);
 
     convex->mesh = mesh;
 }
 
-bool colliding_test_convex_convex(const struct CollidingConvexShape* convex1, const struct CollidingConvexShape* convex2) {
-    log_assert(convex1->shape.type == COLLIDING_CONVEX_SHAPE);
-    log_assert(convex2->shape.type == COLLIDING_CONVEX_SHAPE);
+void colliding_prepare_shape(struct CollidingShape* shape) {
+    pivot_combine(shape->world_pivot, &shape->local_pivot, &shape->combined_pivot);
+    pivot_world_transform(&shape->combined_pivot, shape->world_transform);
+}
 
-    struct Pivot pivot1 = {0};
-    pivot_combine(convex1->shape.world_pivot, &convex1->shape.local_pivot, &pivot1);
+void colliding_prepare_collision(const struct CollidingShape* a, const struct CollidingShape* b, struct CollisionParameter parameter, struct Collision* collision) {
+    pivot_between_transform(&a->combined_pivot, &b->combined_pivot, collision->shape1_to_shape2_transform);
+    pivot_between_transform(&b->combined_pivot, &a->combined_pivot, collision->shape2_to_shape1_transform);
+    collision->shape1 = a;
+    collision->shape2 = b;
+    collision->parameter = parameter;
+}
+
+bool colliding_test_convex_convex(struct Collision* collision) {
+    const struct CollidingConvexShape* convex1 = (struct CollidingConvexShape*)collision->shape1;
+    const struct CollidingConvexShape* convex2 = (struct CollidingConvexShape*)collision->shape2;
+
+    log_assert(convex1->base_shape.type == COLLIDING_CONVEX_SHAPE);
+    log_assert(convex2->base_shape.type == COLLIDING_CONVEX_SHAPE);
+
     struct HalfEdgeMesh* mesh1 = convex1->mesh;
-    Mat pivot1_world = {0};
-    pivot_world_transform(&pivot1, pivot1_world);
-
-    struct Pivot pivot2 = {0};
-    pivot_combine(convex2->shape.world_pivot, &convex2->shape.local_pivot, &pivot2);
     struct HalfEdgeMesh* mesh2 = convex2->mesh;
-    Mat pivot2_world = {0};
-    pivot_world_transform(&pivot2, pivot2_world);
 
-    union SatResult result1 = sat_test_faces(&pivot1, mesh1, &pivot2, mesh2);
-    printf("//distance1: %f\n", result1.face_test.distance);
-    if( result1.face_test.distance > 0.0f ) {
+    struct SatFaceTestResult face1_test = sat_test_faces(collision->shape2_to_shape1_transform, mesh1, mesh2);
+    if( face1_test.distance > 0.0f ) {
         return false;
     }
 
-    union SatResult result2 = sat_test_faces(&pivot2, mesh2, &pivot1, mesh1);
-    printf("//distance2: %f\n", result2.face_test.distance);
-    if( result2.face_test.distance > 0.0f ) {
+    struct SatFaceTestResult face2_test = sat_test_faces(collision->shape1_to_shape2_transform, mesh2, mesh1);
+    if( face2_test.distance > 0.0f ) {
         return false;
     }
 
-    union SatResult result3 = sat_test_edges(&pivot1, mesh1, &pivot2, mesh2);
-    printf("//distance3: %f\n", result3.edge_test.distance);
-    if( result3.edge_test.distance > 0.0f ) {
+    struct SatEdgeTestResult edge_test = sat_test_edges(collision->shape2_to_shape1_transform, mesh1, mesh2);
+    if( edge_test.distance > 0.0f ) {
         return false;
     }
 
-    if( result3.edge_test.found_result &&
-        (result3.edge_test.distance > result1.edge_test.distance || ! result1.edge_test.found_result) &&
-        (result3.edge_test.distance > result2.edge_test.distance || ! result2.edge_test.found_result) )
-    {
-        draw_halfedgemesh_edge(&global_dynamic_canvas, 0, pivot1_world, (Color){0, 255, 255, 255}, mesh1, result3.edge_test.edge_index1);
-        draw_halfedgemesh_edge(&global_dynamic_canvas, 0, pivot2_world, (Color){0, 255, 255, 255}, mesh2, result3.edge_test.edge_index2);
-    } else {
-        draw_halfedgemesh_face(&global_dynamic_canvas, 0, pivot1_world, (Color){255, 255, 0, 255}, mesh1, result1.face_test.face_index);
-        draw_halfedgemesh_vertex(&global_dynamic_canvas, 0, pivot2_world, (Color){255, 255, 0, 255}, mesh2, result1.face_test.vertex_index, 0.2f);
-
-        draw_halfedgemesh_face(&global_dynamic_canvas, 0, pivot2_world, (Color){255, 0, 255, 255}, mesh2, result2.face_test.face_index);
-        draw_halfedgemesh_vertex(&global_dynamic_canvas, 0, pivot1_world, (Color){255, 0, 255, 255}, mesh1, result2.face_test.vertex_index, 0.2f);
-    }
+    collision->sat_result.face1_test = face1_test;
+    collision->sat_result.face2_test = face2_test;
+    collision->sat_result.edge_test = edge_test;
 
     return true;
 }
 
-// contacts
-uint32_t colliding_contact_convex_convex(const struct CollidingConvexShape* convex1, const struct CollidingConvexShape* convex2, struct Collision* collision) {
-    log_assert(convex1->shape.type == COLLIDING_CONVEX_SHAPE);
-    log_assert(convex2->shape.type == COLLIDING_CONVEX_SHAPE);
-    log_assert("implementation" == false);
-    return 0;
-}
+int32_t colliding_contact_convex_convex(struct Collision* collision) {
+    const struct CollidingConvexShape* convex1 = (struct CollidingConvexShape*)collision->shape1;
+    const struct CollidingConvexShape* convex2 = (struct CollidingConvexShape*)collision->shape2;
 
+    struct HalfEdgeMesh* mesh1 = convex1->mesh;
+    struct HalfEdgeMesh* mesh2 = convex2->mesh;
 
-uint32_t colliding_contact_generic(const struct CollidingShape* a, const struct CollidingShape* b, struct Collision* collision) {
-    switch( a->type ) {
-        case COLLIDING_SPHERE_SHAPE: break;
-        case COLLIDING_CONVEX_SHAPE:
-            switch( b->type) {
-                case COLLIDING_SPHERE_SHAPE: break;
-                case COLLIDING_CONVEX_SHAPE: break;
-                default: break;
-            }
-            break;
-        default: break;
+    struct SatResult* result = &collision->sat_result;
+    struct CollisionParameter* parameter = &collision->parameter;
+
+    float face_separation = result->face1_test.distance;
+    if( result->face2_test.distance > face_separation ) {
+        face_separation = result->face2_test.distance;
     }
 
-    return 0;
-}
+    if( result->edge_test.distance > parameter->edge_tolerance * face_separation + parameter->absolute_tolerance ) {
+        contacts_halfedgemesh_edge_edge(&result->edge_test, &convex1->base_shape.combined_pivot, mesh1, &convex2->base_shape.combined_pivot, mesh2, &collision->contacts);
 
-size_t colliding_collide_broad(size_t self,
-                               size_t world_size,
-                               struct CollidingShape** world_shapes,
-                               size_t* candidates)
-{
-    size_t candidates_size = 0;
-    for( size_t i = 0; i < world_size; i++ ) {
-        if( i != self ) {
-            candidates[candidates_size] = i;
-            candidates_size++;
+        draw_halfedgemesh_edge(&global_dynamic_canvas, 0, convex1->base_shape.world_transform, (Color){0, 255, 255, 255}, mesh1, result->edge_test.edge_index1);
+        draw_halfedgemesh_edge(&global_dynamic_canvas, 0, convex2->base_shape.world_transform, (Color){0, 255, 255, 255}, mesh2, result->edge_test.edge_index2);
+    } else {
+        if( result->face2_test.distance > parameter->face_tolerance * result->face1_test.distance + parameter->absolute_tolerance ) {
+            draw_halfedgemesh_face(&global_dynamic_canvas, 0, convex1->base_shape.world_transform, (Color){255, 255, 0, 255}, mesh1, result->face1_test.face_index);
+            draw_halfedgemesh_vertex(&global_dynamic_canvas, 0, convex2->base_shape.world_transform, (Color){255, 255, 0, 255}, mesh2, result->face1_test.vertex_index, 0.2f);
+        } else {
+            draw_halfedgemesh_face(&global_dynamic_canvas, 0, convex2->base_shape.world_transform, (Color){255, 0, 255, 255}, mesh2, result->face2_test.face_index);
+            draw_halfedgemesh_vertex(&global_dynamic_canvas, 0, convex1->base_shape.world_transform, (Color){255, 0, 255, 255}, mesh1, result->face2_test.vertex_index, 0.2f);
         }
     }
 
-    return candidates_size;
-}
-
-size_t colliding_collide_narrow(size_t self,
-                                size_t world_size,
-                                struct CollidingShape** world_shapes,
-                                struct RigidBody** world_bodies,
-                                size_t candidates_size,
-                                const size_t* candidates,
-                                struct RigidBody** bodies,
-                                struct Collision* collisions)
-{
-    size_t collisions_size = 0;
-    for( size_t i = 0; i < candidates_size; i++ ) {
-        size_t candidate = candidates[i];
-
-        if( candidate != self && colliding_contact_generic(world_shapes[self], world_shapes[candidate], &collisions[collisions_size]) > 0 ) {
-            bodies[collisions_size] = world_bodies[candidate];
-            collisions_size++;
-        }
-    }
-
-    return collisions_size;
-}
-
-struct RigidBody colliding_resolve_collisions(struct RigidBody previous,
-                                              struct RigidBody current,
-                                              size_t collisions_size,
-                                              struct RigidBody** bodies,
-                                              struct Collision* collisions,
-                                              float dt)
-{
-    /* for( size_t i = 0; i < collisions_size; i++ ) { */
-    /*     for( size_t j = 0; j < collisions[i].num_contacts; j++ ) { */
-    /*         Vec* contact_normal = &collisions[i].normal; */
-    /*         Vec* contact_point = &collisions[i].contact[j].point; */
-    /*         float penetration = collisions[i].contact[j].penetration; */
-    /*     } */
-    /* } */
-
-    return current;
+    return 0;
 }

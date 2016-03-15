@@ -24,12 +24,12 @@
 #include "gui_draw.h"
 
 #include "geometry_halfedgemesh.h"
-#include "geometry_sat.h"
 #include "geometry_draw.h"
+#include "geometry_sat.h"
+#include "geometry_contacts.h"
 
 #include "physics_rigidbody.h"
 
-#define NUM_COLLISION_CONTACTS 4
 #define COLLISION_CONTACT_LIFETIME 5
 
 enum CollidingShapeType {
@@ -44,16 +44,19 @@ struct CollidingShape {
     const struct Pivot* world_pivot;
     struct Pivot local_pivot;
     enum CollidingShapeType type;
+
+    struct Pivot combined_pivot;
+    Mat world_transform;
 };
 
 struct CollidingSphereShape {
-    struct CollidingShape shape;
+    struct CollidingShape base_shape;
 
     float radius;
 };
 
 struct CollidingConvexShape {
-    struct CollidingShape shape;
+    struct CollidingShape base_shape;
 
     struct HalfEdgeMesh* mesh;
 };
@@ -62,19 +65,31 @@ struct CollidingConvexShape {
 void colliding_create_sphere_shape(float radius, struct Pivot* pivot, struct CollidingSphereShape* sphere);
 void colliding_create_convex_shape(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct CollidingConvexShape* convex);
 
-struct Contact {
-    Vec4f point;
-    float penetration;
+struct CollisionParameter {
+    float edge_tolerance;
+    float face_tolerance;
+    float absolute_tolerance;
 };
 
 struct Collision {
-    uint32_t num_contacts;
-    struct Contact contact[NUM_COLLISION_CONTACTS];
-    Vec4f normal;
-    uint32_t lifetime;
+    const struct CollidingShape* shape1;
+    const struct CollidingShape* shape2;
+    Mat shape1_to_shape2_transform;
+    Mat shape2_to_shape1_transform;
+
+    struct CollisionParameter parameter;
+
+    struct SatResult {
+        struct SatFaceTestResult face1_test;
+        struct SatFaceTestResult face2_test;
+        struct SatEdgeTestResult edge_test;
+    } sat_result;
+
+    struct Contacts contacts;
 };
 
-void colliding_create_empty_collision(struct Collision* collision);
+void colliding_prepare_shape(struct CollidingShape* shape);
+void colliding_prepare_collision(const struct CollidingShape* a, const struct CollidingShape* b, struct CollisionParameter parameter, struct Collision* collision);
 
 // collision detection itself is actually two seperate things: collision testing and contact generation, these should both
 // be implemented here eventually, but first I am going to concentrate only on contact generation. this should be
@@ -83,52 +98,8 @@ void colliding_create_empty_collision(struct Collision* collision);
 // contact generation and is the only needed during broad phase
 // the contact generation by itself can double as collision detection because as soon as we'll get at least one contact, we
 // know the a collision has taken place.
-bool colliding_test_sphere_sphere(const struct CollidingSphereShape* sphere1, const struct CollidingSphereShape* sphere2);
-bool colliding_test_convex_convex(const struct CollidingConvexShape* convex1, const struct CollidingConvexShape* convex2);
+bool colliding_test_convex_convex(struct Collision* collision);
 
-uint32_t colliding_contact_convex_convex(const struct CollidingConvexShape* convex1, const struct CollidingConvexShape* convex2, struct Collision* collision);
-uint32_t colliding_contact_generic(const struct CollidingShape* a, const struct CollidingShape* b, struct Collision* collision);
-
-// - this should do broad collision detection, that is it takes an index self, a size and an array of
-// colliders (which should be all colliders in the world, including self), then finds indexes of candidates
-// which may collide with self
-// - candidates is pre allocated with world_size, the filled from beginning to end, then the number of candidate
-// indices in candidates is returned at the end (which is probably a lot smaller then world_size, therefore
-// wasting most of the space occupied in candidates)
-size_t colliding_collide_broad(size_t self,
-                               size_t world_size,
-                               struct CollidingShape** world_shapes,
-                               size_t* candidates);
-
-// - after the broad collision phase, which only finds potential collisions, the narrow phase narrows those down
-// to actual collision contacts, for that it again takes an index self, a size and two arrays containing all colliders
-// and all rigid body physics in the world, and then tests self against all candidates from the world, and for
-// each candidate that actually collides with self, a collision is created in the collisions array, and a pointer
-// to the rigid body physics of the colliding candidate is put in bodies
-// - collisions and bodies should be allocated to be the size of candidates, then the function will fill them from
-// the beginning and return the number of candidates that were actual collisions and have been put into collisions
-// - I thought about making collisions large as the world_size, and then not fill bodies, but another array of indexes
-// with the indices of bodies with which actual collisions occured. this approach may make it possible to reuse
-// collisions when testing the other involved body for collisions, I decided against it because it would make things
-// more complex, would make concurrency here more difficult and I am not sure if the benefits are worth it since
-// most of the work should be done in the broad phase anyways
-size_t colliding_collide_narrow(size_t self,
-                                size_t world_size,
-                                struct CollidingShape** world_shapes,
-                                struct RigidBody** world_bodies,
-                                size_t candidates_size,
-                                const size_t* candidates,
-                                struct RigidBody** bodies,
-                                struct Collision* collisions);
-
-// - the actual change to the rigid body state is computed with this function, it takes the rigid body state self,
-// and all bodies and the collisions that occured between self and the bodies, and produces a new rigid body state
-// for self
-struct RigidBody colliding_resolve_collisions(struct RigidBody previous,
-                                              struct RigidBody current,
-                                              size_t collisions_size,
-                                              struct RigidBody** bodies,
-                                              struct Collision* collisions,
-                                              float dt);
+int32_t colliding_contact_convex_convex(struct Collision* collision);
 
 #endif

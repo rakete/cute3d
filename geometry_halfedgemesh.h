@@ -102,9 +102,4 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh);
 
 void halfedgemesh_verify(const struct HalfEdgeMesh* mesh);
 
-void halfedgemesh_transform(const struct HalfEdgeMesh* mesh,
-                            const Mat transform,
-                            float transformed_vertices[],
-                            size_t size);
-
 #endif

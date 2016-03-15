@@ -957,17 +957,3 @@ void halfedgemesh_verify(const struct HalfEdgeMesh* mesh) {
         log_assert( i == face->size );
     }
 }
-
-// helper to transform vertices from pivot1 into the coordinate system of pivot2
-void halfedgemesh_transform(const struct HalfEdgeMesh* mesh,
-                            const Mat transform,
-                            float transformed_vertices[],
-                            size_t size)
-{
-    // the vertex_translation/orientation is then applied to every vertex of convex2->mesh resulting
-    // in a new array of vertices which coordinates are now relative to convex1
-    struct HalfEdgeVertex* mesh_vertices = mesh->vertices.array;
-    for( uint32_t i = 0; i < mesh->vertices.occupied && i*3 < size; i++ ) {
-        mat_mul_vec3f(transform, mesh_vertices[i].position, &transformed_vertices[i*3]);
-    }
-}
