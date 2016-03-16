@@ -145,8 +145,8 @@ int32_t main(int32_t argc, char *argv[]) {
                 struct CollisionEntity* selected_entity = NULL;
                 float nearest = -FLT_MIN;
                 for( size_t i = 0; i < num_entities; i++ ) {
-                    if( picking_spheres[i]->picked && ( picking_spheres[i]->near < nearest || nearest < 0.0f ) ) {
-                        nearest = picking_spheres[i]->near;
+                    if( picking_spheres[i]->picked && ( picking_spheres[i]->front < nearest || nearest < 0.0f ) ) {
+                        nearest = picking_spheres[i]->front;
                         selected_entity = picking_entities[i];
                     }
                 }
@@ -155,7 +155,7 @@ int32_t main(int32_t argc, char *argv[]) {
                 static int32_t last_y = -1;
                 if( selected_entity != NULL ) {
                     if( last_x > -1 && last_y > -1 ) {
-                        float distance = selected_entity->picking_sphere.near;
+                        float distance = selected_entity->picking_sphere.front;
 
                         Vec4f a = {0};
                         camera_ray(&arcball.camera, CAMERA_PERSPECTIVE, last_x, last_y, a);

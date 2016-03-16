@@ -6,8 +6,8 @@ void picking_create_sphere(const struct Pivot* pivot, float radius, struct Picki
     vec_copy4f((Vec4f){0.0f, 0.0f, 0.0f, 1.0f}, sphere->ray);
 
     sphere->radius = radius;
-    sphere->near = -FLT_MAX;
-    sphere->far = -FLT_MAX;
+    sphere->front = -FLT_MAX;
+    sphere->back = -FLT_MAX;
 }
 
 bool picking_test_sphere(struct PickingSphere* sphere, const Vec4f origin, const Vec4f ray) {
@@ -15,8 +15,8 @@ bool picking_test_sphere(struct PickingSphere* sphere, const Vec4f origin, const
     log_assert( ray != NULL );
     log_assert( sphere != NULL );
 
-    sphere->near = -FLT_MAX;
-    sphere->far = -FLT_MAX;
+    sphere->front = -FLT_MAX;
+    sphere->back = -FLT_MAX;
     vec_copy4f(ray, sphere->ray);
     sphere->picked = false;
 
@@ -55,8 +55,8 @@ bool picking_test_sphere(struct PickingSphere* sphere, const Vec4f origin, const
         } // both t0 and t1 are negative
     }
 
-    sphere->near = t0;
-    sphere->far = t1;
+    sphere->front = t0;
+    sphere->back = t1;
     sphere->picked = true;
 
     return true;

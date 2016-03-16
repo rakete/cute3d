@@ -16,8 +16,8 @@ struct PickingSphere {
     Vec4f ray;
 
     float radius;
-    float near;
-    float far;
+    float front;
+    float back;
 };
 
 void picking_create_sphere(const struct Pivot* pivot, float radius, struct PickingSphere* sphere);
