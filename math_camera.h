@@ -36,19 +36,18 @@ struct Camera {
     } screen;
 
     struct {
-        float left;
-        float right;
-        float top;
-        float bottom;
-
-        float near;
-        float far;
+        float x_left;
+        float x_right;
+        float y_top;
+        float y_bottom;
+        float z_near;
+        float z_far;
     } frustum;
 };
 
 void camera_create(int32_t width, int32_t height, struct Camera* camera);
 
-void camera_frustum(struct Camera* camera, float left, float right, float bottom, float top, float zNear, float zFar);
+void camera_frustum(struct Camera* camera, float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
 
 void camera_matrices(const struct Camera* camera, enum CameraProjection projection_type, Mat projection_mat, Mat view_mat);
 

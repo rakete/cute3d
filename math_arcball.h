@@ -18,7 +18,7 @@ struct Arcball {
     float zoom_factor;
 };
 
-void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float near, float far, struct Arcball* arcball);
+void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float z_near, float z_far, struct Arcball* arcball);
 
 bool arcball_event(struct Arcball* arcball, SDL_Event event);
 

@@ -1,7 +1,7 @@
 
 #include "math_arcball.h"
 
-void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float near, float far, struct Arcball* arcball) {
+void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float z_near, float z_far, struct Arcball* arcball) {
     int32_t width,height;
     sdl2_debug( SDL_GL_GetDrawableSize(window, &width, &height) );
 
@@ -15,18 +15,18 @@ void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float near, flo
         eye[2] += CUTE_EPSILON;
     }
 
-    if( near < 0.01f ) {
+    if( z_near < 0.01f ) {
         log_warn(stderr, __FILE__, __LINE__,
-                 "you are trying to create a camera with a very small near value, "
+                 "you are trying to create a camera with a very small z_near value, "
                  "this would cause problems when rendering vbomeshes with a z_offset, "
-                 "this function (arcball_create) will clamp the near value to 0.01f\n");
-        near = 0.01f;
+                 "this function (arcball_create) will clamp the z_near value to 0.01f\n");
+        z_near = 0.01f;
     }
 
     camera_create(width, height, &arcball->camera);
-    float top = (near/width) * height/2.0f;
+    float top = (z_near/width) * height/2.0f;
     float bottom = -top;
-    camera_frustum(&arcball->camera, -near/2.0f, near/2.0f, bottom, top, near, far);
+    camera_frustum(&arcball->camera, -z_near/2.0f, z_near/2.0f, bottom, top, z_near, z_far);
 
     vec_copy4f(eye, arcball->camera.pivot.position);
     arcball->flipped = pivot_lookat(&arcball->camera.pivot, target);
@@ -151,8 +151,8 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
 
         // - zooming when mouse wheel event happens
         float* eye_distance = &arcball->camera.pivot.eye_distance;
-        if( (*eye_distance > arcball->camera.frustum.near || wheel.y < 0) &&
-            (*eye_distance < arcball->camera.frustum.far || wheel.y > 0))
+        if( (*eye_distance > arcball->camera.frustum.z_near || wheel.y < 0) &&
+            (*eye_distance < arcball->camera.frustum.z_far || wheel.y > 0))
         {
             // - just going back and forth along the oriented forward axis, using wheel
             //   y motion inversly scaled by the eye_distance, similar to what is done

@@ -6,49 +6,49 @@ void camera_create(int32_t width, int32_t height, struct Camera* camera) {
     camera->screen.width = width;
     camera->screen.height = height;
 
-    camera->frustum.left = -0.5f;
-    camera->frustum.right = 0.5f;
-    camera->frustum.top = -0.375f;
-    camera->frustum.bottom = 0.375f;
-    camera->frustum.near = 0.9f;
-    camera->frustum.far = 1000.0f;
+    camera->frustum.x_left = -0.5f;
+    camera->frustum.x_right = 0.5f;
+    camera->frustum.y_top = -0.375f;
+    camera->frustum.y_bottom = 0.375f;
+    camera->frustum.z_near = 0.9f;
+    camera->frustum.z_far = 1000.0f;
 }
 
-void camera_frustum(struct Camera* camera, float left, float right, float bottom, float top, float near, float far) {
-    if( far / near > 10000.0f ) {
+void camera_frustum(struct Camera* camera, float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far) {
+    if( z_far / z_near > 10000.0f ) {
         log_warn(stderr, __FILE__, __LINE__, "you are trying to create a frustum with a very large far/near ratio\n");
     }
 
-    camera->frustum.left = left;
-    camera->frustum.right = right;
-    camera->frustum.top = top;
-    camera->frustum.bottom = bottom;
-    camera->frustum.near = near;
-    camera->frustum.far = far;
+    camera->frustum.x_left = x_left;
+    camera->frustum.x_right = x_right;
+    camera->frustum.y_top = y_top;
+    camera->frustum.y_bottom = y_bottom;
+    camera->frustum.z_near = z_near;
+    camera->frustum.z_far = z_far;
 }
 
 void camera_matrices(const struct Camera* camera, enum CameraProjection projection_type, Mat projection_mat, Mat view_mat) {
     if( camera ) {
         mat_identity(projection_mat);
 
-        float left = camera->frustum.left;
-        float right = camera->frustum.right;
-        float top = camera->frustum.top;
-        float bottom = camera->frustum.bottom;
-        float near = camera->frustum.near;
-        float far = camera->frustum.far;
+        float x_left = camera->frustum.x_left;
+        float x_right = camera->frustum.x_right;
+        float y_top = camera->frustum.y_top;
+        float y_bottom = camera->frustum.y_bottom;
+        float z_near = camera->frustum.z_near;
+        float z_far = camera->frustum.z_far;
         if( projection_type == CAMERA_PERSPECTIVE ) {
-            mat_perspective(left, right, top, bottom, near, far, projection_mat);
+            mat_perspective(x_left, x_right, y_top, y_bottom, z_near, z_far, projection_mat);
         } else if( projection_type == CAMERA_ORTHOGRAPHIC) {
-            mat_orthographic(left, right, top, bottom, near, far, projection_mat);
+            mat_orthographic(x_left, x_right, y_top, y_bottom, z_near, z_far, projection_mat);
         } else if( projection_type == CAMERA_ORTHOGRAPHIC_ZOOM ||
                    projection_type == CAMERA_PIXELPERFECT )
         {
-            left *= (camera->pivot.eye_distance * (1.0/near)) * camera->pivot.zoom;
-            right *= (camera->pivot.eye_distance * (1.0/near)) * camera->pivot.zoom;
-            top *= (camera->pivot.eye_distance * (1.0/near)) * camera->pivot.zoom;
-            bottom *= (camera->pivot.eye_distance * (1.0/near)) * camera->pivot.zoom;
-            mat_orthographic(left, right, top, bottom, near, far, projection_mat);
+            x_left *= (camera->pivot.eye_distance * (1.0/z_near)) * camera->pivot.zoom;
+            x_right *= (camera->pivot.eye_distance * (1.0/z_near)) * camera->pivot.zoom;
+            y_top *= (camera->pivot.eye_distance * (1.0/z_near)) * camera->pivot.zoom;
+            y_bottom *= (camera->pivot.eye_distance * (1.0/z_near)) * camera->pivot.zoom;
+            mat_orthographic(x_left, x_right, y_top, y_bottom, z_near, z_far, projection_mat);
         }
 
         mat_identity(view_mat);

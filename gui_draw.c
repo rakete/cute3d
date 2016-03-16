@@ -563,18 +563,18 @@ void draw_camera(struct Canvas* canvas,
                  const Color color,
                  const struct Camera* camera)
 {
-    float near = camera->frustum.near;
-    float left = camera->frustum.left;
-    float right = camera->frustum.right;
-    float top = camera->frustum.top;
-    float bottom = camera->frustum.bottom;
+    float z_near = camera->frustum.z_near;
+    float x_left = camera->frustum.x_left;
+    float x_right = camera->frustum.x_right;
+    float y_top = camera->frustum.y_top;
+    float y_bottom = camera->frustum.y_bottom;
 
     float camera_vertices[5*3] =
-        {  0.0f,   0.0f,  0.0f,
-          right,    top,  -near,
-           left,    top,  -near,
-           left, bottom,  -near,
-          right, bottom,  -near };
+        {    0.0f,     0.0f,     0.0f,
+          x_right,    y_top,  -z_near,
+           x_left,    y_top,  -z_near,
+           x_left, y_bottom,  -z_near,
+          x_right, y_bottom,  -z_near };
 
     float camera_colors[5*4] =
         { color[0], color[1], color[2], color[3],
