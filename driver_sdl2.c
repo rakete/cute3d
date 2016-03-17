@@ -10,6 +10,10 @@ int32_t init_sdl2(int major, int minor) {
         return 1;
     }
 
+#ifdef _WIN32
+    log_warn(stderr, __FILE__, __LINE__, "SDL_GetError always reports SDL_GetPerformanceCounter, SDL_GetPerformanceFrequency, SDL_GL_SetSwapInterval and SDL_GL_SwapWindow unsupported on windows for me, so I am not reporting these errors\n");
+#endif
+
     if( sdl2_time() > 0.0 || sdl2_time_delta() > 0.0 ) {
         return 1;
     }
@@ -138,7 +142,6 @@ double sdl2_time_delta() {
 
     Uint64 now;
 #ifdef _WIN32
-    log_warn(stderr, __FILE__, __LINE__, "SDL_GetError always reports SDL_GetPerformanceCounter unsupported on windows for me, disabling these errors\n");
     now = SDL_GetPerformanceCounter();
 #else
     sdl2_debug( now = SDL_GetPerformanceCounter() );
@@ -167,7 +170,6 @@ double sdl2_time() {
 
     Uint64 now;
 #ifdef _WIN32
-    log_warn(stderr, __FILE__, __LINE__, "SDL_GetError always reports SDL_GetPerformanceCounter and SDL_GetPerformanceFrequency unsupported on windows for me, disabling these errors\n");
     now = SDL_GetPerformanceCounter();
 #else
     sdl2_debug( now = SDL_GetPerformanceCounter() );
@@ -208,7 +210,7 @@ int32_t sdl2_poll_event(SDL_Event* event) {
     sdl2_debug( ret = SDL_PollEvent(event) );
     double t2 = sdl2_time();
     double t = (t2 - t1) * 1000;
-    if( t > 0.5 ) {
+    if( t > 10.0 ) {
         log_warn(stderr, __FILE__, __LINE__, "SDL_PollEvent time: %.02fms\n", t);
     }
     return ret;
@@ -216,7 +218,11 @@ int32_t sdl2_poll_event(SDL_Event* event) {
 
 void sdl2_gl_swap_window(SDL_Window* window) {
     double t1 = sdl2_time();
+#ifdef _WIN32
+    SDL_GL_SwapWindow(window);
+#else
     sdl2_debug( SDL_GL_SwapWindow(window) );
+#endif
     double t2 = sdl2_time();
     double t = (t2 - t1) * 1000;
     if( t > 50.0 ) {
@@ -226,10 +232,14 @@ void sdl2_gl_swap_window(SDL_Window* window) {
 
 void sdl2_gl_set_swap_interval(int interval) {
     double t1 = sdl2_time();
+#ifdef _WIN32
+    SDL_GL_SetSwapInterval(interval);
+#else
     sdl2_debug( SDL_GL_SetSwapInterval(interval) );
+#endif
     double t2 = sdl2_time();
     double t = (t2 - t1) * 1000;
-    if( t > 1.0 ) {
+    if( t > 10.0 ) {
         log_warn(stderr, __FILE__, __LINE__, "SDL_GL_SetSwapInterval time: %.02fms\n", t);
     }
 }
