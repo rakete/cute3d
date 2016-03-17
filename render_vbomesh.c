@@ -211,7 +211,7 @@ void vbomesh_render(struct VboMesh* mesh, const struct Shader* shader, const str
     GLint loc[MAX_SHADER_ATTRIBUTES] = {0};
     bool not_binding_vao = true;
 
-#ifndef CUTE_DISABLE_VAO
+#ifndef CUTE_BUILD_ES2
     if( mesh->vao == 0 ) {
         glGenVertexArrays(1, &mesh->vao);
     } else {
@@ -251,7 +251,7 @@ void vbomesh_render(struct VboMesh* mesh, const struct Shader* shader, const str
         ogl_debug( glDrawArrays(mesh->primitives.type, 0, mesh->occupied[SHADER_ATTRIBUTE_VERTICES]) );
     }
 
-#ifndef CUTE_DISABLE_VAO
+#ifndef CUTE_BUILD_ES2
     if( mesh->vao > 0 ) {
         glBindVertexArray(0);
     }

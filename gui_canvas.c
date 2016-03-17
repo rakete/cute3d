@@ -65,7 +65,7 @@ void canvas_create(struct Canvas* canvas) {
         vec_copy4f((Vec4f){0, 0, 0, 1}, canvas->layer[i].cursor);
     }
 
-#ifndef CUTE_DISABLE_VAO
+#ifndef CUTE_BUILD_ES2
     canvas->vao = 0;
 #endif
 

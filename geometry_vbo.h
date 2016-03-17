@@ -188,7 +188,7 @@ struct VboMesh {
     // used in a rendering function to offset the mesh by a small amount
     float z_offset;
 
-#ifndef CUTE_DISABLE_VAO
+#ifndef CUTE_BUILD_ES2
     GLuint vao;
 #endif
 };

@@ -14,35 +14,46 @@ int32_t init_sdl2(int major, int minor) {
         return 1;
     }
 
-#ifdef CUTE_DISABLE_VAO
-    log_warn(stderr, __FILE__, __LINE__, "OpenGL %d.%d needs VAOs to be enabled, falling to 2.1!\n", major, minor);
-    major = 2;
-    minor = 1;
+#ifdef CUTE_BUILD_ES2
+    if( major >= 3 ) {
+        log_warn(stderr, __FILE__, __LINE__, "OpenGL %d.%d needs VAOs to be enabled, falling back to 2.1!\n", major, minor);
+        major = 2;
+        minor = 1;
+    }
 #endif
 
     // - this _must_ be set before creating a gl context
     if( major >= 3 ) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#ifdef CUTE_BUILD_ES2
     } else {
-        // - all of these are do not work in 3.0+ and make context creation
-        // fail if I set them and then try to create a 3.0+ context
-        // - these can be set before creating an opengl context
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-        // - setting this to 32 fails on nvidia+linux
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-        // - these must be set before creating a window
-        // - I'll implement multisampling as glsl shader, or figure out how to setup
-        // a fbo then render to that with GL_MULTISAMPLE enabled, thats more portable
-        // then setting it here globally
-        /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); */
-        /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16); */
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#endif
     }
+
+    // - all of these are do not work in 3.0+ and make context creation
+    // fail if I set them and then try to create a 3.0+ context
+    // - I tried again and they work with opengl 3.0+, maybe they just fail on intel+linux
+    // under 3.0+, and since especially the depth size is important under windows, I set
+    // these again here
+    // - these can be set before creating an opengl context
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+    // - setting this to 32 fails on nvidia+linux
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+    // - these must be set before creating a window
+    // - I'll implement multisampling as glsl shader, or figure out how to setup
+    // a fbo then render to that with GL_MULTISAMPLE enabled, thats more portable
+    // then setting it here globally
+    /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); */
+    /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16); */
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
@@ -81,7 +92,7 @@ void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLCont
             int minor_version = -1;
             SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major_version);
             SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor_version);
-            log_info(stderr, __FILE__, __LINE__, "creating OpenGL %d.%d context\n", major_version, minor_version);
+            log_info(stderr, __FILE__, __LINE__, "requesting OpenGL %d.%d context...\n", major_version, minor_version);
             *context = SDL_GL_CreateContext(window);
 
             SDL_GL_GetDrawableSize(window, &width, &height);
@@ -92,7 +103,7 @@ void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLCont
             glViewport(0,0,width,height);
 
             const char* gl_version = (const char*)glGetString(GL_VERSION);
-            log_info(stderr, __FILE__, __LINE__, "glGetString(GL_VERSION) == \"%s\"\n", gl_version);
+            log_info(stderr, __FILE__, __LINE__, "gl version string: \"%s\"\n", gl_version);
 
             glDepthMask(GL_TRUE);
             glDepthFunc(GL_LESS);
@@ -109,6 +120,16 @@ void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLCont
                          (float)clear_color[2] / 255.0,
                          (float)clear_color[3] / 255.0);
             glClearDepth(1);
+
+#ifndef CUTE_BUILD_ES2
+            GLint depth_bits = 0;
+            glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, &depth_bits);
+            log_info(stderr, __FILE__, __LINE__, "gl depth buffer bits: %d\n", depth_bits);
+
+            GLint stencil_bits = 0;
+            glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, &stencil_bits);
+            log_info(stderr, __FILE__, __LINE__, "gl stencil buffer bits: %d\n", stencil_bits);
+#endif
         });
 }
 
@@ -116,7 +137,12 @@ double sdl2_time_delta() {
     static Uint64 then = 0;
 
     Uint64 now;
+#ifdef _WIN32
+    log_warn(stderr, __FILE__, __LINE__, "SDL_GetError always reports SDL_GetPerformanceCounter unsupported on windows for me, disabling these errors\n");
+    now = SDL_GetPerformanceCounter();
+#else
     sdl2_debug( now = SDL_GetPerformanceCounter() );
+#endif
 
     if( then == 0 ) {
         then = now;
@@ -124,7 +150,11 @@ double sdl2_time_delta() {
     }
 
     Uint64 frequency;
+#ifdef _WIN32
+    frequency = SDL_GetPerformanceFrequency();
+#else
     sdl2_debug( frequency = SDL_GetPerformanceFrequency() );
+#endif
 
     double dt = (double)(now - then) / (double)frequency;
     then = now;
@@ -136,7 +166,12 @@ double sdl2_time() {
     static Uint64 then = 0;
 
     Uint64 now;
+#ifdef _WIN32
+    log_warn(stderr, __FILE__, __LINE__, "SDL_GetError always reports SDL_GetPerformanceCounter and SDL_GetPerformanceFrequency unsupported on windows for me, disabling these errors\n");
+    now = SDL_GetPerformanceCounter();
+#else
     sdl2_debug( now = SDL_GetPerformanceCounter() );
+#endif
 
     if( then == 0 ) {
         then = now;
@@ -144,7 +179,12 @@ double sdl2_time() {
     }
 
     Uint64 frequency;
+#ifdef _WIN32
+    frequency = SDL_GetPerformanceFrequency();
+#else
     sdl2_debug( frequency = SDL_GetPerformanceFrequency() );
+#endif
+
 
     double t = (double)now / (double)frequency;
     then = now;

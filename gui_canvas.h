@@ -116,7 +116,7 @@ struct Canvas {
         Vec4f cursor;
     } layer[MAX_CANVAS_LAYERS];
 
-#ifndef CUTE_DISABLE_VAO
+#ifndef CUTE_BUILD_ES2
     GLuint vao;
 #endif
 };

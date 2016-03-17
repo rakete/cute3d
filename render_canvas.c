@@ -16,7 +16,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
     GLint loc[MAX_SHADER_ATTRIBUTES];
     bool not_binding_vao = true;
 
-#ifndef CUTE_DISABLE_VAO
+#ifndef CUTE_BUILD_ES2
     if( canvas->vao == 0 ) {
         ogl_debug( glGenVertexArrays(1, &canvas->vao) );
     } else {
@@ -206,7 +206,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
         }
     }
 
-#ifndef CUTE_DISABLE_VAO
+#ifndef CUTE_BUILD_ES2
     if( canvas->vao > 0 ) {
         ogl_debug( glBindVertexArray(0); );
     }

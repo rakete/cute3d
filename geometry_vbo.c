@@ -242,7 +242,7 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
     // front of other stuff when it shouldn't
     mesh->z_offset = (float)(((double)rand()/(double)(RAND_MAX/0.0002)) - 0.0001);
 
-#ifndef CUTE_DISABLE_VAO
+#ifndef CUTE_BUILD_ES2
     mesh->vao = 0;
 #endif
 }

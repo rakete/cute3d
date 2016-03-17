@@ -191,6 +191,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
             GLSL( uniform sampler2D diffuse_texture;
                   shader_in vec4 frag_color;
                   shader_in vec2 frag_texcoord;
+
                   void main() {
                       vec4 tex_value = texture2D(diffuse_texture, vec2(frag_texcoord.x,frag_texcoord.y));
                       //gl_FragColor = frag_color;
