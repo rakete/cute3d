@@ -124,17 +124,18 @@ void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLCont
                          (float)clear_color[2] / 255.0,
                          (float)clear_color[3] / 255.0);
             glClearDepth(1);
+        });
 
 #ifndef CUTE_BUILD_ES2
-            GLint depth_bits = 0;
-            glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, &depth_bits);
-            log_info(stderr, __FILE__, __LINE__, "gl depth buffer bits: %d\n", depth_bits);
+    GLint depth_bits = 0;
+    glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, &depth_bits);
+    log_info(stderr, __FILE__, __LINE__, "gl depth buffer bits: %d\n", depth_bits);
 
-            GLint stencil_bits = 0;
-            glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, &stencil_bits);
-            log_info(stderr, __FILE__, __LINE__, "gl stencil buffer bits: %d\n", stencil_bits);
+    GLint stencil_bits = 0;
+    glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, &stencil_bits);
+    log_info(stderr, __FILE__, __LINE__, "gl stencil buffer bits: %d\n", stencil_bits);
 #endif
-        });
+
 }
 
 double sdl2_time_delta() {
