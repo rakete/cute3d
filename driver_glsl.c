@@ -45,34 +45,81 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
         log_warn(stderr, __FILE__, __LINE__, "%s\n does not look like cute3d glsl code\n", shader_source);
     }
 
-    size_t test_length = 0;
-    const GLchar* compat_source = NULL;
+    // I need this compatibilty crap if I want to be able to deploy stuff on webgl/android
+    // GLSL ES compatibilty is a MESS, targeted versions are:
+    // GLSL ES 1  : 100
+    // GLSL GL 3  : 130
+    // GLSL ES 3  : 300 es (only for playing around so far)
+    // maybe I can change the latter to 150 to get geometry shader, but I would not count on it,
+    // for now I'll keep everything at version 100 manually so that I catch problems with GLSL ES
+    // in my shader code, its just supported fine on my intel notebook
+    //
+    // https://github.com/mattdesl/lwjgl-basics/wiki/GLSL-Versions
+    // http://bitiotic.com/blog/2013/09/24/opengl-es-shading-language-potholes-and-problems/
+    // http://stackoverflow.com/questions/2631324/opengl-shading-language-backwards-compatibility
+    //
+    // "#extension GL_ARB_enhanced_layouts:require\n"
+    // "#extension GL_ARB_ES2_compatibility:require\n"
+    // "#extension GL_ARB_uniform_buffer_object:require\n"
+    // #if __VERSION__ < 130\n#define in attribute\n#define out varying\n#endif\n
+    //
+    // - compat stuff used to be in defines GLSL_COMPAT_VERT and GLSL_COMPAT_FRAG, but now its loaded
+    // from files shader/prefix.vert and shader/prefix.frag
+    FILE* prefix_file = NULL;
     if( type == GL_VERTEX_SHADER ) {
-        test_length = strlen(GLSL_VERT_COMPAT);
-        compat_source = GLSL_VERT_COMPAT;
+        const char* filename = "shader/prefix.vert";
+        prefix_file = fopen(filename, "rb");
+
+        if( ! prefix_file ) {
+            log_fail(stderr, __FILE__, __LINE__, "could not open file %s\n", filename);
+            return 0;
+        }
     } else if( type == GL_FRAGMENT_SHADER ) {
-        test_length = strlen(GLSL_FRAG_COMPAT);
-        compat_source = GLSL_FRAG_COMPAT;
+        const char* filename = "shader/prefix.frag";
+        prefix_file = fopen(filename, "rb");
+
+        if( ! prefix_file ) {
+            log_fail(stderr, __FILE__, __LINE__, "could not open file %s\n", filename);
+            return 0;
+        }
     }
-    log_assert( test_length > 0 );
-    log_assert( test_length < INT_MAX );
-    GLint compat_length = (GLint)test_length;
+    log_assert( prefix_file != NULL );
 
-    test_length = strlen(shader_source);
-    log_assert( test_length > 0 );
-    log_assert( test_length < INT_MAX );
-    GLint source_length = (GLint)test_length;
+    size_t filepos;
+    fseek(prefix_file, 0, SEEK_END);
+    filepos = ftell(prefix_file);
+    fseek(prefix_file, 0, SEEK_SET);
 
-    // the final shader source is made up from the compatibilty source defined
+    log_assert( filepos > 0 );
+    size_t prefix_length = filepos;
+    log_assert( prefix_length < INT_MAX );
+
+    GLuint shader = 0;
+    GLchar* prefix_source = malloc(prefix_length+1);
+    if( prefix_source == NULL ) {
+        fclose(prefix_file);
+        goto finish;
+    } else {
+        fread(prefix_source, prefix_length, 1, prefix_file);
+        fclose(prefix_file);
+        prefix_source[prefix_length] = '\0';
+    }
+
+    size_t source_length = strlen(shader_source);
+    log_assert( source_length > 0 );
+    log_assert( source_length < INT_MAX );
+
+    // - the final shader source is made up from the compatibilty source defined
     // in GLSL_VERT_COMPAT and GLSL_FRAG_COMPAT, and the actual shader_source
     // both have their length and their pointer are put into source_array, their
     // length are put into length_array, glShaderSource takes those and assembles
     // the final source and puts it into shader, glCompileShader finally produces
     // the compiled shader
-    const GLchar* source_array[2] = {compat_source, shader_source};
-    GLint length_array[2] = {compat_length, source_length};
+    // - see above, instead of defines now using files
+    const GLchar* source_array[2] = {prefix_source, shader_source};
+    GLint length_array[2] = {(GLint)prefix_length, (GLint)source_length};
 
-    GLuint shader = glCreateShader(type);
+    shader = glCreateShader(type);
     log_assert( shader > 0 );
 
     glShaderSource(shader, 2, source_array, length_array);
@@ -82,12 +129,14 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
     GLint shader_ok;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_ok);
     if ( ! shader_ok ) {
-        log_fail(stderr, __FILE__, __LINE__, "failed to compile:\n %s%s\n", compat_source, shader_source);
+        log_fail(stderr, __FILE__, __LINE__, "failed to compile:\n%s%s\n\n\n", prefix_source, shader_source);
         glsl_debug_info_log(shader);
         glDeleteShader(shader);
-        return 0;
+        goto finish;;
     }
 
+finish:
+    free(prefix_source);
     return shader;
 }
 
@@ -99,28 +148,32 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
         return 0;
     }
 
-    long filepos;
+    size_t filepos;
     fseek(file, 0, SEEK_END);
     filepos = ftell(file);
     fseek(file, 0, SEEK_SET);
 
     log_assert( filepos > 0 );
-    size_t length = (size_t)filepos;
+    size_t length = filepos;
 
-    GLchar* source = malloc(length);
+    GLchar* source = malloc(length+1);
+    GLuint id = 0;
     if( source == NULL ) {
         fclose(file);
-        return 0;
+        goto finish;
     } else {
         fread(source, length, 1, file);
         fclose(file);
+        source[length] = '\0';
     }
 
-    log_info(stderr, __FILE__, __LINE__, "compiling: %s\n", filename);
-    GLuint id = glsl_compile_source(type, source);
+    id = glsl_compile_source(type, source);
     if( ! id ) {
         log_fail(stderr, __FILE__, __LINE__, "compilation failed in: %s\n", filename);
     }
+
+finish:
+    free(source);
     return id;
 }
 
