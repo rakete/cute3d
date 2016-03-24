@@ -58,6 +58,7 @@ struct Shader {
         GLint location;
         char name[256];
         bool unset;
+        bool warn_once;
     } attribute[MAX_SHADER_ATTRIBUTES];
 
     // - I was thinking about using uniform buffer objects and how they would fit in here,
@@ -80,7 +81,10 @@ struct Shader {
         GLint location;
         char name[256];
         bool unset;
+        bool warn_once;
     } uniform[MAX_SHADER_UNIFORMS];
+
+    bool verified;
 };
 
 int32_t init_shader() __attribute__((warn_unused_result));
@@ -90,7 +94,8 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
 void shader_create_from_sources(const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p);
 
 void shader_setup_locations(struct Shader* p);
-bool shader_warn_locations(const struct Shader* p);
+bool shader_verify_locations(struct Shader* p);
+bool shader_warn_locations(struct Shader* p);
 
 GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name);
 GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const char* name);

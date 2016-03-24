@@ -74,13 +74,17 @@ void shader_create_empty(struct Shader* p) {
         p->attribute[j].location = -1;
         p->attribute[j].name[0] = '\0';
         p->attribute[j].unset = true;
+        p->attribute[j].warn_once = true;
     }
 
     for( int32_t j = 0; j < MAX_SHADER_UNIFORMS; j++ ) {
         p->uniform[j].location = -1;
         p->uniform[j].name[0] = '\0';
         p->uniform[j].unset = true;
+        p->uniform[j].warn_once = true;
     }
+
+    p->verified = false;
 }
 
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p) {
@@ -116,6 +120,8 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
     p->program = glsl_link_program(p->program);
     log_assert( p->program > 0 );
 
+    p->verified = false;
+
     shader_setup_locations(p);
 }
 
@@ -149,6 +155,8 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     p->program = glsl_link_program(p->program);
     log_assert( p->program > 0 );
 
+    p->verified = false;
+
     shader_setup_locations(p);
 }
 
@@ -163,6 +171,7 @@ void shader_setup_locations(struct Shader* p) {
         p->attribute[i].name[0] = '\0';
         p->attribute[i].location = -1;
         p->attribute[i].unset = true;
+        p->attribute[i].warn_once = true;
 
         if( location > -1 ) {
             log_assert( strlen(attribute_name) < 256 );
@@ -186,6 +195,7 @@ void shader_setup_locations(struct Shader* p) {
         p->uniform[i].name[0] = '\0';
         p->uniform[i].location = -1;
         p->uniform[i].unset = true;
+        p->uniform[i].warn_once = true;
 
         if( location > -1 ) {
             p->uniform[i].name[0] = '\0';
@@ -199,22 +209,74 @@ void shader_setup_locations(struct Shader* p) {
     if( num_active_uniforms > num_cached_uniforms) {
         log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" has %d unknown uniforms\n", p->name, num_active_uniforms - num_cached_uniforms);
     }
+
+    shader_verify_locations(p);
 }
 
-bool shader_warn_locations(const struct Shader* p) {
+bool shader_verify_locations(struct Shader* p) {
     bool ret = false;
 
+    if( p->verified ) {
+        return ret;
+    }
+
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
-        if( p->attribute[i].location > -1 && p->attribute[i].unset ) {
-            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" attribute \"%s\" cached but never set\n", p->name, p->attribute[i].name);
+        if( p->attribute[i].location < 0 && strlen(p->attribute[i].name) > 0 ) {
+            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" attribute \"%s\" has a name but no location\n", p->name, p->attribute[i].name);
             ret = true;
+        }
+
+        if( p->attribute[i].location > -1 ) {
+            if( strlen(p->attribute[i].name) == 0 ) {
+                log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" attribute location %d cached without a name\n", p->name, p->attribute[i].location);
+                ret = true;
+            }
         }
     }
 
     for( int32_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
-        if( p->uniform[i].location > -1 && p->uniform[i].unset ) {
-            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" cached but never set\n", p->name, p->uniform[i].name);
+        if( p->uniform[i].location < 0 && strlen(p->uniform[i].name) > 0 ) {
+            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" has a name but no location\n", p->name, p->uniform[i].name);
             ret = true;
+        }
+
+        if( p->uniform[i].location > -1 ) {
+            if( strlen(p->uniform[i].name) == 0 ) {
+                log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform location %d cached without a name\n", p->name, p->uniform[i].location);
+                ret = true;
+            }
+        }
+    }
+
+    p->verified = true;
+
+    return ret;
+}
+
+bool shader_warn_locations(struct Shader* p) {
+    bool ret = false;
+
+    if( ! p->verified ) {
+        shader_verify_locations(p);
+    }
+
+    for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
+        if( p->attribute[i].location > -1 ) {
+            if( p->attribute[i].unset && p->attribute[i].warn_once ) {
+                log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" attribute \"%s\" never set\n", p->name, p->attribute[i].name);
+                ret = true;
+                p->attribute[i].warn_once = false;
+            }
+        }
+    }
+
+    for( int32_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
+        if( p->uniform[i].location > -1 ) {
+            if( p->uniform[i].unset && p->uniform[i].warn_once ) {
+                log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" never set\n", p->name, p->uniform[i].name);
+                ret = true;
+                p->uniform[i].warn_once = false;
+            }
         }
     }
 
@@ -241,6 +303,8 @@ GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const
             //strncpy(shader->attribute[attribute_index].name, name, strlen(name)+1);
             shader->attribute[attribute_index].name[0] = '\0';
             strncat(shader->attribute[attribute_index].name, name, strlen(name));
+
+            shader->verified = false;
         } else {
             log_warn(stderr, __FILE__, __LINE__, "could not add attribute %d location \"%s\" to shader \"%s\"\n", attribute_index, name, shader->name);
         }
@@ -266,6 +330,8 @@ GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const cha
 
             shader->uniform[uniform_index].name[0] = '\0';
             strncat(shader->uniform[uniform_index].name, name, strlen(name));
+
+            shader->verified = false;
         } else {
             log_warn(stderr, __FILE__, __LINE__, "could not add uniform %d location \"%s\" to shader \"%s\"\n", uniform_index, name, shader->name);
         }
@@ -301,21 +367,16 @@ GLint shader_set_uniform_matrices(struct Shader* shader, const Mat projection_ma
     log_assert( model_matrix != NULL );
     log_assert( shader->program > 0 );
 
-    GLint ret = -1;
-    GLint mvp_loc = -1;
-    if( shader->uniform[SHADER_UNIFORM_MVP_MATRIX].location > -1 ) {
-        mvp_loc = shader->uniform[SHADER_UNIFORM_MVP_MATRIX].location;
-    } else if( strlen(shader->uniform[SHADER_UNIFORM_MVP_MATRIX].name) > 0 ) {
-        log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" is uncached\n");
-        ogl_debug( mvp_loc = glGetUniformLocation(shader->program, shader->uniform[SHADER_UNIFORM_MVP_MATRIX].name) );
-
-        if( mvp_loc > -1 ) {
-            shader->uniform[SHADER_UNIFORM_MVP_MATRIX].location = mvp_loc;
-        } else {
-            log_warn(stderr, __FILE__, __LINE__, "no \"%s\" location in shader \"%s\"\n", shader->uniform[SHADER_UNIFORM_MVP_MATRIX].name, shader->name);
-            shader->uniform[SHADER_UNIFORM_MVP_MATRIX].name[0] = '\0';
-        }
+    if( ! shader->verified ) {
+        shader_verify_locations(shader);
     }
+
+    GLint ret = -1;
+    GLint mvp_loc = shader->uniform[SHADER_UNIFORM_MVP_MATRIX].location;
+    GLint projection_loc = shader->uniform[SHADER_UNIFORM_PROJECTION_MATRIX].location;
+    GLint view_loc = shader->uniform[SHADER_UNIFORM_VIEW_MATRIX].location;
+    GLint model_loc = shader->uniform[SHADER_UNIFORM_MODEL_MATRIX].location;
+    log_assert( mvp_loc > -1 || projection_loc > -1 || view_loc > -1 || model_loc > -1 );
 
     if( mvp_loc > -1 ) {
         Mat mvp_matrix = {0};
@@ -324,47 +385,9 @@ GLint shader_set_uniform_matrices(struct Shader* shader, const Mat projection_ma
         ogl_debug( glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, mvp_matrix) );
         shader->uniform[SHADER_UNIFORM_MVP_MATRIX].unset = false;
         ret = mvp_loc;
-    } else {
-        GLint projection_loc = shader->uniform[SHADER_UNIFORM_PROJECTION_MATRIX].location;
-        GLint view_loc = shader->uniform[SHADER_UNIFORM_VIEW_MATRIX].location;
-        GLint model_loc = shader->uniform[SHADER_UNIFORM_MODEL_MATRIX].location;
+    }
 
-        if( projection_loc < 0 && strlen(shader->uniform[SHADER_UNIFORM_PROJECTION_MATRIX].name) > 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" is uncached\n");
-            ogl_debug( projection_loc = glGetUniformLocation(shader->program, shader->uniform[SHADER_UNIFORM_PROJECTION_MATRIX].name) );
-
-            if( projection_loc > -1 ) {
-                shader->uniform[SHADER_UNIFORM_PROJECTION_MATRIX].location = projection_loc;
-            } else {
-                log_warn(stderr, __FILE__, __LINE__, "no \"%s\" location in shader \"%s\"\n", shader->uniform[SHADER_UNIFORM_PROJECTION_MATRIX].name, shader->name);
-                shader->uniform[SHADER_UNIFORM_PROJECTION_MATRIX].name[0] = '\0';
-            }
-        }
-
-        if( view_loc < 0 && strlen(shader->uniform[SHADER_UNIFORM_VIEW_MATRIX].name) > 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" is uncached\n");
-            ogl_debug( view_loc = glGetUniformLocation(shader->program, shader->uniform[SHADER_UNIFORM_VIEW_MATRIX].name) );
-
-            if( view_loc > -1 ) {
-                shader->uniform[SHADER_UNIFORM_VIEW_MATRIX].location = view_loc;
-            } else {
-                log_warn(stderr, __FILE__, __LINE__, "no \"%s\" location in shader \"%s\"\n", shader->uniform[SHADER_UNIFORM_VIEW_MATRIX].name, shader->name);
-                shader->uniform[SHADER_UNIFORM_VIEW_MATRIX].name[0] = '\0';
-            }
-        }
-
-        if( model_loc < 0 && strlen(shader->uniform[SHADER_UNIFORM_MODEL_MATRIX].name) > 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" is uncached\n");
-            ogl_debug( model_loc = glGetUniformLocation(shader->program, shader->uniform[SHADER_UNIFORM_MODEL_MATRIX].name) );
-
-            if( model_loc > -1 ) {
-                shader->uniform[SHADER_UNIFORM_MODEL_MATRIX].location = model_loc;
-            } else {
-                log_warn(stderr, __FILE__, __LINE__, "no \"%s\" location in shader \"%s\"\n", shader->uniform[SHADER_UNIFORM_MODEL_MATRIX].name, shader->name);
-                shader->uniform[SHADER_UNIFORM_MODEL_MATRIX].name[0] = '\0';
-            }
-        }
-
+    if( mvp_loc < 0 ) {
         if( projection_loc > -1 ) {
             ogl_debug( glUniformMatrix4fv(projection_loc, 1, GL_FALSE, projection_matrix) );
             shader->uniform[SHADER_UNIFORM_PROJECTION_MATRIX].unset = false;
@@ -384,30 +407,7 @@ GLint shader_set_uniform_matrices(struct Shader* shader, const Mat projection_ma
         }
     }
 
-    if( ret < 0 ) {
-        log_fail(stderr, __FILE__, __LINE__, "either \"%s\" location or the \"%s\", \"%s\" or \"%s\" locations are missing in shader \"%s\"\n",
-                 global_shader_uniform_names[SHADER_UNIFORM_MVP_MATRIX],
-                 global_shader_uniform_names[SHADER_UNIFORM_PROJECTION_MATRIX],
-                 global_shader_uniform_names[SHADER_UNIFORM_VIEW_MATRIX],
-                 global_shader_uniform_names[SHADER_UNIFORM_MODEL_MATRIX],
-                 shader->name);
-    }
-
-    GLint normal_loc = -1;
-    if( shader->uniform[SHADER_UNIFORM_NORMAL_MATRIX].location > -1 ) {
-        normal_loc = shader->uniform[SHADER_UNIFORM_NORMAL_MATRIX].location;
-    } else if( strlen(shader->uniform[SHADER_UNIFORM_NORMAL_MATRIX].name) > 0 ) {
-        log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" is uncached\n");
-        ogl_debug( normal_loc = glGetUniformLocation(shader->program, shader->uniform[SHADER_UNIFORM_NORMAL_MATRIX].name) );
-
-        if( normal_loc > -1 ) {
-            shader->uniform[SHADER_UNIFORM_NORMAL_MATRIX].location = normal_loc;
-        } else {
-            log_warn(stderr, __FILE__, __LINE__, "no \"%s\" location in shader \"%s\"\n", shader->uniform[SHADER_UNIFORM_NORMAL_MATRIX].name, shader->name);
-            shader->uniform[SHADER_UNIFORM_NORMAL_MATRIX].name[0] = '\0';
-        }
-    }
-
+    GLint normal_loc = shader->uniform[SHADER_UNIFORM_NORMAL_MATRIX].location;
     if( normal_loc > -1 ) {
         Mat normal_matrix = {0};
         mat_copy4f(model_matrix, normal_matrix);
@@ -427,46 +427,32 @@ GLint shader_set_uniform_1f(struct Shader* shader, int32_t uniform_index, uint32
     log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
     log_assert( data != NULL );
 
+    if( ! shader->verified ) {
+        shader_verify_locations(shader);
+    }
+
     GLint location = shader->uniform[uniform_index].location;
-    if( location < 0 && strlen(shader->uniform[uniform_index].name) > 0 ) {
-        log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" is uncached\n", shader->name, shader->uniform[uniform_index].name);
-        ogl_debug( location = glGetUniformLocation(shader->program, shader->uniform[uniform_index].name) );
+    log_assert( location > -1 );
+    log_assert( strlen(shader->uniform[uniform_index].name) > 0 );
 
-        if( location > -1 ) {
-            shader->uniform[uniform_index].location = location;
-        } else {
-            log_warn(stderr, __FILE__, __LINE__, "no \"%s\" location in shader \"%s\"\n", shader->uniform[uniform_index].name, shader->name);
-            shader->uniform[uniform_index].name[0] = '\0';
+    GLfloat float_value = 0.0f;
+    switch(type) {
+        case GL_FLOAT: {
+            float_value = size > 0 ? ((float*)data)[0] : 0.0f;
+            break;
         }
+        case GL_UNSIGNED_BYTE: {
+            float_value = size > 0 ? ((uint8_t*)data)[0] / 255.0 : 0.0f;
+            break;
+        }
+        default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
     }
 
-    if( location > -1 ) {
-        GLfloat float_value = 0.0f;
-        switch(type) {
-            case GL_FLOAT: {
-                float_value = size > 0 ? ((float*)data)[0] : 0.0f;
-                break;
-            }
-            case GL_UNSIGNED_BYTE: {
-                float_value = size > 0 ? ((uint8_t*)data)[0] / 255.0 : 0.0f;
-                break;
-            }
-            default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
-        }
-
-        // glUniform changes state of the program, so it needs to be run after glUseProgram
-        // that does not apply to glVertexAttribPointer, which only changes global state
-        ogl_debug( glUseProgram(shader->program);
-                   glUniform1f(location, float_value); );
-        shader->uniform[uniform_index].unset = false;
-    } else {
-        if( strlen(shader->uniform[uniform_index].name) > 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "could not set uniform \"%s\" of shader \"%s\"\n", shader->uniform[uniform_index].name, shader->name);
-        } else {
-            log_fail(stderr, __FILE__, __LINE__, "uniform %d of shader \"%s\" has no name and no location\n", uniform_index, shader->name);
-        }
-    }
-
+    // glUniform changes state of the program, so it needs to be run after glUseProgram
+    // that does not apply to glVertexAttribPointer, which only changes global state
+    ogl_debug( glUseProgram(shader->program);
+               glUniform1f(location, float_value); );
+    shader->uniform[uniform_index].unset = false;
 
     return location;
 }
@@ -479,57 +465,42 @@ GLint shader_set_uniform_3f(struct Shader* shader, int32_t uniform_index, uint32
     log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
     log_assert( data != NULL );
 
+    if( ! shader->verified ) {
+        shader_verify_locations(shader);
+    }
+
     GLint location = shader->uniform[uniform_index].location;
-    if( location < 0 && strlen(shader->uniform[uniform_index].name) > 0 ) {
-        log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" is uncached\n", shader->name, shader->uniform[uniform_index].name);
-        ogl_debug( location = glGetUniformLocation(shader->program, shader->uniform[uniform_index].name) );
+    log_assert( location > -1 );
+    log_assert( strlen(shader->uniform[uniform_index].name) > 0 );
 
-        if( location > -1 ) {
-            shader->uniform[uniform_index].location = location;
-        } else {
-            log_warn(stderr, __FILE__, __LINE__, "no \"%s\" location in shader \"%s\"\n", shader->uniform[uniform_index].name, shader->name);
-            shader->uniform[uniform_index].name[0] = '\0';
+    // - pad data with zeros so that argument size can be smaller than 3 and not cause a crash
+    // - also normalize when input is unsigned bytes (for colors)
+    GLfloat float_array[3] = {0};
+    switch(type) {
+        case GL_FLOAT: {
+            float_array[0] = size > 0 ? ((float*)data)[0] : 0.0f;
+            float_array[1] = size > 1 ? ((float*)data)[1] : 0.0f;
+            float_array[2] = size > 2 ? ((float*)data)[2] : 0.0f;
+            break;
         }
+        case GL_UNSIGNED_BYTE: {
+            float_array[0] = size > 0 ? ((uint8_t*)data)[0] / 255.0 : 0.0f;
+            float_array[1] = size > 1 ? ((uint8_t*)data)[1] / 255.0 : 0.0f;
+            float_array[2] = size > 2 ? ((uint8_t*)data)[2] / 255.0 : 0.0f;
+            break;
+        }
+        default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
     }
 
-    if( location > -1 ) {
-
-        // - pad data with zeros so that argument size can be smaller than 3 and not cause a crash
-        // - also normalize when input is unsigned bytes (for colors)
-        GLfloat float_array[3] = {0};
-        switch(type) {
-            case GL_FLOAT: {
-                float_array[0] = size > 0 ? ((float*)data)[0] : 0.0f;
-                float_array[1] = size > 1 ? ((float*)data)[1] : 0.0f;
-                float_array[2] = size > 2 ? ((float*)data)[2] : 0.0f;
-                break;
-            }
-            case GL_UNSIGNED_BYTE: {
-                float_array[0] = size > 0 ? ((uint8_t*)data)[0] / 255.0 : 0.0f;
-                float_array[1] = size > 1 ? ((uint8_t*)data)[1] / 255.0 : 0.0f;
-                float_array[2] = size > 2 ? ((uint8_t*)data)[2] / 255.0 : 0.0f;
-                break;
-            }
-            default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
-        }
-
-        if( size < 3 ) {
-            log_warn(stderr, __FILE__, __LINE__, "setting uniform 3f with only %df data\n", size);
-        }
-
-        // glUniform changes state of the program, so it needs to be run after glUseProgram
-        // that does not apply to glVertexAttribPointer, which only changes global state
-        ogl_debug( glUseProgram(shader->program);
-                   glUniform3f(location, float_array[0], float_array[1], float_array[2]); );
-        shader->uniform[uniform_index].unset = false;
-
-    } else {
-        if( strlen(shader->uniform[uniform_index].name) > 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "could not set uniform \"%s\" of shader \"%s\"\n", shader->uniform[uniform_index].name, shader->name);
-        } else {
-            log_fail(stderr, __FILE__, __LINE__, "uniform %d of shader \"%s\" has no name and no location\n", uniform_index, shader->name);
-        }
+    if( size < 3 ) {
+        log_warn(stderr, __FILE__, __LINE__, "setting uniform 3f with only %df data\n", size);
     }
+
+    // glUniform changes state of the program, so it needs to be run after glUseProgram
+    // that does not apply to glVertexAttribPointer, which only changes global state
+    ogl_debug( glUseProgram(shader->program);
+               glUniform3f(location, float_array[0], float_array[1], float_array[2]); );
+    shader->uniform[uniform_index].unset = false;
 
     return location;
 }
@@ -543,58 +514,44 @@ GLint shader_set_uniform_4f(struct Shader* shader, int32_t uniform_index, uint32
     log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
     log_assert( data != NULL );
 
+    if( ! shader->verified ) {
+        shader_verify_locations(shader);
+    }
+
     GLint location = shader->uniform[uniform_index].location;
-    if( location < 0 && strlen(shader->uniform[uniform_index].name) > 0 ) {
-        log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" is uncached\n", shader->name, shader->uniform[uniform_index].name);
-        ogl_debug( location = glGetUniformLocation(shader->program, shader->uniform[uniform_index].name) );
+    log_assert( location > -1 );
+    log_assert( strlen(shader->uniform[uniform_index].name) > 0 );
 
-        if( location > -1 ) {
-            shader->uniform[uniform_index].location = location;
-        } else {
-            log_warn(stderr, __FILE__, __LINE__, "no \"%s\" location in shader \"%s\"\n", shader->uniform[uniform_index].name, shader->name);
-            shader->uniform[uniform_index].name[0] = '\0';
+    // - pad data with zeros so that argument size can be smaller than 3 and not cause a crash
+    // - also normalize when input is unsigned bytes (for colors)
+    GLfloat float_array[4] = {0};
+    switch(type) {
+        case GL_FLOAT: {
+            float_array[0] = size > 0 ? ((float*)data)[0] : 0.0f;
+            float_array[1] = size > 1 ? ((float*)data)[1] : 0.0f;
+            float_array[2] = size > 2 ? ((float*)data)[2] : 0.0f;
+            float_array[3] = size > 3 ? ((float*)data)[3] : 0.0f;
+            break;
         }
+        case GL_UNSIGNED_BYTE: {
+            float_array[0] = size > 0 ? ((uint8_t*)data)[0] / 255.0 : 0.0f;
+            float_array[1] = size > 1 ? ((uint8_t*)data)[1] / 255.0 : 0.0f;
+            float_array[2] = size > 2 ? ((uint8_t*)data)[2] / 255.0 : 0.0f;
+            float_array[3] = size > 3 ? ((uint8_t*)data)[3] / 255.0 : 0.0f;
+            break;
+        }
+        default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
     }
 
-    if( location > -1 ) {
-        // - pad data with zeros so that argument size can be smaller than 3 and not cause a crash
-        // - also normalize when input is unsigned bytes (for colors)
-        GLfloat float_array[4] = {0};
-        switch(type) {
-            case GL_FLOAT: {
-                float_array[0] = size > 0 ? ((float*)data)[0] : 0.0f;
-                float_array[1] = size > 1 ? ((float*)data)[1] : 0.0f;
-                float_array[2] = size > 2 ? ((float*)data)[2] : 0.0f;
-                float_array[3] = size > 3 ? ((float*)data)[3] : 0.0f;
-                break;
-            }
-            case GL_UNSIGNED_BYTE: {
-                float_array[0] = size > 0 ? ((uint8_t*)data)[0] / 255.0 : 0.0f;
-                float_array[1] = size > 1 ? ((uint8_t*)data)[1] / 255.0 : 0.0f;
-                float_array[2] = size > 2 ? ((uint8_t*)data)[2] / 255.0 : 0.0f;
-                float_array[3] = size > 3 ? ((uint8_t*)data)[3] / 255.0 : 0.0f;
-                break;
-            }
-            default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
-        }
-
-        if( size < 4 ) {
-            log_warn(stderr, __FILE__, __LINE__, "setting uniform 4f with only %df data\n", size);
-        }
-
-        // glUniform changes state of the program, so it needs to be run after glUseProgram
-        // that does not apply to glVertexAttribPointer, which only changes global state
-        ogl_debug( glUseProgram(shader->program);
-                   glUniform4f(location, float_array[0], float_array[1], float_array[2], float_array[3]); );
-        shader->uniform[uniform_index].unset = false;
-
-    } else {
-        if( strlen(shader->uniform[uniform_index].name) > 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "could not set uniform \"%s\" of shader \"%s\"\n", shader->uniform[uniform_index].name, shader->name);
-        } else {
-            log_fail(stderr, __FILE__, __LINE__, "uniform %d of shader \"%s\" has no name and no location\n", uniform_index, shader->name);
-        }
+    if( size < 4 ) {
+        log_warn(stderr, __FILE__, __LINE__, "setting uniform 4f with only %df data\n", size);
     }
+
+    // glUniform changes state of the program, so it needs to be run after glUseProgram
+    // that does not apply to glVertexAttribPointer, which only changes global state
+    ogl_debug( glUseProgram(shader->program);
+               glUniform4f(location, float_array[0], float_array[1], float_array[2], float_array[3]); );
+    shader->uniform[uniform_index].unset = false;
 
     return location;
 }
@@ -606,33 +563,20 @@ GLint shader_set_sampler2D(struct Shader* shader, int32_t uniform_index, GLenum 
     log_assert( uniform_index <= MAX_SHADER_UNIFORMS );
     log_assert( texture_unit < 8 );
     log_assert( texture_id > 0 );
-    log_assert( GL_TEXTURE7 == GL_TEXTURE0 + 7 )
+    log_assert( GL_TEXTURE7 == GL_TEXTURE0 + 7 );
+
+    if( ! shader->verified ) {
+        shader_verify_locations(shader);
+    }
 
     GLint location = shader->uniform[uniform_index].location;
-    if( location < 0 && strlen(shader->uniform[uniform_index].name) > 0 ) {
-        log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" is uncached\n", shader->name, shader->uniform[uniform_index].name);
-        ogl_debug( location = glGetUniformLocation(shader->program, shader->uniform[uniform_index].name) );
+    log_assert( location > -1 );
+    log_assert( strlen(shader->uniform[uniform_index].name) > 0 );
 
-        if( location > -1 ) {
-            shader->uniform[uniform_index].location = location;
-        } else {
-            log_warn(stderr, __FILE__, __LINE__, "no \"%s\" location in shader \"%s\"\n", shader->uniform[uniform_index].name, shader->name);
-            shader->uniform[uniform_index].name[0] = '\0';
-        }
-    }
-
-    if( location > -1 ) {
-        ogl_debug( glUniform1i(location, texture_unit) ;
-                   glActiveTexture(GL_TEXTURE0 + texture_unit);
-                   glBindTexture(texture_type, texture_id); );
-        shader->uniform[uniform_index].unset = false;
-    } else {
-        if( strlen(shader->uniform[uniform_index].name) > 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "could not set uniform \"%s\" of shader \"%s\"\n", shader->uniform[uniform_index].name, shader->name);
-        } else {
-            log_fail(stderr, __FILE__, __LINE__, "uniform %d of shader \"%s\" has no name and no location\n", uniform_index, shader->name);
-        }
-    }
+    ogl_debug( glUniform1i(location, texture_unit) ;
+               glActiveTexture(GL_TEXTURE0 + texture_unit);
+               glBindTexture(texture_type, texture_id); );
+    shader->uniform[uniform_index].unset = false;
 
     return location;
 }
@@ -644,37 +588,24 @@ GLint shader_set_attribute(struct Shader* shader, int32_t attribute_i, GLuint bu
     log_assert( c_num >= 0 );
     log_assert( c_num <= 4 );
 
+    if( ! shader->verified ) {
+        shader_verify_locations(shader);
+    }
+
     if( buffer == 0 || c_num == 0 ) {
         return -1;
     }
 
     GLint location = shader->attribute[attribute_i].location;
-    if( location < 0 && strlen(shader->attribute[attribute_i].name) > 0 ) {
-        log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" attribute \"%s\" is uncached\n", shader->name, shader->attribute[attribute_i].name);
-        ogl_debug( location = glGetAttribLocation(shader->program, shader->attribute[attribute_i].name) );
+    log_assert( location > -1 );
+    log_assert( strlen(shader->attribute[attribute_i].name) > 0 );
 
-        if( location > -1 ) {
-            shader->attribute[attribute_i].location = location;
-        } else {
-            log_warn(stderr, __FILE__, __LINE__, "no \"%s\" location in shader \"%s\"\n", shader->attribute[attribute_i].name, shader->name);
-            shader->attribute[attribute_i].name[0] = '\0';
-        }
-    }
-
-    if( location > -1 ) {
-        ogl_debug( glEnableVertexAttribArray((GLuint)location);
-                   glBindBuffer(GL_ARRAY_BUFFER, buffer);
-                   // - glVertexAttribPointer requires a vao to be bound in core 3.0+, if none is bound,
-                   // rendering will fail here
-                   glVertexAttribPointer((GLuint)location, c_num, c_type, GL_TRUE, stride, p); );
-        shader->attribute[attribute_i].unset = false;
-    } else {
-        if( strlen(shader->attribute[attribute_i].name) > 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "could not set attribute \"%s\" of shader \"%s\"\n", shader->attribute[attribute_i].name, shader->name);
-        } else {
-            log_fail(stderr, __FILE__, __LINE__, "attribute %d of shader \"%s\" has no name and no location\n", attribute_i, shader->name);
-        }
-    }
+    ogl_debug( glEnableVertexAttribArray((GLuint)location);
+               glBindBuffer(GL_ARRAY_BUFFER, buffer);
+               // - glVertexAttribPointer requires a vao to be bound in core 3.0+, if none is bound,
+               // rendering will fail here
+               glVertexAttribPointer((GLuint)location, c_num, c_type, GL_TRUE, stride, p); );
+    shader->attribute[attribute_i].unset = false;
 
     return location;
 }
