@@ -63,6 +63,15 @@ bool log_fail(FILE* f, const char* filename, int32_t linenumber, const char* for
     return true;
 }
 
+bool log_continue(FILE* f, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    vfprintf(f, format, args);
+    fflush(stdout);
+
+    return true;
+}
+
 bool _log_assert(const char* condition, const char* format, ...) {
     va_list args;
     va_start(args, format);

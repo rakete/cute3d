@@ -23,6 +23,8 @@ bool log_info(FILE* f, const char* filename, int32_t linenumber, const char* for
 bool log_warn(FILE* f, const char* filename, int32_t linenumber, const char* format, ...);
 bool log_fail(FILE* f, const char* filename, int32_t linenumber, const char* format, ...);
 
+bool log_continue(FILE* f, const char* format, ...);
+
 // - logging assert failures, the log_assert macro takes can be used with just one argument, the asserted condtion,
 // and optionally a format string and variadic args can come after the condition
 // - I had to implement it with these multiple macros and extra "", "" arguments to work around warnings (also I could
