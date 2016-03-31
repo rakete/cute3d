@@ -74,6 +74,8 @@ void canvas_create(const char* name, struct Canvas* canvas) {
     canvas->vao = 0;
 #endif
 
+    canvas->line_z_scaling = 1.0f;
+
     // canvas_create
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT);
