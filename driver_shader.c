@@ -46,6 +46,7 @@ int32_t init_shader() {
     global_shader_attribute_names[SHADER_ATTRIBUTE_PREV_VERTEX] = "prev_vertex";
     global_shader_attribute_names[SHADER_ATTRIBUTE_NEXT_VERTEX] = "next_vertex";
     global_shader_attribute_names[SHADER_ATTRIBUTE_LINE_THICKNESS] = "line_thickness";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_BARYCENTRIC_COORDINATE] = "barycentric_coordinate";
 
     global_shader_uniform_names[SHADER_UNIFORM_MVP_MATRIX] = "mvp_matrix";
     global_shader_uniform_names[SHADER_UNIFORM_MODEL_MATRIX] = "model_matrix";
