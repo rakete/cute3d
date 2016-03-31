@@ -61,10 +61,10 @@ void shitty_triangulate(float* vertices, int32_t n, int32_t* triangles, int32_t 
 
     // #YOLO
     if( n == 4 ) {
-        static bool warn_once = 1;
+        static bool warn_once = true;
         if( warn_once ) {
             log_warn(stderr, __FILE__, __LINE__, "using completely shitty_triangulate function!\n");
-            warn_once = 0;
+            warn_once = false;
         }
         triangles[3] = 2;
         triangles[4] = 3;
@@ -239,6 +239,8 @@ void vbomesh_render(struct VboMesh* mesh, const struct Shader* shader, const str
             loc[array_id] = shader_set_attribute(shader, array_id, mesh->vbo->buffer[array_id].id, (GLint)c_num, c_type, 0, (void*)(intptr_t)offset);
         }
     }
+
+    shader_warn_locations(shader);
 
     if( mesh->indices->id ) {
         ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indices->id); );

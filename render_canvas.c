@@ -49,7 +49,8 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
         //
         // when there are multiple calls to this functions without calling canvas_clear in between, and something
         // was added to the attributes arrays between calls, the occupied counters will differ and we re-upload
-        // everything in that case as well -> multiple calls without canvas_clear are not optimal, but should work
+        // everything in that case as well -> multiple calls without canvas_clear are not as I planned this, but
+        // should work
         if( occupied_attributes > occupied_buffer ) {
             size_t alloc_bytes = occupied_attributes * canvas->components[attribute_i].size * canvas->components[attribute_i].bytes;
             void* attributes_array = canvas->attributes[attribute_i].array;
@@ -58,6 +59,23 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
             ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, canvas->buffer[attribute_i].id);
                        glBufferData(GL_ARRAY_BUFFER, (ptrdiff_t)alloc_bytes, attributes_array, GL_DYNAMIC_DRAW); );
+
+            // - I want to report if a shader attribute or uniform has never been set when rendering, the uniforms are
+            // taken care of with the shader_set_uniform functions, but for the attributes I don't use shader_set_attribute
+            // and use a custom method here instead
+            // - this needs to be outside of the not_binding_vao check, sadly, because a shader might be added to the canvas
+            // after the first render and so we'll have to always check for unset attributes
+            for( int32_t shader_i = 0; shader_i < MAX_CANVAS_SHADER; shader_i++ ) {
+                if( canvas->shader[shader_i].attribute[attribute_i].location > -1 ) {
+                    canvas->shader[shader_i].attribute[attribute_i].unset = false;
+                }
+            }
+
+            for( int32_t font_i = 0; font_i < MAX_CANVAS_FONTS; font_i++ ) {
+                if( canvas->fonts[font_i].shader.attribute[attribute_i].location > -1 ) {
+                    canvas->fonts[font_i].shader.attribute[attribute_i].unset = false;
+                }
+            }
         }
 
         if( not_binding_vao ) {
@@ -79,6 +97,8 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                        // make use of vaos
                        glVertexAttribPointer((GLuint)loc[attribute_i], c_num, c_type, GL_TRUE, 0, 0); );
         }
+
+
     }
 
     // second loop goes through all shaders, binds their locations, then loops through all layers, uploads the indices and renders
@@ -136,6 +156,8 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                     log_assert( indices_bytes < PTRDIFF_MAX );
 
+                    shader_warn_locations(shader);
+
                     ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].id);
                                glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW);
 
@@ -159,10 +181,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
         ogl_debug( glUseProgram(font->shader.program); );
 
         // bind diffuse sampler
-        ogl_debug( GLint diffuse_loc = glGetUniformLocation(font->shader.program, global_shader_uniform_names[SHADER_UNIFORM_DIFFUSE_TEXTURE]);
-                   glUniform1i(diffuse_loc, 0) ;
-                   glActiveTexture(GL_TEXTURE0 + 0);
-                   glBindTexture(GL_TEXTURE_2D, font->texture.id); );
+        shader_set_sampler2D(&font->shader, SHADER_UNIFORM_DIFFUSE_TEXTURE, GL_TEXTURE_2D, 0, font->texture.id);
 
         Mat projection_matrix = {0};
         Mat view_matrix = {0};
@@ -201,6 +220,8 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                 ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].text[font_i][projection_i].id);
                            glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW); );
+
+                shader_warn_locations(&font->shader);
 
                 if( projection_i == CANVAS_PROJECT_SCREEN ) {
                     ogl_debug( glDisable(GL_DEPTH_TEST);
