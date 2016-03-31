@@ -43,6 +43,8 @@
 // vertices, and then render those all at once in a mainloop
 // - this behaves somewhat similar to the vbo stuff I implemented
 struct Canvas {
+    char name[256];
+
     // information about size and type the vertex/normal/color/texcoord attribute components
     // that are stored in the arrays/vbos
     struct CanvasComponents {
@@ -126,7 +128,7 @@ extern struct Canvas global_static_canvas;
 
 int32_t init_canvas() __attribute__((warn_unused_result));
 
-void canvas_create(struct Canvas* canvas);
+void canvas_create(const char* name, struct Canvas* canvas);
 // - I use malloc for the arrays, I should implement a destructor eventually, but since the canvas
 // is meant to be present throughout the whole runtime of the program this is not a priority
 void canvas_destroy(struct Canvas* canvas);
