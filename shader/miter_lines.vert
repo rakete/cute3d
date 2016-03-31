@@ -6,7 +6,6 @@ shader_in vec4 color;
 
 shader_in vec3 next_vertex;
 shader_in vec3 prev_vertex;
-shader_in float edge_direction;
 shader_in float line_thickness;
 
 shader_out vec4 frag_color;
@@ -55,7 +54,7 @@ void main() {
 
             float miter_adjust = dot(miter_vec, perp);
             if( abs(miter_adjust) < line_thickness/5.0 ) {
-                dir = vec2(line_thickness * edge_direction * 2.0, line_thickness * 2.0);
+                dir = vec2(line_thickness * 2.0, line_thickness * 2.0);
             } else {
                 dir = tangent;
                 temp_thickness = line_thickness / abs(miter_adjust);

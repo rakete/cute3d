@@ -27,8 +27,10 @@ void main()
     vec4 current_projected = mvp_matrix * vec4(vertex, 1.0);
     vec4 next_projected = mvp_matrix * vec4(next_vertex, 1.0);
 
+    float dir_correction = sign(line_thickness);
+
     //  line direction in screen space (perspective division required)
-    vec2 line_dir = line_thickness * normalize(current_projected.xy/current_projected.ww - next_projected.xy/next_projected.ww);
+    vec2 line_dir = dir_correction * abs(line_thickness) * normalize(current_projected.xy/current_projected.ww - next_projected.xy/next_projected.ww);
 
     // small trick to avoid inversed line condition when points are not on the same side of Z plane
     if( sign(next_projected.w) != sign(current_projected.w) ) {
@@ -39,6 +41,10 @@ void main()
     vec2 offset_x = line_dir.xy * texcoord.xx * vec2(1.0, safe_aspect);
     vec2 offset_y = line_dir.yx * vec2(1.0, -1.0) * texcoord.yy * vec2(1.0, safe_aspect);
     if( line_z_scaling > 0.0 ) {
+        // I scale according to the projected z coordinate so that lines will always have
+        // a minimum thickness on the screen, even when very far away, the clamping is what
+        // actually ensures the minimum/maximum thickness while mainting some perspective
+        // scaling to make stuff look less awkward
         float scaling = current_projected.z/(line_z_scaling*10.0);
         if( scaling < 0.2 ) {
             scaling = 0.2;

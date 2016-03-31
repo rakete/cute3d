@@ -20,6 +20,7 @@ void draw_solid_normals(struct Canvas* canvas,
                         int32_t layer,
                         const Mat model_matrix,
                         const Color color,
+                        float line_thickness,
                         const struct Solid* solid,
                         float scale);
 
@@ -27,12 +28,14 @@ void draw_halfedgemesh_wire(struct Canvas* canvas,
                             int32_t layer,
                             const Mat model_matrix,
                             const Color color,
+                            float line_thickness,
                             const struct HalfEdgeMesh* mesh);
 
 void draw_halfedgemesh_face(struct Canvas* canvas,
                             int32_t layer,
                             const Mat model_matrix,
                             const Color color,
+                            float line_thickness,
                             const struct HalfEdgeMesh* mesh,
                             uint32_t face);
 
@@ -40,6 +43,7 @@ void draw_halfedgemesh_edge(struct Canvas* canvas,
                             int32_t layer,
                             const Mat model_matrix,
                             const Color color,
+                            float line_thickness,
                             const struct HalfEdgeMesh* mesh,
                             uint32_t edge);
 
@@ -47,6 +51,7 @@ void draw_halfedgemesh_vertex(struct Canvas* canvas,
                               int32_t layer,
                               const Mat model_matrix,
                               const Color color,
+                              float line_thickness,
                               const struct HalfEdgeMesh* mesh,
                               uint32_t vertex,
                               float scale);

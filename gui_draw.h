@@ -32,13 +32,16 @@
 
 #include "gui_canvas.h"
 
-#define draw_add_shader(canvas, shader, name) do {                      \
-        static int32_t found_##shader##_shader = -1;                    \
-        if( found_##shader##_shader < 0 ) {                             \
+#define draw_add_shader(canvas, symbol, name) do {                      \
+        static int32_t found_##symbol##_shader = -1;                    \
+        if( found_##symbol##_shader < 0 || canvas->shader[found_##symbol##_shader].program == 0 ) {                             \
             if( canvas_find_shader(canvas, name) == MAX_CANVAS_SHADER ) { \
-                struct Shader shader##_shader;                        \
-                shader_create_##shader(name, &shader##_shader);     \
-                found_##shader##_shader = canvas_add_shader(canvas, &shader##_shader); \
+                struct Shader symbol##_shader;                          \
+                shader_create_from_files("shader/" #symbol ".vert", "shader/" #symbol ".frag", name, &symbol##_shader); \
+                found_##symbol##_shader = canvas_add_shader(canvas, &symbol##_shader); \
+                if( found_##symbol##_shader == MAX_CANVAS_SHADER ) {    \
+                    log_warn(stderr, __FILE__, __LINE__, "could not add \"%s\" as \"%s\" to canvas because there is no space left for it\n", #symbol, name); \
+                }                                                       \
             }                                                           \
         }                                                               \
     }while(0);
@@ -50,10 +53,20 @@ void draw_transform_vertices(size_t vertex_size,
                              const Mat transform,
                              const float vertices_out[vertex_size*num_vertices]);
 
+
+void draw_line(struct Canvas* canvas,
+               int32_t layer_i,
+               const Mat model_matrix,
+               const Color color,
+               float line_thickness,
+               const Vec3f p,
+               const Vec3f q);
+
 void draw_grid(struct Canvas* canvas,
                int32_t layer,
                const Mat model_matrix,
                const Color color,
+               float line_thickness,
                float width,
                float height,
                uint32_t steps);
@@ -62,6 +75,7 @@ void draw_arrow(struct Canvas* canvas,
                 int32_t layer,
                 const Mat model_matrix,
                 const Color color,
+                float line_thickness,
                 const Vec3f v,
                 const Vec3f pos,
                 float offset,
@@ -71,6 +85,7 @@ void draw_vec(struct Canvas* canvas,
               int32_t layer,
               const Mat model_matrix,
               const Color color,
+              float line_thickness,
               const Vec3f v,
               const Vec3f pos,
               float arrow,
@@ -81,6 +96,7 @@ void draw_quat(struct Canvas* canvas,
                const Mat model_matrix,
                const Color color1,
                const Color color2,
+               float line_thickness,
                const Quat q,
                float scale);
 
@@ -88,6 +104,7 @@ void draw_circle(struct Canvas* canvas,
                  int32_t layer,
                  const Mat model_matrix,
                  const Color color,
+                 float line_thickness,
                  float radius,
                  float start,
                  float end,
@@ -96,18 +113,21 @@ void draw_circle(struct Canvas* canvas,
 void draw_basis(struct Canvas* canvas,
                 int32_t layer,
                 const Mat model_matrix,
+                float line_thickness,
                 float scale);
 
 void draw_reticle(struct Canvas* canvas,
                   int32_t layer,
                   const Mat model_matrix,
                   const Color color,
+                  float line_thickness,
                   float scale);
 
 void draw_camera(struct Canvas* canvas,
                  int32_t layer,
                  const Mat model_matrix,
                  const Color color,
+                 float line_thickness,
                  const struct Camera* camera);
 
 #endif
