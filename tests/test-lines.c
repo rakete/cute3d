@@ -22,7 +22,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     SDL_Window* window;
-    sdl2_window("test-arcball", 0, 0, 800, 600, &window);
+    sdl2_window("test-arcball", 100, 60, 1280, 720, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(window, (Color){0.0f, 0.0f, 0.0f, 1.0f}, &context);
@@ -38,7 +38,6 @@ int32_t main(int32_t argc, char *argv[]) {
     if( init_canvas() ) {
         return 1;
     }
-    canvas_create(&global_dynamic_canvas);
 
     struct Cube solid_cube = {0};
     solid_create_cube(1.0, (Color){255, 0, 255, 255}, &solid_cube);
@@ -58,10 +57,10 @@ int32_t main(int32_t argc, char *argv[]) {
     vbomesh_create_from_solid((struct Solid*)&solid_cube, &vbo, &vbomesh);
 
     struct Shader shader = {0};
-    shader_create_flat("flat_shader", &shader);
+    shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &shader);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001f, 100.0, &arcball);
+    arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1f, 1000.0, &arcball);
 
     Quat grid_rotation = {0};
     quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
@@ -107,9 +106,10 @@ int32_t main(int32_t argc, char *argv[]) {
         Mat identity;
         mat_identity(identity);
         vbomesh_render(&vbomesh, &shader, &arcball.camera, identity);
-        draw_halfedgemesh_wire(&global_dynamic_canvas, 0, identity, (Color){255, 255, 0, 255}, &hemesh_cube);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 0, identity, (Color){255, 255, 0, 255}, 0.03f, &hemesh_cube);
 
-        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){20, 180, 240, 255}, 12.0f, 12.0f, 1);
+        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){20, 180, 240, 255}, 0.03f, 12.0f, 12.0f, 12);
+        draw_circle(&global_dynamic_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.05f, 2.0f, 0.0f, PI/2, 1.0f);
 
         Vec4f screen_cursor = {0,0,0,1};
         text_show_fps(&global_dynamic_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
