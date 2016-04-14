@@ -12,16 +12,16 @@
 struct SatFaceTestResult {
     bool found_result;
     float distance;
-    uint32_t face_index;
-    uint32_t vertex_index;
+    int32_t face_index;
+    int32_t vertex_index;
     Vec3f normal;
 };
 
 struct SatEdgeTestResult {
     bool found_result;
     float distance;
-    uint32_t edge_index1;
-    uint32_t edge_index2;
+    int32_t edge_index1;
+    int32_t edge_index2;
     Vec3f normal;
 };
 
