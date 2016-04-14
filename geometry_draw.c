@@ -46,7 +46,7 @@ void draw_halfedgemesh_face(struct Canvas* canvas,
                             const Color color,
                             float line_thickness,
                             const struct HalfEdgeMesh* mesh,
-                            uint32_t face_i)
+                            int32_t face_i)
 {
     log_assert( mesh != NULL );
     log_assert( face_i < mesh->faces.occupied );
@@ -68,7 +68,7 @@ void draw_halfedgemesh_edge(struct Canvas* canvas,
                             const Color color,
                             float line_thickness,
                             const struct HalfEdgeMesh* mesh,
-                            uint32_t edge_i)
+                            int32_t edge_i)
 {
     log_assert( mesh != NULL );
     log_assert( edge_i < mesh->edges.occupied );
@@ -85,7 +85,7 @@ void draw_halfedgemesh_vertex(struct Canvas* canvas,
                               const Color color,
                               float line_thickness,
                               const struct HalfEdgeMesh* mesh,
-                              uint32_t vertex_i,
+                              int32_t vertex_i,
                               float scale)
 {
     log_assert( mesh != NULL );
