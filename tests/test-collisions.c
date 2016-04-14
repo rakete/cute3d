@@ -81,8 +81,8 @@ int32_t main(int32_t argc, char *argv[]) {
 
     struct CollisionEntity entity_a = {0};
     entity_create("red", (Color){ 255, 0, 0, 255 }, &vbo, &entity_a);
-    quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_a.pivot.orientation);
-    quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)RIGHT_AXIS, PI/2 + 0.2, entity_a.pivot.orientation);
+    /* quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_a.pivot.orientation); */
+    /* quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)RIGHT_AXIS, PI/2 + 0.2, entity_a.pivot.orientation); */
     vec_add(entity_a.pivot.position, (Vec4f){3.0, 0.15, 0.0, 1.0}, entity_a.pivot.position);
 
     struct CollisionEntity entity_b = {0};
@@ -207,13 +207,13 @@ int32_t main(int32_t argc, char *argv[]) {
 
         Mat transform_a = {0};
         pivot_world_transform(&entity_a.pivot, transform_a);
-        vbomesh_render(&entity_a.vbomesh, &flat_shader, &arcball.camera, transform_a);
-        //draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_a, (Color){255, 0, 0, 255}, &entity_a.hemesh);
+        //vbomesh_render(&entity_a.vbomesh, &flat_shader, &arcball.camera, transform_a);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_a, (Color){255, 0, 0, 255}, 0.01f, &entity_a.hemesh);
 
         Mat transform_b = {0};
         pivot_world_transform(&entity_b.pivot, transform_b);
-        vbomesh_render(&entity_b.vbomesh, &flat_shader, &arcball.camera, transform_b);
-        //draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_b, (Color){0, 255, 0, 255}, &entity_b.hemesh);
+        //vbomesh_render(&entity_b.vbomesh, &flat_shader, &arcball.camera, transform_b);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_b, (Color){0, 255, 0, 255}, 0.01f, &entity_b.hemesh);
 
         Mat between_transform = {0};
         pivot_between_transform(&entity_a.pivot, &entity_b.pivot, between_transform);
