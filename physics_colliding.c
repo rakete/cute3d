@@ -31,13 +31,13 @@ bool colliding_test_convex_convex(struct Collision* collision) {
     struct HalfEdgeMesh* mesh1 = convex1->mesh;
     struct HalfEdgeMesh* mesh2 = convex2->mesh;
 
-    struct SatFaceTestResult face1_test = sat_test_faces(collision->shape2_to_shape1_transform, mesh1, mesh2);
-    if( face1_test.distance > 0.0f ) {
+    struct SatFaceTestResult face_test1 = sat_test_faces(collision->shape2_to_shape1_transform, mesh1, mesh2);
+    if( face_test1.distance > 0.0f ) {
         return false;
     }
 
-    struct SatFaceTestResult face2_test = sat_test_faces(collision->shape1_to_shape2_transform, mesh2, mesh1);
-    if( face2_test.distance > 0.0f ) {
+    struct SatFaceTestResult face_test2 = sat_test_faces(collision->shape1_to_shape2_transform, mesh2, mesh1);
+    if( face_test2.distance > 0.0f ) {
         return false;
     }
 
@@ -46,8 +46,8 @@ bool colliding_test_convex_convex(struct Collision* collision) {
         return false;
     }
 
-    collision->sat_result.face1_test = face1_test;
-    collision->sat_result.face2_test = face2_test;
+    collision->sat_result.face_test1 = face_test1;
+    collision->sat_result.face_test2 = face_test2;
     collision->sat_result.edge_test = edge_test;
 
     return true;
@@ -63,9 +63,9 @@ int32_t colliding_contact_convex_convex(struct Collision* collision) {
     struct SatResult* result = &collision->sat_result;
     struct CollisionParameter* parameter = &collision->parameter;
 
-    float face_separation = result->face1_test.distance;
-    if( result->face2_test.distance > face_separation ) {
-        face_separation = result->face2_test.distance;
+    float face_separation = result->face_test1.distance;
+    if( result->face_test2.distance > face_separation ) {
+        face_separation = result->face_test2.distance;
     }
 
     if( result->edge_test.distance > parameter->edge_tolerance * face_separation + parameter->absolute_tolerance ) {
@@ -74,12 +74,14 @@ int32_t colliding_contact_convex_convex(struct Collision* collision) {
         draw_halfedgemesh_edge(&global_dynamic_canvas, 0, convex1->base_shape.world_transform, (Color){0, 255, 255, 255}, 0.03f, mesh1, result->edge_test.edge_index1);
         draw_halfedgemesh_edge(&global_dynamic_canvas, 0, convex2->base_shape.world_transform, (Color){0, 255, 255, 255}, 0.03f, mesh2, result->edge_test.edge_index2);
     } else {
-        if( result->face2_test.distance > parameter->face_tolerance * result->face1_test.distance + parameter->absolute_tolerance ) {
-            draw_halfedgemesh_face(&global_dynamic_canvas, 0, convex1->base_shape.world_transform, (Color){255, 255, 0, 255}, 0.03f, mesh1, result->face1_test.face_index);
-            draw_halfedgemesh_vertex(&global_dynamic_canvas, 0, convex2->base_shape.world_transform, (Color){255, 255, 0, 255}, 0.03f, mesh2, result->face1_test.vertex_index, 0.2f);
+        if( result->face_test2.distance > parameter->face_tolerance * result->face_test1.distance + parameter->absolute_tolerance ) {
+            /* draw_halfedgemesh_face(&global_dynamic_canvas, 0, convex1->base_shape.world_transform, (Color){255, 255, 0, 255}, 0.03f, mesh1, result->face_test1.face_index); */
+            /* draw_halfedgemesh_vertex(&global_dynamic_canvas, 0, convex2->base_shape.world_transform, (Color){255, 255, 0, 255}, 0.03f, mesh2, result->face_test1.vertex_index, 0.2f); */
+            contacts_halfedgemesh_face_face(&result->face_test1, &convex1->base_shape.combined_pivot, mesh1, &convex2->base_shape.combined_pivot, mesh2, &collision->contacts);
         } else {
-            draw_halfedgemesh_face(&global_dynamic_canvas, 0, convex2->base_shape.world_transform, (Color){255, 0, 255, 255}, 0.03f, mesh2, result->face2_test.face_index);
-            draw_halfedgemesh_vertex(&global_dynamic_canvas, 0, convex1->base_shape.world_transform, (Color){255, 0, 255, 255}, 0.03f, mesh1, result->face2_test.vertex_index, 0.2f);
+            /* draw_halfedgemesh_face(&global_dynamic_canvas, 0, convex2->base_shape.world_transform, (Color){255, 0, 255, 255}, 0.03f, mesh2, result->face_test2.face_index); */
+            /* draw_halfedgemesh_vertex(&global_dynamic_canvas, 0, convex1->base_shape.world_transform, (Color){255, 0, 255, 255}, 0.03f, mesh1, result->face_test2.vertex_index, 0.2f); */
+            contacts_halfedgemesh_face_face(&result->face_test2, &convex2->base_shape.combined_pivot, mesh2, &convex1->base_shape.combined_pivot, mesh1, &collision->contacts);
         }
     }
 
