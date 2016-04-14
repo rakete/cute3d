@@ -385,8 +385,8 @@ void vec_basis(const Vec3f x, Vec3f y, Vec3f z) {
     /* vec_cross(x, y, z); */
 }
 
-void vec_print(const char* title, const Vec4f v) {
-    printf("%s(%f %f %f %f)\n", title, v[0], v[1], v[2], v[3]);
+void vec_print(const char* title, const Vec3f v) {
+    printf("%s(%f %f %f)\n", title, v[0], v[1], v[2]);
 }
 
 void mat_copy4f(const Mat m, Mat r) {

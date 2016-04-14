@@ -109,7 +109,7 @@ VecP vperpendicular(const Vec4f v);
 
 void vec_basis(const Vec3f x, Vec3f y, Vec3f z);
 
-void vec_print(const char* title, const Vec4f v);
+void vec_print(const char* title, const Vec3f v);
 
 // matrix creation
 void mat_copy4f(const Mat m, Mat r);
