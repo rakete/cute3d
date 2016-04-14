@@ -7,6 +7,7 @@
 #include "math_types.h"
 
 #include "geometry_sat.h"
+#include "geometry_draw.h"
 
 #define MAX_CONTACT_POINTS 4
 
@@ -30,12 +31,6 @@ int32_t contacts_halfedgemesh_edge_edge(const struct SatEdgeTestResult* edge_tes
                                         const struct Pivot* pivot2,
                                         const struct HalfEdgeMesh* mesh2,
                                         struct Contacts contacts[MAX_CONTACT_POINTS]);
-
-void contacts_compute_face_side_planes(const Mat transform,
-                                       const struct HalfEdgeMesh* mesh,
-                                       const struct HalfEdgeFace* face,
-                                       Vec3f plane_normals[face->size],
-                                       float plane_offsets[face->size]);
 
 int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_test,
                                         const struct Pivot* pivot1,
