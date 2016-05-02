@@ -25,7 +25,7 @@ else
 endif
 
 validate-glsl:
-ifndef glsl_validator
+ifndef glsl_validator_exists
 	@echo "no glsl validator found, not validating any glsl code"
 else
 	$(glsl_validator) $(glsl_vert_shader) $(glsl_frag_shader)
