@@ -31,15 +31,61 @@
 
 #include "gui_canvas.h"
 
-void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projection, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text);
-void text_put_world(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text);
-void text_put_screen(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* unicode_text);
+void text_put(struct Canvas* canvas,
+              int32_t layer,
+              Vec4f cursor,
+              int32_t projection,
+              const Mat model_matrix,
+              const Color color,
+              float scale,
+              const char* font_name,
+              const wchar_t* unicode_text);
 
-void text_printf(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* format, ...);
+void text_put_world(struct Canvas* canvas,
+                    int32_t layer,
+                    Vec4f cursor,
+                    const Mat model_matrix,
+                    const Color color,
+                    float scale,
+                    const char* font_name,
+                    const wchar_t* unicode_text);
 
-double text_show_fps(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, double delta);
+void text_put_screen(struct Canvas* canvas,
+                     int32_t layer,
+                     Vec4f cursor,
+                     int32_t x, int32_t y,
+                     const Color color,
+                     float scale,
+                     const char* font_name,
+                     const wchar_t* unicode_text);
 
-void text_show_time(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, double time);
+void text_printf(struct Canvas* canvas,
+                 int32_t layer,
+                 Vec4f cursor,
+                 int32_t x, int32_t y,
+                 const Color color,
+                 float scale,
+                 const char* font_name,
+                 const wchar_t* format,
+                 ...);
+
+double text_show_fps(struct Canvas* canvas,
+                     int32_t layer,
+                     Vec4f cursor,
+                     int32_t x, int32_t y,
+                     const Color color,
+                     float scale,
+                     const char* font_name,
+                     double delta);
+
+void text_show_time(struct Canvas* canvas,
+                    int32_t layer,
+                    Vec4f cursor,
+                    int32_t x, int32_t y,
+                    const Color color,
+                    float scale,
+                    const char* font_name,
+                    double time);
 
 
 #endif
