@@ -574,7 +574,8 @@ GLint shader_set_sampler2D(struct Shader* shader, int32_t uniform_index, GLenum 
     log_assert( location > -1 );
     log_assert( strlen(shader->uniform[uniform_index].name) > 0 );
 
-    ogl_debug( glUniform1i(location, texture_unit) ;
+    log_assert( texture_unit < UINT_MAX );
+    ogl_debug( glUniform1i(location, (GLint)texture_unit) ;
                glActiveTexture(GL_TEXTURE0 + texture_unit);
                glBindTexture(texture_type, texture_id); );
     shader->uniform[uniform_index].unset = false;
