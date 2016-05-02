@@ -16,7 +16,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     SDL_Window* window;
-    sdl2_window("test-solid", 0, 0, 800, 600, &window);
+    sdl2_window("test-solid", 200, 100, 800, 600, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(window, &context);
