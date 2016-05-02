@@ -80,8 +80,8 @@ struct Collision {
     struct CollisionParameter parameter;
 
     struct SatResult {
-        struct SatFaceTestResult face1_test;
-        struct SatFaceTestResult face2_test;
+        struct SatFaceTestResult face_test1;
+        struct SatFaceTestResult face_test2;
         struct SatEdgeTestResult edge_test;
     } sat_result;
 

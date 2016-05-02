@@ -4,15 +4,20 @@ struct Canvas global_dynamic_canvas = {0};
 struct Canvas global_static_canvas = {0};
 
 int32_t init_canvas() {
-    canvas_create(&global_dynamic_canvas);
-    canvas_create(&global_static_canvas);
+    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
+    canvas_create("global_static_canvas", &global_static_canvas);
 
     return 0;
 }
 
-void canvas_create(struct Canvas* canvas) {
+void canvas_create(const char* name, struct Canvas* canvas) {
     // canvas_create_empty
     log_assert( canvas != NULL );
+    log_assert( strlen(name) > 0 );
+    log_assert( strlen(name) < 256 );
+
+    canvas->name[0] = '\0';
+    strncat(canvas->name, name, strlen(name));
 
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         canvas->components[i].size = 0;
@@ -69,6 +74,8 @@ void canvas_create(struct Canvas* canvas) {
     canvas->vao = 0;
 #endif
 
+    canvas->line_z_scaling = 1.0f;
+
     // canvas_create
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT);
@@ -76,11 +83,11 @@ void canvas_create(struct Canvas* canvas) {
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_NEXT_VERTEX, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_PREV_VERTEX, 3, GL_FLOAT);
-    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_EDGE_DIRECTION, 1, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_LINE_THICKNESS, 1, GL_FLOAT);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_BARYCENTRIC_COORDINATE, 3, GL_FLOAT);
 
     struct Shader shader = {0};
-    shader_create_gl_lines("default_shader", &shader);
+    shader_create_from_files("shader/default_shader.vert", "shader/default_shader.frag", "default_shader", &shader);
     log_assert( canvas_add_shader(canvas, &shader) < MAX_CANVAS_SHADER );
 
     struct Character symbols[256] = {0};
@@ -127,7 +134,7 @@ int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader) {
     int32_t shader_i = 0;
     while( shader_i < MAX_CANVAS_SHADER && strlen(canvas->shader[shader_i].name) != 0 ) {
         if( strncmp(canvas->shader[shader_i].name, shader->name, 256) == 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" already added to canvas\n", shader->name);
+            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" already added to canvas \"%s\"\n", shader->name, canvas->name);
             return shader_i;
         }
 
@@ -173,7 +180,7 @@ int32_t canvas_add_font(struct Canvas* canvas, const struct Font* font) {
     int32_t font_i = 0;
     while( font_i < MAX_CANVAS_FONTS && strlen(canvas->fonts[font_i].name) != 0 ) {
         if( strncmp(canvas->fonts[font_i].name, font->name, 256) == 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "font \"%s\" already added to canvas\n", font->name);
+            log_warn(stderr, __FILE__, __LINE__, "font \"%s\" already added to canvas \"%s\"\n", font->name, canvas->name);
             return font_i;
         }
 

@@ -54,7 +54,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     SDL_Window* window;
-    sdl2_window("test-halfedge", 0, 0, 800, 600, &window);
+    sdl2_window("test-halfedge", 100, 60, 1280, 720, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(window, (Color){0,0,0,255}, &context);
@@ -70,8 +70,8 @@ int32_t main(int32_t argc, char *argv[]) {
     if( init_canvas() ) {
         return 1;
     }
-    canvas_create(&global_dynamic_canvas);
-    canvas_create(&global_static_canvas);
+    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
+    canvas_create("global_static_canvas", &global_static_canvas);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
@@ -81,8 +81,8 @@ int32_t main(int32_t argc, char *argv[]) {
 
     struct CollisionEntity entity_a = {0};
     entity_create("red", (Color){ 255, 0, 0, 255 }, &vbo, &entity_a);
-    quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_a.pivot.orientation);
-    quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)RIGHT_AXIS, PI/2 + 0.2, entity_a.pivot.orientation);
+    /* quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_a.pivot.orientation); */
+    /* quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)RIGHT_AXIS, PI/2 + 0.2, entity_a.pivot.orientation); */
     vec_add(entity_a.pivot.position, (Vec4f){3.0, 0.15, 0.0, 1.0}, entity_a.pivot.position);
 
     struct CollisionEntity entity_b = {0};
@@ -92,7 +92,7 @@ int32_t main(int32_t argc, char *argv[]) {
     //vec_add(entity_b.pivot.position, (Vec4f){-3.0, 0.0, 0.0, 1.0}, entity_b.pivot.position);
 
     struct Shader flat_shader = {0};
-    shader_create_flat("flat_shader", &flat_shader);
+    shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &flat_shader);
 
     Vec4f light_direction = { 0.2, -0.5, -1.0 };
     shader_set_uniform_3f(&flat_shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
@@ -101,7 +101,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_set_uniform_4f(&flat_shader, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){0.0, 0.0, 10.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0, 1000.0, &arcball);
+    arcball_create(window, (Vec4f){0.0, 5.0, 10.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0, 1000.0, &arcball);
 
     Quat grid_rotation = {0};
     quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
@@ -122,7 +122,7 @@ int32_t main(int32_t argc, char *argv[]) {
     struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);
 
-    printf("%lu\n", sizeof(struct Collision));
+    draw_grid(&global_static_canvas, 0, grid_transform, (Color){127, 127, 127, 127}, 0.01f, 12.0f, 12.0f, 12);
 
     while (true) {
 
@@ -207,13 +207,13 @@ int32_t main(int32_t argc, char *argv[]) {
 
         Mat transform_a = {0};
         pivot_world_transform(&entity_a.pivot, transform_a);
-        vbomesh_render(&entity_a.vbomesh, &flat_shader, &arcball.camera, transform_a);
-        //draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_a, (Color){255, 0, 0, 255}, &entity_a.hemesh);
+        //vbomesh_render(&entity_a.vbomesh, &flat_shader, &arcball.camera, transform_a);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_a, (Color){255, 0, 0, 255}, 0.02f, &entity_a.hemesh);
 
         Mat transform_b = {0};
         pivot_world_transform(&entity_b.pivot, transform_b);
-        vbomesh_render(&entity_b.vbomesh, &flat_shader, &arcball.camera, transform_b);
-        //draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_b, (Color){0, 255, 0, 255}, &entity_b.hemesh);
+        //vbomesh_render(&entity_b.vbomesh, &flat_shader, &arcball.camera, transform_b);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_b, (Color){0, 255, 0, 255}, 0.02f, &entity_b.hemesh);
 
         Mat between_transform = {0};
         pivot_between_transform(&entity_a.pivot, &entity_b.pivot, between_transform);
@@ -241,11 +241,11 @@ int32_t main(int32_t argc, char *argv[]) {
             collision_counter++;
         }
 
-        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 12.0f, 12.0f, 12);
-
         gametime_integrate(&time);
         Vec4f screen_cursor = {0,0,0,1};
-        text_show_fps(&global_dynamic_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
+        text_show_fps(&global_dynamic_canvas, 0, screen_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0, "default_font", time.frame);
+
+        canvas_render_layers(&global_static_canvas, 0, 0, &arcball.camera, (Mat)IDENTITY_MAT);
 
         canvas_render_layers(&global_dynamic_canvas, 0, 0, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);

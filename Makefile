@@ -1,7 +1,13 @@
+glsl_validator=glsl-validate.py
+glsl_validator_exists := $(shell $(glsl_validator) -h)
+
 src = $(filter-out driver_allegro.c, $(wildcard *.c))
 obj = $(src:.c=.o)
 tests_src = $(wildcard tests/*.c)
 tests_bin = $(tests_src:tests/%.c=%)
+
+glsl_vert_shader = $(filter-out shader/prefix.vert, $(wildcard shader/*.vert))
+glsl_frag_shader = $(filter-out shader/prefix.frag, $(wildcard shader/*.frag))
 
 # eventually I'll have to deal with all those vla's I have been allocating on the stack: -Wstack-usage=100000
 FEATURES=-pg -DDEBUG `sdl2-config --cflags` # -DCUTE_BUILD_ES2
@@ -18,8 +24,15 @@ else
 	CFLAGS=-std=c99 $(WARNINGS) $(FEATURES) $(OPTIMIZATION)
 endif
 
+validate-glsl:
+ifndef glsl_validator
+	@echo "no glsl validator found, not validating any glsl code"
+else
+	$(glsl_validator) $(glsl_vert_shader) $(glsl_frag_shader)
+endif
+
 # the default that make defines for every .c file is enough to compile all cute3d sources into .o's
-cute3d: $(obj)
+cute3d: validate-glsl $(obj)
 
 # generate a compile rule for each test- target, when I enter make test-cute, this should generate the rule:
 # test-cute: cute3d

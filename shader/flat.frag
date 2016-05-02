@@ -1,8 +1,10 @@
-smooth in vec4 frag_color;
-smooth in float intensity;
+//CUTE
+shader_in vec4 frag_color;
+shader_in float intensity;
 
-uniform vec4 ambiance;
+uniform vec4 ambient_color;
 
 void main() {
-    gl_FragColor = ambiance*(1 - intensity) + frag_color*intensity;
+    gl_FragColor = ambient_color*(1.0 - intensity) + frag_color*intensity;
+    //gl_FragColor = ambient_color*intensity;
 }

@@ -16,8 +16,8 @@
 #define SHADER_ATTRIBUTE_INSTANCE_ID MAX_OGL_ATTRIBUTES+0
 #define SHADER_ATTRIBUTE_PREV_VERTEX MAX_OGL_ATTRIBUTES+1
 #define SHADER_ATTRIBUTE_NEXT_VERTEX MAX_OGL_ATTRIBUTES+2
-#define SHADER_ATTRIBUTE_EDGE_DIRECTION MAX_OGL_ATTRIBUTES+3
-#define SHADER_ATTRIBUTE_LINE_THICKNESS MAX_OGL_ATTRIBUTES+4
+#define SHADER_ATTRIBUTE_LINE_THICKNESS MAX_OGL_ATTRIBUTES+3
+#define SHADER_ATTRIBUTE_BARYCENTRIC_COORDINATE MAX_OGL_ATTRIBUTES+4
 
 // attribute ids for arrays (and maybe locations)
 #define MAX_SHADER_ATTRIBUTES MAX_CUSTOM_ATTRIBUTES+MAX_OGL_ATTRIBUTES
@@ -38,7 +38,7 @@
 #define SHADER_UNIFORM_DIFFUSE_COLOR 7
 #define SHADER_UNIFORM_DIFFUSE_TEXTURE 8
 #define SHADER_UNIFORM_ASPECT_RATIO 9
-#define SHADER_UNIFORM_DISABLE_MITER 10
+#define SHADER_UNIFORM_LINE_Z_SCALING 10
 
 // names for locations
 extern const char* global_shader_attribute_names[MAX_SHADER_ATTRIBUTES];
@@ -58,6 +58,8 @@ struct Shader {
     struct {
         GLint location;
         char name[256];
+        bool unset;
+        bool warn_once;
     } attribute[MAX_SHADER_ATTRIBUTES];
 
     // - I was thinking about using uniform buffer objects and how they would fit in here,
@@ -79,7 +81,11 @@ struct Shader {
     struct {
         GLint location;
         char name[256];
+        bool unset;
+        bool warn_once;
     } uniform[MAX_SHADER_UNIFORMS];
+
+    bool verified;
 };
 
 int32_t init_shader() __attribute__((warn_unused_result));
@@ -88,18 +94,23 @@ void shader_create_empty(struct Shader* p);
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p);
 void shader_create_from_sources(const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p);
 
-void shader_create_flat(const char* name, struct Shader* shader);
-void shader_create_gl_lines(const char* name, struct Shader* shader);
-void shader_create_screen_space_thick_lines(const char* name, struct Shader* shader);
+void shader_setup_locations(struct Shader* p);
+bool shader_verify_locations(struct Shader* p);
+bool shader_warn_locations(struct Shader* p);
 
 GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name);
 GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const char* name);
 
 void shader_print(FILE* f, const struct Shader* shader);
 
-GLint shader_set_uniform_matrices(const struct Shader* shader, const Mat projection_matrix, const Mat view_matrix, const Mat model_matrix);
-GLint shader_set_uniform_3f(const struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
-GLint shader_set_uniform_4f(const struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
-GLint shader_set_attribute(const struct Shader* shader, int32_t attribute_i, GLuint buffer, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p);
+GLint shader_set_uniform_matrices(struct Shader* shader, const Mat projection_matrix, const Mat view_matrix, const Mat model_matrix);
+
+GLint shader_set_uniform_1f(struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
+GLint shader_set_uniform_3f(struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
+GLint shader_set_uniform_4f(struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
+
+GLint shader_set_sampler2D(struct Shader* shader, int32_t uniform_index, GLenum texture_type, GLuint texture_unit, GLuint texture_id);
+
+GLint shader_set_attribute(struct Shader* shader, int32_t attribute_i, GLuint buffer, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p);
 
 #endif

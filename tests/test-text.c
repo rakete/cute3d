@@ -34,7 +34,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
 
     struct Shader shader = {0};
-    shader_create_flat("flat_shader", &shader);
+    shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &shader);
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){12.0,16.0,-8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001, 1000.0, &arcball);

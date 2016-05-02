@@ -18,7 +18,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     SDL_Window* window;
-    sdl2_window("test-halfedge", 0, 0, 800, 600, &window);
+    sdl2_window("test-halfedge", 100, 60, 1280, 720, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(window, (Color){0, 0, 0, 255}, &context);
@@ -34,8 +34,8 @@ int32_t main(int32_t argc, char *argv[]) {
     if( init_canvas() ) {
         return 1;
     }
-    canvas_create(&global_dynamic_canvas);
-    canvas_create(&global_static_canvas);
+    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
+    canvas_create("global_static_canvas", &global_static_canvas);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
@@ -72,11 +72,23 @@ int32_t main(int32_t argc, char *argv[]) {
     halfedgemesh_append(&sphere16_hemesh, (struct Solid*)&sphere16);
     halfedgemesh_append(&sphere32_hemesh, (struct Solid*)&sphere32);
 
+    halfedgemesh_verify(&tetrahedron_hemesh);
+    halfedgemesh_verify(&hexahedron_hemesh);
+    halfedgemesh_verify(&cube_hemesh);
+    halfedgemesh_verify(&sphere16_hemesh);
+    halfedgemesh_verify(&sphere32_hemesh);
+
     halfedgemesh_optimize(&tetrahedron_hemesh);
     halfedgemesh_optimize(&hexahedron_hemesh);
     halfedgemesh_optimize(&cube_hemesh);
     halfedgemesh_optimize(&sphere16_hemesh);
     halfedgemesh_optimize(&sphere32_hemesh);
+
+    halfedgemesh_verify(&tetrahedron_hemesh);
+    halfedgemesh_verify(&hexahedron_hemesh);
+    halfedgemesh_verify(&cube_hemesh);
+    halfedgemesh_verify(&sphere16_hemesh);
+    halfedgemesh_verify(&sphere32_hemesh);
 
     struct VboMesh tetrahedron_mesh,hexahedron_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
     vbomesh_create_from_halfedgemesh(&tetrahedron_hemesh, &vbo, &tetrahedron_mesh);
@@ -86,7 +98,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbomesh_create_from_halfedgemesh(&sphere32_hemesh, &vbo, &sphere32_mesh);
 
     struct Shader shader = {0};
-    shader_create_flat("flat_shader", &shader);
+    shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &shader);
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){0.0,8.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
@@ -144,7 +156,7 @@ int32_t main(int32_t argc, char *argv[]) {
         quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
         Mat grid_transform = {0};
         quat_to_mat(grid_rotation, grid_transform);
-        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 12.0f, 12.0f, 12);
+        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 0.02f, 12.0f, 12.0f, 12);
 
         /* draw_solid_normals(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, (struct Solid*)&tetrahedron, 0.1f); */
         /* draw_solid_normals(&global_dynamic_canvas, 1, hexahedron_transform, (Color){255, 255, 0, 255}, (struct Solid*)&hexahedron, 0.1f); */
@@ -155,11 +167,11 @@ int32_t main(int32_t argc, char *argv[]) {
         //draw_halfedgemesh_face(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, &tetrahedron_hemesh, 0);
         //draw_halfedgemesh_edge(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, &tetrahedron_hemesh, 0);
 
-        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, &tetrahedron_hemesh);
-        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, hexahedron_transform, (Color){255, 255, 0, 255}, &hexahedron_hemesh);
-        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, cube_transform, (Color){255, 255, 0, 255}, &cube_hemesh);
-        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, sphere16_transform, (Color){255, 255, 0, 255}, &sphere16_hemesh);
-        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, sphere32_transform, (Color){255, 255, 0, 255}, &sphere32_hemesh);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, 0.02f, &tetrahedron_hemesh);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, hexahedron_transform, (Color){255, 255, 0, 255}, 0.02f, &hexahedron_hemesh);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, cube_transform, (Color){255, 255, 0, 255}, 0.02f, &cube_hemesh);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, sphere16_transform, (Color){255, 255, 0, 255}, 0.02f, &sphere16_hemesh);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, sphere32_transform, (Color){255, 255, 0, 255}, 0.02f, &sphere32_hemesh);
 
         canvas_render_layers(&global_dynamic_canvas, 1, 1, &arcball.camera, (Mat)IDENTITY_MAT);
 

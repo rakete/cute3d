@@ -1,6 +1,15 @@
 #include "gui_text.h"
 
-void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projection, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text) {
+void text_put(struct Canvas* canvas,
+              int32_t layer,
+              Vec4f cursor,
+              int32_t projection,
+              const Mat model_matrix,
+              const Color color,
+              float scale,
+              const char* font_name,
+              const wchar_t* unicode_text)
+{
     log_assert( layer >= 0 );
     log_assert( projection >= 0 );
     log_assert( canvas != NULL );
@@ -155,21 +164,44 @@ void text_put(struct Canvas* canvas, Vec4f cursor, int32_t layer, int32_t projec
     }
 }
 
-void text_put_world(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, const Mat model_matrix, const wchar_t* unicode_text) {
-    text_put(canvas, cursor, layer, CANVAS_PROJECT_WORLD, font_name, scale, color, model_matrix, unicode_text);
+void text_put_world(struct Canvas* canvas,
+                    int32_t layer,
+                    Vec4f cursor,
+                    const Mat model_matrix,
+                    const Color color,
+                    float scale,
+                    const char* font_name,
+                    const wchar_t* unicode_text)
+{
+    text_put(canvas, layer, cursor, CANVAS_PROJECT_WORLD, model_matrix, color, scale, font_name, unicode_text);
 }
 
-void text_put_screen(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* unicode_text) {
-
+void text_put_screen(struct Canvas* canvas,
+                     int32_t layer,
+                     Vec4f cursor,
+                     int32_t x, int32_t y,
+                     const Color color,
+                     float scale,
+                     const char* font_name,
+                     const wchar_t* unicode_text)
+{
     Vec4f translation = {x, -y, 0.0, 1.0};
     Mat model_matrix = {0};
     mat_translate(NULL, translation, model_matrix);
 
-    text_put(canvas, cursor, layer, CANVAS_PROJECT_SCREEN, font_name, scale, color, model_matrix, unicode_text);
+    text_put(canvas, layer, cursor, CANVAS_PROJECT_SCREEN, model_matrix, color, scale, font_name, unicode_text);
 }
 
-void text_printf(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, const wchar_t* format, ...) {
-
+void text_printf(struct Canvas* canvas,
+                 int32_t layer,
+                 Vec4f cursor,
+                 int32_t x, int32_t y,
+                 const Color color,
+                 float scale,
+                 const char* font_name,
+                 const wchar_t* format,
+                 ...)
+{
     va_list args;
     va_start(args, format);
 
@@ -177,10 +209,18 @@ void text_printf(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char*
     vswprintf(text, 8192, format, args);
     va_end(args);
 
-    text_put_screen(canvas, cursor, layer, font_name, scale, color, x, y, text);
+    text_put_screen(canvas, layer, cursor, x, y, color, scale, font_name, text);
 }
 
-double text_show_fps(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, double delta) {
+double text_show_fps(struct Canvas* canvas,
+                     int32_t layer,
+                     Vec4f cursor,
+                     int32_t x, int32_t y,
+                     const Color color,
+                     float scale,
+                     const char* font_name,
+                     double delta)
+{
 
     static size_t frames_done = 0;
     static double old_time = -1;
@@ -196,7 +236,7 @@ double text_show_fps(struct Canvas* canvas, Vec4f cursor, int32_t layer, const c
         old_time = game_time;
     }
 
-    if( (game_time - old_time) >= 1.0 ) {
+    if( (game_time - old_time) >= 0.5 ) {
         avg_frame_time_ms = frame_time*1000 / frames_done;
         frame_time = 0;
 
@@ -209,13 +249,20 @@ double text_show_fps(struct Canvas* canvas, Vec4f cursor, int32_t layer, const c
     }
     frames_done++;
 
-    text_printf(canvas, cursor, layer, font_name, scale, color, x, y, L"FPS: %.1f %.1f\n", fps, avg_frame_time_ms);
+    text_printf(canvas, layer, cursor, x, y, color, scale, font_name, L"FPS: %.1f %.1f\n", fps, avg_frame_time_ms);
 
     return fps;
 }
 
-void text_show_time(struct Canvas* canvas, Vec4f cursor, int32_t layer, const char* font_name, float scale, const Color color, int32_t x, int32_t y, double time) {
-
+void text_show_time(struct Canvas* canvas,
+                    int32_t layer,
+                    Vec4f cursor,
+                    int32_t x, int32_t y,
+                    const Color color,
+                    float scale,
+                    const char* font_name,
+                    double time)
+{
     int32_t hours = 0;
     int32_t minutes = 0;
     int32_t seconds = 0;
@@ -226,5 +273,5 @@ void text_show_time(struct Canvas* canvas, Vec4f cursor, int32_t layer, const ch
     seconds = (int)floor(time) % 60;
     milliseconds = (int)floor((time - floor(time)) * 1000);
 
-    text_printf(canvas, cursor, layer, font_name, scale, color, x, y, L"TIME:%02d:%02d:%02d.%03d\n", hours, minutes, seconds, milliseconds);
+    text_printf(canvas, layer, cursor, x, y, color, scale, font_name, L"TIME:%02d:%02d:%02d.%03d\n", hours, minutes, seconds, milliseconds);
 }

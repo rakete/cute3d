@@ -24,30 +24,6 @@ void sat_halfedgemesh_rotate_face_normals(const struct HalfEdgeMesh* mesh,
     Mat transform_rotation = {0};
     mat_get_rotation(transform, transform_rotation);
 
-    /* Quat inverted_orientation_from = {0}; */
-    /* quat_invert(orientation_from, inverted_orientation_from); */
-    /* Quat inverted_orientation_from_normed; */
-    /* quat_normalize(inverted_orientation_from, inverted_orientation_from_normed); */
-    /* Quat inverted_orientation_from_conj; */
-    /* quat_conjugate(inverted_orientation_from_normed, inverted_orientation_from_conj); */
-    /* Quat orientation_to_normed; */
-    /* quat_normalize(orientation_to, orientation_to_normed); */
-    /* Quat orientation_to_conj; */
-    /* quat_conjugate(orientation_to_normed, orientation_to_conj); */
-
-    /* Quat inverted_to; */
-    /* quat_invert(orientation_to, inverted_to); */
-
-    /* Quat inverted_from; */
-    /* quat_invert(orientation_from, inverted_from); */
-
-    /* Quat q; */
-    /* quat_mul(orientation_to, inverted_from, q); */
-
-    /* //quat_normalize(q, q); */
-    /* Quat cq; */
-    /* quat_conjugate(q, cq); */
-
     struct HalfEdgeFace* mesh_faces = mesh->faces.array;
     for( uint32_t i = 0; i < mesh->faces.occupied && i*3 < size; i++ ) {
 
@@ -63,6 +39,7 @@ void sat_halfedgemesh_rotate_face_normals(const struct HalfEdgeMesh* mesh,
         /* mat_mul_vec4f(mesh2_to_mesh1_transform, d, d); */
         /* vec_normalize(c, c); */
         /* vec_normalize(d, d); */
+
         // - this commented section works better then using the mesh2_to_mesh1_transform matrix
         // to transform the normals, here we just rotate the normal, without any translation, in
         // theory this should be exactly the same as using mesh2_to_mesh1_transform and then
@@ -71,6 +48,7 @@ void sat_halfedgemesh_rotate_face_normals(const struct HalfEdgeMesh* mesh,
         /* vec_rotate4f(c, pivot1->orientation, c); */
         /* vec_rotate4f(d, inverted_orientation2, d); */
         /* vec_rotate4f(d, pivot1->orientation, d); */
+
         // - this is actually the same as the commented section before, but a little more optimized,
         // I put everything that I could outside of the for loop, and only do what I have to here
         // - the reusing of c and d in the functions looks like it could be wrong, but it checks out,
@@ -79,13 +57,10 @@ void sat_halfedgemesh_rotate_face_normals(const struct HalfEdgeMesh* mesh,
         /* quat_mul(transformed_normal, inverted_orientation_from_conj, transformed_normal); */
         /* quat_mul(orientation_to_normed, transformed_normal, transformed_normal); */
         /* quat_mul(transformed_normal, orientation_to_conj, transformed_normal); */
-
         /* Vec4f transformed_normal = {0}; */
         /* vec_copy3f(mesh_faces[i].normal, transformed_normal); */
-
         /* quat_mul(q, transformed_normal, transformed_normal); */
         /* quat_mul(transformed_normal, cq, transformed_normal); */
-
         /* vec_copy3f(transformed_normal, &transformed_normals[i*3]); */
 
         // - instead of all that messing around with quats, just the rotation part of the
@@ -105,8 +80,8 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
     struct SatFaceTestResult result = {
         .found_result = false,
         .distance = -FLT_MAX,
-        .face_index = UINT32_MAX,
-        .vertex_index = UINT32_MAX,
+        .face_index = INT32_MAX,
+        .vertex_index = INT32_MAX,
         .normal = {0,0,0}
     };
 
@@ -127,7 +102,8 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
     struct HalfEdgeFace* mesh1_faces = mesh1->faces.array;
     struct HalfEdge* mesh1_edges = mesh1->edges.array;
     struct HalfEdgeVertex* mesh1_vertices = mesh1->vertices.array;
-    for( uint32_t face_i = 0; face_i < mesh1->faces.occupied; face_i++ ) {
+    log_assert( mesh1->faces.occupied < INT32_MAX );
+    for( int32_t face_i = 0; face_i < (int32_t)mesh1->faces.occupied; face_i++ ) {
         Vec3f face_normal = {0};
         vec_copy3f(mesh1_faces[face_i].normal, face_normal);
 
@@ -139,9 +115,9 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
         // projecting every vertex of mesh2 onto plane_normal and then using the one with the
         // largest projection as support
         Vec3f support = {0};
-        uint32_t support_j = 0;
+        int32_t support_j = 0;
         float best_projection = -FLT_MAX;
-        for( uint32_t vertex_j = 0; vertex_j < mesh2->vertices.occupied; vertex_j++ ) {
+        for( int32_t vertex_j = 0; vertex_j < mesh2->vertices.occupied; vertex_j++ ) {
             Vec3f vertex;
             vec_copy3f(&transformed_vertices[vertex_j*3], vertex);
 
@@ -189,8 +165,8 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
     struct SatEdgeTestResult result = {
         .found_result = false,
         .distance = -FLT_MAX,
-        .edge_index1 = UINT32_MAX,
-        .edge_index2 = UINT32_MAX,
+        .edge_index1 = INT32_MAX,
+        .edge_index2 = INT32_MAX,
         .normal = {0,0,0}
     };
 
@@ -209,7 +185,9 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
     // so instead we use a gauss map as outlined in the slides I mention above to prune edge
     // tests by deciding which edge combinations actually form a face on the minowski sum and which
     // don't,
-    for( uint32_t i = 0; i < mesh1->edges.occupied; i += 2 ) {
+    log_assert( mesh1->edges.occupied < INT32_MAX );
+    log_assert( mesh2->edges.occupied < INT32_MAX );
+    for( int32_t i = 0; i < (int32_t)mesh1->edges.occupied; i += 2 ) {
         struct HalfEdge* edge1 = &mesh1->edges.array[i];
         struct HalfEdge* other1 = &mesh1->edges.array[edge1->other];
 
@@ -219,19 +197,19 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
         vec_copy3f(mesh1->faces.array[other1->face].normal, b);
 
         Vec3f edge1_direction = {0};
-        const VecP edge1_head = mesh1->vertices.array[edge1->vertex].position;
+        const VecP* edge1_head = mesh1->vertices.array[edge1->vertex].position;
         vec_sub(mesh1->vertices.array[other1->vertex].position, edge1_head, edge1_direction);
         vec_normalize(edge1_direction, edge1_direction);
 
         // instead of cross product I should be able to just use the edges between a b and d c
-        const VecP bxa = edge1_direction;
+        const VecP* bxa = edge1_direction;
 
-        for( uint32_t j = 0; j < mesh2->edges.occupied; j += 2 ) {
+        for( int32_t j = 0; j < (int32_t)mesh2->edges.occupied; j += 2 ) {
             struct HalfEdge* edge2 = &mesh2->edges.array[j];
             struct HalfEdge* other2 = &mesh2->edges.array[edge2->other];
 
             Vec3f edge2_direction = {0};
-            const VecP edge2_head = &transformed_vertices[edge2->vertex*3];
+            const VecP* edge2_head = &transformed_vertices[edge2->vertex*3];
             vec_sub(&transformed_vertices[other2->vertex*3], edge2_head, edge2_direction);
             vec_normalize(edge2_direction, edge2_direction);
 
@@ -247,7 +225,7 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
             vec_invert(c, c);
             vec_invert(d, d);
 
-            const VecP dxc = edge2_direction;
+            const VecP* dxc = edge2_direction;
 
             float cba = vdot(c, bxa);
             float dba = vdot(d, bxa);
@@ -255,7 +233,7 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
             float bdc = vdot(b, dxc);
 
             // the magic test from the slides that decides if edge1 and edge2 form a minowski face,
-            // this is true, then we can do the actual computation of the distance between two edges
+            // if this is true, then we can do the actual computation of the distance between two edges
             if( cba * dba < 0.0f && adc * bdc < 0.0f && cba * bdc > 0.0f ) {
                 Vec3f plane_normal = {0};
                 vec_cross(edge1_direction, edge2_direction, plane_normal);
