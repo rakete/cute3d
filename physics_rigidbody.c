@@ -136,19 +136,19 @@ struct RigidBody rigidbody_integrate(struct RigidBody state, float t, float dt, 
     struct RigidBodyDerivative d = rigidbody_eval_future(state, c, t, dt, forces_func);
 
     //state.position += 1.0f/6.0f * dt * (a.velocity + 2.0f*(b.velocity + c.velocity) + d.velocity);
-    VecP position_change = vmul1f(vadd(a.velocity, vadd( vmul1f(vadd(b.velocity, c.velocity), 2.0f), d.velocity)), 1.0f/6.0f * dt);
+    VecP* position_change = vmul1f(vadd(a.velocity, vadd( vmul1f(vadd(b.velocity, c.velocity), 2.0f), d.velocity)), 1.0f/6.0f * dt);
     vec_add(state.pivot.position, position_change, state.pivot.position);
 
     //state.momentum += 1.0f/6.0f * dt * (a.force + 2.0f*(b.force + c.force) + d.force);
-    VecP linear_momentum_change = vmul1f(vadd(a.force, vadd( vmul1f(vadd(b.force, c.force), 2.0f), d.force)), 1.0f/6.0f * dt);
+    VecP* linear_momentum_change = vmul1f(vadd(a.force, vadd( vmul1f(vadd(b.force, c.force), 2.0f), d.force)), 1.0f/6.0f * dt);
     vec_add(state.linear_momentum, linear_momentum_change, state.linear_momentum);
 
     //state.orientation += 1.0f/6.0f * dt * (a.spin + 2.0f*(b.spin + c.spin) + d.spin);
-    QuatP orientation_change = qmul1f(qadd(a.spin, qadd( qmul1f(qadd(b.spin, c.spin), 2.0f), d.spin)), 1.0f/6.0f * dt);
+    QuatP* orientation_change = qmul1f(qadd(a.spin, qadd( qmul1f(qadd(b.spin, c.spin), 2.0f), d.spin)), 1.0f/6.0f * dt);
     quat_add(state.pivot.orientation, orientation_change, state.pivot.orientation);
 
     //state.angularMomentum += 1.0f/6.0f * dt * (a.torque + 2.0f*(b.torque + c.torque) + d.torque);
-    VecP angular_momentum_change = vmul1f(vadd(a.torque, vadd( vmul1f(vadd(b.torque, c.torque), 2.0f), d.torque)), 1.0f/6.0f * dt);
+    VecP* angular_momentum_change = vmul1f(vadd(a.torque, vadd( vmul1f(vadd(b.torque, c.torque), 2.0f), d.torque)), 1.0f/6.0f * dt);
     vec_add(state.angular_momentum, angular_momentum_change, state.angular_momentum);
 
     return rigidbody_recalculate(state);

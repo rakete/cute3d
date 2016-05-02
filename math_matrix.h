@@ -41,13 +41,13 @@
 
 // vector creation
 void vec_copy4f(const Vec4f v, Vec4f r);
-VecP vcopy4(const Vec4f v, Vec4f r);
+VecP* vcopy4(const Vec4f v, Vec4f r);
 
 void vec_copy3f(const Vec3f v, Vec3f r);
-VecP vcopy3f(const Vec3f v, Vec3f r);
+VecP* vcopy3f(const Vec3f v, Vec3f r);
 
 void vec_copy2f(const Vec4f v, Vec2f r);
-VecP vcopy2f(const Vec4f v, Vec2f r);
+VecP* vcopy2f(const Vec4f v, Vec2f r);
 
 // vector comparison
 void vec_equal(const Vec3f a, const Vec3f b, bool* r);
@@ -55,26 +55,26 @@ bool vequal(const Vec3f a, const Vec3f b);
 
 // vector arithmetic
 void vec_add(const Vec3f v, const Vec3f w, Vec3f r);
-VecP vadd(const Vec3f v, Vec3f w);
+VecP* vadd(const Vec3f v, Vec3f w);
 
 void vec_sub(const Vec3f v, const Vec3f w, Vec3f r);
-VecP vsub(const Vec3f v, Vec3f w);
+VecP* vsub(const Vec3f v, Vec3f w);
 
 void vec_sub1f(const Vec3f v, float w, Vec3f r);
-VecP vsub1f(Vec3f v, float w);
+VecP* vsub1f(Vec3f v, float w);
 
 void vec_mul1f(const Vec3f v, float w, Vec3f r);
-VecP vmul1f(Vec3f v, float w);
+VecP* vmul1f(Vec3f v, float w);
 
 // vector operations
 void vec_invert(const Vec3f v, Vec3f r);
-VecP vinvert(Vec3f v);
+VecP* vinvert(Vec3f v);
 
 void vec_dot(const Vec3f v, const Vec3f w, float* r);
 float vdot(const Vec3f v, const Vec3f w);
 
 void vec_cross(const Vec3f v, const Vec3f w, Vec3f r);
-VecP vcross(const Vec3f v, Vec3f w);
+VecP* vcross(const Vec3f v, Vec3f w);
 
 void vec_squared(const Vec3f v, float* r);
 float vsquared(const Vec3f v);
@@ -83,7 +83,7 @@ void vec_length(const Vec3f v, float* r);
 float vlength(const Vec3f v);
 
 void vec_normalize(const Vec3f v, Vec3f r);
-VecP vnormalize(Vec3f v);
+VecP* vnormalize(Vec3f v);
 
 void vec_angle(const Vec3f v, const Vec3f w, float* r);
 float vangle(const Vec3f v, const Vec3f w);
@@ -105,7 +105,7 @@ void vec_sign(const Vec4f v, int* sign);
 int32_t vsign(const Vec4f v);
 
 void vec_perpendicular(const Vec4f v, Vec4f r);
-VecP vperpendicular(const Vec4f v);
+VecP* vperpendicular(const Vec4f v);
 
 void vec_basis(const Vec3f x, Vec3f y, Vec3f z);
 
@@ -121,44 +121,44 @@ void mat_perspective(float left, float right, float top, float bottom, float zNe
 void mat_orthographic(float left, float right, float top, float bottom, float zNear, float zFar, Mat m);
 
 void mat_identity(Mat m);
-MatP midentity(Mat m);
+MatP* midentity(Mat m);
 
 // matrix operations
 void mat_invert4f(const Mat m, double* det, Mat r);
-MatP minvert4f(Mat m, double* det);
+MatP* minvert4f(Mat m, double* det);
 
 void mat_invert3f(const Mat m, double* det, Mat r);
-MatP minvert3f(Mat m, double* det);
+MatP* minvert3f(Mat m, double* det);
 
 void mat_mul(const Mat m, const Mat n, Mat r);
-MatP mmul(const Mat m, Mat n);
+MatP* mmul(const Mat m, Mat n);
 
 void mat_mul_vec4f(const Mat m, const Vec4f v, Vec4f r);
-MatP mmul_vec4f(const Mat m, Vec4f v);
+MatP* mmul_vec4f(const Mat m, Vec4f v);
 
 void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r);
-MatP mmul_vec3f(const Mat m, Vec3f v);
+MatP* mmul_vec3f(const Mat m, Vec3f v);
 
 void mat_translate(const Mat m, const Vec3f v, Mat r);
-MatP mtranslate(const Vec4f v, Mat m);
+MatP* mtranslate(const Vec4f v, Mat m);
 
 void mat_rotate(const Mat m, const Quat q, Mat r);
-MatP mrotate(Mat m, const Quat q);
+MatP* mrotate(Mat m, const Quat q);
 
 void mat_scale(const Mat m, float s, Mat r);
-//MatP mscale(float s, Mat m);
+//MatP* mscale(float s, Mat m);
 
 void mat_transpose4f(const Mat m, Mat r);
-MatP mtranspose4f(Mat m);
+MatP* mtranspose4f(Mat m);
 
 void mat_transpose3f(const Mat m, Mat r);
-MatP mtranspose3f(Mat m);
+MatP* mtranspose3f(Mat m);
 
 void mat_get_rotation(const Mat m, Mat r);
-MatP mget_rotation(Mat m);
+MatP* mget_rotation(Mat m);
 
 void mat_get_translation(const Mat m, Mat r);
-MatP mget_translation(Mat m);
+MatP* mget_translation(Mat m);
 
 void mat_print(const char* title, const Mat m);
 

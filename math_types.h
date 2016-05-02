@@ -25,9 +25,13 @@
 #define PI_OVER_180 0.017453292519943295769236907684886f
 #define PI_OVER_360 0.0087266462599716478846184538424431f
 
-typedef float* VecP;
-typedef float* MatP;
-typedef float* QuatP;
+// - changed these to not hide the pointer type, so that I can do:
+// const VecP* v = &vertices[i];
+// and have it actually be a pointer to a const float, whereas the old
+// version would have always been a const pointer to a mutable float
+typedef float VecP;
+typedef float MatP;
+typedef float QuatP;
 
 typedef float Vec4f[4];
 typedef float Vec3f[3];
@@ -59,15 +63,9 @@ typedef float Quat[4];
 #define COLOR_SIZE 4
 #define TEXCOORD_SIZE 2
 
-typedef float vertex_c;
-typedef float normal_c;
-typedef uint8_t color_c;
-typedef float texcoord_c;
-
-typedef vertex_c Vertex[VERTEX_SIZE];
-typedef normal_c Normal[NORMAL_SIZE];
-typedef color_c Color[COLOR_SIZE];
-typedef texcoord_c Texcoord[TEXCOORD_SIZE];
-
+typedef float Vertex[VERTEX_SIZE];
+typedef float Normal[NORMAL_SIZE];
+typedef uint8_t Color[COLOR_SIZE];
+typedef float Texcoord[TEXCOORD_SIZE];
 
 #endif

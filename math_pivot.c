@@ -184,12 +184,12 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
     return result;
 }
 
-VecP pivot_local_axis(const struct Pivot* pivot, Vec3f axis) {
+VecP* pivot_local_axis(const struct Pivot* pivot, Vec3f axis) {
     vec_rotate3f(axis, pivot->orientation, axis);
     return axis;
 }
 
-MatP pivot_world_transform(const struct Pivot* pivot, Mat world_transform) {
+MatP* pivot_world_transform(const struct Pivot* pivot, Mat world_transform) {
     Mat translation = {0};
     mat_translate(NULL, pivot->position, translation);
 
@@ -201,7 +201,7 @@ MatP pivot_world_transform(const struct Pivot* pivot, Mat world_transform) {
     return world_transform;
 }
 
-MatP pivot_local_transform(const struct Pivot* pivot, Mat local_transform) {
+MatP* pivot_local_transform(const struct Pivot* pivot, Mat local_transform) {
     Mat rotation = {0};
     quat_invert(pivot->orientation, rotation);
     mat_rotate(NULL, rotation, rotation);
@@ -215,7 +215,7 @@ MatP pivot_local_transform(const struct Pivot* pivot, Mat local_transform) {
     return local_transform;
 }
 
-MatP pivot_between_transform(const struct Pivot* pivot1, const struct Pivot* pivot2, Mat between_transform) {
+MatP* pivot_between_transform(const struct Pivot* pivot1, const struct Pivot* pivot2, Mat between_transform) {
     Mat local = {0};
     pivot_local_transform(pivot2, local);
 
@@ -227,7 +227,7 @@ MatP pivot_between_transform(const struct Pivot* pivot1, const struct Pivot* piv
     return between_transform;
 }
 
-QuatP pivot_between_orientation(const struct Pivot* pivot1, const struct Pivot* pivot2, Quat between_rotation) {
+QuatP* pivot_between_orientation(const struct Pivot* pivot1, const struct Pivot* pivot2, Quat between_rotation) {
     Quat inverted_from;
     quat_invert(pivot1->orientation, inverted_from);
     quat_mul(pivot2->orientation, inverted_from, between_rotation);
@@ -235,7 +235,7 @@ QuatP pivot_between_orientation(const struct Pivot* pivot1, const struct Pivot* 
     return between_rotation;
 }
 
-VecP pivot_between_translation(const struct Pivot* pivot1, const struct Pivot* pivot2, Vec3f between_translation) {
+VecP* pivot_between_translation(const struct Pivot* pivot1, const struct Pivot* pivot2, Vec3f between_translation) {
     vec_sub(pivot1->position, pivot2->position, between_translation);
 
     return between_translation;

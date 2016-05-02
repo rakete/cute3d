@@ -31,18 +31,19 @@ struct Pivot {
 void pivot_create(Vec3f position, Quat orientation, struct Pivot* pivot);
 int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target);
 
-VecP pivot_local_axis(const struct Pivot* pivot, Vec3f axis);
+VecP* pivot_local_axis(const struct Pivot* pivot, Vec3f axis);
 
-MatP pivot_world_transform(const struct Pivot* pivot, Mat world_transform);
-MatP pivot_local_transform(const struct Pivot* pivot, Mat local_transform);
+MatP* pivot_world_transform(const struct Pivot* pivot, Mat world_transform);
+MatP* pivot_local_transform(const struct Pivot* pivot, Mat local_transform);
 
 // - so this computes a transform from pivot1 coords to pivot2 coords, in other words,
 // the resulting transform of this function, applied to vertices of pivot1, would move
 // them to where they should be if pivot2 was at the origin (0,0,0)
 // - between_transform moves pivot1 vertices to where they should be relative to pivot2
-MatP pivot_between_transform(const struct Pivot* pivot1, const struct Pivot* pivot2, Mat between_transform);
-QuatP pivot_between_orientation(const struct Pivot* pivot1, const struct Pivot* pivot2, Quat between_rotation);
-VecP pivot_between_translation(const struct Pivot* pivot1, const struct Pivot* pivot2, Vec3f between_translation);
+MatP* pivot_between_transform(const struct Pivot* pivot1, const struct Pivot* pivot2, Mat between_transform);
+
+QuatP* pivot_between_orientation(const struct Pivot* pivot1, const struct Pivot* pivot2, Quat between_rotation);
+VecP* pivot_between_translation(const struct Pivot* pivot1, const struct Pivot* pivot2, Vec3f between_translation);
 
 void pivot_combine(const struct Pivot* pivot1, const struct Pivot* pivot2, struct Pivot* r);
 

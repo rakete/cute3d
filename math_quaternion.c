@@ -32,7 +32,7 @@ void quat_identity(Quat q) {
     q[3] = 1.0;
 }
 
-QuatP qidentity(Quat q) {
+QuatP* qidentity(Quat q) {
     quat_identity(q);
     return q;
 }
@@ -57,7 +57,7 @@ void quat_from_euler_angles(float x, float y, float z, Quat q) {
     q[3] = c1c2 * c3 - s1s2 * s3;
 }
 
-QuatP qfrom_euler_angles(float x, float y, float z, Quat q) {
+QuatP* qfrom_euler_angles(float x, float y, float z, Quat q) {
     quat_from_euler_angles(x, y, z, q);
     return q;
 }
@@ -86,7 +86,7 @@ void quat_from_axis_angle(const Vec3f axis, const float angle, Quat q) {
 #pragma GCC diagnostic pop
 }
 
-QuatP qfrom_axis_angle(Quat axis, const float angle) {
+QuatP* qfrom_axis_angle(Quat axis, const float angle) {
     quat_from_axis_angle(axis, angle, axis);
     return axis;
 }
@@ -107,7 +107,7 @@ void quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
     quat_from_axis_angle(axis, angle, q);
 }
 
-QuatP qfrom_vec_pair(const Vec3f a, Quat b) {
+QuatP* qfrom_vec_pair(const Vec3f a, Quat b) {
     quat_from_vec_pair(a,b,b);
     return b;
 }
@@ -124,7 +124,7 @@ void quat_mul_axis_angle(const Quat q, const Vec3f axis, const float angle, Quat
     quat_mul(q, rotation, r);
 }
 
-QuatP qmul_axis_angle(const Vec3f axis, const float angle, Quat q) {
+QuatP* qmul_axis_angle(const Vec3f axis, const float angle, Quat q) {
     quat_mul_axis_angle(q, axis, angle, q);
     return q;
 }
@@ -142,7 +142,7 @@ void quat_mul_vec_pair(const Quat q, const Vec3f a, const Vec3f b, Quat r) {
     quat_mul(q, rotation, r);
 }
 
-QuatP qmul_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
+QuatP* qmul_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
     quat_mul_vec_pair(q, a, b, q);
     return q;
 }
@@ -158,7 +158,7 @@ void quat_mul(const Quat qa, const Quat qb, Quat r) {
     r[3] = w1*w2 - x1*x2 - y1*y2 - z1*z2;
 }
 
-QuatP qmul(const Quat qa, Quat qb) {
+QuatP* qmul(const Quat qa, Quat qb) {
     quat_mul(qa,qb,qb);
     return qb;
 }
@@ -170,7 +170,7 @@ void quat_mul1f(const Quat qa, float b, Quat r) {
     r[3] = qa[3] * b;
 }
 
-QuatP qmul1f(Quat qa, float b) {
+QuatP* qmul1f(Quat qa, float b) {
     quat_mul1f(qa,b,qa);
     return qa;
 }
@@ -182,7 +182,7 @@ void quat_add(const Quat qa, const Quat qb, Quat r) {
     r[3] = qa[3] + qb[3];
 }
 
-QuatP qadd(const Quat qa, Quat qb) {
+QuatP* qadd(const Quat qa, Quat qb) {
     quat_add(qa,qb,qb);
     return qb;
 }
@@ -244,7 +244,7 @@ void quat_normalize(const Quat q, Quat r) {
     }
 }
 
-QuatP qnormalize(Quat q) {
+QuatP* qnormalize(Quat q) {
     quat_normalize(q, q);
     return q;
 }
@@ -286,7 +286,7 @@ void quat_to_mat(const Quat q, Mat r) {
     r[3] = 0;                 r[7] = 0;                 r[11] =  0;                 r[15] = ww + xx + yy + zz;
 }
 
-QuatP qto_mat(const Quat q, Mat m) {
+QuatP* qto_mat(const Quat q, Mat m) {
     quat_to_mat(q,m);
     return m;
 }
@@ -356,7 +356,7 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
     quat_add(ua, ub, r);
 }
 
-QuatP qslerp(const Quat qa, Quat qb, float t) {
+QuatP* qslerp(const Quat qa, Quat qb, float t) {
     quat_slerp(qa, qb, t, qb);
     return qb;
 }

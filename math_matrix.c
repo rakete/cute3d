@@ -23,7 +23,7 @@ void vec_copy4f(const Vec4f v, Vec4f r) {
     r[3] = v[3];
 }
 
-VecP vcopy4f(const Vec4f v, Vec4f r) {
+VecP* vcopy4f(const Vec4f v, Vec4f r) {
     vec_copy4f(v,r);
     return r;
 }
@@ -34,7 +34,7 @@ void vec_copy3f(const Vec4f v, Vec3f r) {
     r[2] = v[2];
 }
 
-VecP vcopy3f(const Vec4f v, Vec3f r) {
+VecP* vcopy3f(const Vec4f v, Vec3f r) {
     vec_copy3f(v,r);
     return r;
 }
@@ -44,7 +44,7 @@ void vec_copy2f(const Vec4f v, Vec2f r) {
     r[1] = v[1];
 }
 
-VecP vcopy2f(const Vec4f v, Vec2f r) {
+VecP* vcopy2f(const Vec4f v, Vec2f r) {
     vec_copy2f(v,r);
     return r;
 }
@@ -73,7 +73,7 @@ void vec_add(const Vec3f v, const Vec3f w, Vec3f r) {
     r[2] = v[2] + w[2];
 }
 
-VecP vadd(const Vec3f v, Vec3f w) {
+VecP* vadd(const Vec3f v, Vec3f w) {
     vec_add(v,w,w);
     return w;
 }
@@ -84,7 +84,7 @@ void vec_sub(const Vec3f v, const Vec3f w, Vec3f r) {
     r[2] = v[2] - w[2];
 }
 
-VecP vsub(const Vec3f v, Vec3f w) {
+VecP* vsub(const Vec3f v, Vec3f w) {
     vec_sub(v,w,w);
     return w;
 }
@@ -95,7 +95,7 @@ void vec_sub1f(const Vec3f v, const float w, Vec3f r) {
     r[2] = v[2] - w;
 }
 
-VecP vsub1f(Vec3f v, float w) {
+VecP* vsub1f(Vec3f v, float w) {
     vec_sub1f(v,w,v);
     return v;
 }
@@ -106,7 +106,7 @@ void vec_mul1f(const Vec3f v, float w, Vec3f r) {
     r[2] = v[2]*w;
 }
 
-VecP vmul1f(Vec3f v, float w) {
+VecP* vmul1f(Vec3f v, float w) {
     vec_mul1f(v,w,v);
     return v;
 }
@@ -117,7 +117,7 @@ void vec_invert(const Vec3f v, Vec3f r) {
     r[2] = -v[2];
 }
 
-VecP vinvert(Vec3f v) {
+VecP* vinvert(Vec3f v) {
     vec_invert(v,v);
     return v;
 }
@@ -133,7 +133,7 @@ float vdot(const Vec3f v, const Vec3f w) {
 }
 
 void vec_cross(const Vec3f v, const Vec3f w, Vec3f r) {
-    Vec4f t;
+    Vec3f t;
     t[0] = v[1]*w[2] - v[2]*w[1];
     t[1] = v[2]*w[0] - v[0]*w[2];
     t[2] = v[0]*w[1] - v[1]*w[0];
@@ -141,7 +141,7 @@ void vec_cross(const Vec3f v, const Vec3f w, Vec3f r) {
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
 }
 
-VecP vcross(const Vec4f v, Vec4f w) {
+VecP* vcross(const Vec4f v, Vec4f w) {
     vec_cross(v,w,w);
     return w;
 }
@@ -193,7 +193,7 @@ void vec_normalize(const Vec3f v, Vec3f r) {
     r[2] = isnan(r[2]) ? 0.0f : r[2];
 }
 
-VecP vnormalize(Vec4f v) {
+VecP* vnormalize(Vec4f v) {
     vec_normalize(v,v);
     return v;
 }
@@ -371,6 +371,7 @@ void vec_basis(const Vec3f x, Vec3f y, Vec3f z) {
     /* // Suppose vector a has all equal components and is a unit vector: a = (s, s, s) */
     /* // Then 3*s*s = 1, s = sqrt(1/3) = 0.57735. This means that at least one component of a */
     /* // unit vector must be greater or equal to 0.57735. */
+    /* // http://box2d.org/2014/02/computing-a-basis/ */
     /* if ( fabs(x[0]) >= 0.57735027 ) { */
     /*     y[0] = x[1]; */
     /*     y[1] = -x[0]; */
@@ -592,7 +593,7 @@ void mat_invert4f(const Mat m, double* det, Mat r) {
     if(det) *det = d;
 }
 
-MatP minvert4f(Mat m, double* det) {
+MatP* minvert4f(Mat m, double* det) {
     mat_invert4f(m,det,m);
     return m;
 }
@@ -642,7 +643,7 @@ void mat_invert3f(const Mat m, double* det, Mat r) {
     if(det) *det = d;
 }
 
-MatP minvert3f(Mat m, double* det) {
+MatP* minvert3f(Mat m, double* det) {
     mat_invert3f(m,det,m);
     return m;
 }
@@ -674,7 +675,7 @@ void mat_mul(const Mat n, const Mat m, Mat r) {
     r[12] = t[12]; r[13] = t[13]; r[14] = t[14]; r[15] = t[15];
 }
 
-MatP mmul(const Mat m, Mat n) {
+MatP* mmul(const Mat m, Mat n) {
     mat_mul(n,m,n);
     return n;
 }
@@ -693,7 +694,7 @@ void mat_mul_vec4f(const Mat m, const Vec4f v, Vec4f r) {
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; r[3] = t[3];
 }
 
-MatP mmul_vec4f(const Mat m, Vec4f v) {
+MatP* mmul_vec4f(const Mat m, Vec4f v) {
     mat_mul_vec4f(m,v,v);
     return v;
 }
@@ -707,7 +708,7 @@ void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r) {
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
 }
 
-MatP mmul_vec3f(const Mat m, Vec3f v) {
+MatP* mmul_vec3f(const Mat m, Vec3f v) {
     mat_mul_vec3f(m,v,v);
     return v;
 }
@@ -731,7 +732,7 @@ void mat_translate(const Mat m, const Vec3f v, Mat r) {
     }
 }
 
-MatP mtranslate(const Vec4f v, Mat m) {
+MatP* mtranslate(const Vec4f v, Mat m) {
     mat_translate(m,v,m);
     return m;
 }
@@ -747,7 +748,7 @@ void mat_rotate(const Mat m, const Quat q, Mat r) {
     }
 }
 
-MatP mrotate(Mat m, const Quat q) {
+MatP* mrotate(Mat m, const Quat q) {
     mat_rotate(m,q,m);
     return m;
 }
@@ -781,7 +782,7 @@ void mat_transpose4f(const Mat m, Mat r) {
     }
 }
 
-MatP mtranspose4f(Mat m) {
+MatP* mtranspose4f(Mat m) {
     mat_transpose4f(m, m);
     return m;
 }
@@ -798,7 +799,7 @@ void mat_transpose3f(const Mat m, Mat r) {
     }
 }
 
-MatP mtranspose3f(Mat m) {
+MatP* mtranspose3f(Mat m) {
     mat_transpose3f(m, m);
     return m;
 }
@@ -812,7 +813,7 @@ void mat_get_rotation(const Mat m, Mat r) {
     r[3] = 0.0;          r[7] = 0.0;          r[11] = 0.0;           r[15] = 1.0;
 }
 
-MatP mget_rotation(Mat m) {
+MatP* mget_rotation(Mat m) {
     mat_get_rotation(m, m);
     return m;
 }
@@ -821,7 +822,7 @@ void mat_get_translation(const Mat m, Mat r) {
     mat_translate(NULL, (Vec3f){m[12], m[13], m[14]}, r);
 }
 
-MatP mget_translation(Mat m) {
+MatP* mget_translation(Mat m) {
     mat_get_translation(m, m);
     return m;
 }
