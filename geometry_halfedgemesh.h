@@ -25,6 +25,7 @@ struct HalfEdgeVertex {
     // position looks like it would be nice in struct HalfEdge, but its here because it is more
     // convenient to be able to insert the vertices seperately from the edges
     Vec4f position;
+    // - the index of any of the outgoing edges of this vertex
     int32_t edge;
     int32_t this;
 };
@@ -32,7 +33,7 @@ struct HalfEdgeVertex {
 struct HalfEdgeFace {
     Vec4f normal;
     int32_t size;
-    // - the index of any one of the outgoing edges of this vertex
+    // - the index of any of the edges of this face
     int32_t edge;
     int32_t this;
 };
