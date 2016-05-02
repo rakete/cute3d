@@ -197,19 +197,19 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
         vec_copy3f(mesh1->faces.array[other1->face].normal, b);
 
         Vec3f edge1_direction = {0};
-        const VecP edge1_head = mesh1->vertices.array[edge1->vertex].position;
+        const VecP* edge1_head = mesh1->vertices.array[edge1->vertex].position;
         vec_sub(mesh1->vertices.array[other1->vertex].position, edge1_head, edge1_direction);
         vec_normalize(edge1_direction, edge1_direction);
 
         // instead of cross product I should be able to just use the edges between a b and d c
-        const VecP bxa = edge1_direction;
+        const VecP* bxa = edge1_direction;
 
         for( int32_t j = 0; j < (int32_t)mesh2->edges.occupied; j += 2 ) {
             struct HalfEdge* edge2 = &mesh2->edges.array[j];
             struct HalfEdge* other2 = &mesh2->edges.array[edge2->other];
 
             Vec3f edge2_direction = {0};
-            const VecP edge2_head = &transformed_vertices[edge2->vertex*3];
+            const VecP* edge2_head = &transformed_vertices[edge2->vertex*3];
             vec_sub(&transformed_vertices[other2->vertex*3], edge2_head, edge2_direction);
             vec_normalize(edge2_direction, edge2_direction);
 
@@ -225,7 +225,7 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
             vec_invert(c, c);
             vec_invert(d, d);
 
-            const VecP dxc = edge2_direction;
+            const VecP* dxc = edge2_direction;
 
             float cba = vdot(c, bxa);
             float dba = vdot(d, bxa);
