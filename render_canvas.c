@@ -95,7 +95,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                        // - why... do I have to do this? glDrawElements already takes an offset? can't I just not call this?
                        // either way, the good news is that when I call this with a fixed offset (0 in this case), I can actually
                        // make use of vaos
-                       glVertexAttribPointer((GLuint)loc[attribute_i], c_num, c_type, GL_TRUE, 0, 0); );
+                       glVertexAttribPointer((GLuint)loc[attribute_i], (GLint)c_num, c_type, GL_TRUE, 0, 0); );
         }
 
 
