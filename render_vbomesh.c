@@ -195,7 +195,7 @@ void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, s
     vbomesh_create_from_solid(&solid, vbo, mesh);
 }
 
-void vbomesh_render(struct VboMesh* mesh, const struct Shader* shader, const struct Camera* camera, const Mat model_matrix) {
+void vbomesh_render(struct VboMesh* mesh, struct Shader* shader, const struct Camera* camera, const Mat model_matrix) {
     log_assert( mesh != NULL );
     log_assert( shader != NULL );
     log_assert( camera != NULL );
