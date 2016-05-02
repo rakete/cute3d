@@ -122,7 +122,7 @@ int32_t main(int32_t argc, char *argv[]) {
     struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);
 
-    draw_grid(&global_static_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 0.02f, 12.0f, 12.0f, 12);
+    draw_grid(&global_static_canvas, 0, grid_transform, (Color){127, 127, 127, 127}, 0.01f, 12.0f, 12.0f, 12);
 
     while (true) {
 
@@ -208,12 +208,12 @@ int32_t main(int32_t argc, char *argv[]) {
         Mat transform_a = {0};
         pivot_world_transform(&entity_a.pivot, transform_a);
         //vbomesh_render(&entity_a.vbomesh, &flat_shader, &arcball.camera, transform_a);
-        draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_a, (Color){255, 0, 0, 255}, 0.01f, &entity_a.hemesh);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_a, (Color){255, 0, 0, 255}, 0.02f, &entity_a.hemesh);
 
         Mat transform_b = {0};
         pivot_world_transform(&entity_b.pivot, transform_b);
         //vbomesh_render(&entity_b.vbomesh, &flat_shader, &arcball.camera, transform_b);
-        draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_b, (Color){0, 255, 0, 255}, 0.01f, &entity_b.hemesh);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_b, (Color){0, 255, 0, 255}, 0.02f, &entity_b.hemesh);
 
         Mat between_transform = {0};
         pivot_between_transform(&entity_a.pivot, &entity_b.pivot, between_transform);
@@ -243,7 +243,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
         gametime_integrate(&time);
         Vec4f screen_cursor = {0,0,0,1};
-        text_show_fps(&global_dynamic_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
+        text_show_fps(&global_dynamic_canvas, 0, screen_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0, "default_font", time.frame);
 
         canvas_render_layers(&global_static_canvas, 0, 0, &arcball.camera, (Mat)IDENTITY_MAT);
 
