@@ -72,11 +72,23 @@ int32_t main(int32_t argc, char *argv[]) {
     halfedgemesh_append(&sphere16_hemesh, (struct Solid*)&sphere16);
     halfedgemesh_append(&sphere32_hemesh, (struct Solid*)&sphere32);
 
+    halfedgemesh_verify(&tetrahedron_hemesh);
+    halfedgemesh_verify(&hexahedron_hemesh);
+    halfedgemesh_verify(&cube_hemesh);
+    halfedgemesh_verify(&sphere16_hemesh);
+    halfedgemesh_verify(&sphere32_hemesh);
+
     halfedgemesh_optimize(&tetrahedron_hemesh);
     halfedgemesh_optimize(&hexahedron_hemesh);
     halfedgemesh_optimize(&cube_hemesh);
     halfedgemesh_optimize(&sphere16_hemesh);
     halfedgemesh_optimize(&sphere32_hemesh);
+
+    halfedgemesh_verify(&tetrahedron_hemesh);
+    halfedgemesh_verify(&hexahedron_hemesh);
+    halfedgemesh_verify(&cube_hemesh);
+    halfedgemesh_verify(&sphere16_hemesh);
+    halfedgemesh_verify(&sphere32_hemesh);
 
     struct VboMesh tetrahedron_mesh,hexahedron_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
     vbomesh_create_from_halfedgemesh(&tetrahedron_hemesh, &vbo, &tetrahedron_mesh);
