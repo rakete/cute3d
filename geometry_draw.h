@@ -57,11 +57,4 @@ void draw_halfedgemesh_vertex(struct Canvas* canvas,
                               int32_t vertex,
                               float scale);
 
-void draw_contacts(struct Canvas* canvas,
-                   int32_t layer,
-                   const Mat model_matrix,
-                   const Color color,
-                   float line_thickness,
-                   const struct Contacts* contacts);
-
 #endif
