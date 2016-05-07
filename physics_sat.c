@@ -1,4 +1,4 @@
-#include "geometry_sat.h"
+#include "physics_sat.h"
 
 // helper to transform vertices from pivot1 into the coordinate system of pivot2
 void sat_halfedgemesh_transform_vertices(const struct HalfEdgeMesh* mesh,

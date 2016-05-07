@@ -1,5 +1,5 @@
-#ifndef GEOMETRY_SAT_H
-#define GEOMETRY_SAT_H
+#ifndef PHYSICS_SAT_H
+#define PHYSICS_SAT_H
 
 #include "stdint.h"
 
