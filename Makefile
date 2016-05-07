@@ -13,7 +13,7 @@ glsl_frag_shader = $(filter-out shader/prefix.frag, $(wildcard shader/*.frag))
 FEATURES=-pg -DDEBUG `sdl2-config --cflags` # -DCUTE_BUILD_ES2
 WARNINGS=-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -pedantic
 ifeq ($(OS), Windows_NT)
-	OPTIMIZATION=-flto=4 -march=native
+	OPTIMIZATION=-flto -march=native
 	LDFLAGS=-lm -lopengl32 `sdl2-config --libs`
 	CC=gcc
 	CFLAGS=-std=c99 $(WARNINGS) $(FEATURES) $(OPTIMIZATION)
@@ -25,7 +25,7 @@ else
 endif
 
 validate-glsl:
-ifndef glsl_validator
+ifndef glsl_validator_exists
 	@echo "no glsl validator found, not validating any glsl code"
 else
 	$(glsl_validator) $(glsl_vert_shader) $(glsl_frag_shader)

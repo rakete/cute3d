@@ -112,7 +112,7 @@ int32_t main(int32_t argc, char *argv[]) {
         draw_circle(&global_dynamic_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.05f, 2.0f, 0.0f, PI/2, 1.0f);
 
         Vec4f screen_cursor = {0,0,0,1};
-        text_show_fps(&global_dynamic_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
+        text_show_fps(&global_dynamic_canvas, 0, screen_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0, "default_font", time.frame);
 
         canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);
