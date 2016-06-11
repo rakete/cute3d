@@ -1,16 +1,17 @@
-#ifndef GEOMETRY_CONTACTS_H
-#define GEOMETRY_CONTACTS_H
+#ifndef PHYSICS_CONTACTS_H
+#define PHYSICS_CONTACTS_H
 
 #include "stdint.h"
 
 #include "math_matrix.h"
 #include "math_types.h"
 
-#include "geometry_sat.h"
 #include "geometry_draw.h"
 #include "geometry_polygon.h"
 
 #include "gui_text.h"
+
+#include "physics_sat.h"
 
 #define MAX_CONTACT_POINTS 4
 

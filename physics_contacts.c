@@ -1,4 +1,4 @@
-#include "geometry_contacts.h"
+#include "physics_contacts.h"
 
 // - I more or less took this whole function from bounce lite, and translated it,
 // its a pretty standard implementation of a method to find the two closest points
@@ -351,6 +351,9 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
     // the smallest area, repeat until we only have max_contacts left
     // - max_contacts may actually be smaller then MAX_CONTACT_POINTS because there may already be pre-
     // existing contacts, but that should never be the case so far
+    // - an alternative method is described here:
+    // http://allenchou.net/2014/01/game-physics-stability-warm-starting/
+    // might be worth checking out
     int32_t max_contacts = (int32_t)MAX_CONTACT_POINTS - contacts->num_contacts;
     int32_t final_polygon_size = below_polygon_size;
     if( below_polygon_size > max_contacts ) {

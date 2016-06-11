@@ -25,9 +25,9 @@
 
 #include "geometry_halfedgemesh.h"
 #include "geometry_draw.h"
-#include "geometry_sat.h"
-#include "geometry_contacts.h"
 
+#include "physics_sat.h"
+#include "physics_contacts.h"
 #include "physics_rigidbody.h"
 
 #define COLLISION_CONTACT_LIFETIME 5
