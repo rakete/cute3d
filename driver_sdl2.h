@@ -17,11 +17,11 @@
             printf("%s@%d:::::\n%s\n", __FILE__, __LINE__, sdl2_stringify(line)); \
             printf("SDL_GetError(): %s\n", SDL_GetError());             \
         }                                                               \
-        log_assert(strlen(error) == 0);                                 \
     } while(0)
 #else
 #define sdl2_debug(line) line
 #endif
+//log_assert(strlen(error) == 0);
 
 int32_t init_sdl2(int major, int minor) __attribute__((warn_unused_result));
 

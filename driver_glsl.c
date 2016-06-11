@@ -25,7 +25,7 @@ void glsl_debug_info_log(GLuint object) {
     log_assert( log_length > 0 );
     log = malloc((size_t)log_length);
     glGetShaderInfoLog(object, log_length, NULL, log);
-    fprintf(stderr, "%s", log);
+    fprintf(stdout, "%s", log);
     free(log);
 }
 
@@ -42,7 +42,7 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
            shader_source[4] == 'T' &&
            shader_source[5] == 'E') )
     {
-        log_warn(stderr, __FILE__, __LINE__, "%s\n does not look like cute3d glsl code\n", shader_source);
+        log_warn(__FILE__, __LINE__, "%s\n does not look like cute3d glsl code\n", shader_source);
     }
 
     // I need this compatibilty crap if I want to be able to deploy stuff on webgl/android
@@ -71,7 +71,7 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
         prefix_file = fopen(filename, "rb");
 
         if( ! prefix_file ) {
-            log_fail(stderr, __FILE__, __LINE__, "could not open file %s\n", filename);
+            log_fail(__FILE__, __LINE__, "could not open file %s\n", filename);
             return 0;
         }
     } else if( type == GL_FRAGMENT_SHADER ) {
@@ -79,7 +79,7 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
         prefix_file = fopen(filename, "rb");
 
         if( ! prefix_file ) {
-            log_fail(stderr, __FILE__, __LINE__, "could not open file %s\n", filename);
+            log_fail(__FILE__, __LINE__, "could not open file %s\n", filename);
             return 0;
         }
     }
@@ -129,7 +129,7 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
     GLint shader_ok;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_ok);
     if ( ! shader_ok ) {
-        log_fail(stderr, __FILE__, __LINE__, "failed to compile:\n%s%s\n\n\n", prefix_source, shader_source);
+        log_fail(__FILE__, __LINE__, "failed to compile:\n%s%s\n\n\n", prefix_source, shader_source);
         glsl_debug_info_log(shader);
         glDeleteShader(shader);
         goto finish;;
@@ -144,7 +144,7 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
     FILE* file = fopen(filename, "rb");
 
     if( ! file ) {
-        log_fail(stderr, __FILE__, __LINE__, "could not open file %s\n", filename);
+        log_fail(__FILE__, __LINE__, "could not open file %s\n", filename);
         return 0;
     }
 
@@ -169,7 +169,7 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
 
     id = glsl_compile_source(type, source);
     if( ! id ) {
-        log_fail(stderr, __FILE__, __LINE__, "compilation failed in: %s\n", filename);
+        log_fail(__FILE__, __LINE__, "compilation failed in: %s\n", filename);
     }
 
 finish:
@@ -195,7 +195,7 @@ GLuint glsl_link_program(GLuint program) {
     GLint program_ok;
     glGetProgramiv(program, GL_LINK_STATUS, &program_ok);
     if( ! program_ok ) {
-        fprintf(stderr, "failed to link shader program:\n");
+        fprintf(stdout, "failed to link shader program:\n");
         glsl_debug_info_log(program);
         glDeleteProgram(program);
         return 0;

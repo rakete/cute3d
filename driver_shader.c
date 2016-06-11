@@ -25,7 +25,7 @@ int32_t init_shader() {
     // - we don't actually need this, but I want to check anyways because ubo's are
     // so useful and I would like to known when I can't use them in the future
     if( ! SDL_GL_ExtensionSupported("GL_ARB_uniform_buffer_object") ) {
-        log_fail(stderr, __FILE__, __LINE__, "uniform_buffer_object extension not found!\n");
+        log_fail(__FILE__, __LINE__, "uniform_buffer_object extension not found!\n");
         ret = 1;
     }
 
@@ -98,12 +98,12 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
 
     if( vertex_file && fragment_file ) {
         if( strcmp( name, "default_shader") && strcmp( name, "font_shader") ) {
-            log_info(stderr, __FILE__, __LINE__, "creating shader \"%s\" from files: \"%s\", \"%s\"\n", name, vertex_file, fragment_file);
+            log_info(__FILE__, __LINE__, "creating shader \"%s\" from files: \"%s\", \"%s\"\n", name, vertex_file, fragment_file);
         }
         p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, vertex_file);
         p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, fragment_file);
     } else {
-        log_warn(stderr, __FILE__, __LINE__, "shader files \"%s\" and \"%s\" do not exist, using default shader\n", vertex_file, fragment_file);
+        log_warn(__FILE__, __LINE__, "shader files \"%s\" and \"%s\" do not exist, using default shader\n", vertex_file, fragment_file);
         p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, "shader/default.vert");
         p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, "shader/default.frag");
     }
@@ -138,7 +138,7 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     log_assert( fragment_source );
 
     if( strcmp( name, "default_shader") && strcmp( name, "font_shader") ) {
-        log_info(stderr, __FILE__, __LINE__, "creating shader \"%s\" from sources\n", name);
+        log_info(__FILE__, __LINE__, "creating shader \"%s\" from sources\n", name);
     }
     p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, vertex_source);
     p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source);
@@ -183,7 +183,7 @@ void shader_setup_locations(struct Shader* p) {
     }
 
     if( num_active_attributes > num_cached_attributes) {
-        log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" has %d unknown attributes\n", p->name, num_active_attributes - num_cached_attributes);
+        log_warn(__FILE__, __LINE__, "shader \"%s\" has %d unknown attributes\n", p->name, num_active_attributes - num_cached_attributes);
     }
 
     GLint num_active_uniforms = 0;
@@ -208,7 +208,7 @@ void shader_setup_locations(struct Shader* p) {
     }
 
     if( num_active_uniforms > num_cached_uniforms) {
-        log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" has %d unknown uniforms\n", p->name, num_active_uniforms - num_cached_uniforms);
+        log_warn(__FILE__, __LINE__, "shader \"%s\" has %d unknown uniforms\n", p->name, num_active_uniforms - num_cached_uniforms);
     }
 
     shader_verify_locations(p);
@@ -223,13 +223,13 @@ bool shader_verify_locations(struct Shader* p) {
 
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         if( p->attribute[i].location < 0 && strlen(p->attribute[i].name) > 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" attribute \"%s\" has a name but no location\n", p->name, p->attribute[i].name);
+            log_warn(__FILE__, __LINE__, "shader \"%s\" attribute \"%s\" has a name but no location\n", p->name, p->attribute[i].name);
             ret = true;
         }
 
         if( p->attribute[i].location > -1 ) {
             if( strlen(p->attribute[i].name) == 0 ) {
-                log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" attribute location %d cached without a name\n", p->name, p->attribute[i].location);
+                log_warn(__FILE__, __LINE__, "shader \"%s\" attribute location %d cached without a name\n", p->name, p->attribute[i].location);
                 ret = true;
             }
         }
@@ -237,13 +237,13 @@ bool shader_verify_locations(struct Shader* p) {
 
     for( int32_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
         if( p->uniform[i].location < 0 && strlen(p->uniform[i].name) > 0 ) {
-            log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" has a name but no location\n", p->name, p->uniform[i].name);
+            log_warn(__FILE__, __LINE__, "shader \"%s\" uniform \"%s\" has a name but no location\n", p->name, p->uniform[i].name);
             ret = true;
         }
 
         if( p->uniform[i].location > -1 ) {
             if( strlen(p->uniform[i].name) == 0 ) {
-                log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform location %d cached without a name\n", p->name, p->uniform[i].location);
+                log_warn(__FILE__, __LINE__, "shader \"%s\" uniform location %d cached without a name\n", p->name, p->uniform[i].location);
                 ret = true;
             }
         }
@@ -264,7 +264,7 @@ bool shader_warn_locations(struct Shader* p) {
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         if( p->attribute[i].location > -1 ) {
             if( p->attribute[i].unset && p->attribute[i].warn_once ) {
-                log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" attribute \"%s\" never set\n", p->name, p->attribute[i].name);
+                log_warn(__FILE__, __LINE__, "shader \"%s\" attribute \"%s\" never set\n", p->name, p->attribute[i].name);
                 ret = true;
                 p->attribute[i].warn_once = false;
             }
@@ -274,7 +274,7 @@ bool shader_warn_locations(struct Shader* p) {
     for( int32_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
         if( p->uniform[i].location > -1 ) {
             if( p->uniform[i].unset && p->uniform[i].warn_once ) {
-                log_warn(stderr, __FILE__, __LINE__, "shader \"%s\" uniform \"%s\" never set\n", p->name, p->uniform[i].name);
+                log_warn(__FILE__, __LINE__, "shader \"%s\" uniform \"%s\" never set\n", p->name, p->uniform[i].name);
                 ret = true;
                 p->uniform[i].warn_once = false;
             }
@@ -307,7 +307,7 @@ GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const
 
             shader->verified = false;
         } else {
-            log_warn(stderr, __FILE__, __LINE__, "could not add attribute %d location \"%s\" to shader \"%s\"\n", attribute_index, name, shader->name);
+            log_warn(__FILE__, __LINE__, "could not add attribute %d location \"%s\" to shader \"%s\"\n", attribute_index, name, shader->name);
         }
     }
 
@@ -334,7 +334,7 @@ GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const cha
 
             shader->verified = false;
         } else {
-            log_warn(stderr, __FILE__, __LINE__, "could not add uniform %d location \"%s\" to shader \"%s\"\n", uniform_index, name, shader->name);
+            log_warn(__FILE__, __LINE__, "could not add uniform %d location \"%s\" to shader \"%s\"\n", uniform_index, name, shader->name);
         }
     }
 
@@ -494,7 +494,7 @@ GLint shader_set_uniform_3f(struct Shader* shader, int32_t uniform_index, uint32
     }
 
     if( size < 3 ) {
-        log_warn(stderr, __FILE__, __LINE__, "setting uniform 3f with only %df data\n", size);
+        log_warn(__FILE__, __LINE__, "setting uniform 3f with only %df data\n", size);
     }
 
     // glUniform changes state of the program, so it needs to be run after glUseProgram
@@ -545,7 +545,7 @@ GLint shader_set_uniform_4f(struct Shader* shader, int32_t uniform_index, uint32
     }
 
     if( size < 4 ) {
-        log_warn(stderr, __FILE__, __LINE__, "setting uniform 4f with only %df data\n", size);
+        log_warn(__FILE__, __LINE__, "setting uniform 4f with only %df data\n", size);
     }
 
     // glUniform changes state of the program, so it needs to be run after glUseProgram

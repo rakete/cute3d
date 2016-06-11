@@ -1,6 +1,6 @@
 #include "driver_log.h"
 
-bool log_info(FILE* f, const char* filename, int32_t linenumber, const char* format, ...) {
+bool log_info(const char* filename, int32_t linenumber, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -14,14 +14,14 @@ bool log_info(FILE* f, const char* filename, int32_t linenumber, const char* for
     } else {
         snprintf(message, 8192, LOG_ANSI_COLOR_GREEN "[INFO] " LOG_ANSI_COLOR_RESET "%s", format);
     }
-    vfprintf(f, message, args);
+    vfprintf(stdout, message, args);
     fflush(stdout);
     va_end(args);
 
     return true;
 }
 
-bool log_warn(FILE* f, const char* filename, int32_t linenumber, const char* format, ...) {
+bool log_warn(const char* filename, int32_t linenumber, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -35,14 +35,14 @@ bool log_warn(FILE* f, const char* filename, int32_t linenumber, const char* for
     } else {
         snprintf(message, 8192, LOG_ANSI_COLOR_BLUE "[WARN] " LOG_ANSI_COLOR_RESET "%s", format);
     }
-    vfprintf(f, message, args);
+    vfprintf(stdout, message, args);
     fflush(stdout);
     va_end(args);
 
     return true;
 }
 
-bool log_fail(FILE* f, const char* filename, int32_t linenumber, const char* format, ...) {
+bool log_fail(const char* filename, int32_t linenumber, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -56,17 +56,17 @@ bool log_fail(FILE* f, const char* filename, int32_t linenumber, const char* for
     } else {
         snprintf(message, 8192, LOG_ANSI_COLOR_RED "[FAIL] " LOG_ANSI_COLOR_RESET "%s", format);
     }
-    vfprintf(f, message, args);
+    vfprintf(stdout, message, args);
     fflush(stdout);
     va_end(args);
 
     return true;
 }
 
-bool log_continue(FILE* f, const char* format, ...) {
+bool log_continue(const char* format, ...) {
     va_list args;
     va_start(args, format);
-    vfprintf(f, format, args);
+    vfprintf(stdout, format, args);
     fflush(stdout);
 
     return true;
@@ -80,7 +80,7 @@ bool _log_assert(const char* condition, const char* format, ...) {
     printf("\n" LOG_ANSI_COLOR_RED "[FAIL]" LOG_ANSI_COLOR_RESET " assert( %s );\n", condition);
     if( strlen(format) ) {
         printf(LOG_ANSI_COLOR_BLUE);
-        vprintf(format, args);
+        vfprintf(stdout, format, args);
         printf(LOG_ANSI_COLOR_RESET);
         fflush(stdout);
     }

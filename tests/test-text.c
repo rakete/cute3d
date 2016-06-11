@@ -45,9 +45,9 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Font font = {0};
     font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font", &font);
 
-    log_info(stderr, __FILE__, __LINE__, "info message %s\n", "foo");
-    log_warn(stderr, __FILE__, __LINE__, "warning message %s\n", "bar");
-    log_fail(stderr, __FILE__, __LINE__, "error message %s\n", "baz");
+    log_info(__FILE__, __LINE__, "info message %s\n", "foo");
+    log_warn(__FILE__, __LINE__, "warning message %s\n", "bar");
+    log_fail(__FILE__, __LINE__, "error message %s\n", "baz");
 
     while (true) {
         SDL_Event event;
