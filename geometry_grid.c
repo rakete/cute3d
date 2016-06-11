@@ -217,29 +217,29 @@ void grid_pages(struct Grid* grid, uint64_t x, uint64_t y, uint64_t z, struct Gr
 }
 
 void grid_dump(struct Grid grid, struct GridPages pages) {
-    printf("grid.size.x: %lu\n", grid.size.x);
-    printf("grid.size.y: %lu\n", grid.size.y);
-    printf("grid.size.z: %lu\n", grid.size.z);
-    printf("pages.size.x: %lu\n", pages.size.x);
-    printf("pages.size.y: %lu\n", pages.size.y);
-    printf("pages.size.z: %lu\n", pages.size.z);
-    printf("pages.top: %lu\n", pages.top);
+    printf("grid.size.x: %" PRIu64 "\n", grid.size.x);
+    printf("grid.size.y: %" PRIu64 "\n", grid.size.y);
+    printf("grid.size.z: %" PRIu64 "\n", grid.size.z);
+    printf("pages.size.x: %" PRIu64 "\n", pages.size.x);
+    printf("pages.size.y: %" PRIu64 "\n", pages.size.y);
+    printf("pages.size.z: %" PRIu64 "\n", pages.size.z);
+    printf("pages.top: %" PRIu64 "\n", pages.top);
 
     if( pages.size.x > 0 && pages.size.y > 0 && pages.size.z > 0 ) {
         uint64_t num_pages_x = grid.size.x / pages.size.x;
         uint64_t num_pages_y = grid.size.y / pages.size.y;
         uint64_t num_pages_z = grid.size.z / pages.size.z;
-        printf("num_pages_x: %lu\n", num_pages_x);
-        printf("num_pages_y: %lu\n", num_pages_y);
-        printf("num_pages_z: %lu\n", num_pages_z);
+        printf("num_pages_x: %" PRIu64 "\n", num_pages_x);
+        printf("num_pages_y: %" PRIu64 "\n", num_pages_y);
+        printf("num_pages_z: %" PRIu64 "\n", num_pages_z);
     }
 
     if( pages.top > 0 ) {
         struct GridSize size = {0};
         for( uint64_t l = 0; l < pages.top+1; l++ ) {
-            printf("levelsize_x@%lu: %lu\n", l, grid_levelsize(&grid, &pages, l, &size)->x);
-            printf("levelsize_y@%lu: %lu\n", l, grid_levelsize(&grid, &pages, l, &size)->y);
-            printf("levelsize_z@%lu: %lu\n", l, grid_levelsize(&grid, &pages, l, &size)->z);
+            printf("levelsize_x@%" PRIu64 ": %" PRIu64 "\n", l, grid_levelsize(&grid, &pages, l, &size)->x);
+            printf("levelsize_y@%" PRIu64 ": %" PRIu64 "\n", l, grid_levelsize(&grid, &pages, l, &size)->y);
+            printf("levelsize_z@%" PRIu64 ": %" PRIu64 "\n", l, grid_levelsize(&grid, &pages, l, &size)->z);
         }
     }
 }
@@ -282,7 +282,7 @@ void grid_set1(struct Grid* grid, struct GridPages* pages, struct GridBox* box, 
         struct GridIndex index = {0};
         for( uint64_t i = 0; i < array_size; i++ ) {
             grid_index(grid, pages, box, i, &index);
-            //printf("%d %lu %lu %lu\n", i, index.page, index.level, index.cell);
+            //printf("%d %lu %lu %" PRIu64 "\n", i, index.page, index.level, index.cell);
             if( pages->array[index.page][index.level] ) {
                 pages->array[index.page][index.level][index.cell] = cell;
             }
@@ -472,7 +472,7 @@ void world_grid_create(struct Grid* grid,
                 GLfloat z = zi * depth;
 
                 uint64_t offset = 12 * 3 * (zi * size.x * size.y + yi * size.x + xi);
-                printf("%lu %lu %lu %f %f %f %lu %lu %lu %lu\n", xi, yi, zi, x, y, z, offset, cube->solid.size*3, n, pages->size.x);
+                printf("%" PRIu64 " %" PRIu64 " %" PRIu64 " %f %f %f %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n", xi, yi, zi, x, y, z, offset, cube->solid.size*3, n, pages->size.x);
                 for( uint64_t i = 0; i < cube->solid.size; i++ ) {
                     vertices[(offset+i)*3+0] = x + cube->vertices[i*3+0]*width;
                     vertices[(offset+i)*3+1] = y + cube->vertices[i*3+1]*height;
