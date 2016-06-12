@@ -460,16 +460,16 @@ void world_grid_create(struct Grid* grid,
     grid_pagesize(pages, level, &size);
 
     uint64_t n = 12 * 3 * size.x * size.y * size.z;
-    GLfloat vertices[3 * n];
-    GLfloat normals[3 * n];
-    GLfloat colors[4 * n];
+    float* vertices = malloc(sizeof(float) * 3 * n);
+    float* normals = malloc(sizeof(float) * 3 * n);
+    uint8_t* colors = malloc(sizeof(uint8_t) * 4 * n);
 
     for( uint64_t zi = 0; zi < size.z; zi++ ) {
         for( uint64_t yi = 0; yi < size.y; yi++ ) {
             for( uint64_t xi = 0; xi < size.x; xi++ ) {
-                GLfloat x = xi * width;
-                GLfloat y = yi * height;
-                GLfloat z = zi * depth;
+                float x = xi * width;
+                float y = yi * height;
+                float z = zi * depth;
 
                 uint64_t offset = 12 * 3 * (zi * size.x * size.y + yi * size.x + xi);
                 printf("%" PRIu64 " %" PRIu64 " %" PRIu64 " %f %f %f %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n", xi, yi, zi, x, y, z, offset, cube->solid.size*3, n, pages->size.x);
@@ -494,10 +494,14 @@ void world_grid_create(struct Grid* grid,
 
     size_t vertices_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, n, vertices);
     size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, n, normals);
-    size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, 4, GL_FLOAT, n, colors);
+    size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, n, colors);
     log_assert( vertices_n == n );
     log_assert( normals_n == n );
     log_assert( colors_n == n );
+
+    free(vertices);
+    free(normals);
+    free(colors);
 }
 
 void world_grid_update(struct Grid* grid,
