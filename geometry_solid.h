@@ -99,7 +99,7 @@ struct Tetrahedron {
 
 void solid_create_tetrahedron(float radius, const uint8_t color[4], struct Tetrahedron* tet);
 
-struct Cube {
+struct Box {
     struct Solid solid;
 
     uint32_t indices[36];
@@ -112,8 +112,8 @@ struct Cube {
     float texcoords[72];
 };
 
-void solid_create_hexahedron(float radius, const uint8_t color[4], struct Cube* cube);
-void solid_create_cube(float size, const uint8_t color[4], struct Cube* cube);
+void solid_create_box(Vec3f size, const uint8_t color[4], struct Box* box);
+void solid_create_cube(float size, const uint8_t color[4], struct Box* cube);
 
 struct Sphere16 {
     struct Solid solid;

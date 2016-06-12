@@ -453,7 +453,7 @@ void world_grid_create(struct Grid* grid,
                        float width,
                        float height,
                        float depth,
-                       struct Cube* cube,
+                       struct Box* cube,
                        struct VboMesh* mesh)
 {
     struct GridSize size = {0};
@@ -504,7 +504,7 @@ void world_grid_update(struct Grid* grid,
                        struct GridPages* pages,
                        uint32_t level,
                        uint64_t page,
-                       struct Cube* cube,
+                       struct Box* cube,
                        struct VboMesh* mesh)
 {
 
