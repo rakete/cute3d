@@ -19,11 +19,11 @@
 #define log_stringify(a) #a
 #define log_tostring(x) log_stringify(x)
 
-bool log_info(FILE* f, const char* filename, int32_t linenumber, const char* format, ...);
-bool log_warn(FILE* f, const char* filename, int32_t linenumber, const char* format, ...);
-bool log_fail(FILE* f, const char* filename, int32_t linenumber, const char* format, ...);
+bool log_info(const char* filename, int32_t linenumber, const char* format, ...);
+bool log_warn(const char* filename, int32_t linenumber, const char* format, ...);
+bool log_fail(const char* filename, int32_t linenumber, const char* format, ...);
 
-bool log_continue(FILE* f, const char* format, ...);
+bool log_continue(const char* format, ...);
 
 // - logging assert failures, the log_assert macro takes can be used with just one argument, the asserted condtion,
 // and optionally a format string and variadic args can come after the condition

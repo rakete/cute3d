@@ -142,7 +142,7 @@ size_t solid_optimize(struct Solid* solid) {
 
         solid->size = new_size+1;
     } else {
-        log_warn(stderr, __FILE__, __LINE__, "can not optimize an already optimized or compressed solid\n");
+        log_warn(__FILE__, __LINE__, "can not optimize an already optimized or compressed solid\n");
     }
 
     return solid->indices_size - solid->size;
@@ -219,7 +219,7 @@ size_t solid_compress(struct Solid* solid) {
                 solid->texcoords[triangle_index*2+0] = old_texcoords[old_index*2+0];
                 solid->texcoords[triangle_index*2+1] = old_texcoords[old_index*2+1];
 
-                processed_map[triangle_index] == true;
+                processed_map[triangle_index] = true;
             }
 
             solid->indices[i] = triangle_index;
@@ -232,7 +232,7 @@ size_t solid_compress(struct Solid* solid) {
 
         solid->size = new_size+1;
     } else {
-        log_warn(stderr, __FILE__, __LINE__, "can not optimize an already optimized or compressed solid\n");
+        log_warn(__FILE__, __LINE__, "can not optimize an already optimized or compressed solid\n");
     }
 
     return solid->indices_size - solid->size;

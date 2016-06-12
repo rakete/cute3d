@@ -9,17 +9,24 @@ tests_bin = $(tests_src:tests/%.c=%)
 glsl_vert_shader = $(filter-out shader/prefix.vert, $(wildcard shader/*.vert))
 glsl_frag_shader = $(filter-out shader/prefix.frag, $(wildcard shader/*.frag))
 
+# use it like that so I can use it in windows too
+SDL2_CFLAGS = $(shell bash sdl2-config --cflags)
+SDL2_LIBS = $(shell bash sdl2-config --libs)
+
+FEATURES=-pg -DDEBUG $(SDL2_CFLAGS) # -DCUTE_BUILD_ES2
 # eventually I'll have to deal with all those vla's I have been allocating on the stack: -Wstack-usage=100000
-FEATURES=-pg -DDEBUG `sdl2-config --cflags` # -DCUTE_BUILD_ES2
 WARNINGS=-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -pedantic
 ifeq ($(OS), Windows_NT)
 	OPTIMIZATION=-flto -march=native
-	LDFLAGS=-lm -lopengl32 `sdl2-config --libs`
+	LDFLAGS=-lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32 $(SDL2_LIBS)
 	CC=gcc
-	CFLAGS=-std=c99 $(WARNINGS) $(FEATURES) $(OPTIMIZATION)
+# c99 uses llu format, ms uses I64u format for unsigned long long int, with no-pedantic-ms-format I can use the PRIu64
+# macro from inttypes.h, which is the correct format for the current platform, without getting a pedantic warning about
+# I64u not being standard conform
+	CFLAGS=-std=c99 $(WARNINGS) -Wno-pedantic-ms-format $(FEATURES) $(OPTIMIZATION)
 else
 	OPTIMIZATION=-fPIC -flto=4 -march=native
-	LDFLAGS=-lm -lGL `sdl2-config --libs`
+	LDFLAGS=-lm -lGL $(SDL2_LIBS)
 	CC=gcc-5
 	CFLAGS=-std=c99 $(WARNINGS) $(FEATURES) $(OPTIMIZATION)
 endif

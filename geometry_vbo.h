@@ -22,6 +22,7 @@
 
 #include "string.h"
 #include "math.h"
+#include "inttypes.h"
 
 #include "driver_log.h"
 #include "driver_ogl.h"

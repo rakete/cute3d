@@ -40,7 +40,7 @@
                 shader_create_from_files("shader/" #symbol ".vert", "shader/" #symbol ".frag", name, &symbol##_shader); \
                 found_##symbol##_shader = canvas_add_shader(canvas, &symbol##_shader); \
                 if( found_##symbol##_shader == MAX_CANVAS_SHADER ) {    \
-                    log_warn(stderr, __FILE__, __LINE__, "could not add \"%s\" as \"%s\" to canvas because there is no space left for it\n", #symbol, name); \
+                    log_warn(__FILE__, __LINE__, "could not add \"%s\" as \"%s\" to canvas because there is no space left for it\n", #symbol, name); \
                 }                                                       \
             }                                                           \
         }                                                               \
