@@ -80,8 +80,8 @@ struct HalfEdgeMesh {
 };
 
 // since I need to make use of realloc, a destructor is needed
-int32_t halfedgemesh_create(struct HalfEdgeMesh* mesh);
-int32_t halfedgemesh_destroy(struct HalfEdgeMesh* mesh);
+void halfedgemesh_create(struct HalfEdgeMesh* mesh);
+void halfedgemesh_destroy(struct HalfEdgeMesh* mesh);
 
 // allocation functions, return allocated bytes or zero
 size_t halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, size_t n);

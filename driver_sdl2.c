@@ -117,7 +117,7 @@ void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLCont
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
             glEnable(GL_LINE_SMOOTH);
-            glHint(GL_LINE_SMOOTH_HINT,  GL_NICEST);
+            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
             glClearColor((float)clear_color[0] / 255.0,
                          (float)clear_color[1] / 255.0,

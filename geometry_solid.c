@@ -309,128 +309,116 @@ void solid_create_tetrahedron(float radius, const uint8_t color[4], struct Tetra
     solid_set_color((struct Solid*)tet, color);
 }
 
-void solid_create_hexahedron(float radius, const uint8_t color[4], struct Cube* cube) {
-    *cube = (struct Cube){ .triangles = { 1, 2, 3,
-                                          0, 1, 3,
-                                          6, 5, 4,
-                                          7, 6, 4,
-                                          5, 1, 0,
-                                          4, 5, 0,
-                                          6, 2, 1,
-                                          1, 5, 6,
-                                          3, 2, 7,
-                                          2, 6, 7,
-                                          7, 0, 3,
-                                          4, 0, 7 },
-                           .optimal = { 1, 2, 3,
+void solid_create_box(Vec3f size, const uint8_t color[4], struct Box* box) {
+    *box = (struct Box){ .triangles = { 1, 2, 3,
                                         0, 1, 3,
                                         6, 5, 4,
                                         7, 6, 4,
-                                        11, 9, 8,
-                                        10, 11, 8,
-                                        15, 13, 12,
-                                        12, 14, 15,
-                                        17, 16, 19,
-                                        16, 18, 19,
-                                        23, 20, 21,
-                                        22, 20, 23 },
-                           .indices = { 0 },
-                           .vertices = { 0 },
-                           .normals = { 0 },
-                           .colors = { 0 },
-                           .texcoords = { 0 },
-                           .solid.indices_size = 12*3,
-                           .solid.size = 12*3,
-                           .solid.triangles = cube->triangles,
-                           .solid.optimal = cube->optimal,
-                           .solid.indices = cube->indices,
-                           .solid.vertices = cube->vertices,
-                           .solid.colors = cube->colors,
-                           .solid.normals = cube->normals,
-                           .solid.texcoords = cube->texcoords
+                                        5, 1, 0,
+                                        4, 5, 0,
+                                        6, 2, 1,
+                                        1, 5, 6,
+                                        3, 2, 7,
+                                        2, 6, 7,
+                                        7, 0, 3,
+                                        4, 0, 7 },
+                         .optimal = { 1, 2, 3,
+                                      0, 1, 3,
+                                      6, 5, 4,
+                                      7, 6, 4,
+                                      11, 9, 8,
+                                      10, 11, 8,
+                                      15, 13, 12,
+                                      12, 14, 15,
+                                      17, 16, 19,
+                                      16, 18, 19,
+                                      23, 20, 21,
+                                      22, 20, 23 },
+                         .indices = { 0 },
+                         .vertices = { 0 },
+                         .normals = { 0 },
+                         .colors = { 0 },
+                         .texcoords = { 0 },
+                         .solid.indices_size = 12*3,
+                         .solid.size = 12*3,
+                         .solid.triangles = box->triangles,
+                         .solid.optimal = box->optimal,
+                         .solid.indices = box->indices,
+                         .solid.vertices = box->vertices,
+                         .solid.colors = box->colors,
+                         .solid.normals = box->normals,
+                         .solid.texcoords = box->texcoords
     };
 
+    Vec3f half_size = {0};
+    vec_copy3f(size, half_size);
+    half_size[0] /= 2.0;
+    half_size[1] /= 2.0;
+    half_size[2] /= 2.0;
+
     float points[24]; /* 8 vertices with x, y, z coordinate */
-    float phiaa = 35.264391f; /* the phi needed for generation */
-    float r = radius; /* any radius in which the polyhedron is inscribed */
-    float phia = PI * phiaa / 180.0f; /* 2 sets of four points */
-    float phib = -phia;
-    float the90 = PI * 90.0f / 180.0f;
-    float the = 0.0f;
-    for(uint32_t i = 0; i < 4; i++) {
-        points[i*3+0] = r * cosf(the) * cosf(phia);
-        points[i*3+1] = r * sinf(the) * cosf(phia);
-        points[i*3+2] = r * sinf(phia);
-        the += the90;
-    }
-    the = 0.0;
-    for( uint32_t i = 4; i < 8; i++ ) {
-        points[i*3+0] = r * cosf(the) * cosf(phib);
-        points[i*3+1] = r * sinf(the) * cosf(phib);
-        points[i*3+2] = r * sinf(phib);
-        the += the90;
-    }
+    vec_copy3f((Vec3f){ half_size[0],  half_size[1],  half_size[2]}, &points[0]);
+    vec_copy3f((Vec3f){-half_size[0],  half_size[1],  half_size[2]}, &points[3]);
+    vec_copy3f((Vec3f){-half_size[0], -half_size[1],  half_size[2]}, &points[6]);
+    vec_copy3f((Vec3f){ half_size[0], -half_size[1],  half_size[2]}, &points[9]);
+    vec_copy3f((Vec3f){ half_size[0],  half_size[1], -half_size[2]}, &points[12]);
+    vec_copy3f((Vec3f){-half_size[0],  half_size[1], -half_size[2]}, &points[15]);
+    vec_copy3f((Vec3f){-half_size[0], -half_size[1], -half_size[2]}, &points[18]);
+    vec_copy3f((Vec3f){ half_size[0], -half_size[1], -half_size[2]}, &points[21]);
 
     for( uint32_t i = 0; i < 6; i++ ) {
-        uint32_t a = cube->triangles[i*6+0];
-        uint32_t b = cube->triangles[i*6+1];
-        uint32_t c = cube->triangles[i*6+2];
-        uint32_t d = cube->triangles[i*6+3];
-        uint32_t e = cube->triangles[i*6+4];
-        uint32_t f = cube->triangles[i*6+5];
+        uint32_t a = box->triangles[i*6+0];
+        uint32_t b = box->triangles[i*6+1];
+        uint32_t c = box->triangles[i*6+2];
+        uint32_t d = box->triangles[i*6+3];
+        uint32_t e = box->triangles[i*6+4];
+        uint32_t f = box->triangles[i*6+5];
 
         // triangle 1
-        cube->vertices[i*18+0] = points[a*3+0];
-        cube->vertices[i*18+1] = points[a*3+1];
-        cube->vertices[i*18+2] = points[a*3+2];
+        box->vertices[i*18+0] = points[a*3+0];
+        box->vertices[i*18+1] = points[a*3+1];
+        box->vertices[i*18+2] = points[a*3+2];
 
-        cube->indices[i*6+0] = i*6+0;
+        box->indices[i*6+0] = i*6+0;
 
-        cube->vertices[i*18+3] = points[b*3+0];
-        cube->vertices[i*18+4] = points[b*3+1];
-        cube->vertices[i*18+5] = points[b*3+2];
+        box->vertices[i*18+3] = points[b*3+0];
+        box->vertices[i*18+4] = points[b*3+1];
+        box->vertices[i*18+5] = points[b*3+2];
 
-        cube->indices[i*6+1] = i*6+1;
+        box->indices[i*6+1] = i*6+1;
 
-        cube->vertices[i*18+6] = points[c*3+0];
-        cube->vertices[i*18+7] = points[c*3+1];
-        cube->vertices[i*18+8] = points[c*3+2];
+        box->vertices[i*18+6] = points[c*3+0];
+        box->vertices[i*18+7] = points[c*3+1];
+        box->vertices[i*18+8] = points[c*3+2];
 
-        cube->indices[i*6+2] = i*6+2;
+        box->indices[i*6+2] = i*6+2;
 
         // triangle 2
-        cube->vertices[i*18+9]  = points[d*3+0];
-        cube->vertices[i*18+10] = points[d*3+1];
-        cube->vertices[i*18+11] = points[d*3+2];
+        box->vertices[i*18+9]  = points[d*3+0];
+        box->vertices[i*18+10] = points[d*3+1];
+        box->vertices[i*18+11] = points[d*3+2];
 
-        cube->indices[i*6+3] = i*6+3;
+        box->indices[i*6+3] = i*6+3;
 
-        cube->vertices[i*18+12] = points[e*3+0];
-        cube->vertices[i*18+13] = points[e*3+1];
-        cube->vertices[i*18+14] = points[e*3+2];
+        box->vertices[i*18+12] = points[e*3+0];
+        box->vertices[i*18+13] = points[e*3+1];
+        box->vertices[i*18+14] = points[e*3+2];
 
-        cube->indices[i*6+4] = i*6+4;
+        box->indices[i*6+4] = i*6+4;
 
-        cube->vertices[i*18+15] = points[f*3+0];
-        cube->vertices[i*18+16] = points[f*3+1];
-        cube->vertices[i*18+17] = points[f*3+2];
+        box->vertices[i*18+15] = points[f*3+0];
+        box->vertices[i*18+16] = points[f*3+1];
+        box->vertices[i*18+17] = points[f*3+2];
 
-        cube->indices[i*6+5] = i*6+5;
+        box->indices[i*6+5] = i*6+5;
     }
 
-    solid_compute_normals((struct Solid*)cube);
-    solid_set_color((struct Solid*)cube, color);
+    solid_compute_normals((struct Solid*)box);
+    solid_set_color((struct Solid*)box, color);
 }
 
-void solid_create_cube(float size, const uint8_t color[4], struct Cube* cube) {
-    solid_create_hexahedron(size, color, cube);
-
-    Quat q;
-    quat_from_axis_angle((Vec4f){0.0,0.0,1.0,1.0}, PI/4, q);
-    for( uint32_t i = 0; i < 108; i+=3 ) {
-        vec_rotate3f(cube->vertices+i, q, cube->vertices+i);
-    }
-    solid_compute_normals((struct Solid*)cube);
+void solid_create_cube(float size, const uint8_t color[4], struct Box* cube) {
+    solid_create_box((Vec3f){size, size, size}, color, cube);
 }
 
 void solid_create_sphere16(float radius, const uint8_t color[4], struct Sphere16* sphere) {

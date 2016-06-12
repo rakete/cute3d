@@ -11,7 +11,6 @@ int32_t init_canvas() {
 }
 
 void canvas_create(const char* name, struct Canvas* canvas) {
-    // canvas_create_empty
     log_assert( canvas != NULL );
     log_assert( strlen(name) > 0 );
     log_assert( strlen(name) < 256 );
@@ -39,11 +38,11 @@ void canvas_create(const char* name, struct Canvas* canvas) {
     }
 
     for( int32_t i = 0; i < MAX_CANVAS_SHADER; i++ ) {
-        shader_create_empty(&canvas->shader[i]);
+        shader_create(&canvas->shader[i]);
     }
 
     for( int32_t i = 0; i < MAX_CANVAS_FONTS; i++ ) {
-        font_create_empty(&canvas->fonts[i]);
+        font_create(NULL, false, NULL, NULL, &canvas->fonts[i]);
     }
 
     for( int32_t i = 0; i < MAX_CANVAS_LAYERS; i++ ) {

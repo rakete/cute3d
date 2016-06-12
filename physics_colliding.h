@@ -58,12 +58,18 @@ struct CollidingSphereShape {
 struct CollidingConvexShape {
     struct CollidingShape base_shape;
 
-    struct HalfEdgeMesh* mesh;
+    // - I wanted to make this local, and not a pointer, I even implemented halfedgemesh_copy, but
+    // that did not work, and when thinking about it I decided that this is ok like that, I'll take
+    // the potentially dangling pointer here over having more malloc/memcpy code to worry about, at
+    // least for now
+    // - potential dangling because halfedgemesh_destroy exists, although that only really frees the
+    // memory inside the mesh, the struct itself stays valid, although empty afterwards
+    const struct HalfEdgeMesh* mesh;
 };
 
 // each supported bounding volume data structure should have a constructor to initialize it
 void colliding_create_sphere_shape(float radius, struct Pivot* pivot, struct CollidingSphereShape* sphere);
-void colliding_create_convex_shape(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct CollidingConvexShape* convex);
+void colliding_create_convex_shape(const struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct CollidingConvexShape* convex);
 
 struct CollisionParameter {
     float edge_tolerance;

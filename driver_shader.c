@@ -65,7 +65,7 @@ int32_t init_shader() {
     return ret;
 }
 
-void shader_create_empty(struct Shader* p) {
+void shader_create(struct Shader* p) {
     p->name[0] = '\0';
     p->program = 0;
     p->vertex_shader = 0;

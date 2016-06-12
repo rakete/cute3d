@@ -60,7 +60,6 @@ struct Font {
     float linespacing;
 };
 
-void font_create_empty(struct Font* font);
 void font_create(const wchar_t* alphabet, bool unicode, struct Character* symbols, const char* name, struct Font* font);
 
 void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter);

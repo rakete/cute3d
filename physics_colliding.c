@@ -1,6 +1,6 @@
 #include "physics_colliding.h"
 
-void colliding_create_convex_shape(struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct CollidingConvexShape* convex) {
+void colliding_create_convex_shape(const struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct CollidingConvexShape* convex) {
     convex->base_shape.type = COLLIDING_CONVEX_SHAPE;
     convex->base_shape.world_pivot = pivot;
     pivot_create(NULL, NULL, &convex->base_shape.local_pivot);
@@ -28,8 +28,8 @@ bool colliding_test_convex_convex(struct Collision* collision) {
     log_assert(convex1->base_shape.type == COLLIDING_CONVEX_SHAPE);
     log_assert(convex2->base_shape.type == COLLIDING_CONVEX_SHAPE);
 
-    struct HalfEdgeMesh* mesh1 = convex1->mesh;
-    struct HalfEdgeMesh* mesh2 = convex2->mesh;
+    const struct HalfEdgeMesh* mesh1 = convex1->mesh;
+    const struct HalfEdgeMesh* mesh2 = convex2->mesh;
 
     struct SatFaceTestResult face_test1 = sat_test_faces(collision->shape2_to_shape1_transform, mesh1, mesh2);
     if( face_test1.distance > 0.0f ) {
@@ -57,8 +57,8 @@ int32_t colliding_contact_convex_convex(struct Collision* collision) {
     const struct CollidingConvexShape* convex1 = (struct CollidingConvexShape*)collision->shape1;
     const struct CollidingConvexShape* convex2 = (struct CollidingConvexShape*)collision->shape2;
 
-    struct HalfEdgeMesh* mesh1 = convex1->mesh;
-    struct HalfEdgeMesh* mesh2 = convex2->mesh;
+    const struct HalfEdgeMesh* mesh1 = convex1->mesh;
+    const struct HalfEdgeMesh* mesh2 = convex2->mesh;
 
     struct SatResult* result = &collision->sat_result;
     struct CollisionParameter* parameter = &collision->parameter;
