@@ -1,6 +1,6 @@
 #include "geometry_halfedgemesh.h"
 
-int32_t halfedgemesh_create(struct HalfEdgeMesh* mesh) {
+void halfedgemesh_create(struct HalfEdgeMesh* mesh) {
     mesh->size = 0;
 
     mesh->vertices.capacity = 0;
@@ -14,18 +14,14 @@ int32_t halfedgemesh_create(struct HalfEdgeMesh* mesh) {
     mesh->edges.capacity = 0;
     mesh->edges.occupied = 0;
     mesh->edges.array = NULL;
-
-    return 0;
 }
 
-int32_t halfedgemesh_destroy(struct HalfEdgeMesh* mesh) {
+void halfedgemesh_destroy(struct HalfEdgeMesh* mesh) {
     free(mesh->vertices.array);
     free(mesh->faces.array);
     free(mesh->edges.array);
 
     halfedgemesh_create(mesh);
-
-    return 0;
 }
 
 size_t halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, size_t n) {
