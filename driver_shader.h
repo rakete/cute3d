@@ -90,7 +90,7 @@ struct Shader {
 
 int32_t init_shader() __attribute__((warn_unused_result));
 
-void shader_create_empty(struct Shader* p);
+void shader_create(struct Shader* p);
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p);
 void shader_create_from_sources(const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p);
 

@@ -1,6 +1,8 @@
 #include "gui_font.h"
 
-void font_create_empty(struct Font* font) {
+void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character* symbols, const char* name, struct Font* font) {
+    // - first create empty font, this gets rid of the stupid _empty function that I needed once, and then started
+    // to implement in all other modules, now this function does this, with NULL arguments
     font->name[0] = '\0';
 
     for( size_t i = 0; i < MAX_FONT_GLYPHS; i++ ) {
@@ -24,13 +26,16 @@ void font_create_empty(struct Font* font) {
     font->texture.min_filter = GL_NEAREST;
     font->texture.mag_filter = GL_NEAREST;
 
-    shader_create_empty(&font->shader);
+    shader_create(&font->shader);
 
     font->kerning = 0.0f;
     font->linespacing = 0.0f;
-}
 
-void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character* symbols, const char* name, struct Font* font) {
+    if( unicode_alphabet == NULL || symbols == NULL || name == NULL ) {
+        return;
+    }
+
+    // - the real _create starts here
     size_t name_length = strlen(name);
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
