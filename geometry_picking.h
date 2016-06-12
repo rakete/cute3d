@@ -1,5 +1,5 @@
-#ifndef PHYSICS_PICKING
-#define PHYSICS_PICKING
+#ifndef GEOMETRY_PICKING_H
+#define GEOMETRY_PICKING_H
 
 #include "stdbool.h"
 

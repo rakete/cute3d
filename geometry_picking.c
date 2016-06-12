@@ -1,4 +1,4 @@
-#include "physics_picking.h"
+#include "geometry_picking.h"
 
 void picking_create_sphere(const struct Pivot* pivot, float radius, struct PickingSphere* sphere) {
     sphere->pivot = pivot;
