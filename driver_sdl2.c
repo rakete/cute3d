@@ -117,7 +117,7 @@ void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLCont
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
             glEnable(GL_LINE_SMOOTH);
-            glHint(GL_LINE_SMOOTH_HINT,  GL_NICEST);
+            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
             glClearColor((float)clear_color[0] / 255.0,
                          (float)clear_color[1] / 255.0,
@@ -240,7 +240,7 @@ void sdl2_gl_set_swap_interval(int interval) {
 #endif
     double t2 = sdl2_time();
     double t = (t2 - t1) * 1000;
-    if( t > 10.0 ) {
+    if( t > 50.0 ) {
         log_warn(stderr, __FILE__, __LINE__, "SDL_GL_SetSwapInterval time: %.02fms\n", t);
     }
 }
