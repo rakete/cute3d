@@ -110,12 +110,12 @@ int32_t contacts_halfedgemesh_edge_edge(const struct SatEdgeTestResult* edge_tes
 }
 
 int32_t contacts_clip_face_face(int32_t incident_size,
-                                const float incident_polygon[incident_size*3],
+                                const float* incident_polygon, //[incident_size*3],
                                 int32_t reference_size,
-                                const float reference_polygon[reference_size*3],
+                                const float* reference_polygon, //[reference_size*3],
                                 const Vec3f reference_normal,
                                 int32_t max_polygon_size,
-                                float clipped_polygon[max_polygon_size*3])
+                                float* clipped_polygon) //[max_polygon_size*3])
 {
     log_assert( incident_size > 0 );
     log_assert( reference_size > 0 );
@@ -126,7 +126,11 @@ int32_t contacts_clip_face_face(int32_t incident_size,
     // reference polygon
     // - to do this we'll setup a temp_polyon that we use as temporary storage while iteratively
     // refining the incident_polygon, we fill it initially with the incident_polygon points
+#ifdef CUTE_BUILD_MSVC
+    float* temp_polygon = alloca(sizeof(float) * (size_t)max_polygon_size*3);
+#else
     float temp_polygon[max_polygon_size*3];
+#endif
     memcpy(temp_polygon, incident_polygon, (size_t)incident_size*3*sizeof(float));
     // - the method may add vertices to the inicident_polygon, we know max_polygon_size is ==
     // incident_size*2 (as we asserted above), the clipped_polygon_size starts the same as
@@ -286,7 +290,11 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
     // array because we need them in this form later
     current_edge = &mesh1->edges.array[reference_face->edge];
     size_t i = 0;
+#ifdef CUTE_BUILD_MSVC
+    float* reference_polygon = alloca(sizeof(float) * (size_t)reference_face->size*3);
+#else
     float reference_polygon[reference_face->size*3];
+#endif
     do {
         VecP* reference_vertex = mesh1->vertices.array[current_edge->vertex].position;
         log_assert( i < (size_t)reference_face->size );
@@ -306,7 +314,11 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
     pivot_between_transform(pivot2, pivot1, pivot2_to_pivot1_transform);
     current_edge = &mesh2->edges.array[incident_face->edge];
     i = 0;
+#ifdef CUTE_BUILD_MSVC
+    float* incident_polygon = alloca(sizeof(float) * (size_t)incident_face->size*3);
+#else
     float incident_polygon[incident_face->size*3];
+#endif
     do {
         VecP* incident_vertex = mesh2->vertices.array[current_edge->vertex].position;
         log_assert( i < (size_t)incident_face->size );
@@ -321,7 +333,11 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
     // the reference face, filling clipped_polygon with the results and returning the number of
     // vertices that are in the resulting polygon
     int32_t max_polygon_size = incident_face->size*2;
+#ifdef CUTE_BUILD_MSVC
+    float* clipped_polygon = alloca(sizeof(float) * (size_t)max_polygon_size*3);
+#else
     float clipped_polygon[max_polygon_size*3];
+#endif
     int32_t clipped_polygon_size = contacts_clip_face_face(incident_face->size, incident_polygon, reference_face->size, reference_polygon, reference_face->normal, max_polygon_size, clipped_polygon);
 
     // - after clipping, we may have to many contact points, we want to reduce them so that they fit

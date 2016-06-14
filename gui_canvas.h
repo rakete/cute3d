@@ -153,7 +153,7 @@ int32_t canvas_add_font(struct Canvas* canvas, const struct Font* font) __attrib
 int32_t canvas_find_font(struct Canvas* canvas, const char* font_name) __attribute__((warn_unused_result));
 
 // - allocating the heap memory for the arrays
-size_t canvas_alloc_attributes(struct Canvas* canvas, int32_t attribute_i, size_t n);
+size_t canvas_alloc_attributes(struct Canvas* canvas, uint32_t attribute_i, size_t n);
 size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* shader_name, GLenum primitive_type, size_t n);
 size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* font_name, size_t n);
 

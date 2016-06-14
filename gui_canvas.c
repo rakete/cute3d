@@ -222,7 +222,7 @@ int32_t canvas_find_font(struct Canvas* canvas, const char* font_name) {
     return font_i;
 }
 
-size_t canvas_alloc_attributes(struct Canvas* canvas, int32_t attribute_i, size_t n) {
+size_t canvas_alloc_attributes(struct Canvas* canvas, uint32_t attribute_i, size_t n) {
     log_assert( canvas != NULL );
     log_assert( attribute_i >= 0 && attribute_i < MAX_SHADER_ATTRIBUTES );
 

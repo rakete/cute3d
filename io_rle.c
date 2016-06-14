@@ -82,14 +82,15 @@ size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char
         return 0;
     }
 
-    unsigned char last[bytes];
+    unsigned char* last = malloc(sizeof(unsigned char) * bytes);
+    unsigned char* current = malloc(sizeof(unsigned char) * bytes);
+
     uint64_t literal_run = 0;
     uint64_t encoded_run = 0;
     size_t allocated = 0;
     int32_t force = 0;
 
     for( size_t i = 0; i < size; i+=bytes ) {
-        unsigned char current[bytes];
         int32_t equal = 1;
 
         for( uint32_t b = 0; b < bytes; b++ ) {
@@ -125,6 +126,9 @@ size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char
     }
     //printf("-> %lu %lu\n", literal_run, encoded_run);
     encode_packet(input, size, bytes, flag, &literal_run, &encoded_run, &allocated, output);
+
+    free(last);
+    free(current);
 
     // literal_run
     // encoded_run
