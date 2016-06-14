@@ -13,10 +13,10 @@ glsl_frag_shader = $(filter-out shader/prefix.frag, $(wildcard shader/*.frag))
 SDL2_CFLAGS = $(shell bash sdl2-config --cflags)
 SDL2_LIBS = $(shell bash sdl2-config --libs)
 
-FEATURES=-pg -DDEBUG $(SDL2_CFLAGS) # -DCUTE_BUILD_ES2
 # eventually I'll have to deal with all those vla's I have been allocating on the stack: -Wstack-usage=100000
-WARNINGS=-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -pedantic
+WARNINGS=-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -pedantic -Wvla
 ifeq ($(OS), Windows_NT)
+	FEATURES=-pg -DDEBUG $(SDL2_CFLAGS) -DCUTE_BUILD_MSVC
 	OPTIMIZATION=-flto -march=native
 	LDFLAGS=-lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32 $(SDL2_LIBS)
 	CC=gcc
@@ -25,17 +25,20 @@ ifeq ($(OS), Windows_NT)
 # I64u not being standard conform
 	CFLAGS=-std=c99 $(WARNINGS) -Wno-pedantic-ms-format $(FEATURES) $(OPTIMIZATION)
 else
+	FEATURES=-pg -DDEBUG $(SDL2_CFLAGS) # -DCUTE_BUILD_ES2
 	OPTIMIZATION=-fPIC -flto=4 -march=native
 	LDFLAGS=-lm -lGL $(SDL2_LIBS)
 	CC=gcc-5
 	CFLAGS=-std=c99 $(WARNINGS) $(FEATURES) $(OPTIMIZATION)
 endif
 
+all: cute3d
+
 validate-glsl:
-ifndef glsl_validator_exists
-	@echo "no glsl validator found, not validating any glsl code"
-else
+ifdef glsl_validator_exists
 	$(glsl_validator) $(glsl_vert_shader) $(glsl_frag_shader)
+else
+	$(warning "no glsl validator found, not validating any glsl code")
 endif
 
 # the default that make defines for every .c file is enough to compile all cute3d sources into .o's
