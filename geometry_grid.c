@@ -531,7 +531,6 @@ void world_grid_update(struct Grid* grid,
     // 2. could expect the user to supply meshes created with mesh_clone instead,
     //    maybe add some kind of field to mesh to 'lock' a mesh to make clones
     //    non-modifyable
-
     vbomesh_clear_indices(mesh);
 
     struct GridBox box = {0};
@@ -539,7 +538,7 @@ void world_grid_update(struct Grid* grid,
 
     struct GridIndex index = {0};
     uint64_t n = 6 * 2 * box.size.x * box.size.y * box.size.z;
-    uint64_t triangles[3 * n];
+    uint64_t* triangles = malloc(sizeof(uint64_t) * 3 * n);
     for( uint64_t xi = 0; xi < box.size.x; xi++ ) {
         for( uint64_t yi = 0; yi < box.size.y; yi++ ) {
             for( uint64_t zi = 0; zi < box.size.z; zi++ ) {
@@ -558,4 +557,6 @@ void world_grid_update(struct Grid* grid,
 
     size_t triangles_n = vbomesh_append_indices(mesh, n, triangles);
     log_assert( triangles_n == n );
+
+    free(triangles);
 }

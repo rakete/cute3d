@@ -31,6 +31,8 @@
 
 #include "gui_canvas.h"
 
+#define MAX_TEXT_PUT_SIZE 2048
+
 void text_put(struct Canvas* canvas,
               int32_t layer,
               Vec4f cursor,

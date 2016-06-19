@@ -88,22 +88,22 @@ size_t solid_optimize(struct Solid* solid) {
         // - gotta make sure that I can modify array indices all over the place and
         // not overwrite anything that I then need later, so I copy everything into
         // local arrays first
-        float old_vertices[solid->size*3];
+        float* old_vertices = malloc(sizeof(float) * solid->size*3);
         memcpy(old_vertices, solid->vertices, sizeof(float) * solid->size * 3);
 
-        float old_normals[solid->size*3];
+        float* old_normals = malloc(sizeof(float) * solid->size*3);
         memcpy(old_normals, solid->normals, sizeof(float) * solid->size * 3);
 
-        uint8_t old_colors[solid->size*4];
+        uint8_t* old_colors = malloc(sizeof(uint8_t) * solid->size*4);
         memcpy(old_colors, solid->colors, sizeof(uint8_t) * solid->size * 4);
 
-        float old_texcoords[solid->size*2];
+        float* old_texcoords = malloc(sizeof(float) * solid->size*2);
         memcpy(old_texcoords, solid->texcoords, sizeof(float) * solid->size * 2);
 
-        uint32_t old_indices[solid->size];
+        uint32_t* old_indices = malloc(sizeof(uint32_t) * solid->size);
         memcpy(old_indices, solid->indices, sizeof(uint32_t) * solid->size);
 
-        bool processed_map[solid->size];
+        bool* processed_map = malloc(sizeof(bool) * solid->size);
         memset(processed_map, false, sizeof(bool) * solid->size);
 
         // - there really is not much too, iterate through the attributes and merge them together
@@ -141,6 +141,13 @@ size_t solid_optimize(struct Solid* solid) {
         }
 
         solid->size = new_size+1;
+
+        free(old_vertices);
+        free(old_normals);
+        free(old_colors);
+        free(old_texcoords);
+        free(old_indices);
+        free(processed_map);
     } else {
         log_warn(__FILE__, __LINE__, "can not optimize an already optimized or compressed solid\n");
     }
@@ -161,22 +168,22 @@ size_t solid_compress(struct Solid* solid) {
     log_assert( solid->texcoords );
 
     if( solid->size == solid->indices_size ) {
-        float old_vertices[solid->size*3];
+        float* old_vertices = malloc(sizeof(float) * solid->size*3);
         memcpy(old_vertices, solid->vertices, sizeof(float) * solid->size * 3);
 
-        float old_normals[solid->size*3];
+        float* old_normals = malloc(sizeof(float) * solid->size*3);
         memcpy(old_normals, solid->normals, sizeof(float) * solid->size * 3);
 
-        uint8_t old_colors[solid->size*4];
+        uint8_t* old_colors = malloc(sizeof(uint8_t) * solid->size*4);
         memcpy(old_colors, solid->colors, sizeof(uint8_t) * solid->size * 4);
 
-        float old_texcoords[solid->size*2];
+        float* old_texcoords = malloc(sizeof(float) * solid->size*2);
         memcpy(old_texcoords, solid->texcoords, sizeof(float) * solid->size * 2);
 
-        uint32_t old_indices[solid->size];
+        uint32_t* old_indices = malloc(sizeof(uint32_t) * solid->size);
         memcpy(old_indices, solid->indices, sizeof(uint32_t) * solid->size);
 
-        bool processed_map[solid->size];
+        bool* processed_map = malloc(sizeof(bool) * solid->size);
         memset(processed_map, false, sizeof(bool) * solid->size);
 
         size_t new_size = 0;
@@ -231,6 +238,13 @@ size_t solid_compress(struct Solid* solid) {
         }
 
         solid->size = new_size+1;
+
+        free(old_vertices);
+        free(old_normals);
+        free(old_colors);
+        free(old_texcoords);
+        free(old_indices);
+        free(processed_map);
     } else {
         log_warn(__FILE__, __LINE__, "can not optimize an already optimized or compressed solid\n");
     }

@@ -48,7 +48,7 @@ void vbomesh_create_from_solid(const struct Solid* solid, struct Vbo* vbo, struc
     }
 }
 
-void shitty_triangulate(float* vertices, int32_t n, int32_t* triangles, int32_t m) {
+void shitty_triangulate(float* vertices, int32_t n, int32_t m, int32_t* triangles) {
     log_assert( n >= 3 );
     log_assert( n < INT_MAX/3 );
     log_assert( m <= 3 * n - 2);
@@ -77,13 +77,13 @@ void shitty_triangulate(float* vertices, int32_t n, int32_t* triangles, int32_t 
 void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct VboMesh* mesh) {
     log_assert( halfedgemesh->size >= 0 );
 
-    uint32_t triangles[halfedgemesh->size];
-    uint32_t optimal[halfedgemesh->size];
-    uint32_t indices[halfedgemesh->size];
-    float vertices[halfedgemesh->size*3];
-    float normals[halfedgemesh->size*3];
-    uint8_t colors[halfedgemesh->size*4];
-    float texcoords[halfedgemesh->size*2];
+    uint32_t* triangles = malloc(sizeof(uint32_t) * (size_t)halfedgemesh->size);
+    uint32_t* optimal = malloc(sizeof(uint32_t) * (size_t)halfedgemesh->size);
+    uint32_t* indices = malloc(sizeof(uint32_t) * (size_t)halfedgemesh->size);
+    float* vertices = malloc(sizeof(float) * (size_t)halfedgemesh->size*3);
+    float* normals = malloc(sizeof(float) * (size_t)halfedgemesh->size*3);
+    uint8_t* colors = malloc(sizeof(uint8_t) * (size_t)halfedgemesh->size*4);
+    float* texcoords = malloc(sizeof(float) * (size_t)halfedgemesh->size*2);
 
     log_assert( halfedgemesh->size > 0 );
 
@@ -118,11 +118,28 @@ void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, s
             continue;
         }
 
+        log_assert( face->size >= 0 );
+
+#ifdef CUTE_BUILD_MSVC
+        // - the vla approach is actually nice here, but msvc does not support those, so I am just
+        // using mallocs inside the loop and free them at the end
+        // - these repeated mallocs are not optimal and might be nicer outside the loop, but it is
+        // easier to read like this and I don't think it should matter that much
+        // - alloca is a bad idea here, you can't free it easily and it will only free when the function
+        // goes out of scope, not the loop, so alloca would repeatedly allocate stuff on the stack
+        // without releasing it
+        float* face_vertices = malloc(sizeof(float) * (size_t)face->size*3);
+        float* edge_normals = malloc(sizeof(float) * (size_t)face->size*3);
+        uint8_t* edge_colors = malloc(sizeof(uint8_t) * (size_t)face->size*4);
+        float* edge_texcoords = malloc(sizeof(float) * (size_t)face->size*2);
+        uint32_t* face_triangles = malloc(sizeof(uint32_t) * (size_t)face->size);
+#else
         float face_vertices[face->size*3];
         float edge_normals[face->size*3];
         uint8_t edge_colors[face->size*4];
         float edge_texcoords[face->size*2];
         uint32_t face_triangles[face->size];
+#endif
 
         struct HalfEdge* current_edge = &halfedgemesh->edges.array[face->edge];
         for( int32_t face_vertex_i = 0; face_vertex_i < face->size; face_vertex_i++ ) {
@@ -149,8 +166,12 @@ void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, s
         }
 
         int32_t tesselation_size = 3 * (face->size - 2);
+#ifdef CUTE_BUILD_MSVC
+        int32_t* face_tesselation = malloc(sizeof(int32_t) * (size_t)tesselation_size);
+#else
         int32_t face_tesselation[tesselation_size];
-        shitty_triangulate(face_vertices, face->size, face_tesselation, tesselation_size);
+#endif
+        shitty_triangulate(face_vertices, face->size, tesselation_size, face_tesselation);
 
         for( int32_t j = 0; j < tesselation_size ; j++ ) {
             int32_t k = face_tesselation[j];
@@ -184,6 +205,15 @@ void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, s
             solid.triangles[triangles_offset] = face_triangles[k];
             triangles_offset += 1;
         }
+
+#ifdef CUTE_BUILD_MSVC
+        free(face_vertices);
+        free(edge_normals);
+        free(edge_colors);
+        free(edge_texcoords);
+        free(face_triangles);
+        free(face_tesselation);
+#endif
     }
 
     // - running solid_optimize on the solid before making a vbomesh out of it results in cool looking meshes,
@@ -193,6 +223,14 @@ void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, s
 
     // using a solid as input somewhere else is ok
     vbomesh_create_from_solid(&solid, vbo, mesh);
+
+    free(triangles);
+    free(optimal);
+    free(indices);
+    free(vertices);
+    free(normals);
+    free(colors);
+    free(texcoords);
 }
 
 void vbomesh_render(struct VboMesh* mesh, struct Shader* shader, const struct Camera* camera, const Mat model_matrix) {

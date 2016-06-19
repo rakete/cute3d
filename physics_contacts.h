@@ -37,12 +37,12 @@ int32_t contacts_halfedgemesh_edge_edge(const struct SatEdgeTestResult* edge_tes
                                         struct Contacts* contacts);
 
 int32_t contacts_clip_face_face(int32_t incident_size,
-                                const float incident_polygon[incident_size*3],
+                                const float* incident_polygon,
                                 int32_t reference_size,
-                                const float reference_polygon[reference_size*3],
+                                const float* reference_polygon,
                                 const Vec3f reference_normal,
                                 int32_t max_polygon_size,
-                                float clipped_polygon[max_polygon_size*3]);
+                                float* clipped_polygon);
 
 int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_test,
                                         const struct Pivot* pivot1,

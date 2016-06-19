@@ -13,17 +13,17 @@
 #include "geometry_vbo.h"
 #include "geometry_halfedgemesh.h"
 #include "geometry_draw.h"
+#include "geometry_picking.h"
 
 #include "physics_colliding.h"
-#include "physics_picking.h"
 
 struct CollisionEntity {
     const char* name;
     struct Pivot pivot;
     struct CollidingConvexShape colliding_convex;
     struct HalfEdgeMesh hemesh;
-    struct Cube solid;
-    struct Cube optimized_solid;
+    struct Box solid;
+    struct Box optimized_solid;
     struct VboMesh vbomesh;
     struct PickingSphere picking_sphere;
 };
@@ -223,22 +223,24 @@ int32_t main(int32_t argc, char *argv[]) {
 
         colliding_prepare_shape((struct CollidingShape*)&entity_a.colliding_convex);
         colliding_prepare_shape((struct CollidingShape*)&entity_b.colliding_convex);
-        struct Collision collision = {0};
-        struct CollisionParameter collision_parameter = {
-            .face_tolerance = 0.9,
-            .edge_tolerance = 0.95,
-            .absolute_tolerance = 0.025
-        };
-        colliding_prepare_collision((struct CollidingShape*)&entity_a.colliding_convex,
-                                    (struct CollidingShape*)&entity_b.colliding_convex,
-                                    collision_parameter,
-                                    &collision);
+        for( uint32_t i = 0; i < 100; i++ ) {
+            struct Collision collision = {0};
+            struct CollisionParameter collision_parameter = {
+                .face_tolerance = 0.9,
+                .edge_tolerance = 0.95,
+                .absolute_tolerance = 0.025
+            };
+            colliding_prepare_collision((struct CollidingShape*)&entity_a.colliding_convex,
+                                        (struct CollidingShape*)&entity_b.colliding_convex,
+                                        collision_parameter,
+                                        &collision);
 
-        static int32_t collision_counter = 1;
-        if( colliding_test_convex_convex(&collision) ) {
-            colliding_contact_convex_convex(&collision);
-            //printf("//collision: %d\n", collision_counter);
-            collision_counter++;
+            static int32_t collision_counter = 1;
+            if( colliding_test_convex_convex(&collision) ) {
+                colliding_contact_convex_convex(&collision);
+                //printf("//collision: %d\n", collision_counter);
+                collision_counter++;
+            }
         }
 
         gametime_integrate(&time);

@@ -19,9 +19,9 @@
 void draw_transform_vertices(size_t vertex_size,
                              GLenum component_type,
                              size_t num_vertices,
-                             const float vertices_in[vertex_size*num_vertices],
+                             const float* vertices_in, //[vertex_size*num_vertices],
                              const Mat transform,
-                             const float vertices_out[vertex_size*num_vertices])
+                             const float* vertices_out) //[vertex_size*num_vertices])
 {
     log_assert( component_type == GL_FLOAT );
 

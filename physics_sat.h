@@ -28,12 +28,12 @@ struct SatEdgeTestResult {
 void sat_halfedgemesh_transform_vertices(const struct HalfEdgeMesh* mesh,
                                          const Mat transform,
                                          size_t size,
-                                         float transformed_vertices[size]);
+                                         float* transformed_vertices);
 
 void sat_halfedgemesh_rotate_face_normals(const struct HalfEdgeMesh* mesh,
                                           const Mat transform,
                                           size_t size,
-                                          float transformed_normals[size]);
+                                          float* transformed_normals);
 
 struct SatFaceTestResult sat_test_faces(const Mat pivot2_to_pivot1_transform,
                                         const struct HalfEdgeMesh* mesh1,

@@ -44,55 +44,55 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
     struct Tetrahedron tetrahedron = {0};
-    struct Cube hexahedron = {0};
-    struct Cube cube = {0};
+    struct Box box = {0};
+    struct Box cube = {0};
     struct Sphere16 sphere16 = {0};
     struct Sphere32 sphere32 = {0};
     solid_create_tetrahedron(1.0, (Color){255, 0, 0, 255}, &tetrahedron);
-    solid_create_hexahedron(1.0, (Color){0, 255, 0, 255}, &hexahedron);
+    solid_create_box((Vec3f){1.0, 1.0, 1.0}, (Color){0, 255, 0, 255}, &box);
     solid_create_cube(1.0, (Color){255, 0, 255, 255}, &cube);
     solid_create_sphere16(1.0, (Color){0, 255, 255, 255}, &sphere16);
     solid_create_sphere32(1.0, (Color){255, 255, 0, 255}, &sphere32);
 
     struct HalfEdgeMesh tetrahedron_hemesh = {0};
-    struct HalfEdgeMesh hexahedron_hemesh = {0};
+    struct HalfEdgeMesh box_hemesh = {0};
     struct HalfEdgeMesh cube_hemesh = {0};
     struct HalfEdgeMesh sphere16_hemesh = {0};
     struct HalfEdgeMesh sphere32_hemesh = {0};
 
     halfedgemesh_create(&tetrahedron_hemesh);
-    halfedgemesh_create(&hexahedron_hemesh);
+    halfedgemesh_create(&box_hemesh);
     halfedgemesh_create(&cube_hemesh);
     halfedgemesh_create(&sphere16_hemesh);
     halfedgemesh_create(&sphere32_hemesh);
 
     halfedgemesh_append(&tetrahedron_hemesh, (struct Solid*)&tetrahedron);
-    halfedgemesh_append(&hexahedron_hemesh, (struct Solid*)&hexahedron);
+    halfedgemesh_append(&box_hemesh, (struct Solid*)&box);
     halfedgemesh_append(&cube_hemesh, (struct Solid*)&cube);
     halfedgemesh_append(&sphere16_hemesh, (struct Solid*)&sphere16);
     halfedgemesh_append(&sphere32_hemesh, (struct Solid*)&sphere32);
 
     halfedgemesh_verify(&tetrahedron_hemesh);
-    halfedgemesh_verify(&hexahedron_hemesh);
+    halfedgemesh_verify(&box_hemesh);
     halfedgemesh_verify(&cube_hemesh);
     halfedgemesh_verify(&sphere16_hemesh);
     halfedgemesh_verify(&sphere32_hemesh);
 
     halfedgemesh_optimize(&tetrahedron_hemesh);
-    halfedgemesh_optimize(&hexahedron_hemesh);
+    halfedgemesh_optimize(&box_hemesh);
     halfedgemesh_optimize(&cube_hemesh);
     halfedgemesh_optimize(&sphere16_hemesh);
     halfedgemesh_optimize(&sphere32_hemesh);
 
     halfedgemesh_verify(&tetrahedron_hemesh);
-    halfedgemesh_verify(&hexahedron_hemesh);
+    halfedgemesh_verify(&box_hemesh);
     halfedgemesh_verify(&cube_hemesh);
     halfedgemesh_verify(&sphere16_hemesh);
     halfedgemesh_verify(&sphere32_hemesh);
 
-    struct VboMesh tetrahedron_mesh,hexahedron_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
+    struct VboMesh tetrahedron_mesh,box_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
     vbomesh_create_from_halfedgemesh(&tetrahedron_hemesh, &vbo, &tetrahedron_mesh);
-    vbomesh_create_from_halfedgemesh(&hexahedron_hemesh, &vbo, &hexahedron_mesh);
+    vbomesh_create_from_halfedgemesh(&box_hemesh, &vbo, &box_mesh);
     vbomesh_create_from_halfedgemesh(&cube_hemesh, &vbo, &cube_mesh);
     vbomesh_create_from_halfedgemesh(&sphere16_hemesh, &vbo, &sphere16_mesh);
     vbomesh_create_from_halfedgemesh(&sphere32_hemesh, &vbo, &sphere32_mesh);
@@ -139,15 +139,15 @@ int32_t main(int32_t argc, char *argv[]) {
         Mat identity;
         mat_identity(identity);
 
-        Mat tetrahedron_transform, hexahedron_transform, cube_transform, sphere16_transform, sphere32_transform;
+        Mat tetrahedron_transform, box_transform, cube_transform, sphere16_transform, sphere32_transform;
         mat_translate(identity, (float[4]){ 0.0, 0.0, 2.0, 1.0 }, tetrahedron_transform);
-        mat_translate(identity, (float[4]){ -3.0, 0.0, 2.0, 1.0 }, hexahedron_transform);
+        mat_translate(identity, (float[4]){ -3.0, 0.0, 2.0, 1.0 }, box_transform);
         mat_translate(identity, (float[4]){ 3.0, 0.0, 2.0, 1.0 }, cube_transform);
         mat_translate(identity, (float[4]){ -1.5, 0.0, -2.0, 1.0 }, sphere16_transform);
         mat_translate(identity, (float[4]){ 1.5, 0.0, -2.0, 1.0 }, sphere32_transform);
 
         vbomesh_render(&tetrahedron_mesh, &shader, &arcball.camera, tetrahedron_transform);
-        vbomesh_render(&hexahedron_mesh, &shader, &arcball.camera, hexahedron_transform);
+        vbomesh_render(&box_mesh, &shader, &arcball.camera, box_transform);
         vbomesh_render(&cube_mesh, &shader, &arcball.camera, cube_transform);
         vbomesh_render(&sphere16_mesh, &shader, &arcball.camera, sphere16_transform);
         vbomesh_render(&sphere32_mesh, &shader, &arcball.camera, sphere32_transform);
@@ -159,7 +159,7 @@ int32_t main(int32_t argc, char *argv[]) {
         draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 0.02f, 12.0f, 12.0f, 12);
 
         /* draw_solid_normals(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, (struct Solid*)&tetrahedron, 0.1f); */
-        /* draw_solid_normals(&global_dynamic_canvas, 1, hexahedron_transform, (Color){255, 255, 0, 255}, (struct Solid*)&hexahedron, 0.1f); */
+        /* draw_solid_normals(&global_dynamic_canvas, 1, box_transform, (Color){255, 255, 0, 255}, (struct Solid*)&box, 0.1f); */
         /* draw_solid_normals(&global_dynamic_canvas, 1, cube_transform, (Color){255, 255, 0, 255}, (struct Solid*)&cube, 0.1f); */
         /* draw_solid_normals(&global_dynamic_canvas, 1, sphere16_transform, (Color){255, 255, 0, 255}, (struct Solid*)&sphere16, 0.1f); */
         /* draw_solid_normals(&global_dynamic_canvas, 1, sphere32_transform, (Color){255, 255, 0, 255}, (struct Solid*)&sphere32, 0.1f); */
@@ -168,7 +168,7 @@ int32_t main(int32_t argc, char *argv[]) {
         //draw_halfedgemesh_edge(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, &tetrahedron_hemesh, 0);
 
         draw_halfedgemesh_wire(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, 0.02f, &tetrahedron_hemesh);
-        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, hexahedron_transform, (Color){255, 255, 0, 255}, 0.02f, &hexahedron_hemesh);
+        draw_halfedgemesh_wire(&global_dynamic_canvas, 1, box_transform, (Color){255, 255, 0, 255}, 0.02f, &box_hemesh);
         draw_halfedgemesh_wire(&global_dynamic_canvas, 1, cube_transform, (Color){255, 255, 0, 255}, 0.02f, &cube_hemesh);
         draw_halfedgemesh_wire(&global_dynamic_canvas, 1, sphere16_transform, (Color){255, 255, 0, 255}, 0.02f, &sphere16_hemesh);
         draw_halfedgemesh_wire(&global_dynamic_canvas, 1, sphere32_transform, (Color){255, 255, 0, 255}, 0.02f, &sphere32_hemesh);

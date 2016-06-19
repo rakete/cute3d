@@ -4,7 +4,7 @@
 void sat_halfedgemesh_transform_vertices(const struct HalfEdgeMesh* mesh,
                                          const Mat transform,
                                          size_t size,
-                                         float transformed_vertices[size])
+                                         float* transformed_vertices) //[size])
 {
     log_assert( size % 3 == 0 );
 
@@ -17,7 +17,7 @@ void sat_halfedgemesh_transform_vertices(const struct HalfEdgeMesh* mesh,
 void sat_halfedgemesh_rotate_face_normals(const struct HalfEdgeMesh* mesh,
                                           const Mat transform,
                                           size_t size,
-                                          float transformed_normals[size])
+                                          float* transformed_normals) //[size])
 {
     log_assert( size % 3 == 0 );
 
@@ -90,7 +90,20 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
     // (seperation axis) orientation will be in pivot2 coordinates instead of pivot1
     // coordinates
     size_t transformed_size = mesh2->vertices.occupied*3;
+
+    // - using alloca seems a bit risky, but the collision subsystem should only deal
+    // with small convex objects, so I assume the danger of stack overflow is low
+    // - I also need to really fast, so any millisecond I can spare should count, and
+    // stack allocations are cheaper than heap allocations
+    // - mesh with 1024 vertices should be roughly 12kb stack space, that should be
+    // manageable
+    log_assert(transformed_size < 1024*3);
+#ifdef CUTE_BUILD_MSVC
+    float* transformed_vertices = alloca(sizeof(float) * transformed_size);
+#else
     float transformed_vertices[transformed_size];
+#endif
+
     sat_halfedgemesh_transform_vertices(mesh2, mesh2_to_mesh1_transform, transformed_size, transformed_vertices);
 
     // the algorithm is quite simple:
@@ -170,12 +183,24 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
         .normal = {0,0,0}
     };
 
+    // - same as explained above with stack vs heap allocation
+    // - should be max ~24kb stack space here
     size_t transformed_vertices_size = mesh2->vertices.occupied*3;
+    log_assert(transformed_vertices_size < 1024*3);
+#ifdef CUTE_BUILD_MSVC
+    float* transformed_vertices = alloca(sizeof(float) * transformed_vertices_size);
+#else
     float transformed_vertices[transformed_vertices_size];
+#endif
     sat_halfedgemesh_transform_vertices(mesh2, mesh2_to_mesh1_transform, transformed_vertices_size, transformed_vertices);
 
     size_t transformed_normals_size = mesh2->faces.occupied*3;
+    log_assert(transformed_normals_size < 1024*3);
+#ifdef CUTE_BUILD_MSVC
+    float* transformed_normals = alloca(sizeof(float) * transformed_normals_size);
+#else
     float transformed_normals[transformed_normals_size];
+#endif
     sat_halfedgemesh_rotate_face_normals(mesh2, mesh2_to_mesh1_transform, transformed_normals_size, transformed_normals);
 
     // every face normal of the minowski sum of mesh1 and mesh2 is a potential sat,
