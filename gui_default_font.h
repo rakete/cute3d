@@ -104,4 +104,6 @@ struct Character char_close_brace();
 
 void default_font_create(struct Character symbols[256]);
 
+#define DEFAULT_FONT_SYMBOLS "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;+-*/=()[]{}"
+
 #endif

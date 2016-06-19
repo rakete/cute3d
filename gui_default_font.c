@@ -16,8 +16,6 @@
 
 #include "gui_default_font.h"
 
-#define SYMBOLS "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-
 // palette: bnw
 // format: rgb
 static float palette[1*8*3] = {
