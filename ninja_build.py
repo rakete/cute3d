@@ -59,7 +59,7 @@ elif build_toolset == "mingw":
 
     features = "-pg -DDEBUG"
     optimization = "-fPIC -flto=4 -march=native"
-    warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -pedantic"
+    warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -pedantic"
 
     cflags = "-std=c99 " + warnings + " " + features + " " + sdl2_cflags + " " + optimization
     ldflags = "-lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32 " + sdl2_libs
