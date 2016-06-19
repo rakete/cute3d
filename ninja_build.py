@@ -3,6 +3,14 @@ import glob
 import platform
 import subprocess
 import sys
+import os
+
+script_directory = os.path.dirname(os.path.realpath(__file__))
+current_directory = os.getcwd()
+
+common_prefix = os.path.commonprefix([script_directory, current_directory])
+source_directory = os.path.relpath(script_directory, current_directory)
+build_directory = current_directory
 
 build_platform = platform.system().lower()
 build_architecture = platform.machine().lower()
@@ -22,6 +30,8 @@ if len(sys.argv) > 1:
         print "use gcc, mingw or msvc"
         sys.exit(1)
 
+print "source_directory: " + source_directory
+print "build_directory: " + build_directory
 print "build_platform: " + build_platform
 print "build_architecture: " + build_architecture + " (not used yet)"
 print "build_toolset: " + build_toolset
@@ -86,10 +96,12 @@ elif build_toolset == "msvc":
     w.rule(name="cc", command="cl.exe /showIncludes /FS /c $in /Fo$out " + cflags, deps="msvc")
 w.newline()
 
+os.chdir(source_directory)
 sources = glob.glob("*.c")
 sources.remove("driver_allegro.c")
+os.chdir(current_directory)
 
 for input in sources:
     output = input.replace(".c", ".o")
-    w.build(output, "cc", input)
+    w.build(output, "cc", os.path.join(source_directory, input))
 w.newline()
