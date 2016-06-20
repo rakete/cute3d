@@ -8,7 +8,6 @@ import os
 script_directory = os.path.dirname(os.path.realpath(__file__))
 current_directory = os.getcwd()
 
-common_prefix = os.path.commonprefix([script_directory, current_directory])
 source_directory = os.path.relpath(script_directory, current_directory)
 build_directory = current_directory
 
@@ -41,29 +40,37 @@ sdl2_libs = ""
 features = ""
 optimization = ""
 warnings = ""
+linking = ""
+libraries = ""
+includes = ""
 cflags = ""
 ldflags = ""
 if build_platform == "linux" or build_toolset == "gcc":
     sdl2_cflags = subprocess.check_output(["bash", "sdl2-config", "--cflags"]).rstrip()
     sdl2_libs = subprocess.check_output(["bash", "sdl2-config", "--libs"]).rstrip()
 
-    features = "-pg -DDEBUG"
-    optimization = "-fPIC -flto=4 -march=native"
+    features = "-std=c99 -pg -DDEBUG"
+    optimization = "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -pedantic"
+    linking = "-fPIC"
+    libraries = "-lm -lGL " + sdl2_libs
+    includes = "-I" + source_directory
 
-    cflags = "-std=c99 " + warnings + " " + features + " " + sdl2_cflags + " " + optimization
-    ldflags = "-lm -lGL" + sdl2_libs
+    cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
+    ldflags = linking + " " + libraries
 elif build_toolset == "mingw":
     sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
     sdl2_libs = "-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows"
 
-    features = "-pg -DDEBUG"
-    optimization = "-fPIC -flto=4 -march=native"
+    features = "-std=c99 -pg -DDEBUG"
+    optimization = "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -pedantic"
+    linking = "-fPIC"
+    libraries = "-lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32 " + sdl2_libs
+    includes = "-I" + source_directory
 
-    cflags = "-std=c99 " + warnings + " " + features + " " + sdl2_cflags + " " + optimization
-    ldflags = "-lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32 " + sdl2_libs
-
+    cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
+    ldflags = linking + " " + libraries
 elif build_toolset == "msvc":
     sdl2_cflags = "/Ic:\\VC\\SDL2-2.0.4\\include"
     sdl2_libs = "/LIBPATHc:\\VC\\SDL2-2.0.4\\lib"
@@ -71,9 +78,12 @@ elif build_toolset == "msvc":
     features = "/Zi /DDEBUG /DCUTE_BUILD_MSVC"
     optimization = "/Od"
     warnings = "/W4"
+    linking = ""
+    libraries = "" + sdl2_libs
+    includes = "/I" + source_directory
 
-    cflags = warnings + " " + features + " " + sdl2_cflags + " " + optimization
-    ldflags = "" + sdl2_libs
+    cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
+    ldflags = linking + " " + libraries
 else:
     print "building with " + build_toolset + " on " + build_platform + " is not supported yet."
     sys.exit(1)
@@ -82,26 +92,48 @@ print "sdl2_libs: " + sdl2_libs
 print "features: " + features
 print "optimization: " + optimization
 print "warnings: " + warnings
+print "linking: " + linking
+print "libraries: " + libraries
 print "cflags: " + cflags
 print "ldflags: " + ldflags
 
-f = open("build.ninja","w+")
+f = open("build.ninja", "w+")
 w = ninja_syntax.Writer(f, 127)
 
 if build_toolset == "mingw" or build_toolset == "gcc":
     # -c and /c in gcc and cl.exe mean: compile without linking
     w.rule(name="cc", command="gcc -MMD -MF $out.d -c $in -o $out " + cflags, deps="gcc", depfile="$out.d")
+    w.newline()
+    w.rule(name="ld", command="gcc $in -o $out " + ldflags)
+    w.newline()
 elif build_toolset == "msvc":
     # - needs /FS to enable synchronous writes to pdb database
     w.rule(name="cc", command="cl.exe /showIncludes /FS /c $in /Fo$out " + cflags, deps="msvc")
-w.newline()
+    w.newline()
 
 os.chdir(source_directory)
 sources = glob.glob("*.c")
 sources.remove("driver_allegro.c")
 os.chdir(current_directory)
 
-for input in sources:
-    output = input.replace(".c", ".o")
-    w.build(output, "cc", os.path.join(source_directory, input))
+objects = []
+for c in sources:
+    o = c.replace(".c", ".o")
+    w.build(o, "cc", os.path.join(source_directory, c))
+    objects.append(o)
 w.newline()
+
+w.default(objects)
+w.newline()
+
+tests_directory = os.path.relpath(os.path.join(source_directory, "tests") , current_directory)
+
+os.chdir(tests_directory)
+test_sources = glob.glob("*.c")
+os.chdir(current_directory)
+for c in test_sources:
+    o = c.replace(".c", ".o")
+    w.build(o, "cc", os.path.join(tests_directory, c))
+    exe = c.replace(".c", "")
+    w.build(exe, "ld", [o] + objects)
+    w.newline()
