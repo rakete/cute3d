@@ -201,12 +201,14 @@ os.chdir(current_directory)
 for c in test_sources:
     o = c.replace(".c", ".o")
     w.build(o, "compile", os.path.join(tests_directory, c))
-    w.variable("  basefilename", os.path.join("tests", c))
+    w.variable("filename", os.path.join("tests", os.path.splitext(c)[0]), indent=1)
 
-    exe = c.replace(".c", "")
+    binary = c.replace(".c", "")
     if build_platform == "windows":
-        winexe  = exe + ".exe"
-        w.build(exe, "phony", winexe)
-        exe = winexe
-    w.build(exe, "link", [o] + objects, dlls + shaders)
+        w.build(binary + ".exe", "link", [o] + objects)
+        w.build(binary, "phony", binary + ".exe", dlls + shaders)
+    else:
+        w.build(binary + ".bin", "link", [o] + objects)
+        w.build(binary, "phony", binary + ".bin", dlls + shaders)
+
     w.newline()
