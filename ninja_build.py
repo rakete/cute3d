@@ -104,7 +104,7 @@ print "ldflags: " + ldflags
 f = open("build.ninja", "w+")
 w = ninja_syntax.Writer(f, 127)
 
-w.variable("basefilename", "\"$$in\"")
+w.variable("filename", "\"$in\"")
 w.newline()
 
 def command_exists(cmd):
@@ -172,13 +172,13 @@ w.newline()
 
 if build_toolset == "mingw" or build_toolset == "gcc":
     # -c and /c in gcc and cl.exe mean: compile without linking
-    w.rule(name="compile", command="gcc -MMD -MF $out.d -c $in -o $out -DBASE_FILE_NAME=\"$basefilename\" " + cflags, deps="gcc", depfile="$out.d")
+    w.rule(name="compile", command="gcc -MMD -MF $out.d -D__FILENAME__=\"\\\"$filename\\\"\" -c $in -o $out " + cflags, deps="gcc", depfile="$out.d")
     w.newline()
     w.rule(name="link", command="gcc $in -o $out " + ldflags)
     w.newline()
 elif build_toolset == "msvc":
     # - needs /FS to enable synchronous writes to pdb database
-    w.rule(name="compile", command="cl.exe /showIncludes /FS /c $in /Fo$out " + cflags, deps="msvc")
+    w.rule(name="compile", command="cl.exe /showIncludes /FS /D__FILENAME__=\"\\\"$filename\\\"\" /c $in /Fo$out " + cflags, deps="msvc")
     w.newline()
 
 os.chdir(source_directory)
@@ -190,14 +190,14 @@ objects = []
 for c in sources:
     o = c.replace(".c", ".o")
     w.build(o, "compile", os.path.join(source_directory, c))
-    w.variable("  basefilename", c)
+    w.variable("filename", os.path.splitext(c)[0], indent=1)
     objects.append(o)
 w.newline()
 
 w.default(objects)
 w.newline()
 
-tests_directory = os.path.relpath(os.path.join(source_directory, "tests") , current_directory)
+tests_directory = os.path.relpath(os.path.join(source_directory, "tests"), current_directory)
 
 os.chdir(tests_directory)
 test_sources = glob.glob("*.c")
