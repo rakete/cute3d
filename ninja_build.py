@@ -120,7 +120,16 @@ w.variable("filename", "\"$in\"")
 w.newline()
 
 if build_platform == "windows":
-    w.rule(name="copy", command="cmd /c copy.exe $in $out >nul")
+    if command_exists("cp"):
+        w.rule(name="copy", command="cp $in $out")
+    else:
+        print "WARNING: using windows copy command!"
+        print "if you want a reliable and sane build experience you should get gnu cp and"
+        print "put it in your PATH, I am writing this as I am about to give up to make things"
+        print "with windows builtin copy and xcopy.exe, this script will use the cmd builtin"
+        print "copy for copying, but I know that this has several issues and is slow, if you"
+        print "happen to know a better way, please file an issue, thank you"
+        w.rule(name="copy", command="cmd /c copy.exe $in $out >nul")
 else:
     w.rule(name="copy", command="cp $in $out")
 w.newline()
@@ -152,12 +161,18 @@ if command_exists("glsl-validate.py"):
     prefix_shader_string = " ".join(prefix_shader)
 
     if build_platform == "windows":
-        w.rule(name="copy_shader", command="cmd /c glsl-validate.py " + prefix_shader_string + " $in & for %I in ($in) do copy %I shader >nul")
+        if command_exists("cp"):
+            w.rule(name="copy_shader", command="cmd /c glsl-validate.py " + prefix_shader_string + " $in && cp $in shader")
+        else:
+            w.rule(name="copy_shader", command="cmd /c glsl-validate.py " + prefix_shader_string + " $in & for %I in ($in) do copy %I shader >nul")
     else:
         w.rule(name="copy_shader", command="bash -c \"glsl-validate.py " + prefix_shader_string + " $in; cp $in shader\"")
 else:
     if build_platform == "windows":
-        w.rule(name="copy_shader", command="cmd /c for %I in ($in) do copy %I shader >nul")
+        if command_exists("cp"):
+            w.rule(name="copy_shader", command="cp $in shader")
+        else:
+            w.rule(name="copy_shader", command="cmd /c for %I in ($in) do copy %I shader >nul")
     else:
         w.rule(name="copy_shader", command="bash -c \"cp $in shader\"")
 w.newline()
