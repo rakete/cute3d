@@ -59,8 +59,12 @@ if build_platform == "linux" or build_toolset == "gcc":
     cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
     ldflags = linking + " " + libraries
 elif build_toolset == "mingw":
-    sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
-    sdl2_libs = "-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows"
+    if command_exists("sdl2-config") and command_exists("bash"):
+        sdl2_cflags = subprocess.check_output(["bash", "sdl2-config", "--cflags"]).rstrip()
+        sdl2_libs = subprocess.check_output(["bash", "sdl2-config", "--libs"]).rstrip()
+    else:
+        sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
+        sdl2_libs = "-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows"
 
     features = "-std=c99 -pg -DDEBUG"
     optimization = "-flto=4 -march=native"
