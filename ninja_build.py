@@ -5,6 +5,18 @@ import subprocess
 import sys
 import os
 
+def command_exists(cmd):
+    return any(
+        os.access(os.path.join(path, cmd), os.X_OK) or
+        os.access(os.path.join(path, cmd + ".exe"), os.X_OK)
+        for path in os.environ["PATH"].split(os.pathsep)
+    )
+
+def pairwise(it):
+    it = iter(it)
+    while True:
+        yield next(it), next(it)
+
 script_directory = os.path.dirname(os.path.realpath(__file__))
 current_directory = os.getcwd()
 
@@ -101,18 +113,11 @@ print "libraries: " + libraries
 print "cflags: " + cflags
 print "ldflags: " + ldflags
 
-f = open("build.ninja", "w+")
-w = ninja_syntax.Writer(f, 127)
+build_file_handle = open("build.ninja", "w+")
+w = ninja_syntax.Writer(build_file_handle, 127)
 
 w.variable("filename", "\"$in\"")
 w.newline()
-
-def command_exists(cmd):
-    return any(
-        os.access(os.path.join(path, cmd), os.X_OK) or
-        os.access(os.path.join(path, cmd + ".exe"), os.X_OK)
-        for path in os.environ["PATH"].split(os.pathsep)
-    )
 
 if build_platform == "windows":
     w.rule(name="copy", command="cmd /c copy.exe $in $out >nul")
@@ -120,7 +125,8 @@ else:
     w.rule(name="copy", command="cp $in $out")
 w.newline()
 
-if build_platform == "windows":
+dlls = []
+if build_platform == "windows" and os.path.relpath(build_directory, script_directory) != ".":
     os.chdir(source_directory)
     dlls = glob.glob("*.dll")
     os.chdir(current_directory)
@@ -129,7 +135,7 @@ if build_platform == "windows":
         w.build(d, "copy", os.path.join(source_directory, d))
     w.newline()
 
-shader_directory = os.path.relpath(os.path.join(source_directory, "shader") , current_directory)
+shader_directory = os.path.relpath(os.path.join(source_directory, "shader"), current_directory)
 
 if build_platform == "windows":
     w.rule(name="make_shader_directory", command="cmd /c mkdir shader & copy NUL $out")
@@ -137,14 +143,18 @@ else:
     w.rule(name="make_shader_directory", command="mkdir -p shader; touch $out")
 w.newline()
 
-w.build("shader\directory", "make_shader_directory")
+w.build(os.path.join("shader", ".directory"), "make_shader_directory")
 w.newline()
 
+prefix_shader = []
 if command_exists("glsl-validate.py"):
+    prefix_shader = [os.path.join(shader_directory, "prefix.vert"), os.path.join(shader_directory, "prefix.frag")]
+    prefix_shader_string = " ".join(prefix_shader)
+
     if build_platform == "windows":
-        w.rule(name="copy_shader", command="cmd /c glsl-validate.py $in & for %I in ($in) do copy %I shader >nul")
+        w.rule(name="copy_shader", command="cmd /c glsl-validate.py " + prefix_shader_string + " $in & for %I in ($in) do copy %I shader >nul")
     else:
-        w.rule(name="copy_shader", command="bash -c \"glsl-validate.py $in; cp $in shader\"")
+        w.rule(name="copy_shader", command="bash -c \"glsl-validate.py " + prefix_shader_string + " $in; cp $in shader\"")
 else:
     if build_platform == "windows":
         w.rule(name="copy_shader", command="cmd /c for %I in ($in) do copy %I shader >nul")
@@ -152,23 +162,36 @@ else:
         w.rule(name="copy_shader", command="bash -c \"cp $in shader\"")
 w.newline()
 
-def pairwise(it):
-    it = iter(it)
-    while True:
-        yield next(it), next(it)
-
-os.chdir(shader_directory)
-shader_filenames = sorted(glob.glob("*.[frag|vert]*"))
-os.chdir(current_directory)
 shaders = []
-for frag_shader_filename, vert_shader_filename in pairwise(shader_filenames):
-    vert_shader = os.path.join("shader", vert_shader_filename)
-    frag_shader = os.path.join("shader", frag_shader_filename)
-    w.build(vert_shader, "copy_shader", os.path.join(shader_directory, vert_shader_filename), "shader\directory")
-    w.build(frag_shader, "copy_shader", os.path.join(shader_directory, frag_shader_filename), "shader\directory")
-    shaders.append(vert_shader)
-    shaders.append(frag_shader)
-w.newline()
+if os.path.relpath(build_directory, script_directory) != ".":
+    os.chdir(shader_directory)
+    shader_filenames = []
+    [shader_filenames.append(os.path.splitext(sf)[0]) for sf in glob.glob("*.vert")]
+    [shader_filenames.append(os.path.splitext(sf)[0]) for sf in glob.glob("*.frag") if os.path.splitext(sf)[0] not in shader_filenames]
+
+    os.chdir(current_directory)
+    for shader_filename in shader_filenames:
+        source_vert_shader = os.path.join(shader_directory, shader_filename + ".vert")
+        source_frag_shader = os.path.join(shader_directory, shader_filename + ".frag")
+
+        dest_shaders = []
+        source_shaders = []
+        if os.path.isfile(source_vert_shader):
+            source_shaders.append(source_vert_shader)
+            dest_shaders.append(os.path.join("shader", shader_filename + ".vert"))
+
+        if os.path.isfile(source_frag_shader):
+            source_shaders.append(source_frag_shader)
+            dest_shaders.append(os.path.join("shader", shader_filename + ".frag"))
+
+        deps = [os.path.join("shader", ".directory")]
+        if shader_filename != "prefix":
+            deps += [os.path.join("shader", "prefix.vert"), os.path.join("shader", "prefix.frag"), ]
+
+        w.build(dest_shaders, "copy_shader", source_shaders, deps)
+
+        shaders += dest_shaders
+    w.newline()
 
 if build_toolset == "mingw" or build_toolset == "gcc":
     # -c and /c in gcc and cl.exe mean: compile without linking
