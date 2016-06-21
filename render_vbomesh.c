@@ -63,7 +63,7 @@ void shitty_triangulate(float* vertices, int32_t n, int32_t m, int32_t* triangle
     if( n == 4 ) {
         static bool warn_once = true;
         if( warn_once ) {
-            log_warn(__FILE__, __LINE__, "using completely shitty_triangulate function!\n");
+            log_warn(__C_FILENAME__, __LINE__, "using completely shitty_triangulate function!\n");
             warn_once = false;
         }
         triangles[3] = 2;
@@ -268,7 +268,7 @@ void vbomesh_render(struct VboMesh* mesh, struct Shader* shader, const struct Ca
             loc[array_id] = -1;
             if( c_num == 0 || c_bytes == 0 ) {
                 if( shader->attribute[array_id].location > -1 ) {
-                    log_warn(__FILE__, __LINE__, "the shader \"%s\" has a location for attribute %d but the vbomesh that is rendered has no such attributes\n", shader->name, array_id);
+                    log_warn(__C_FILENAME__, __LINE__, "the shader \"%s\" has a location for attribute %d but the vbomesh that is rendered has no such attributes\n", shader->name, array_id);
                 }
                 continue;
             }

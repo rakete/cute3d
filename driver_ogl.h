@@ -18,15 +18,15 @@ void ogl_error_print(GLenum error);
 #define ogl_debug(line) do {                                            \
         GLenum error = glGetError();                                    \
         while( error != GL_NO_ERROR ) {                                 \
-            log_warn(__FILE__, __LINE__, "REPORTED ISSUE WAS PRESENT BEFORE OGL_DEBUG RAN: %s\n", ogl_stringify(line)); \
-            log_fail(__FILE__, __LINE__, "%s\n", ogl_stringify(line)); \
+            log_warn(__C_FILENAME__, __LINE__, "REPORTED ISSUE WAS PRESENT BEFORE OGL_DEBUG RAN: %s\n", ogl_stringify(line)); \
+            log_fail(__C_FILENAME__, __LINE__, "%s\n", ogl_stringify(line)); \
             ogl_error_print(error);                                     \
             error = glGetError();                                       \
         }                                                               \
         line;                                                           \
         error = glGetError();                                           \
         while( error != GL_NO_ERROR ) {                                 \
-            log_fail(__FILE__, __LINE__, "%s\n", ogl_stringify(line)); \
+            log_fail(__C_FILENAME__, __LINE__, "%s\n", ogl_stringify(line)); \
             ogl_error_print(error);                                     \
             error = glGetError();                                       \
         }                                                               \

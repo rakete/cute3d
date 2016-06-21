@@ -16,7 +16,7 @@ void camera_create(int32_t width, int32_t height, struct Camera* camera) {
 
 void camera_frustum(struct Camera* camera, float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far) {
     if( z_far / z_near > 10000.0f ) {
-        log_warn(__FILE__, __LINE__, "you are trying to create a frustum with a very large far/near ratio\n");
+        log_warn(__C_FILENAME__, __LINE__, "you are trying to create a frustum with a very large far/near ratio\n");
     }
 
     camera->frustum.x_left = x_left;

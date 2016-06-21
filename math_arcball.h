@@ -1,6 +1,7 @@
 #ifndef MATH_ARCBALL_H
 #define MATH_ARCBALL_H
 
+#include "driver_log.h"
 #include "driver_sdl2.h"
 #include "driver_input.h"
 #include "math_camera.h"

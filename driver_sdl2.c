@@ -6,12 +6,12 @@ int32_t init_sdl2(int major, int minor) {
     log_assert( minor >= 0 && minor < 10 );
 
     if( SDL_Init(SDL_INIT_EVERYTHING) < 0 ) {
-        log_fail(__FILE__, __LINE__, "SDL_Init failed: %s\n", SDL_GetError());
+        log_fail(__C_FILENAME__, __LINE__, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
     }
 
 #ifdef _WIN32
-    log_warn(__FILE__, __LINE__, "SDL_GetError always reports SDL_GetPerformanceCounter, SDL_GetPerformanceFrequency, SDL_GL_SetSwapInterval and SDL_GL_SwapWindow unsupported on windows for me, so I am not reporting these errors\n");
+    log_warn(__C_FILENAME__, __LINE__, "SDL_GetError always reports SDL_GetPerformanceCounter, SDL_GetPerformanceFrequency, SDL_GL_SetSwapInterval and SDL_GL_SwapWindow unsupported on windows for me, so I am not reporting these errors\n");
 #endif
 
     if( sdl2_time() > 0.0 || sdl2_time_delta() > 0.0 ) {
@@ -20,7 +20,7 @@ int32_t init_sdl2(int major, int minor) {
 
 #ifdef CUTE_BUILD_ES2
     if( major >= 3 ) {
-        log_warn(__FILE__, __LINE__, "OpenGL %d.%d needs VAOs to be enabled, falling back to 2.1!\n", major, minor);
+        log_warn(__C_FILENAME__, __LINE__, "OpenGL %d.%d needs VAOs to be enabled, falling back to 2.1!\n", major, minor);
         major = 2;
         minor = 1;
     }
@@ -96,7 +96,7 @@ void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLCont
             int minor_version = -1;
             SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major_version);
             SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor_version);
-            log_info(__FILE__, __LINE__, "requesting OpenGL %d.%d context...\n", major_version, minor_version);
+            log_info(__C_FILENAME__, __LINE__, "requesting OpenGL %d.%d context...\n", major_version, minor_version);
             *context = SDL_GL_CreateContext(window);
 
             SDL_GL_GetDrawableSize(window, &width, &height);
@@ -107,7 +107,7 @@ void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLCont
             glViewport(0,0,width,height);
 
             const char* gl_version = (const char*)glGetString(GL_VERSION);
-            log_info(__FILE__, __LINE__, "gl version string: \"%s\"\n", gl_version);
+            log_info(__C_FILENAME__, __LINE__, "gl version string: \"%s\"\n", gl_version);
 
             glDepthMask(GL_TRUE);
             glDepthFunc(GL_LESS);
@@ -129,11 +129,11 @@ void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLCont
 #ifndef CUTE_BUILD_ES2
     GLint depth_bits = 0;
     glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, &depth_bits);
-    log_info(__FILE__, __LINE__, "gl depth buffer bits: %d\n", depth_bits);
+    log_info(__C_FILENAME__, __LINE__, "gl depth buffer bits: %d\n", depth_bits);
 
     GLint stencil_bits = 0;
     glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, &stencil_bits);
-    log_info(__FILE__, __LINE__, "gl stencil buffer bits: %d\n", stencil_bits);
+    log_info(__C_FILENAME__, __LINE__, "gl stencil buffer bits: %d\n", stencil_bits);
 #endif
 
 }
@@ -201,7 +201,7 @@ double sdl2_time() {
     double t2 = sdl2_time();                                            \
     double t = (t2 - t1) * 1000;                                        \
     if( t > 0.5 ) {                                                     \
-        log_warn(__FILE__, __LINE__, "%s: %.02fms\n", sdl2_stringify(line), t); \
+        log_warn(__C_FILENAME__, __LINE__, "%s: %.02fms\n", sdl2_stringify(line), t); \
     }
 
 
@@ -212,7 +212,7 @@ int32_t sdl2_poll_event(SDL_Event* event) {
     double t2 = sdl2_time();
     double t = (t2 - t1) * 1000;
     if( t > 10.0 ) {
-        log_warn(__FILE__, __LINE__, "SDL_PollEvent time: %.02fms\n", t);
+        log_warn(__C_FILENAME__, __LINE__, "SDL_PollEvent time: %.02fms\n", t);
     }
     return ret;
 }
@@ -227,7 +227,7 @@ void sdl2_gl_swap_window(SDL_Window* window) {
     double t2 = sdl2_time();
     double t = (t2 - t1) * 1000;
     if( t > 50.0 ) {
-        log_warn(__FILE__, __LINE__, "SDL_GL_SwapWindow time: %.02fms\n", t);
+        log_warn(__C_FILENAME__, __LINE__, "SDL_GL_SwapWindow time: %.02fms\n", t);
     }
 }
 
@@ -241,6 +241,6 @@ void sdl2_gl_set_swap_interval(int interval) {
     double t2 = sdl2_time();
     double t = (t2 - t1) * 1000;
     if( t > 10.0 ) {
-        log_warn(__FILE__, __LINE__, "SDL_GL_SetSwapInterval time: %.02fms\n", t);
+        log_warn(__C_FILENAME__, __LINE__, "SDL_GL_SetSwapInterval time: %.02fms\n", t);
     }
 }

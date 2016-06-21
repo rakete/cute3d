@@ -23,7 +23,7 @@ void text_put(struct Canvas* canvas,
 
     size_t text_length = wcslen(unicode_text);
     if( text_length == 0 ) {
-        log_warn(__FILE__, __LINE__, "no text to display\n");
+        log_warn(__C_FILENAME__, __LINE__, "no text to display\n");
         return;
     }
 
@@ -46,7 +46,7 @@ void text_put(struct Canvas* canvas,
 
     int32_t font_i = canvas_find_font(canvas, font_name);
     if( font_i == MAX_CANVAS_FONTS ) {
-        log_warn(__FILE__, __LINE__, "font %s not found\n", font_name);
+        log_warn(__C_FILENAME__, __LINE__, "font %s not found\n", font_name);
         return;
     }
 
@@ -85,7 +85,7 @@ void text_put(struct Canvas* canvas,
                 if( c == '\0') {
                     log_assert(i == text_length);
                 } else {
-                    log_warn(__FILE__, __LINE__, "font %s does not contain glyph \"%c\"\n", font->name, c);
+                    log_warn(__C_FILENAME__, __LINE__, "font %s does not contain glyph \"%c\"\n", font->name, c);
                     glyph_warnings[c] = true;
                 }
             }
@@ -100,7 +100,7 @@ void text_put(struct Canvas* canvas,
                 if( c == '\0') {
                     log_assert(i == text_length);
                 } else if( c != ' ' ) {
-                    log_warn(__FILE__, __LINE__, "font %s does not contain glyph \"%c\"\n", font->name, c);
+                    log_warn(__C_FILENAME__, __LINE__, "font %s does not contain glyph \"%c\"\n", font->name, c);
                     glyph_warnings[(int)c] = true;
                 }
             }

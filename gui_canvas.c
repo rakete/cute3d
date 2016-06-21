@@ -119,7 +119,7 @@ void canvas_add_attribute(struct Canvas* canvas, int32_t added_attribute, uint32
         size_t vertices_occupied = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
         if( vertices_capacity > 0 ) {
             // because this should be rare, I'll warn about it
-            log_warn(__FILE__, __LINE__, "vertices already allocated when adding attribute %d\n", added_attribute);
+            log_warn(__C_FILENAME__, __LINE__, "vertices already allocated when adding attribute %d\n", added_attribute);
             canvas->attributes[added_attribute].array = calloc(vertices_capacity * size, bytes);
             canvas->attributes[added_attribute].capacity = vertices_capacity;
             canvas->attributes[added_attribute].occupied = vertices_occupied;
@@ -133,7 +133,7 @@ int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader) {
     int32_t shader_i = 0;
     while( shader_i < MAX_CANVAS_SHADER && strlen(canvas->shader[shader_i].name) != 0 ) {
         if( strncmp(canvas->shader[shader_i].name, shader->name, 256) == 0 ) {
-            log_warn(__FILE__, __LINE__, "shader \"%s\" already added to canvas \"%s\"\n", shader->name, canvas->name);
+            log_warn(__C_FILENAME__, __LINE__, "shader \"%s\" already added to canvas \"%s\"\n", shader->name, canvas->name);
             return shader_i;
         }
 
@@ -141,7 +141,7 @@ int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader) {
     }
 
     if( shader_i == MAX_CANVAS_SHADER ) {
-        log_warn(__FILE__, __LINE__, "no more space available in canvas for adding shader \"%s\"\n", shader->name);
+        log_warn(__C_FILENAME__, __LINE__, "no more space available in canvas for adding shader \"%s\"\n", shader->name);
         return MAX_CANVAS_SHADER;
     }
 
@@ -179,7 +179,7 @@ int32_t canvas_add_font(struct Canvas* canvas, const struct Font* font) {
     int32_t font_i = 0;
     while( font_i < MAX_CANVAS_FONTS && strlen(canvas->fonts[font_i].name) != 0 ) {
         if( strncmp(canvas->fonts[font_i].name, font->name, 256) == 0 ) {
-            log_warn(__FILE__, __LINE__, "font \"%s\" already added to canvas \"%s\"\n", font->name, canvas->name);
+            log_warn(__C_FILENAME__, __LINE__, "font \"%s\" already added to canvas \"%s\"\n", font->name, canvas->name);
             return font_i;
         }
 
@@ -214,7 +214,7 @@ int32_t canvas_find_font(struct Canvas* canvas, const char* font_name) {
     }
 
     if( font_i == MAX_CANVAS_FONTS && check_first == 0 ) {
-        log_warn(__FILE__, __LINE__, "font \"%s\" not found\n", font_name);
+        log_warn(__C_FILENAME__, __LINE__, "font \"%s\" not found\n", font_name);
     }
 
     check_first = font_i;
@@ -263,7 +263,7 @@ size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t proj
     }
 
     if( shader_i == MAX_CANVAS_SHADER ) {
-        log_fail(__FILE__, __LINE__, "no shader could be found in canvas when trying to allocate\n");
+        log_fail(__C_FILENAME__, __LINE__, "no shader could be found in canvas when trying to allocate\n");
         return 0;
     }
 
@@ -342,7 +342,7 @@ size_t canvas_append_attributes(struct Canvas* canvas, uint32_t attribute_i, uin
     if( canvas->components[attribute_i].size == 0 ) {
         static int warn_once = 1;
         if( warn_once ) {
-            log_warn(__FILE__, __LINE__, "you tried to append attribute %d to a canvas without calling canvas_add_attribute first for that attribute\n", attribute_i);
+            log_warn(__C_FILENAME__, __LINE__, "you tried to append attribute %d to a canvas without calling canvas_add_attribute first for that attribute\n", attribute_i);
             warn_once = 0;
         }
         return 0;
@@ -400,15 +400,15 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t pro
     if( shader_i == MAX_CANVAS_SHADER ) {
         static int warn_once = 1;
         if( warn_once ) {
-            log_warn(__FILE__, __LINE__, "shader \"%s\" not found\n", shader_name);
-            log_warn(__FILE__, __LINE__, "using \"default_shader\" instead of \"%s\"\n", shader_name);
+            log_warn(__C_FILENAME__, __LINE__, "shader \"%s\" not found\n", shader_name);
+            log_warn(__C_FILENAME__, __LINE__, "using \"default_shader\" instead of \"%s\"\n", shader_name);
             warn_once = 0;
         }
         shader_i = canvas_find_shader(canvas, "default_shader");
     }
 
     if( shader_i == MAX_CANVAS_SHADER ) {
-        log_fail(__FILE__, __LINE__, "no shader could be found in canvas when trying to append indices\n");
+        log_fail(__C_FILENAME__, __LINE__, "no shader could be found in canvas when trying to append indices\n");
         return 0;
     }
 

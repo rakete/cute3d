@@ -22,19 +22,19 @@ int32_t init_vbo() {
     if( ! SDL_GL_ExtensionSupported("GL_ARB_copy_buffer") &&
         ! SDL_GL_ExtensionSupported("GL_EXT_copy_buffer") )
     {
-        log_fail(__FILE__, __LINE__, "copy_buffer extension not found!\n");
+        log_fail(__C_FILENAME__, __LINE__, "copy_buffer extension not found!\n");
         ret = 1;
     }
 
     if( ! SDL_GL_ExtensionSupported ("GL_ARB_vertex_array_object") &&
         ! SDL_GL_ExtensionSupported("GL_EXT_vertex_array_object") )
     {
-        log_fail(__FILE__, __LINE__, "vertex_array_object extension not found!\n");
+        log_fail(__C_FILENAME__, __LINE__, "vertex_array_object extension not found!\n");
         ret = 1;
     }
 
     if( ! SDL_GL_ExtensionSupported("GL_ARB_buffer_storage" ) ) {
-        log_fail(__FILE__, __LINE__, "buffer_storage extension not found!\n");
+        log_fail(__C_FILENAME__, __LINE__, "buffer_storage extension not found!\n");
         ret = 1;
     }
 
@@ -42,7 +42,7 @@ int32_t init_vbo() {
     // - opengl es 2 does not have mapping of buffers! that sucks because I use it,
     // so I need to check for this extension
     if( ! SDL_GL_ExtensionSupported("GL_OES_mapbuffer") ) {
-        log_fail(__FILE__, __LINE__, "mapbuffer extension not found!\n");
+        log_fail(__C_FILENAME__, __LINE__, "mapbuffer extension not found!\n");
         ret = 1;
     }
 #endif
@@ -306,7 +306,7 @@ void vbomesh_print(struct VboMesh* mesh) {
                         break;
                     }
                     case GL_INT: {
-                        log_fail(__FILE__, __LINE__, "GL_INT case not implemented in vbomesh_print\n");
+                        log_fail(__C_FILENAME__, __LINE__, "GL_INT case not implemented in vbomesh_print\n");
                         break;
                     }
                 }
@@ -380,13 +380,13 @@ size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
             mesh->vbo->occupied += n;
             mesh->capacity += n;
         } else {
-            log_fail(__FILE__, __LINE__, "failed to allocate attributes\n");
+            log_fail(__C_FILENAME__, __LINE__, "failed to allocate attributes\n");
             log_assert( resized_n == 0 );
         }
 
         return resized_n;
     } else {
-        log_warn(__FILE__, __LINE__, "trying to allocate space for a mesh that is not in last position in vbo\n");
+        log_warn(__C_FILENAME__, __LINE__, "trying to allocate space for a mesh that is not in last position in vbo\n");
     }
 
     return 0;
@@ -413,7 +413,7 @@ size_t vbomesh_alloc_indices(struct VboMesh* mesh, size_t n) {
         mesh->indices->capacity += n;
         return n;
     } else {
-        log_fail(__FILE__, __LINE__, "failed to allocate indices\n");
+        log_fail(__C_FILENAME__, __LINE__, "failed to allocate indices\n");
         log_assert( resized_bytes == 0 );
     }
 
@@ -492,7 +492,7 @@ size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t compo
         mesh->occupied[i] += n;
         return n;
     } else {
-        log_warn(__FILE__, __LINE__, "could not grow a mesh that is not in last position in vbo when trying to append\n");
+        log_warn(__C_FILENAME__, __LINE__, "could not grow a mesh that is not in last position in vbo when trying to append\n");
     }
 
     return 0;

@@ -149,7 +149,7 @@ size_t solid_optimize(struct Solid* solid) {
         free(old_indices);
         free(processed_map);
     } else {
-        log_warn(__FILE__, __LINE__, "can not optimize an already optimized or compressed solid\n");
+        log_warn(__C_FILENAME__, __LINE__, "can not optimize an already optimized or compressed solid\n");
     }
 
     return solid->indices_size - solid->size;
@@ -246,7 +246,7 @@ size_t solid_compress(struct Solid* solid) {
         free(old_indices);
         free(processed_map);
     } else {
-        log_warn(__FILE__, __LINE__, "can not optimize an already optimized or compressed solid\n");
+        log_warn(__C_FILENAME__, __LINE__, "can not optimize an already optimized or compressed solid\n");
     }
 
     return solid->indices_size - solid->size;
