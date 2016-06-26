@@ -56,7 +56,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
     log_assert( alphabet_len < INT32_MAX );
 
 #ifdef CUTE_BUILD_MSVC
-    char* ascii_alphabet = alloca(sizeof(char) * (alphabet_len + 1));
+    char* ascii_alphabet = _alloca(sizeof(char) * (alphabet_len + 1));
 #else
     char ascii_alphabet[alphabet_len + 1];
 #endif
@@ -69,7 +69,7 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
     int32_t max_h = 0;
 
 #ifdef CUTE_BUILD_MSVC
-    int32_t* widths = alloca(sizeof(int32_t) * alphabet_len);
+    int32_t* widths = _alloca(sizeof(int32_t) * alphabet_len);
 #else
     int32_t widths[alphabet_len];
 #endif
@@ -97,8 +97,8 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
     int32_t row_n = 0;
 
 #ifdef CUTE_BUILD_MSVC
-    int32_t* rows = alloca(sizeof(int32_t) * alphabet_len);
-    int32_t* row_offsets = alloca(sizeof(int32_t) * alphabet_len);
+    int32_t* rows = _alloca(sizeof(int32_t) * alphabet_len);
+    int32_t* row_offsets = _alloca(sizeof(int32_t) * alphabet_len);
 #else
     int32_t rows[alphabet_len];
     int32_t row_offsets[alphabet_len];

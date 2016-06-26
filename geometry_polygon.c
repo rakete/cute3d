@@ -31,7 +31,9 @@ size_t polygon_corner_remove(size_t polygon_size, size_t point_size, size_t type
     size_t j = 0;
     for( size_t i = 0; i < polygon_size; i++ ) {
         if( i != corner_i ) {
-            memcpy(&result[j*point_size*type_size], &polygon[i*point_size*type_size], type_size*point_size);
+            void* dst = ((char*)result)+(j*point_size*type_size);
+            void* src = ((char*)polygon)+(i*point_size*type_size);
+            memcpy(dst, src, type_size*point_size);
             j += 1;
         }
     }

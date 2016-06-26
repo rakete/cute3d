@@ -89,17 +89,18 @@ elif build_toolset == "mingw":
     ldflags = linking + " " + libraries
 elif build_toolset == "msvc":
     sdl2_cflags = "/Ic:\\VC\\SDL2-2.0.4\\include"
-    sdl2_libs = "/LIBPATHc:\\VC\\SDL2-2.0.4\\lib"
+    sdl2_libs = "/LIBPATH:c:\\VC\\SDL2-2.0.4\\lib\\x86 SDL2.lib SDL2main.lib"
 
-    features = "/Zi /DDEBUG /DCUTE_BUILD_MSVC"
+    features = "/MD /Oi /Zi /DDEBUG /DCUTE_BUILD_MSVC"
     optimization = "/Od"
-    warnings = "/W4"
+    # warning C4204: nonstandard extension used: non-constant aggregate initializer
+    warnings = "/W4 /wd4204"
     linking = ""
-    libraries = "" + sdl2_libs
+    libraries = "msvcurt.lib libucrt.lib opengl32.lib chkstk.obj " + sdl2_libs
     includes = "/I" + source_directory
 
     cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
-    ldflags = linking + " " + libraries
+    ldflags = "/SUBSYSTEM:CONSOLE /ENTRY:main" + linking + " " + libraries
 else:
     print "building with " + build_toolset + " on " + build_platform + " is not supported yet."
     sys.exit(1)
@@ -119,6 +120,10 @@ w = ninja_syntax.Writer(build_file_handle, 127)
 w.variable("filename", "\"$in\"")
 w.newline()
 
+cmdexe = "cmd"
+if build_platform == "windows" and command_exists("cmdproxy"):
+    cmdexe = "cmdproxy"
+
 if build_platform == "windows":
     if command_exists("cp"):
         w.rule(name="copy", command="cp $in $out")
@@ -129,7 +134,7 @@ if build_platform == "windows":
         print "with windows builtin copy and xcopy.exe, this script will use the cmd builtin"
         print "copy for copying, but I know that this has several issues and is slow, if you"
         print "happen to know a better way, please file an issue, thank you"
-        w.rule(name="copy", command="cmd /c copy.exe $in $out >nul")
+        w.rule(name="copy", command=cmdexe + " /c \"copy.exe $in $out >nul\"")
 else:
     w.rule(name="copy", command="cp $in $out")
 w.newline()
@@ -141,15 +146,15 @@ if build_platform == "windows" and os.path.relpath(build_directory, script_direc
     os.chdir(current_directory)
 
     for d in dlls:
-        w.build(d, "copy", os.path.join(source_directory, d))
+       w.build(d, "copy", os.path.join(source_directory, d))
     w.newline()
 
 shader_directory = os.path.relpath(os.path.join(source_directory, "shader"), current_directory)
 
 if build_platform == "windows":
-    w.rule(name="make_shader_directory", command="cmd /c mkdir shader & copy NUL $out")
+    w.rule(name="make_shader_directory", command=cmdexe + " /c \"if not exist shader mkdir shader & copy NUL $out\"")
 else:
-    w.rule(name="make_shader_directory", command="mkdir -p shader; touch $out")
+    w.rule(name="make_shader_directory", command="bash -c \"mkdir -p shader; touch $out\"")
 w.newline()
 
 w.build(os.path.join("shader", ".directory"), "make_shader_directory")
@@ -162,9 +167,9 @@ if command_exists("glsl-validate.py"):
 
     if build_platform == "windows":
         if command_exists("cp"):
-            w.rule(name="copy_shader", command="cmd /c glsl-validate.py " + prefix_shader_string + " $in && cp $in shader")
+            w.rule(name="copy_shader", command=cmdexe + " /c \"glsl-validate.py " + prefix_shader_string + " $in && cp $in shader\"")
         else:
-            w.rule(name="copy_shader", command="cmd /c glsl-validate.py " + prefix_shader_string + " $in & for %I in ($in) do copy %I shader >nul")
+            w.rule(name="copy_shader", command=cmdexe + " /c \"glsl-validate.py " + prefix_shader_string + " $in & for %I in ($in) do copy %I shader >nul\"")
     else:
         w.rule(name="copy_shader", command="bash -c \"glsl-validate.py " + prefix_shader_string + " $in; cp $in shader\"")
 else:
@@ -172,7 +177,7 @@ else:
         if command_exists("cp"):
             w.rule(name="copy_shader", command="cp $in shader")
         else:
-            w.rule(name="copy_shader", command="cmd /c for %I in ($in) do copy %I shader >nul")
+            w.rule(name="copy_shader", command=cmdexe + " /c \"for %I in ($in) do copy %I shader >nul\"")
     else:
         w.rule(name="copy_shader", command="bash -c \"cp $in shader\"")
 w.newline()
@@ -216,7 +221,9 @@ if build_toolset == "mingw" or build_toolset == "gcc":
     w.newline()
 elif build_toolset == "msvc":
     # - needs /FS to enable synchronous writes to pdb database
-    w.rule(name="compile", command="cl.exe /showIncludes /FS /D__FILENAME__=\"\\\"$filename\\\"\" /c $in /Fo$out " + cflags, deps="msvc")
+    w.rule(name="compile", command="cl.exe /nologo /showIncludes /FS /D__FILENAME__=\"\\\"$filename\\\"\" /c $in /Fo$out " + cflags, deps="msvc")
+    w.newline()
+    w.rule(name="link", command="cl.exe /nologo $in /link " + ldflags + " /out:$out")
     w.newline()
 
 os.chdir(source_directory)
@@ -226,7 +233,10 @@ os.chdir(current_directory)
 
 objects = []
 for c in sources:
-    o = c.replace(".c", ".o")
+    if build_toolset == "msvc":
+        o = c.replace(".c", ".obj")
+    else:
+        o = c.replace(".c", ".o")
     w.build(o, "compile", os.path.join(source_directory, c))
     w.variable("filename", os.path.splitext(c)[0], indent=1)
     objects.append(o)
@@ -241,7 +251,10 @@ os.chdir(tests_directory)
 test_sources = glob.glob("*.c")
 os.chdir(current_directory)
 for c in test_sources:
-    o = c.replace(".c", ".o")
+    if build_toolset == "msvc":
+        o = c.replace(".c", ".obj")
+    else:
+        o = c.replace(".c", ".o")
     w.build(o, "compile", os.path.join(tests_directory, c))
     w.variable("filename", os.path.join("tests", os.path.splitext(c)[0]), indent=1)
 

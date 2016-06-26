@@ -7,6 +7,7 @@
 #include "assert.h"
 #include "stdio.h"
 
+#include "driver_platform.h"
 #include "driver_log.h"
 
 // hack to get rid of annoying clang warning
@@ -50,10 +51,10 @@ void ogl_error_print(GLenum error);
 /* }; */
 /* #endif */
 
-size_t ogl_buffer_resize(GLuint* buffer, size_t old_nbytes, size_t new_nbytes) __attribute__((warn_unused_result));
+WARN_UNUSED_RESULT size_t ogl_buffer_resize(GLuint* buffer, size_t old_nbytes, size_t new_nbytes);
 
-size_t ogl_sizeof_type(GLenum type) __attribute__((warn_unused_result));
+WARN_UNUSED_RESULT size_t ogl_sizeof_type(GLenum type);
 
-size_t ogl_sizeof_primitive(GLenum primitive) __attribute__((warn_unused_result));
+WARN_UNUSED_RESULT size_t ogl_sizeof_primitive(GLenum primitive);
 
 #endif

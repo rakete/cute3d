@@ -68,7 +68,6 @@ size_t ogl_sizeof_type(GLenum type) {
         case GL_UNSIGNED_BYTE: return sizeof(GLubyte);
         default: return 0;
     }
-    return 0;
 }
 
 size_t ogl_sizeof_primitive(GLenum primitive) {
@@ -78,5 +77,4 @@ size_t ogl_sizeof_primitive(GLenum primitive) {
         case GL_TRIANGLES: return 3;
         default: return 0;
     }
-    return 0;
 }

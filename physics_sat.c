@@ -99,7 +99,7 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
     // manageable
     log_assert(transformed_size < 1024*3);
 #ifdef CUTE_BUILD_MSVC
-    float* transformed_vertices = alloca(sizeof(float) * transformed_size);
+    float* transformed_vertices = _alloca(sizeof(float) * transformed_size);
 #else
     float transformed_vertices[transformed_size];
 #endif
@@ -188,7 +188,7 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
     size_t transformed_vertices_size = mesh2->vertices.occupied*3;
     log_assert(transformed_vertices_size < 1024*3);
 #ifdef CUTE_BUILD_MSVC
-    float* transformed_vertices = alloca(sizeof(float) * transformed_vertices_size);
+    float* transformed_vertices = _alloca(sizeof(float) * transformed_vertices_size);
 #else
     float transformed_vertices[transformed_vertices_size];
 #endif
@@ -197,7 +197,7 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
     size_t transformed_normals_size = mesh2->faces.occupied*3;
     log_assert(transformed_normals_size < 1024*3);
 #ifdef CUTE_BUILD_MSVC
-    float* transformed_normals = alloca(sizeof(float) * transformed_normals_size);
+    float* transformed_normals = _alloca(sizeof(float) * transformed_normals_size);
 #else
     float transformed_normals[transformed_normals_size];
 #endif

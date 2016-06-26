@@ -128,7 +128,7 @@ struct Canvas {
 extern struct Canvas global_dynamic_canvas;
 extern struct Canvas global_static_canvas;
 
-int32_t init_canvas() __attribute__((warn_unused_result));
+WARN_UNUSED_RESULT int32_t init_canvas();
 
 void canvas_create(const char* name, struct Canvas* canvas);
 // - I use malloc for the arrays, I should implement a destructor eventually, but since the canvas
@@ -146,11 +146,11 @@ void canvas_destroy(struct Canvas* canvas);
 // struct with that name
 void canvas_add_attribute(struct Canvas* canvas, int32_t attribute, uint32_t size, GLenum type);
 
-int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader) __attribute__((warn_unused_result));
-int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name) __attribute__((warn_unused_result));
+WARN_UNUSED_RESULT int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader);
+WARN_UNUSED_RESULT int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name);
 
-int32_t canvas_add_font(struct Canvas* canvas, const struct Font* font) __attribute__((warn_unused_result));
-int32_t canvas_find_font(struct Canvas* canvas, const char* font_name) __attribute__((warn_unused_result));
+WARN_UNUSED_RESULT int32_t canvas_add_font(struct Canvas* canvas, const struct Font* font);
+WARN_UNUSED_RESULT int32_t canvas_find_font(struct Canvas* canvas, const char* font_name);
 
 // - allocating the heap memory for the arrays
 size_t canvas_alloc_attributes(struct Canvas* canvas, uint32_t attribute_i, size_t n);
