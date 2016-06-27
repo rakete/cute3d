@@ -1,14 +1,17 @@
 #include "geometry_halfedgemesh.h"
 #include "render_vbomesh.h"
-#include "render_shader.h"
+#include "driver_shader.h"
+
 #include "driver_sdl2.h"
 #include "math_arcball.h"
 #include "geometry_vbo.h"
+
 #include "gui_draw.h"
 #include "gui_canvas.h"
 #include "gui_font.h"
 #include "gui_default_font.h"
 #include "gui_text.h"
+
 #include "render_canvas.h"
 #include "math_gametime.h"
 

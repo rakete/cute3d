@@ -11,7 +11,7 @@
 #include "render_canvas.h"
 
 int32_t main(int32_t argc, char *argv[]) {
-    if( init_sdl2(3,2) ) {
+    if( init_sdl2() ) {
         return 1;
     }
 
@@ -19,7 +19,7 @@ int32_t main(int32_t argc, char *argv[]) {
     sdl2_window("test-solid", 100, 60, 1280, 720, &window);
 
     SDL_GLContext* context;
-    sdl2_glcontext(window, (Color){0, 0, 0, 255}, &context);
+    sdl2_glcontext(3, 2, window, (Color){0, 0, 0, 255}, &context);
 
     if( init_shader() ) {
         return 1;
@@ -64,6 +64,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbomesh_create_from_solid((struct Solid*)&cube, &vbo, &cube_mesh);
     vbomesh_create_from_solid((struct Solid*)&sphere16, &vbo, &sphere16_mesh);
     vbomesh_create_from_solid((struct Solid*)&sphere32, &vbo, &sphere32_mesh);
+
 
     struct Shader shader = {0};
     shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &shader);

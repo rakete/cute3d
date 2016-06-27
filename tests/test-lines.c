@@ -17,7 +17,7 @@
 int32_t main(int32_t argc, char *argv[]) {
     printf("<<watchlist//>>\n");
 
-    if( init_sdl2(3,2) ) {
+    if( init_sdl2() ) {
         return 1;
     }
 
@@ -25,7 +25,7 @@ int32_t main(int32_t argc, char *argv[]) {
     sdl2_window("test-arcball", 100, 60, 1280, 720, &window);
 
     SDL_GLContext* context;
-    sdl2_glcontext(window, (Color){0.0f, 0.0f, 0.0f, 1.0f}, &context);
+    sdl2_glcontext(3, 2, window, (Color){0.0f, 0.0f, 0.0f, 1.0f}, &context);
 
     if( init_shader() ) {
         return 1;
@@ -39,7 +39,7 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    struct Cube solid_cube = {0};
+    struct Box solid_cube = {0};
     solid_create_cube(1.0, (Color){255, 0, 255, 255}, &solid_cube);
     solid_compute_normals((struct Solid*)&solid_cube);
 

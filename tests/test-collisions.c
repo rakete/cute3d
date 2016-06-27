@@ -49,7 +49,7 @@ static void entity_create(const char* name, Color color, struct Vbo* vbo, struct
 int32_t main(int32_t argc, char *argv[]) {
     printf("<<watchlist//>>\n");
 
-    if( init_sdl2(3,2) ) {
+    if( init_sdl2() ) {
         return 1;
     }
 
@@ -57,7 +57,7 @@ int32_t main(int32_t argc, char *argv[]) {
     sdl2_window("test-halfedge", 100, 60, 1280, 720, &window);
 
     SDL_GLContext* context;
-    sdl2_glcontext(window, (Color){0,0,0,255}, &context);
+    sdl2_glcontext(3, 2, window, (Color){0,0,0,255}, &context);
 
     if( init_shader() ) {
         return 1;
@@ -111,11 +111,11 @@ int32_t main(int32_t argc, char *argv[]) {
     //Vec3f move = {-0.01, 0.0, 0.0};
 
     size_t num_entities = 2;
-    struct PickingSphere* picking_spheres[num_entities];
+    struct PickingSphere* picking_spheres[2];
     picking_spheres[0] = &entity_a.picking_sphere;
     picking_spheres[1] = &entity_b.picking_sphere;
 
-    struct CollisionEntity* picking_entities[num_entities];
+    struct CollisionEntity* picking_entities[2];
     picking_entities[0] = &entity_a;
     picking_entities[1] = &entity_b;
 
@@ -223,7 +223,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
         colliding_prepare_shape((struct CollidingShape*)&entity_a.colliding_convex);
         colliding_prepare_shape((struct CollidingShape*)&entity_b.colliding_convex);
-        for( uint32_t i = 0; i < 100; i++ ) {
+        for( uint32_t i = 0; i < 1000; i++ ) {
             struct Collision collision = {0};
             struct CollisionParameter collision_parameter = {
                 .face_tolerance = 0.9,
@@ -258,5 +258,6 @@ int32_t main(int32_t argc, char *argv[]) {
 
 done:
     SDL_Quit();
+    printf("done\n");
     return 0;
 }
