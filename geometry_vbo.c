@@ -451,7 +451,7 @@ size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t compo
                 components_size, mesh->vbo->components[i].size, i);
     log_assert( components_type == mesh->vbo->components[i].type,
                 "components_type(%d) == mesh->vbo->components[i].type(%d): the component type of the data appended to the vbo (components_type) does not fit the components type stored in the vbo (mesh->vbo->components[i].type)\n",
-                components_type, mesh->vbo->components[i].type, i)
+                components_type, mesh->vbo->components[i].type, i);
 
     // only these depend on given size params => generic data append
     size_t attrib_bytes = components_size * ogl_sizeof_type(components_type);
