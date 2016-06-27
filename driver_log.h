@@ -33,6 +33,43 @@ bool log_fail(const char* filename, int32_t linenumber, const char* format, ...)
 
 bool log_continue(const char* format, ...);
 
+#ifdef CUTE_BUILD_MSVC
+// http://stackoverflow.com/questions/9183993/msvc-variadic-macro-expansion
+// http://stackoverflow.com/questions/24836793/varargs-elem-macro-for-use-with-c/24837037#24837037
+#define _log_glue(x, y) x y
+
+#define _log_return_arg_count(_1_, _2_, _3_, _4_, _5_, _6_, _7_, _8_, _9_, _10_, _11_, _12_, _13_, _14_, _15_, _16_, count, ...) count
+#define _log_expand_args(args) _log_return_arg_count args
+#define _log_count_args_max16(...) _log_expand_args((__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0))
+
+#define _log_overload_macro2(name, count) name##count
+#define _log_overload_macro1(name, count) _log_overload_macro2(name, count)
+#define _log_overload_macro(name, count) _log_overload_macro1(name, count)
+
+#define _log_call_overload(name, ...) _log_glue(_log_overload_macro(name, _log_count_args_max16(__VA_ARGS__)), (__VA_ARGS__))
+
+#define _log_assert_dispatch0(condition)
+#define _log_assert_dispatch1(condition) do { assert((condition) || _log_assert(#condition, "")); } while(0)
+#define _log_assert_dispatch2(condition, format) do { assert((condition) || _log_assert(#condition, format)); } while(0)
+#define _log_assert_dispatch3(condition, format, a) do { assert((condition) || _log_assert(#condition, format, a)); } while(0)
+#define _log_assert_dispatch4(condition, format, a, b) do { assert((condition) || _log_assert(#condition, format, a, b)); } while(0)
+#define _log_assert_dispatch5(condition, format, a, b, c) do { assert((condition) || _log_assert(#condition, format, a, b, c)); } while(0)
+#define _log_assert_dispatch6(condition, format, a, b, c, d) do { assert((condition) || _log_assert(#condition, format, a, b, c, d)); } while(0)
+#define _log_assert_dispatch7(condition, format, a, b, c, d, e) do { assert((condition) || _log_assert(#condition, format, a, b, c, d, e)); } while(0)
+#define _log_assert_dispatch8(condition, format, a, b, c, d, e, f) do { assert((condition) || _log_assert(#condition, format, a, b, c, d, e, f)); } while(0)
+#define _log_assert_dispatch9(condition, format, a, b, c, d, e, f, g) do { assert((condition) || _log_assert(#condition, format, a, b, c, d, e, f, g)); } while(0)
+#define _log_assert_dispatch10(condition, format, a, b, c, d, e, f, g, h) do { assert((condition) || _log_assert(#condition, format, a, b, c, d, e, f, g, h)); } while(0)
+#define _log_assert_dispatch11(condition, format, a, b, c, d, e, f, g, h, i) do { assert((condition) || _log_assert(#condition, format, a, b, c, d, e, f, g, h, i)); } while(0)
+#define _log_assert_dispatch12(condition, format, a, b, c, d, e, f, g, h, i, j) do { assert((condition) || _log_assert(#condition, format, a, b, c, d, e, f, g, h, i, j)); } while(0)
+#define _log_assert_dispatch13(condition, format, a, b, c, d, e, f, g, h, i, j, k) do { assert((condition) || _log_assert(#condition, format, a, b, c, d, e, f, g, h, i, j, k)); } while(0)
+#define _log_assert_dispatch14(condition, format, a, b, c, d, e, f, g, h, i, j, k, l) do { assert((condition) || _log_assert(#condition, format, a, b, c, d, e, f, g, h, i, j, k, l)); } while(0)
+#define _log_assert_dispatch15(condition, format, a, b, c, d, e, f, g, h, i, j, k, l, m) do { assert((condition) || _log_assert(#condition, format, a, b, c, d, e, f, g, h, i, j, k, l, m)); } while(0)
+#define _log_assert_dispatch16(condition, format, a, b, c, d, e, f, g, h, i, j, k, l, m, n) do { assert((condition) || _log_assert(#condition, format, a, b, c, d, e, f, g, h, i, j, k, l, m, n)); } while(0)
+
+#define log_assert(...) _log_call_overload(_log_assert_dispatch, __VA_ARGS__);
+
+#else
+
 // - logging assert failures, the log_assert macro takes can be used with just one argument, the asserted condtion,
 // and optionally a format string and variadic args can come after the condition
 // - I had to implement it with these multiple macros and extra "", "" arguments to work around warnings (also I could
@@ -42,6 +79,8 @@ bool log_continue(const char* format, ...);
 // like this (foo)(), the function will be used
 #define log_assert(...) _log_assert_dispatch(__VA_ARGS__, "", "");
 #define _log_assert_dispatch(condition, format, ...) do { assert((condition) || _log_assert(#condition, format, __VA_ARGS__)); } while(0)
+
+#endif
 bool _log_assert(const char* condition, const char* format, ...);
 
 /* _Pragma(log_stringify(clang diagnostic push));                      \ */
