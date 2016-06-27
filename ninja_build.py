@@ -152,12 +152,15 @@ if build_platform == "windows" and os.path.relpath(build_directory, script_direc
 shader_directory = os.path.relpath(os.path.join(source_directory, "shader"), current_directory)
 
 if build_platform == "windows":
-    w.rule(name="make_shader_directory", command=cmdexe + " /c \"if not exist shader mkdir shader & copy NUL $out\"")
+    if command_exists("mkdir.exe"):
+        w.rule(name="make_shader_directory", command="mkdir -p $out")
+    else:
+        w.rule(name="make_shader_directory", command=cmdexe + " /c \"if not exist shader mkdir shader\"")
 else:
-    w.rule(name="make_shader_directory", command="bash -c \"mkdir -p shader; touch $out\"")
+    w.rule(name="make_shader_directory", command="bash -c \"mkdir -p $out\"")
 w.newline()
 
-w.build(os.path.join("shader", ".directory"), "make_shader_directory")
+w.build("shader", "make_shader_directory")
 w.newline()
 
 prefix_shader = []
@@ -166,20 +169,20 @@ if command_exists("glsl-validate.py"):
     prefix_shader_string = " ".join(prefix_shader)
 
     if build_platform == "windows":
-        if command_exists("cp"):
-            w.rule(name="copy_shader", command=cmdexe + " /c \"glsl-validate.py " + prefix_shader_string + " $in && cp $in shader\"")
+        if command_exists("cp.exe"):
+            w.rule(name="validate_glsl", command=cmdexe + " /c \"glsl-validate.py " + prefix_shader_string + " $in && cp $in shader\"")
         else:
-            w.rule(name="copy_shader", command=cmdexe + " /c \"glsl-validate.py " + prefix_shader_string + " $in & for %I in ($in) do copy %I shader >nul\"")
+            w.rule(name="validate_glsl", command=cmdexe + " /c \"glsl-validate.py " + prefix_shader_string + " $in & for %I in ($in) do copy %I shader >nul\"")
     else:
-        w.rule(name="copy_shader", command="bash -c \"glsl-validate.py " + prefix_shader_string + " $in; cp $in shader\"")
+        w.rule(name="validate_glsl", command="bash -c \"glsl-validate.py " + prefix_shader_string + " $in; cp $in shader\"")
 else:
     if build_platform == "windows":
-        if command_exists("cp"):
-            w.rule(name="copy_shader", command="cp $in shader")
+        if command_exists("cp.exe"):
+            w.rule(name="validate_glsl", command="cp $in shader")
         else:
-            w.rule(name="copy_shader", command=cmdexe + " /c \"for %I in ($in) do copy %I shader >nul\"")
+            w.rule(name="validate_glsl", command=cmdexe + " /c \"for %I in ($in) do copy %I shader >nul\"")
     else:
-        w.rule(name="copy_shader", command="bash -c \"cp $in shader\"")
+        w.rule(name="validate_glsl", command="bash -c \"cp $in shader\"")
 w.newline()
 
 shaders = []
@@ -198,17 +201,21 @@ if os.path.relpath(build_directory, script_directory) != ".":
         source_shaders = []
         if os.path.isfile(source_vert_shader):
             source_shaders.append(source_vert_shader)
-            dest_shaders.append(os.path.join("shader", shader_filename + ".vert"))
+            dest_vert_shader = os.path.join("shader", shader_filename + ".vert")
+            dest_shaders.append(dest_vert_shader)
+            w.build(dest_vert_shader, "validate_glsl", source_vert_shader)
 
         if os.path.isfile(source_frag_shader):
             source_shaders.append(source_frag_shader)
-            dest_shaders.append(os.path.join("shader", shader_filename + ".frag"))
+            dest_frag_shader = os.path.join("shader", shader_filename + ".frag")
+            dest_shaders.append(dest_frag_shader)
+            w.build(dest_frag_shader, "validate_glsl", source_frag_shader)
 
-        deps = [os.path.join("shader", ".directory")]
+        deps = ["shader"]
         if shader_filename != "prefix":
             deps += [os.path.join("shader", "prefix.vert"), os.path.join("shader", "prefix.frag"), ]
 
-        w.build(dest_shaders, "copy_shader", source_shaders, deps)
+        #w.build(dest_shaders, "validate_glsl", source_shaders, deps)
 
         shaders += dest_shaders
     w.newline()
