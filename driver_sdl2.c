@@ -1,9 +1,6 @@
 #include "driver_sdl2.h"
 
-int32_t init_sdl2(int major, int minor) {
-    log_assert(ogl_LoadFunctions() != ogl_LOAD_FAILED);
-    log_assert( major == 2 || major == 3 || major == 4 );
-    log_assert( minor >= 0 && minor < 10 );
+int32_t init_sdl2() {
 
     if( SDL_Init(SDL_INIT_EVERYTHING) < 0 ) {
         log_fail(__C_FILENAME__, __LINE__, "SDL_Init failed: %s\n", SDL_GetError());
@@ -16,24 +13,6 @@ int32_t init_sdl2(int major, int minor) {
 
     if( sdl2_time() > 0.0 || sdl2_time_delta() > 0.0 ) {
         return 1;
-    }
-
-#ifdef CUTE_BUILD_ES2
-    if( major >= 3 ) {
-        log_warn(__C_FILENAME__, __LINE__, "OpenGL %d.%d needs VAOs to be enabled, falling back to 2.1!\n", major, minor);
-        major = 2;
-        minor = 1;
-    }
-#endif
-
-    // - this _must_ be set before creating a gl context
-    if( major >= 3 ) {
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-#ifdef CUTE_BUILD_ES2
-    } else {
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-#endif
     }
 
     // - all of these are do not work in 3.0+ and make context creation
@@ -59,9 +38,6 @@ int32_t init_sdl2(int major, int minor) {
     /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); */
     /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16); */
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
-
     return 0;
 }
 
@@ -84,10 +60,32 @@ void sdl2_fullscreen(const char* title, int32_t width, int32_t height, SDL_Windo
         });
 }
 
-void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLContext** context) {
+void sdl2_glcontext(int major, int minor, SDL_Window* window, const uint8_t clear_color[4], SDL_GLContext** context) {
+    log_assert( major == 2 || major == 3 || major == 4 );
+    log_assert( minor >= 0 && minor < 10 );
+
+#ifdef CUTE_BUILD_ES2
+    if( major >= 3 ) {
+        log_warn(__C_FILENAME__, __LINE__, "OpenGL %d.%d needs VAOs to be enabled, falling back to 2.1!\n", major, minor);
+        major = 2;
+        minor = 1;
+    }
+#endif
+
+    // - this _must_ be set before creating a gl context
+    if( major >= 3 ) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#ifdef CUTE_BUILD_ES2
+    } else {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#endif
+    }
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
 
     int32_t width,height;
-
     sdl2_debug({
             SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
@@ -97,10 +95,12 @@ void sdl2_glcontext(SDL_Window* window, const uint8_t clear_color[4], SDL_GLCont
             SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major_version);
             SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor_version);
             log_info(__C_FILENAME__, __LINE__, "requesting OpenGL %d.%d context...\n", major_version, minor_version);
-            *context = SDL_GL_CreateContext(window);
 
+            *context = SDL_GL_CreateContext(window);
             SDL_GL_GetDrawableSize(window, &width, &height);
         });
+
+    log_assert( ogl_LoadFunctions() != ogl_LOAD_FAILED );
 
     // - this had glEnable(GL_MULTISAMPLING) in it and was in driver_ogl
     ogl_debug({
