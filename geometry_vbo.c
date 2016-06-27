@@ -105,6 +105,7 @@ void vbo_add_buffer(struct Vbo* vbo,
                 components_type, GL_FLOAT, components_type, GL_UNSIGNED_BYTE, components_type );
 
     ogl_debug( glGenBuffers(1, &vbo->buffer[i].id) );
+    log_assert( vbo->buffer[i].id > 0 );
 
     vbo->buffer[i].usage = usage;
 
