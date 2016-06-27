@@ -2,7 +2,6 @@
 #define DRIVER_OGL_H
 
 #include "gl_core_3_2.h"
-#include "GL/gl.h"
 
 #include "assert.h"
 #include "stdio.h"
