@@ -64,7 +64,7 @@ if build_platform == "linux" or build_toolset == "gcc":
     sdl2_cflags = subprocess.check_output(["bash", "sdl2-config", "--cflags"]).rstrip()
     sdl2_libs = subprocess.check_output(["bash", "sdl2-config", "--libs"]).rstrip()
 
-    features = "-std=c99 -pg -DDEBUG"
+    features = "-std=c11 -pg -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
     optimization = "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -pedantic"
     linking = "-fPIC"
@@ -81,7 +81,7 @@ elif build_toolset == "mingw":
         sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
         sdl2_libs = "-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows"
 
-    features = "-std=c99 -pg -DDEBUG"
+    features = "-std=c11 -pg -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
     optimization = "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -pedantic"
     linking = "-fPIC"
