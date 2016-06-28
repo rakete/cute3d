@@ -156,36 +156,23 @@ shader_directory = os.path.relpath(os.path.join(source_directory, "shader"), cur
 
 if build_platform == "windows":
     if command_exists("mkdir.exe"):
-        w.rule(name="make_shader_directory", command="mkdir -p $out")
+        w.rule(name="mkdir", command="mkdir -p $out")
     else:
-        w.rule(name="make_shader_directory", command=cmdexe + " /c \"if not exist shader mkdir shader\"")
+        w.rule(name="mkdir", command=cmdexe + " /c \"if not exist $out mkdir $out\"")
 else:
-    w.rule(name="make_shader_directory", command="bash -c \"mkdir -p $out\"")
+    w.rule(name="mkdir", command="mkdir -p $out")
 w.newline()
 
-w.build("shader", "make_shader_directory")
+w.build("shader", "mkdir")
 w.newline()
 
 prefix_shader = []
-if command_exists("glsl-validate.py"):
-    prefix_shader = [os.path.join(shader_directory, "prefix.vert"), os.path.join(shader_directory, "prefix.frag")]
+glsl_validate = command_exists("glsl-validate.py")
+if glsl_validate:
+    prefix_shader = [os.path.join("shader", "prefix.vert"), os.path.join("shader", "prefix.frag")]
     prefix_shader_string = " ".join(prefix_shader)
 
-    if build_platform == "windows":
-        if command_exists("cp.exe"):
-            w.rule(name="validate_glsl", command=cmdexe + " /c \"glsl-validate.py " + prefix_shader_string + " $in && cp $in shader\"")
-        else:
-            w.rule(name="validate_glsl", command=cmdexe + " /c \"glsl-validate.py " + prefix_shader_string + " $in & for %I in ($in) do copy %I shader >nul\"")
-    else:
-        w.rule(name="validate_glsl", command="bash -c \"glsl-validate.py " + prefix_shader_string + " $in; cp $in shader\"")
-else:
-    if build_platform == "windows":
-        if command_exists("cp.exe"):
-            w.rule(name="validate_glsl", command="cp $in shader")
-        else:
-            w.rule(name="validate_glsl", command=cmdexe + " /c \"for %I in ($in) do copy %I shader >nul\"")
-    else:
-        w.rule(name="validate_glsl", command="bash -c \"cp $in shader\"")
+    w.rule(name="validate_glsl", command="python " + glsl_validate + " " + prefix_shader_string + " $in --write")
 w.newline()
 
 shaders = []
@@ -197,30 +184,45 @@ if os.path.relpath(build_directory, script_directory) != ".":
 
     os.chdir(current_directory)
     for shader_filename in shader_filenames:
-        source_vert_shader = os.path.join(shader_directory, shader_filename + ".vert")
-        source_frag_shader = os.path.join(shader_directory, shader_filename + ".frag")
+        vert_shader = shader_filename + ".vert"
+        frag_shader = shader_filename + ".frag"
+        source_vert_shader = os.path.join(shader_directory, vert_shader)
+        source_frag_shader = os.path.join(shader_directory, frag_shader)
+        full_vert_shader = os.path.join("shader", shader_filename + ".full.vert")
+        full_frag_shader = os.path.join("shader", shader_filename + ".full.frag")
 
-        dest_shaders = []
-        source_shaders = []
+        prefix_deps = []
+        if shader_filename != "prefix":
+            prefix_deps = [os.path.join("shader", "prefix.vert"), os.path.join("shader", "prefix.frag"), ]
+
+        phony_shaders = []
         if os.path.isfile(source_vert_shader):
-            source_shaders.append(source_vert_shader)
-            dest_vert_shader = os.path.join("shader", shader_filename + ".vert")
-            dest_shaders.append(dest_vert_shader)
-            w.build(dest_vert_shader, "validate_glsl", source_vert_shader)
+            dest_vert_shader = os.path.join("shader", vert_shader)
+
+            phony_shaders.append(vert_shader)
+
+            w.build(dest_vert_shader, "copy", source_vert_shader, order_only=["shader"])
+            if glsl_validate:
+                w.build(full_vert_shader, "validate_glsl", dest_vert_shader, order_only=prefix_deps)
+                w.build(vert_shader, "phony", full_vert_shader)
+            else:
+                w.build(vert_shader, "phony", dest_vert_shader)
+        w.newline()
 
         if os.path.isfile(source_frag_shader):
-            source_shaders.append(source_frag_shader)
-            dest_frag_shader = os.path.join("shader", shader_filename + ".frag")
-            dest_shaders.append(dest_frag_shader)
-            w.build(dest_frag_shader, "validate_glsl", source_frag_shader)
+            dest_frag_shader = os.path.join("shader", frag_shader)
 
-        deps = ["shader"]
-        if shader_filename != "prefix":
-            deps += [os.path.join("shader", "prefix.vert"), os.path.join("shader", "prefix.frag"), ]
+            phony_shaders.append(frag_shader)
 
-        #w.build(dest_shaders, "validate_glsl", source_shaders, deps)
+            w.build(dest_frag_shader, "copy", source_frag_shader, order_only=["shader"])
+            if glsl_validate:
+                w.build(full_frag_shader, "validate_glsl", dest_frag_shader, order_only=prefix_deps)
+                w.build(frag_shader, "phony", full_frag_shader)
+            else:
+                w.build(frag_shader, "phony", dest_frag_shader)
+        w.newline()
 
-        shaders += dest_shaders
+        shaders += phony_shaders
     w.newline()
 
 if build_toolset == "mingw" or build_toolset == "gcc":
