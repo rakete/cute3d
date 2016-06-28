@@ -6,11 +6,14 @@ import sys
 import os
 
 def command_exists(cmd):
-    return any(
-        os.access(os.path.join(path, cmd), os.X_OK) or
-        os.access(os.path.join(path, cmd + ".exe"), os.X_OK)
-        for path in os.environ["PATH"].split(os.pathsep)
-    )
+    for path in os.environ["PATH"].split(os.pathsep):
+        if os.access(os.path.join(path, cmd), os.X_OK):
+            return os.path.join(path, cmd)
+
+        if os.access(os.path.join(path, cmd + ".exe"), os.X_OK):
+            return os.path.join(path, cmd + ".exe")
+
+    return None
 
 def pairwise(it):
     it = iter(it)
