@@ -130,7 +130,7 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
         Vec3f support = {0};
         int32_t support_j = 0;
         float best_projection = -FLT_MAX;
-        for( int32_t vertex_j = 0; vertex_j < mesh2->vertices.occupied; vertex_j++ ) {
+        for( uint32_t vertex_j = 0; vertex_j < mesh2->vertices.occupied; vertex_j++ ) {
             Vec3f vertex;
             vec_copy3f(&transformed_vertices[vertex_j*3], vertex);
 

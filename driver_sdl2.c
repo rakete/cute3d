@@ -119,10 +119,10 @@ void sdl2_glcontext(int major, int minor, SDL_Window* window, const uint8_t clea
             glEnable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
-            glClearColor((float)clear_color[0] / 255.0,
-                         (float)clear_color[1] / 255.0,
-                         (float)clear_color[2] / 255.0,
-                         (float)clear_color[3] / 255.0);
+            glClearColor((float)clear_color[0] / 255.0f,
+                         (float)clear_color[1] / 255.0f,
+                         (float)clear_color[2] / 255.0f,
+                         (float)clear_color[3] / 255.0f);
             glClearDepth(1);
         });
 

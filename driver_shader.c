@@ -443,7 +443,7 @@ GLint shader_set_uniform_1f(struct Shader* shader, int32_t uniform_index, uint32
             break;
         }
         case GL_UNSIGNED_BYTE: {
-            float_value = size > 0 ? ((uint8_t*)data)[0] / 255.0 : 0.0f;
+            float_value = size > 0 ? ((uint8_t*)data)[0] / 255.0f : 0.0f;
             break;
         }
         default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
@@ -485,9 +485,9 @@ GLint shader_set_uniform_3f(struct Shader* shader, int32_t uniform_index, uint32
             break;
         }
         case GL_UNSIGNED_BYTE: {
-            float_array[0] = size > 0 ? ((uint8_t*)data)[0] / 255.0 : 0.0f;
-            float_array[1] = size > 1 ? ((uint8_t*)data)[1] / 255.0 : 0.0f;
-            float_array[2] = size > 2 ? ((uint8_t*)data)[2] / 255.0 : 0.0f;
+            float_array[0] = size > 0 ? ((uint8_t*)data)[0] / 255.0f : 0.0f;
+            float_array[1] = size > 1 ? ((uint8_t*)data)[1] / 255.0f : 0.0f;
+            float_array[2] = size > 2 ? ((uint8_t*)data)[2] / 255.0f : 0.0f;
             break;
         }
         default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
@@ -535,10 +535,10 @@ GLint shader_set_uniform_4f(struct Shader* shader, int32_t uniform_index, uint32
             break;
         }
         case GL_UNSIGNED_BYTE: {
-            float_array[0] = size > 0 ? ((uint8_t*)data)[0] / 255.0 : 0.0f;
-            float_array[1] = size > 1 ? ((uint8_t*)data)[1] / 255.0 : 0.0f;
-            float_array[2] = size > 2 ? ((uint8_t*)data)[2] / 255.0 : 0.0f;
-            float_array[3] = size > 3 ? ((uint8_t*)data)[3] / 255.0 : 0.0f;
+            float_array[0] = size > 0 ? ((uint8_t*)data)[0] / 255.0f : 0.0f;
+            float_array[1] = size > 1 ? ((uint8_t*)data)[1] / 255.0f : 0.0f;
+            float_array[2] = size > 2 ? ((uint8_t*)data)[2] / 255.0f : 0.0f;
+            float_array[3] = size > 3 ? ((uint8_t*)data)[3] / 255.0f : 0.0f;
             break;
         }
         default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );

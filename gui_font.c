@@ -130,21 +130,21 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
     if( texture != NULL ) {
 
         int8_t k = ascii_alphabet[0];
-        struct Character c = symbols[k];
-        for( int32_t gy = 0; gy < c.h; gy++ ) {
-            for( int32_t gx = 0; gx < c.w; gx++ ) {
-                texture[(gy*power2+gx)*4+0] = 1.0f * c.pixels[gy*c.w+gx];
-                texture[(gy*power2+gx)*4+1] = 1.0f * c.pixels[gy*c.w+gx];
-                texture[(gy*power2+gx)*4+2] = 1.0f * c.pixels[gy*c.w+gx];
-                texture[(gy*power2+gx)*4+3] = 1.0f * c.pixels[gy*c.w+gx];
+        struct Character symbol = symbols[k];
+        for( int32_t gy = 0; gy < symbol.h; gy++ ) {
+            for( int32_t gx = 0; gx < symbol.w; gx++ ) {
+                texture[(gy*power2+gx)*4+0] = 1.0f * symbol.pixels[gy*symbol.w+gx];
+                texture[(gy*power2+gx)*4+1] = 1.0f * symbol.pixels[gy*symbol.w+gx];
+                texture[(gy*power2+gx)*4+2] = 1.0f * symbol.pixels[gy*symbol.w+gx];
+                texture[(gy*power2+gx)*4+3] = 1.0f * symbol.pixels[gy*symbol.w+gx];
             }
         }
 
         for( int32_t i = 0; i < (int32_t)alphabet_len; i++ ) {
-            int8_t c = ascii_alphabet[i];
-            font->alphabet[c] = true;
+            int8_t c_i = ascii_alphabet[i];
+            font->alphabet[c_i] = true;
 
-            struct Glyph* glyph = &font->glyphs[c];
+            struct Glyph* glyph = &font->glyphs[c_i];
 
             int32_t offset_x = row_offsets[i];
             int32_t offset_y = rows[i] * max_h;
@@ -153,14 +153,14 @@ void font_create(const wchar_t* unicode_alphabet, bool unicode, struct Character
 
             glyph->x = offset_x;
             glyph->y = offset_y;
-            glyph->w = symbols[c].w;
+            glyph->w = symbols[c_i].w;
             glyph->h = max_h;
 
-            for( int32_t gy = 0; gy < symbols[c].h; gy++ ) {
-                for( int32_t gx = 0; gx < symbols[c].w; gx++ ) {
-                    int32_t pixel = symbols[c].pixels[gy * symbols[c].w + gx];
+            for( int32_t gy = 0; gy < symbols[c_i].h; gy++ ) {
+                for( int32_t gx = 0; gx < symbols[c_i].w; gx++ ) {
+                    int32_t pixel = symbols[c_i].pixels[gy * symbols[c_i].w + gx];
                     tx = offset_x + gx;
-                    ty = offset_y + gy + max_h - symbols[c].h;
+                    ty = offset_y + gy + max_h - symbols[c_i].h;
 
                     texture[(ty*power2+tx)*4+0] = 1.0f * pixel;
                     texture[(ty*power2+tx)*4+1] = 1.0f * pixel;

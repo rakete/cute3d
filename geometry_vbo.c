@@ -85,8 +85,8 @@ void vbo_destroy(struct Vbo* p) {
 void vbo_print(struct Vbo* vbo) {
     log_assert( vbo != NULL );
 
-    printf("vbo->capacity: %" PRIu64 "\n", vbo->capacity);
-    printf("vbo->occupied: %" PRIu64 "\n", vbo->occupied);
+    printf("vbo->capacity: %zu\n", vbo->capacity);
+    printf("vbo->occupied: %zu\n", vbo->occupied);
 }
 
 void vbo_add_buffer(struct Vbo* vbo,
@@ -268,13 +268,13 @@ void vbomesh_print(struct VboMesh* mesh) {
 
     printf("\n");
 
-    printf("mesh->offset: %" PRIu64 "\n", mesh->offset);
-    printf("mesh->capacity: %" PRIu64 "\n", mesh->capacity);
+    printf("mesh->offset: %zu\n", mesh->offset);
+    printf("mesh->capacity: %zu\n", mesh->capacity);
 
     for( int32_t i = 0; i < MAX_VBO_PHASES; i++ ) {
         for( int32_t j = 0; j < MAX_SHADER_ATTRIBUTES; j++ ) {
             if( mesh->occupied[j] > 0 ) {
-                printf("mesh->occupied[%d]: %" PRIu64 "\n", j, mesh->occupied[j]);
+                printf("mesh->occupied[%d]: %zu\n", j, mesh->occupied[j]);
                 printf("mesh->vbo->buffer[%d][%d]:\n", i, j);
                 switch(mesh->vbo->components[j].type) {
                     case GL_FLOAT: {
@@ -320,8 +320,8 @@ void vbomesh_print(struct VboMesh* mesh) {
 
     printf("mesh->index.type: %d\n", mesh->index.type);
     printf("mesh->index.bytes: %d\n", mesh->index.bytes);
-    printf("mesh->indices->capacity: %" PRIu64 "\n", mesh->indices->capacity);
-    printf("mesh->indices->occupied: %" PRIu64 "\n", mesh->indices->occupied);
+    printf("mesh->indices->capacity: %zu\n", mesh->indices->capacity);
+    printf("mesh->indices->occupied: %zu\n", mesh->indices->occupied);
 
     printf("mesh->indices:\n");
     switch(mesh->index.type) {

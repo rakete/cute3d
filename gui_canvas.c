@@ -460,7 +460,6 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t pro
             // the else case just handles when the capacity is already the same, enough, then we just sync the
             // occupied counters
             if( attribute_capacity < vertices_capacity ) {
-                uint32_t attribute_size = canvas->components[i].size;
                 uint32_t attribute_bytes = canvas->components[i].bytes;
 
                 canvas->attributes[i].array = realloc(canvas->attributes[i].array, vertices_capacity * attribute_size * attribute_bytes);
@@ -527,7 +526,6 @@ size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, int32_t text_i
 
         if( attribute_size > 0 ) {
             if( attribute_capacity < vertices_capacity ) {
-                uint32_t attribute_size = canvas->components[i].size;
                 uint32_t attribute_bytes = canvas->components[i].bytes;
 
                 canvas->attributes[i].array = realloc(canvas->attributes[i].array, vertices_capacity * attribute_size * attribute_bytes);

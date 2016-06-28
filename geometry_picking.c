@@ -38,7 +38,7 @@ bool picking_test_sphere(struct PickingSphere* sphere, const Vec4f origin, const
     if( d2 > radius2 ) {
         return false;
     }
-    float thc = sqrt(radius2 - d2);
+    float thc = sqrtf(radius2 - d2);
     float t0 = tca - thc;
     float t1 = tca + thc;
 

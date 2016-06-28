@@ -20,9 +20,9 @@ static void encode_packet(unsigned char* input,
                           size_t input_offset,
                           size_t bytes,
                           unsigned char flag,
-                          uint64_t* literal_run,
-                          uint64_t* encoded_run,
-                          uint64_t* allocated,
+                          size_t* literal_run,
+                          size_t* encoded_run,
+                          size_t* allocated,
                           unsigned char** result)
 {
     uint64_t encoded_begin = input_offset - (*encoded_run)*bytes;
@@ -85,8 +85,8 @@ size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char
     unsigned char* last = malloc(sizeof(unsigned char) * bytes);
     unsigned char* current = malloc(sizeof(unsigned char) * bytes);
 
-    uint64_t literal_run = 0;
-    uint64_t encoded_run = 0;
+    size_t literal_run = 0;
+    size_t encoded_run = 0;
     size_t allocated = 0;
     int32_t force = 0;
 
@@ -110,7 +110,7 @@ size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char
             encode_packet(input, i, bytes, flag, &literal_run, &encoded_run, &allocated, output);
         }
 
-        for( int32_t b = 0; b < bytes; b++ ) {
+        for( size_t b = 0; b < bytes; b++ ) {
             last[b] = current[b];
         }
 

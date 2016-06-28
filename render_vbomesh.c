@@ -16,7 +16,7 @@
 
 #include "render_vbomesh.h"
 
-void vbomesh_create_from_solid(const struct Solid* solid, struct Vbo* vbo, struct VboMesh* mesh) {
+void vbomesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct VboMesh* mesh) {
     log_assert( solid != NULL );
     log_assert( mesh != NULL );
 

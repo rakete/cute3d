@@ -289,7 +289,7 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
     // - this do {} while loop goes puts all reference face vertices into the reference_polygon
     // array because we need them in this form later
     current_edge = &mesh1->edges.array[reference_face->edge];
-    size_t i = 0;
+    size_t face_i = 0;
 #ifdef CUTE_BUILD_MSVC
     float* reference_polygon = _alloca(sizeof(float) * (size_t)reference_face->size*3);
 #else
@@ -297,13 +297,13 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
 #endif
     do {
         VecP* reference_vertex = mesh1->vertices.array[current_edge->vertex].position;
-        log_assert( i < (size_t)reference_face->size );
-        vec_copy3f(reference_vertex, &reference_polygon[i*3]);
+        log_assert( face_i < (size_t)reference_face->size );
+        vec_copy3f(reference_vertex, &reference_polygon[face_i*3]);
 
         current_edge = &mesh1->edges.array[current_edge->next];
-        i += 1;
+        face_i += 1;
     } while( current_edge->this != reference_face->edge );
-    log_assert( i == (size_t)reference_face->size );
+    log_assert( face_i == (size_t)reference_face->size );
 
     // - last do {} while goes through incident face vertices, transforms them into the
     // coordinate system of pivot1 and also puts them into an array incident_polygon,
@@ -313,21 +313,21 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
     Mat pivot2_to_pivot1_transform = {0};
     pivot_between_transform(pivot2, pivot1, pivot2_to_pivot1_transform);
     current_edge = &mesh2->edges.array[incident_face->edge];
-    i = 0;
+    face_i = 0;
 #ifdef CUTE_BUILD_MSVC
     float* incident_polygon = _alloca(sizeof(float) * (size_t)incident_face->size*3);
 #else
     float incident_polygon[incident_face->size*3];
 #endif
     do {
-        VecP* incident_vertex = mesh2->vertices.array[current_edge->vertex].position;
-        log_assert( i < (size_t)incident_face->size );
-        mat_mul_vec3f(pivot2_to_pivot1_transform, incident_vertex, &incident_polygon[i*3]);
+        VecP* current_incident_vertex = mesh2->vertices.array[current_edge->vertex].position;
+        log_assert( face_i < (size_t)incident_face->size );
+        mat_mul_vec3f(pivot2_to_pivot1_transform, current_incident_vertex, &incident_polygon[face_i*3]);
 
         current_edge = &mesh2->edges.array[current_edge->next];
-        i += 1;
+        face_i += 1;
     } while( current_edge->this != incident_face->edge );
-    log_assert( i == (size_t)incident_face->size );
+    log_assert( face_i == (size_t)incident_face->size );
 
     // - call the function that does sutherland-hodgman clipping, the incident face is clipped on
     // the reference face, filling clipped_polygon with the results and returning the number of

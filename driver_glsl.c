@@ -85,22 +85,21 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
     }
     log_assert( prefix_file != NULL );
 
-    size_t filepos;
+    long prefix_length;
     fseek(prefix_file, 0, SEEK_END);
-    filepos = ftell(prefix_file);
+    prefix_length = ftell(prefix_file);
     fseek(prefix_file, 0, SEEK_SET);
 
-    log_assert( filepos > 0 );
-    size_t prefix_length = filepos;
+    log_assert( prefix_length > 0 );
     log_assert( prefix_length < INT_MAX );
 
     GLuint shader = 0;
-    GLchar* prefix_source = malloc(prefix_length+1);
+    GLchar* prefix_source = malloc((size_t)prefix_length+1);
     if( prefix_source == NULL ) {
         fclose(prefix_file);
         goto finish;
     } else {
-        fread(prefix_source, prefix_length, 1, prefix_file);
+        fread(prefix_source, (size_t)prefix_length, 1, prefix_file);
         fclose(prefix_file);
         prefix_source[prefix_length] = '\0';
     }
@@ -148,23 +147,22 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
         return 0;
     }
 
-    size_t filepos;
+    long filepos;
     fseek(file, 0, SEEK_END);
     filepos = ftell(file);
     fseek(file, 0, SEEK_SET);
 
     log_assert( filepos > 0 );
-    size_t length = filepos;
 
-    GLchar* source = malloc(length+1);
+    GLchar* source = malloc((size_t)filepos+1);
     GLuint id = 0;
     if( source == NULL ) {
         fclose(file);
         goto finish;
     } else {
-        fread(source, length, 1, file);
+        fread(source, (size_t)filepos, 1, file);
         fclose(file);
-        source[length] = '\0';
+        source[filepos] = '\0';
     }
 
     id = glsl_compile_source(type, source);

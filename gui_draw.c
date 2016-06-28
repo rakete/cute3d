@@ -132,19 +132,19 @@ void draw_line(struct Canvas* canvas,
     float delta = 60 * PI_OVER_180;
     float texcoords[16*2] =
         { 0.0f, -1.0f,             // 0
-          -cos(alpha), sin(alpha), // 1
-          -cos(beta), sin(beta),   // 2
+          -cosf(alpha), sinf(alpha), // 1
+          -cosf(beta), sinf(beta),   // 2
           -1.0f, 0.0f,             // 3
-          -cos(gamma), sin(gamma), // 4
-          -cos(delta), sin(delta), // 5
+          -cosf(gamma), sinf(gamma), // 4
+          -cosf(delta), sinf(delta), // 5
           0.0f, 1.0f,              // 6
 
           0.0f, 1.0f,              // 7
-          cos(delta), sin(delta),  // 8
-          cos(gamma), sin(gamma),  // 9
+          cosf(delta), sinf(delta),  // 8
+          cosf(gamma), sinf(gamma),  // 9
           1.0f, 0.0f,              // 10
-          cos(beta), sin(beta),    // 11
-          cos(alpha), sin(alpha),  // 12
+          cosf(beta), sinf(beta),    // 11
+          cosf(alpha), sinf(alpha),  // 12
           0.0f, -1.0f,             // 13
         };
 
@@ -278,11 +278,11 @@ void draw_arrow( struct Canvas* canvas,
     mat_mul(arrow_matrix, model_matrix, arrow_matrix);
 
     float vertices[5*3] =
-        { 0.0,  0.0,  0.0,
-          0.05,  0.0,  -0.1,
-          0.0,  0.05,  -0.1,
-          -0.05, 0.0,  -0.1,
-          0.0,  -0.05, -0.1 };
+        { 0.0f,  0.0f,  0.0f,
+          0.05f,  0.0f,  -0.1f,
+          0.0f,  0.05f,  -0.1f,
+          -0.05f, 0.0f,  -0.1f,
+          0.0f,  -0.05f, -0.1f };
 
     draw_line(canvas, layer_i, arrow_matrix, color, line_thickness, &vertices[0*3], &vertices[1*3]);
     draw_line(canvas, layer_i, arrow_matrix, color, line_thickness, &vertices[0*3], &vertices[2*3]);
@@ -512,14 +512,14 @@ void draw_reticle(struct Canvas* canvas,
     mat_mul(reticle_matrix, model_matrix, reticle_matrix);
 
     static float vertices[8*3] =
-        { 0.0, 0.5, 0.0,
-          0.0, 0.1, 0.0,
-          0.0, -0.5, 0.0,
-          0.0, -0.1, 0.0,
-          0.5, 0.0, 0.0,
-          0.1, 0.0, 0.0,
-          -0.5, 0.0, 0.0,
-          -0.1, 0.0, 0.0 };
+        { 0.0f, 0.5f, 0.0f,
+          0.0f, 0.1f, 0.0f,
+          0.0f, -0.5f, 0.0f,
+          0.0f, -0.1f, 0.0f,
+          0.5f, 0.0f, 0.0f,
+          0.1f, 0.0f, 0.0f,
+          -0.5f, 0.0f, 0.0f,
+          -0.1f, 0.0f, 0.0f };
 
     draw_line(canvas, layer, reticle_matrix, color, line_thickness, &vertices[0*3], &vertices[1*3]);
     draw_line(canvas, layer, reticle_matrix, color, line_thickness, &vertices[2*3], &vertices[3*3]);

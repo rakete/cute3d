@@ -53,9 +53,9 @@ void vec_equal(const Vec4f a, const Vec4f b, bool* r) {
     *r = 0;
 
     // having these somewhat larger (larger then FLT_EPSILON at least) works better
-    if( fabs(a[0] - b[0]) <= 0.00001f &&
-        fabs(a[1] - b[1]) <= 0.00001f &&
-        fabs(a[2] - b[2]) <= 0.00001f )
+    if( fabs(a[0] - b[0]) <= 0.00001 &&
+        fabs(a[1] - b[1]) <= 0.00001 &&
+        fabs(a[2] - b[2]) <= 0.00001 )
     {
         *r = 1;
     }
@@ -89,7 +89,7 @@ VecP* vsub(const Vec3f v, Vec3f w) {
     return w;
 }
 
-void vec_sub1f(const Vec3f v, const float w, Vec3f r) {
+void vec_sub1f(const Vec3f v, float w, Vec3f r) {
     r[0] = v[0] - w;
     r[1] = v[1] - w;
     r[2] = v[2] - w;
@@ -133,12 +133,18 @@ float vdot(const Vec3f v, const Vec3f w) {
 }
 
 void vec_cross(const Vec3f v, const Vec3f w, Vec3f r) {
-    Vec3f t;
+    double t[3];
     t[0] = v[1]*w[2] - v[2]*w[1];
     t[1] = v[2]*w[0] - v[0]*w[2];
     t[2] = v[0]*w[1] - v[1]*w[0];
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma warning(push)
+#pragma warning(disable : 4244)
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
+#pragma warning(pop)
+#pragma GCC diagnostic pop
 }
 
 VecP* vcross(const Vec4f v, Vec4f w) {
@@ -166,7 +172,7 @@ void vec_length(const Vec3f v, float* r) {
         // - used to return 0 here, now just make CUTE_EPSILON smallest possible vector length
         *r = CUTE_EPSILON;
     } else {
-        *r = sqrtf( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
+        *r = (float)sqrt( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
     }
 }
 
@@ -177,16 +183,22 @@ float vlength(const Vec3f v) {
 }
 
 void vec_normalize(const Vec3f v, Vec3f r) {
-    float norm = vlength(v);
+    double norm = vlength(v);
 
     // guard against nan
     if( norm < CUTE_EPSILON ) {
         norm = CUTE_EPSILON;
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma warning(push)
+#pragma warning(disable : 4244)
     r[0] = v[0] / norm;
     r[1] = v[1] / norm;
     r[2] = v[2] / norm;
+#pragma warning(pop)
+#pragma GCC diagnostic pop
 
     r[0] = isnan(r[0]) ? 0.0f : r[0];
     r[1] = isnan(r[1]) ? 0.0f : r[1];
@@ -204,15 +216,15 @@ void vec_angle(const Vec3f v, const Vec3f w, float* r) {
     vec_normalize(w, normed_w);
 
 
-    float dot = vdot(normed_v,normed_w);
+    double dot = vdot(normed_v,normed_w);
 
-    if( dot < -1.0f ) {
+    if( dot < -1.0 ) {
         *r = PI;
-    } else if( dot > 1.0f ) {
+    } else if( dot > 1.0 ) {
         *r = 0.0f;
     } else {
-        log_assert( -1.0f <= dot && dot <= 1.0f, "-1.0f <= %f <= 1.0f\n", dot );
-        *r = acosf(dot);
+        log_assert( -1.0 <= dot && dot <= 1.0, "-1.0 <= %f <= 1.0\n", dot );
+        *r = (float)acos(dot);
     }
 
 }
@@ -302,7 +314,7 @@ void vec_sign(const Vec4f v, int* sign) {
     vec_normalize(v, w);
 
     float sum = vsum(w);
-    if( sum != 0.0f ) {
+    if( sum != 0.0 ) {
         *sign = (int)sum;
         return;
     }
@@ -344,23 +356,35 @@ void vec_perpendicular(const Vec4f v, Vec4f r) {
 void vec_basis(const Vec3f x, Vec3f y, Vec3f z) {
     if( fabsf(x[0]) > fabsf(x[1]) ) {
         // Scaling factor to ensure the results are normalised
-        const float s = 1.0f/sqrtf(x[2]*x[2] + x[0]*x[0]);
+        const double s = 1.0/sqrt(x[2]*x[2] + x[0]*x[0]);
 
         // The new Z-axis is at right angles to the world Y-axis
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma warning(push)
+#pragma warning(disable : 4244)
         z[0] = x[2]*s;
         z[1] = 0.0;
         z[2] = -x[0]*s;
+#pragma warning(pop)
+#pragma GCC diagnostic pop
 
         // The new Y-axis is at right angles to the new X- and Z- axes
         y[0] = x[1]*z[0];
         y[1] = x[2]*z[0] - x[0]*z[2];
         y[2] = -x[1]*z[0];
     } else {
-        const float s = 1.0f/sqrtf(x[2]*x[2] + x[1]*x[1]);
+        const double s = 1.0/sqrt(x[2]*x[2] + x[1]*x[1]);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma warning(push)
+#pragma warning(disable : 4244)
         z[0] = 0;
         z[1] = -x[2]*s;
         z[2] = x[1]*s;
+#pragma warning(pop)
+#pragma GCC diagnostic pop
 
         y[0] = x[1]*z[2] - x[2]*z[1];
         y[1] = -x[0]*z[2];
@@ -584,10 +608,13 @@ void mat_invert4f(const Mat m, double* det, Mat r) {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
+#pragma warning(push)
+#pragma warning(disable : 4244)
     r[0] = inv[0] * d; r[4] = inv[4] * d; r[8]  = inv[8] * d;  r[12] = inv[12] * d;
     r[1] = inv[1] * d; r[5] = inv[5] * d; r[9]  = inv[9] * d;  r[13] = inv[13] * d;
     r[2] = inv[2] * d; r[6] = inv[6] * d; r[10] = inv[10] * d; r[14] = inv[14] * d;
     r[3] = inv[3] * d; r[7] = inv[7] * d; r[11] = inv[11] * d; r[15] = inv[15] * d;
+#pragma warning(pop)
 #pragma GCC diagnostic pop
 
     if(det) *det = d;
@@ -619,6 +646,8 @@ void mat_invert3f(const Mat m, double* det, Mat r) {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
+#pragma warning(push)
+#pragma warning(disable : 4244)
     r[0] = (m[5] * m[10] - m[9] * m[6]) * invdet;
     r[1] = (m[2] * m[9] - m[1] * m[10]) * invdet;
     r[2] = (m[1] * m[6] - m[2] * m[5]) * invdet;
@@ -638,6 +667,7 @@ void mat_invert3f(const Mat m, double* det, Mat r) {
     r[13] = m[13];
     r[14] = m[14];
     r[15] = m[15];
+#pragma warning(pop)
 #pragma GCC diagnostic pop
 
     if(det) *det = d;
@@ -685,13 +715,20 @@ void mat_mul_vec4f(const Mat m, const Vec4f v, Vec4f r) {
         log_warn(__C_FILENAME__, __LINE__, "mat_mul_vec4f vec argument with vec[3] ! = 1.0f\n");
     }
 
-    Vec4f t;
+    double t[4] = {0};
     t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]*v[3];
     t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]*v[3];
     t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]*v[3];
     t[3] = m[3]*v[0] + m[7]*v[1] + m[11]*v[2] + m[15]*v[3];
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma warning(push)
+#pragma warning(disable : 4244)
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; r[3] = t[3];
+#pragma warning(pop)
+#pragma GCC diagnostic pop
+
 }
 
 MatP* mmul_vec4f(const Mat m, Vec4f v) {
@@ -700,12 +737,19 @@ MatP* mmul_vec4f(const Mat m, Vec4f v) {
 }
 
 void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r) {
-    Vec3f t;
+    double t[3] = {0};
     t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12];
     t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13];
     t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14];
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma warning(push)
+#pragma warning(disable : 4244)
     r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
+#pragma warning(pop)
+#pragma GCC diagnostic pop
+
 }
 
 MatP* mmul_vec3f(const Mat m, Vec3f v) {
@@ -777,7 +821,7 @@ void mat_transpose4f(const Mat m, Mat r) {
     t[2] = m[8];  t[6] = m[9];  t[10] = m[10]; t[14] = m[11];
     t[3] = m[12]; t[7] = m[13]; t[11] = m[14]; t[15] = m[15];
 
-    for(int32_t i = 0; i < 16; i++) {
+    for( int32_t i = 0; i < 16; i++ ) {
         r[i] = t[i];
     }
 }
@@ -794,7 +838,7 @@ void mat_transpose3f(const Mat m, Mat r) {
     t[2] = m[8];  t[6] = m[9];  t[10] = m[10]; t[14] = m[14];
     t[3] = m[3];  t[7] = m[7];  t[11] = m[11]; t[15] = m[15];
 
-    for(int32_t i = 0; i < 16; i++) {
+    for( int32_t i = 0; i < 16; i++ ) {
         r[i] = t[i];
     }
 }
@@ -805,12 +849,19 @@ MatP* mtranspose3f(Mat m) {
 }
 
 void mat_get_rotation(const Mat m, Mat r) {
-    float scale = sqrtf( m[0]*m[0] + m[4]*m[4] + m[8]*m[8] );
+    double scale = sqrt( m[0]*m[0] + m[4]*m[4] + m[8]*m[8] );
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma warning(push)
+#pragma warning(disable : 4244)
     r[0] = m[0] / scale; r[4] = m[4] / scale; r[8] = m[8] / scale;   r[12] = 0.0;
     r[1] = m[1] / scale; r[5] = m[5] / scale; r[9] = m[9] / scale;   r[13] = 0.0;
     r[2] = m[2] / scale; r[6] = m[6] / scale; r[10] = m[10] / scale; r[14] = 0.0;
     r[3] = 0.0;          r[7] = 0.0;          r[11] = 0.0;           r[15] = 1.0;
+#pragma warning(pop)
+#pragma GCC diagnostic pop
+
 }
 
 MatP* mget_rotation(Mat m) {

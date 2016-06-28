@@ -126,7 +126,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
             // binding matrices to uniforms
             if( projection_i == CANVAS_PROJECT_SCREEN ) {
                 mat_identity(projection_matrix);
-                mat_orthographic(0, camera->screen.width, 0, -camera->screen.height, -0.1, 0.1, projection_matrix);
+                mat_orthographic(0.0f, (float)camera->screen.width, 0.0f, (float)-camera->screen.height, -0.1f, 0.1f, projection_matrix);
 
                 mat_identity(view_matrix);
 
@@ -189,7 +189,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
             // yeah, well, perspective or ortho or what?
             if( projection_i == CANVAS_PROJECT_SCREEN ) {
                 mat_identity(projection_matrix);
-                mat_orthographic(0, camera->screen.width, 0, -camera->screen.height, -0.1, 0.1, projection_matrix);
+                mat_orthographic(0.0f, (float)camera->screen.width, 0.0f, (float)-camera->screen.height, -0.1f, 0.1f, projection_matrix);
 
                 mat_identity(view_matrix);
 

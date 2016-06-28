@@ -127,10 +127,10 @@ void text_put(struct Canvas* canvas,
             uint32_t color_offset = primitive_offset*TEXT_COLOR_SIZE;
             uint32_t texcoord_offset = primitive_offset*TEXT_TEXCOORD_SIZE;
 
-            mat_mul_vec3f( glyph_matrix, (Vec3f){0.0 - kerning, 0.0, 0.0}, &vertices[vertex_offset + 0*TEXT_VERTEX_SIZE] );
-            mat_mul_vec3f( glyph_matrix, (Vec3f){1.0 - kerning, 0.0, 0.0}, &vertices[vertex_offset + 1*TEXT_VERTEX_SIZE] );
-            mat_mul_vec3f( glyph_matrix, (Vec3f){1.0 - kerning, -1.0, 0.0}, &vertices[vertex_offset + 2*TEXT_VERTEX_SIZE] );
-            mat_mul_vec3f( glyph_matrix, (Vec3f){0.0 - kerning, -1.0, 0.0}, &vertices[vertex_offset + 3*TEXT_VERTEX_SIZE] );
+            mat_mul_vec3f( glyph_matrix, (Vec3f){0.0f - kerning, 0.0f, 0.0f}, &vertices[vertex_offset + 0*TEXT_VERTEX_SIZE] );
+            mat_mul_vec3f( glyph_matrix, (Vec3f){1.0f - kerning, 0.0f, 0.0f}, &vertices[vertex_offset + 1*TEXT_VERTEX_SIZE] );
+            mat_mul_vec3f( glyph_matrix, (Vec3f){1.0f - kerning, -1.0f, 0.0f}, &vertices[vertex_offset + 2*TEXT_VERTEX_SIZE] );
+            mat_mul_vec3f( glyph_matrix, (Vec3f){0.0f - kerning, -1.0f, 0.0f}, &vertices[vertex_offset + 3*TEXT_VERTEX_SIZE] );
 
             color_copy( color, &colors[color_offset + 0*TEXT_COLOR_SIZE] );
             color_copy( color, &colors[color_offset + 1*TEXT_COLOR_SIZE] );
@@ -193,7 +193,7 @@ void text_put_screen(struct Canvas* canvas,
                      const char* font_name,
                      const wchar_t* unicode_text)
 {
-    Vec4f translation = {x, -y, 0.0, 1.0};
+    Vec4f translation = {(float)x, (float)-y, 0.0f, 1.0f};
     Mat model_matrix = {0};
     mat_translate(NULL, translation, model_matrix);
 

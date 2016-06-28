@@ -56,16 +56,16 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
     vec_sub(target, pivot->position, target_direction);
     vec_length(target_direction, &pivot->eye_distance);
 
-    float dot = 0.0f;
-    vec_dot(target_direction, forward_axis, &dot);
+    float dot_yaw = 0.0f;
+    vec_dot(target_direction, forward_axis, &dot_yaw);
 
     Quat rotation = {0};
-    if( fabs(dot + 1.0f) < CUTE_EPSILON ) {
-        // vector a and b point32_t exactly in the opposite direction,
+    if( fabs(dot_yaw + 1.0f) < CUTE_EPSILON ) {
+        // vector a and b point exactly in the opposite direction,
         // so it is a 180 degrees turn around the up-axis
         quat_mul_axis_angle(pivot->orientation, up_axis, PI, rotation);
-    } else if( fabs(dot - (1.0f)) < CUTE_EPSILON ) {
-        // vector a and b point32_t exactly in the same direction
+    } else if( fabs(dot_yaw - (1.0f)) < CUTE_EPSILON ) {
+        // vector a and b point exactly in the same direction
         // so we return the identity quaternion
         quat_copy(pivot->orientation, rotation);
     } else {
@@ -157,7 +157,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
         vec_rotate4f(up_axis, inverted_orientation, flip_axis);
         vec_rotate4f(flip_axis, yaw_pitch_rotation, flip_axis);
 
-        float dot = vdot(up_axis, flip_axis);
+        float dot_pitch = vdot(up_axis, flip_axis);
 
         Vec4f target_axis = {0};
         vec_normalize(target_direction, target_axis);
@@ -165,7 +165,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
         // - check if we are flipped and if we are, set result to 1 meaning we are flipped
         // - turn the camera around PI so that can continue pitching, otherwise we just get
         //   stuck when trying to flip the camera over
-        if( dot < 0.0f ) {
+        if( dot_pitch < 0.0f ) {
             result = 1;
             quat_mul_axis_angle(yaw_pitch_rotation, target_axis, PI, yaw_pitch_rotation);
         }

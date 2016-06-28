@@ -54,10 +54,9 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
         mouse_down = 0;
     }
 
-    float eye_distance = arcball->camera.pivot.eye_distance;
-
     if( mouse_down == arcball->translate_button && event.type == SDL_MOUSEMOTION ) {
         SDL_MouseMotionEvent mouse = event.motion;
+        float eye_distance = arcball->camera.pivot.eye_distance;
 
         // - when an mouse motion event occurs, and mouse_down to the translation_button so we compute
         //   a camera translation
