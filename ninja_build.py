@@ -97,7 +97,9 @@ elif build_toolset == "msvc":
     features = "/MD /Oi /Zi /DDEBUG /DCUTE_BUILD_MSVC"
     optimization = "/Od"
     # warning C4204: nonstandard extension used: non-constant aggregate initializer
-    warnings = "/W4 /wd4204"
+    # warning C4996: 'strncat': This function or variable may be unsafe. Consider using strncat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+    # warning C4068: unknown pragma
+    warnings = "/W4 /wd4204 /wd4996 /wd4068"
     linking = ""
     libraries = "msvcurt.lib libucrt.lib opengl32.lib chkstk.obj " + sdl2_libs
     includes = "/I" + source_directory
