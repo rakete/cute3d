@@ -14,7 +14,7 @@
         line;                                                           \
         const char* error = SDL_GetError();                             \
         if( strlen(error) > 0 ) {                                       \
-            printf("%s@%d:::::\n%s\n", __C_FILENAME__, __LINE__, sdl2_stringify(line)); \
+            printf("%s@%d:::::\n%s\n", __FILE__, __LINE__, sdl2_stringify(line)); \
             printf("SDL_GetError(): %s\n", SDL_GetError());             \
         }                                                               \
     } while(0)

@@ -153,10 +153,6 @@ print "ldflags: " + ldflags
 build_file_handle = open("build.ninja", "w+")
 w = ninja_syntax.Writer(build_file_handle, 127)
 
-# - globally define variables with a default that get later shadowed per rule if neccessary
-w.variable("filename", "\"$in\"")
-w.newline()
-
 # - create a generic copy rule, warning about not having gnu cp on windows because the builtin
 # copy is a pita, xcopy did not work either
 if build_platform == "windows":
@@ -302,13 +298,13 @@ w.newline()
 # is selected and use the cflags and ldflags that we configured above
 if build_toolset == "mingw" or build_toolset == "gcc":
     # -c and /c in gcc and cl.exe mean: compile without linking
-    w.rule(name="compile", command="gcc -MMD -MF $out.d -D__FILENAME__=\"\\\"$filename\\\"\" -c $in -o $out " + cflags, deps="gcc", depfile="$out.d")
+    w.rule(name="compile", command="gcc -MMD -MF $out.d -c $in -o $out " + cflags, deps="gcc", depfile="$out.d")
     w.newline()
     w.rule(name="link", command="gcc $in -o $out " + ldflags)
     w.newline()
 elif build_toolset == "msvc":
     # - needs /FS to enable synchronous writes to pdb database
-    w.rule(name="compile", command="cl.exe /nologo /showIncludes /FS /D__FILENAME__=\"\\\"$filename\\\"\" /c $in /Fo$out " + cflags, deps="msvc")
+    w.rule(name="compile", command="cl.exe /nologo /showIncludes /FS /c $in /Fo$out " + cflags, deps="msvc")
     w.newline()
     w.rule(name="link", command="cl.exe /nologo $in /link " + ldflags + " /out:$out")
     w.newline()
@@ -327,7 +323,6 @@ for c in sources:
     else:
         o = c.replace(".c", ".o")
     w.build(o, "compile", os.path.join(source_directory, c))
-    w.variable("filename", os.path.splitext(c)[0], indent=1)
     objects.append(o)
 w.newline()
 
@@ -347,7 +342,6 @@ for c in test_sources:
     else:
         o = c.replace(".c", ".o")
     w.build(o, "compile", os.path.join(tests_directory, c))
-    w.variable("filename", os.path.join("tests", os.path.splitext(c)[0]), indent=1)
 
     binary = c.replace(".c", "")
     if build_platform == "windows":

@@ -19,14 +19,6 @@
 #define log_stringify(a) #a
 #define log_tostring(x) log_stringify(x)
 
-#ifndef __FILENAME__
-#define __C_FILENAME__ (__FILE__)
-#define __H_FILENAME__ (__FILE__)
-#else
-#define __C_FILENAME__ (__FILENAME__ ".c")
-#define __H_FILENAME__ (__FILENAME__ ".h")
-#endif
-
 bool log_info(const char* filename, int32_t linenumber, const char* format, ...);
 bool log_warn(const char* filename, int32_t linenumber, const char* format, ...);
 bool log_fail(const char* filename, int32_t linenumber, const char* format, ...);
@@ -98,7 +90,7 @@ bool _log_assert(const char* condition, const char* format, ...);
 #define alloc_vla(t, name, n) t name[n]; do {                           \
         size_t size = sizeof(t) * n;                                    \
         if( size > 30000 ) {                                            \
-            log_warn(stderr, __C_FILENAME__, __LINE__, "%lu bytes stack allocation\n", size); \
+            log_warn(stderr, __FILE__, __LINE__, "%lu bytes stack allocation\n", size); \
         }                                                               \
     } while(0);
 

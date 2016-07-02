@@ -16,7 +16,7 @@ void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float z_near, f
     }
 
     if( z_near < 0.01f ) {
-        log_warn(__C_FILENAME__, __LINE__,
+        log_warn(__FILE__, __LINE__,
                  "you are trying to create a camera with a very small z_near value, "
                  "this would cause problems when rendering vbomeshes with a z_offset, "
                  "this function (arcball_create) will clamp the z_near value to 0.01f\n");

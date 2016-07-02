@@ -28,7 +28,7 @@
 void glsl_debug_info_log(GLuint object);
 
 #define GLSL( source )                          \
-    "//CUTE@" __C_FILENAME__ ":" log_tostring(__LINE__) "\n"  \
+    "//CUTE@" __FILE__ ":" log_tostring(__LINE__) "\n"  \
     #source "\0"
 
 GLuint glsl_compile_source(GLenum type, const char* source);
