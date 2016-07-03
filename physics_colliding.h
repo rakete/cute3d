@@ -23,53 +23,14 @@
 
 #include "gui_draw.h"
 
-#include "geometry_halfedgemesh.h"
 #include "geometry_draw.h"
+#include "geometry_shape.h"
 
 #include "physics_sat.h"
 #include "physics_contacts.h"
 #include "physics_rigidbody.h"
 
 #define COLLISION_CONTACT_LIFETIME 5
-
-enum CollidingShapeType {
-    COLLIDING_SPHERE_SHAPE = 0,
-    COLLIDING_CONVEX_SHAPE
-};
-
-struct CollidingShape {
-    // the idea with this const struct Pivot* pointer is that I attach a collider to
-    // some other objects pivot, thats also why I may have a seperate orientation for
-    // for the specific collider in addition to the orientation in pivot
-    const struct Pivot* world_pivot;
-    struct Pivot local_pivot;
-    enum CollidingShapeType type;
-
-    struct Pivot combined_pivot;
-    Mat world_transform;
-};
-
-struct CollidingSphereShape {
-    struct CollidingShape base_shape;
-
-    float radius;
-};
-
-struct CollidingConvexShape {
-    struct CollidingShape base_shape;
-
-    // - I wanted to make this local, and not a pointer, I even implemented halfedgemesh_copy, but
-    // that did not work, and when thinking about it I decided that this is ok like that, I'll take
-    // the potentially dangling pointer here over having more malloc/memcpy code to worry about, at
-    // least for now
-    // - potential dangling because halfedgemesh_destroy exists, although that only really frees the
-    // memory inside the mesh, the struct itself stays valid, although empty afterwards
-    const struct HalfEdgeMesh* mesh;
-};
-
-// each supported bounding volume data structure should have a constructor to initialize it
-void colliding_create_sphere_shape(float radius, struct Pivot* pivot, struct CollidingSphereShape* sphere);
-void colliding_create_convex_shape(const struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct CollidingConvexShape* convex);
 
 struct CollisionParameter {
     float edge_tolerance;
@@ -78,8 +39,8 @@ struct CollisionParameter {
 };
 
 struct Collision {
-    const struct CollidingShape* shape1;
-    const struct CollidingShape* shape2;
+    const struct Shape* shape1;
+    const struct Shape* shape2;
     Mat shape1_to_shape2_transform;
     Mat shape2_to_shape1_transform;
 
@@ -94,8 +55,8 @@ struct Collision {
     struct Contacts contacts;
 };
 
-void colliding_prepare_shape(struct CollidingShape* shape);
-void colliding_prepare_collision(const struct CollidingShape* a, const struct CollidingShape* b, struct CollisionParameter parameter, struct Collision* collision);
+void colliding_prepare_shape(struct Shape* shape);
+void colliding_prepare_collision(const struct Shape* a, const struct Shape* b, struct CollisionParameter parameter, struct Collision* collision);
 
 // collision detection itself is actually two seperate things: collision testing and contact generation, these should both
 // be implemented here eventually, but first I am going to concentrate only on contact generation. this should be
