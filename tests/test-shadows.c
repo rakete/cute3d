@@ -28,19 +28,15 @@
 /* }; */
 
 struct BouncingCube {
-    /* Physics */
-    struct RigidBody current;
-    struct RigidBody previous;
-    /* struct ShapeConvex collider; */
+    struct Pivot pivot;
 
-    /* Mesh */
+    /* Physics */
     struct Box solid;
     struct VboMesh vbomesh;
 };
 
 struct Ground {
     struct Pivot pivot;
-    struct ShapeConvex collider;
 
     /* Mesh */
     struct Box solid;
@@ -58,7 +54,7 @@ int32_t main(int32_t argc, char *argv[]) {
     int32_t height = 600;
 
     SDL_Window* window;
-    sdl2_window("test-physics", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
+    sdl2_window("test-shadows", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
     //SDL_SetWindowFullscreen(window, SDL_TRUE);
 
     SDL_GLContext* context;
@@ -92,8 +88,8 @@ int32_t main(int32_t argc, char *argv[]) {
     solid_create_cube(2.0f, (Color){180, 25, 0, 255}, &entity.solid);
     vbomesh_create_from_solid((struct Solid*)&entity.solid, &vbo, &entity.vbomesh);
 
-    pivot_create(NULL, NULL, & entity.current.pivot);
-    vec_add(entity.current.pivot.position, (Vec3f){0.0, 2.0, 0.0}, entity.current.pivot.position);
+    pivot_create(NULL, NULL, & entity.pivot);
+    vec_add(entity.pivot.position, (Vec3f){0.0, 2.0, 0.0}, entity.pivot.position);
 
     /* Ground */
     struct Ground ground = {0};
@@ -122,20 +118,8 @@ int32_t main(int32_t argc, char *argv[]) {
     struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);
 
-    /* Collisions */
-    size_t world_size = 2;
-
-    struct CollidingShape* world_colliders[2];
-    struct RigidBody* world_bodies[2];
-    size_t candidates[2];
-    size_t candidates_size = 0;
-
-    struct Collision collisions[2];
-    struct RigidBody* bodies[2];
-    size_t collisions_size = 0;
-
     /* Eventloop */
-    while (true) {
+    while(true) {
         SDL_Event event;
         while( sdl2_poll_event(&event) ) {
             switch (event.type) {
@@ -163,35 +147,10 @@ int32_t main(int32_t argc, char *argv[]) {
 
         gametime_advance(&time, sdl2_time_delta());
 
-        entity.previous = entity.current;
-        while( gametime_integrate(&time) ) {
-            /* resolve collisions */
-            /* world_colliders[0] = (struct Collider*)&entity.collider; */
-            /* world_colliders[1] = (struct Collider*)&ground.collider; */
-
-            /* world_bodies[0] = (struct RigidBody*)&entity.current; */
-            /* world_bodies[1] = NULL; */
-
-            /* candidates_size = collisions_broad(0, world_size, world_colliders, candidates); */
-
-            /* collisions_prepare(candidates_size, collisions); */
-
-            /* collisions_size = collisions_narrow(0, world_size, world_colliders, world_bodies, candidates_size, candidates, bodies, collisions); */
-            /* entity.current = collisions_resolve(entity.previous, entity.current, collisions_size, bodies, collisions, time.scale * time.dt); */
-
-            /* physics integration */
-            /* entity.previous = entity.current; */
-            /* entity.current = physics_integrate(entity.current, time.t, time.scale * time.dt, &physics_forces); */
-        }
-
-        // use the remainder in accumulator to interpolate physics, so this is ok here
-        /* const double alpha = time.accumulator / time.dt; */
-        /* entity.current = physics_interpolate(entity.previous, entity.current, alpha); */
-
         vbomesh_render(&ground.vbomesh, &flat_shader, &arcball.camera, (Mat)IDENTITY_MAT);
 
         Mat entity_transform = {0};
-        pivot_world_transform(&entity.current.pivot, entity_transform);
+        pivot_world_transform(&entity.pivot, entity_transform);
         vbomesh_render(&entity.vbomesh, &flat_shader, &arcball.camera, entity_transform);
 
         Vec4f text_cursor = {0, 0, 0, 1};
@@ -200,7 +159,7 @@ int32_t main(int32_t argc, char *argv[]) {
         canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);
 
-        sdl2_gl_swap_window(window) ;
+        sdl2_gl_swap_window(window);
     }
 
 done:
