@@ -440,6 +440,7 @@ void mat_basis(const Vec4f x, Mat r) {
 void mat_perspective(float left, float right, float top, float bottom, float zNear, float zFar, Mat m) {
     Mat n;
     // songho.ca my hero
+    // left/right = near * tan(fov angle in degrees)
     n[0] = (2.0f*zNear)/(right-left); n[4] = 0.0f;                      n[8] = (right+left)/(right-left);   n[12] = 0.0f;
     n[1] = 0.0f;                      n[5] = (2.0f*zNear)/(top-bottom); n[9] = (top+bottom)/(top-bottom);   n[13] = 0.0f;
     n[2] = 0.0f;                      n[6] = 0.0f;                      n[10] = -(zFar+zNear)/(zFar-zNear); n[14] = -2.0f*zFar*zNear/(zFar-zNear);
