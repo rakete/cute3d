@@ -193,7 +193,7 @@ int32_t main(int32_t argc, char *argv[]) {
         text_show_fps(&global_dynamic_canvas, 0, text_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0, "default_font", time.frame);
 
         canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
-        canvas_clear(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS);
+        canvas_clear(&global_dynamic_canvas);
 
         sdl2_gl_swap_window(window) ;
     }
