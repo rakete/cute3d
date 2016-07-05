@@ -43,6 +43,8 @@ struct Camera {
         float z_near;
         float z_far;
     } frustum;
+
+    float zoom;
 };
 
 void camera_create(int32_t width, int32_t height, struct Camera* camera);

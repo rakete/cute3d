@@ -12,6 +12,8 @@ void camera_create(int32_t width, int32_t height, struct Camera* camera) {
     camera->frustum.y_bottom = 0.375f;
     camera->frustum.z_near = 0.9f;
     camera->frustum.z_far = 1000.0f;
+
+    camera->zoom = 1.0;
 }
 
 void camera_frustum(struct Camera* camera, float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far) {
@@ -44,10 +46,10 @@ void camera_matrices(const struct Camera* camera, enum CameraProjection projecti
         } else if( projection_type == CAMERA_ORTHOGRAPHIC_ZOOM ||
                    projection_type == CAMERA_PIXELPERFECT )
         {
-            x_left *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->pivot.zoom;
-            x_right *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->pivot.zoom;
-            y_top *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->pivot.zoom;
-            y_bottom *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->pivot.zoom;
+            x_left *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->zoom;
+            x_right *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->zoom;
+            y_top *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->zoom;
+            y_bottom *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->zoom;
             mat_orthographic(x_left, x_right, y_top, y_bottom, z_near, z_far, projection_mat);
         }
 
