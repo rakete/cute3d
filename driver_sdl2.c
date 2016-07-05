@@ -211,7 +211,7 @@ int32_t sdl2_poll_event(SDL_Event* event) {
     sdl2_debug( ret = SDL_PollEvent(event) );
     double t2 = sdl2_time();
     double t = (t2 - t1) * 1000;
-    if( t > 10.0 ) {
+    if( t > 50.0 ) {
         log_warn(__FILE__, __LINE__, "SDL_PollEvent time: %.02fms\n", t);
     }
     return ret;
@@ -240,7 +240,7 @@ void sdl2_gl_set_swap_interval(int interval) {
 #endif
     double t2 = sdl2_time();
     double t = (t2 - t1) * 1000;
-    if( t > 10.0 ) {
+    if( t > 50.0 ) {
         log_warn(__FILE__, __LINE__, "SDL_GL_SetSwapInterval time: %.02fms\n", t);
     }
 }
