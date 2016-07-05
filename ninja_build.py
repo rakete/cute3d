@@ -119,22 +119,24 @@ elif build_toolset == "msvc":
     sdl2_cflags = "/Ic:\\VC\\SDL2-2.0.4\\include"
     sdl2_libs = "/LIBPATH:c:\\VC\\SDL2-2.0.4\\lib\\x86 SDL2.lib SDL2main.lib"
 
-    features = " /DDEBUG /DCUTE_BUILD_MSVC"
+    # - MD is for dynamic linking
+    features = " /DDEBUG /DCUTE_BUILD_MSVC /MD"
     # - Oi and Zi are inlining related, don't remember really, without them I had unresolved references iirc
     optimization = "/Oi /Zi /Od"
     # warning C4204: nonstandard extension used: non-constant aggregate initializer
     # warning C4996: 'strncat': This function or variable may be unsafe. Consider using strncat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
     # warning C4068: unknown pragma
     warnings = "/W4 /wd4204 /wd4996 /wd4068"
-    # - MD is for dynamic lniking
-    linking = "/MD"
+    linking = ""
     # - chkstk.obj for _alloca
-    # - u for unicode libs?
-    libraries = "msvcurt.lib libucrt.lib opengl32.lib chkstk.obj " + sdl2_libs
+    # - msvcurt.lib: Static library for the pure managed CRT.
+    # - /ENTRY:main needs libucrt.lib
+    # - /ENTRY:main made exe hang on exit
+    libraries = "msvcrt.lib opengl32.lib chkstk.obj " + sdl2_libs
     includes = "/I" + source_directory
 
     cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
-    ldflags = "/SUBSYSTEM:CONSOLE /ENTRY:main " + linking + " " + libraries
+    ldflags = "/SUBSYSTEM:CONSOLE " + linking + " " + libraries
 else:
     print "building with " + build_toolset + " on " + build_platform + " is not supported yet."
     sys.exit(1)
