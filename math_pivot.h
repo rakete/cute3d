@@ -24,11 +24,16 @@ struct Pivot {
     Vec4f position;
     Quat orientation;
 
-    float zoom;
     float eye_distance;
+
+    const struct Pivot* parent;
 };
 
+extern struct Pivot global_null_pivot;
+
 void pivot_create(Vec3f position, Quat orientation, struct Pivot* pivot);
+void pivot_attach(const struct Pivot* parent, struct Pivot* child);
+
 int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target);
 
 VecP* pivot_local_axis(const struct Pivot* pivot, Vec3f axis);
@@ -45,6 +50,6 @@ MatP* pivot_between_transform(const struct Pivot* pivot1, const struct Pivot* pi
 QuatP* pivot_between_orientation(const struct Pivot* pivot1, const struct Pivot* pivot2, Quat between_rotation);
 VecP* pivot_between_translation(const struct Pivot* pivot1, const struct Pivot* pivot2, Vec3f between_translation);
 
-void pivot_combine(const struct Pivot* pivot1, const struct Pivot* pivot2, struct Pivot* r);
+struct Pivot* pivot_combine(const struct Pivot* pivot1, const struct Pivot* pivot2, struct Pivot* r);
 
 #endif

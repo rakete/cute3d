@@ -16,6 +16,8 @@
 
 #include "math_pivot.h"
 
+struct Pivot global_null_pivot = {{0,0,0,1},{0,0,0,1},0,NULL};
+
 void pivot_create(Vec3f position, Quat orientation, struct Pivot* pivot) {
     if( position ) {
         pivot->position[0] = position[0];
@@ -41,8 +43,9 @@ void pivot_create(Vec3f position, Quat orientation, struct Pivot* pivot) {
         pivot->orientation[3] = 1.0;
     }
 
-    pivot->zoom = 1.0;
     pivot->eye_distance = 1.0;
+
+    pivot->parent = &global_null_pivot;
 }
 
 int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
@@ -52,9 +55,11 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
     Vec4f up_axis = UP_AXIS;
     Vec4f forward_axis = FORWARD_AXIS;
 
+    struct Pivot world_pivot;
+    pivot_combine(pivot->parent, pivot, &world_pivot);
+
     Vec4f target_direction;
-    vec_sub(target, pivot->position, target_direction);
-    vec_length(target_direction, &pivot->eye_distance);
+    vec_sub(target, world_pivot.position, target_direction);
 
     float dot_yaw = 0.0f;
     vec_dot(target_direction, forward_axis, &dot_yaw);
@@ -63,11 +68,11 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
     if( fabs(dot_yaw + 1.0f) < CUTE_EPSILON ) {
         // vector a and b point exactly in the opposite direction,
         // so it is a 180 degrees turn around the up-axis
-        quat_mul_axis_angle(pivot->orientation, up_axis, PI, rotation);
+        quat_mul_axis_angle(world_pivot.orientation, up_axis, PI, rotation);
     } else if( fabs(dot_yaw - (1.0f)) < CUTE_EPSILON ) {
         // vector a and b point exactly in the same direction
         // so we return the identity quaternion
-        quat_copy(pivot->orientation, rotation);
+        quat_copy(world_pivot.orientation, rotation);
     } else {
         // - I look at the target by turning the pivot orientation using only
         // yaw and pitch movement
@@ -145,7 +150,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
         quat_mul(yaw_rotation, pitch_rotation, yaw_pitch_rotation);
 
         Quat inverted_orientation = {0};
-        quat_invert(pivot->orientation, inverted_orientation);
+        quat_invert(world_pivot.orientation, inverted_orientation);
 
         // - the int32_t I want to return indicates the cameras 'flip' status, that is, it is
         //   one when the camera angle was pitched so much that it flipped over and its
@@ -180,6 +185,8 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
     {
         quat_copy(rotation, pivot->orientation);
     }
+
+    vec_length(target_direction, &pivot->eye_distance);
 
     return result;
 }
@@ -241,7 +248,7 @@ VecP* pivot_between_translation(const struct Pivot* pivot1, const struct Pivot* 
     return between_translation;
 }
 
-void pivot_combine(const struct Pivot* pivot1, const struct Pivot* pivot2, struct Pivot* r) {
+struct Pivot* pivot_combine(const struct Pivot* pivot1, const struct Pivot* pivot2, struct Pivot* r) {
     Vec4f concat_position = {0};
     vec_add(pivot1->position, pivot2->position, concat_position);
 
@@ -249,4 +256,6 @@ void pivot_combine(const struct Pivot* pivot1, const struct Pivot* pivot2, struc
     quat_mul(pivot1->orientation, pivot2->orientation, concat_orientation);
 
     pivot_create(concat_position, concat_orientation, r);
+
+    return r;
 }

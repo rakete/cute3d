@@ -25,18 +25,16 @@
 
 enum ShapeType {
     SHAPE_SPHERE = 0,
-    SHAPE_CONVEX
+    SHAPE_CONVEX,
+    NUM_SHAPE_TYPES
 };
 
 struct Shape {
-    // the idea with this const struct Pivot* pointer is that I attach a collider to
-    // some other objects pivot, thats also why I may have a seperate orientation for
-    // for the specific collider in addition to the orientation in pivot
-    const struct Pivot* world_pivot;
-    struct Pivot local_pivot;
+    struct Pivot pivot;
+
     enum ShapeType type;
 
-    struct Pivot combined_pivot;
+    struct Pivot world_pivot;
     Mat world_transform;
 };
 
@@ -59,7 +57,7 @@ struct ShapeConvex {
 };
 
 // each supported bounding volume data structure should have a constructor to initialize it
-void shape_create_sphere(float radius, struct Pivot* pivot, struct ShapeSphere* sphere);
-void shape_create_convex(const struct HalfEdgeMesh* mesh, struct Pivot* pivot, struct ShapeConvex* convex);
+void shape_create_sphere(float radius, struct ShapeSphere* sphere);
+void shape_create_convex(const struct HalfEdgeMesh* mesh, struct ShapeConvex* convex);
 
 #endif

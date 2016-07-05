@@ -43,7 +43,9 @@ static void entity_create(const char* name, Color color, struct Vbo* vbo, struct
     halfedgemesh_optimize(&entity->hemesh);
 
     colliding_create_convex_shape(&entity->hemesh, &entity->pivot, &entity->colliding_convex);
-    picking_create_sphere(&entity->pivot, 1.0f, &entity->picking_sphere);
+
+    picking_create_sphere(1.0f, &entity->picking_sphere);
+    pivot_attach(&entity->pivot, &entity->picking_sphere);
 }
 
 int32_t main(int32_t argc, char *argv[]) {
@@ -141,7 +143,7 @@ int32_t main(int32_t argc, char *argv[]) {
             }
 
 
-            if( picking_drag_sphere_event(&arcball.camera, picking_spheres, num_entities, event) ) {
+            if( picking_drag_sphere_event(&arcball.camera, num_entities, picking_spheres, event) ) {
                 struct CollisionEntity* selected_entity = NULL;
                 float nearest = -FLT_MIN;
                 for( size_t i = 0; i < num_entities; i++ ) {

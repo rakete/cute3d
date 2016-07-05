@@ -1,7 +1,8 @@
 #include "geometry_picking.h"
 
-void picking_create_sphere(const struct Pivot* pivot, float radius, struct PickingSphere* sphere) {
-    sphere->pivot = pivot;
+void picking_create_sphere(float radius, struct PickingSphere* sphere) {
+    pivot_create(NULL, NULL, &sphere->pivot);
+
     sphere->picked = false;
     vec_copy4f((Vec4f){0.0f, 0.0f, 0.0f, 1.0f}, sphere->ray);
 
@@ -20,8 +21,10 @@ bool picking_test_sphere(struct PickingSphere* sphere, const Vec4f origin, const
     vec_copy4f(ray, sphere->ray);
     sphere->picked = false;
 
+    Vec4f world_position;
     Vec4f L;
-    vec_sub(sphere->pivot->position, origin, L);
+    vec_add(sphere->pivot.parent->position, sphere->pivot.position, world_position);
+    vec_sub(world_position, origin, L);
 
     // geometric solution
     float tca;
@@ -62,7 +65,7 @@ bool picking_test_sphere(struct PickingSphere* sphere, const Vec4f origin, const
     return true;
 }
 
-bool picking_click_sphere_event(const struct Camera* camera, struct PickingSphere** spheres, size_t n, SDL_Event event) {
+bool picking_click_sphere_event(const struct Camera* camera, size_t n, struct PickingSphere** spheres, SDL_Event event) {
     log_assert( camera != NULL );
     log_assert( spheres != NULL );
     log_assert( n < INT32_MAX );
@@ -87,7 +90,7 @@ bool picking_click_sphere_event(const struct Camera* camera, struct PickingSpher
     return clicked;
 }
 
-bool picking_drag_sphere_event(const struct Camera* camera, struct PickingSphere** spheres, size_t n, SDL_Event event) {
+bool picking_drag_sphere_event(const struct Camera* camera, size_t n, struct PickingSphere** spheres, SDL_Event event) {
     log_assert( camera != NULL );
     log_assert( spheres != NULL );
     log_assert( n < INT32_MAX );
