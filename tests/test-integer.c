@@ -1,4 +1,5 @@
 #include "stdint.h"
+#include "stdbool.h"
 #include "stddef.h"
 #include "limits.h"
 
@@ -9,6 +10,7 @@ int main(int argc, char *argv[]) {
     printf("----------------------------------------------------------------\n");
     printf("char           :    %zu, %d\n", sizeof(char), CHAR_MIN);
     printf("unsigned char  :    %zu,  %u\n", sizeof(unsigned char), UCHAR_MAX);
+    printf("wchar_t        :    %zu,  %d\n", sizeof(wchar_t), WCHAR_MAX);
     printf("short          :    %zu, %d\n", sizeof(short), SHRT_MIN);
     printf("unsigned short :    %zu,  %u\n", sizeof(unsigned short), USHRT_MAX);
     printf("int            :    %zu, %d\n", sizeof(int), INT_MIN);
@@ -16,6 +18,7 @@ int main(int argc, char *argv[]) {
     printf("long           :    %zu, %ld\n", sizeof(long), LONG_MIN);
     printf("unsigned long  :    %zu,  %lu\n", sizeof(unsigned long), ULONG_MAX);
     printf("\n");
+
 
     printf("int8_t         :    %zu, %d\n", sizeof(int8_t), INT8_MIN);
     printf("uint8_t        :    %zu,  %u\n", sizeof(uint8_t), UINT8_MAX);
@@ -42,21 +45,24 @@ int main(int argc, char *argv[]) {
     printf("\n");
 
     printf("int64_t        :    %zu, %lld\n", sizeof(int64_t), INT64_MIN);
-    printf("uint64_t       :    %zu,  %zu\n", sizeof(uint64_t), UINT64_MAX);
+    printf("uint64_t       :    %zu,  %llu\n", sizeof(uint64_t), UINT64_MAX);
     printf("int_least64_t  :    %zu, %lld\n", sizeof(int_least64_t), INT_LEAST64_MIN);
-    printf("uint_least64_t :    %zu,  %zu\n", sizeof(uint_least64_t), UINT_LEAST64_MAX);
+    printf("uint_least64_t :    %zu,  %llu\n", sizeof(uint_least64_t), UINT_LEAST64_MAX);
     printf("int_fast64_t   :    %zu, %lld\n", sizeof(int_fast64_t), INT_FAST64_MIN);
     printf("uint_fast64_t  :    %zu,  %llu\n", sizeof(uint_fast64_t), UINT_FAST64_MAX);
     printf("\n");
 
-    printf("intptr_t       :    %zu, %lld\n", sizeof(intptr_t), INTPTR_MIN);
-    printf("uintptr_t      :    %zu,  %llu\n", sizeof(uintptr_t), UINTPTR_MAX);
+    printf("intptr_t       :    %zu, %d\n", sizeof(intptr_t), INTPTR_MIN);
+    printf("uintptr_t      :    %zu,  %u\n", sizeof(uintptr_t), UINTPTR_MAX);
 
     printf("intmax_t       :    %zu, %lld\n", sizeof(intmax_t), INTMAX_MIN);
     printf("uintmax_t      :    %zu,  %llu\n", sizeof(uintmax_t), UINTMAX_MAX);
 
-    printf("ptrdiff_t      :    %zu, %lld\n", sizeof(ptrdiff_t), PTRDIFF_MIN);
-    printf("size_t         :    %zu,  %llu\n", sizeof(size_t), SIZE_MAX);
+    printf("ptrdiff_t      :    %zu, %d\n", sizeof(ptrdiff_t), PTRDIFF_MIN);
+    printf("size_t         :    %zu,  %u\n", sizeof(size_t), SIZE_MAX);
+    printf("\n");
+
+    printf("bool           :    %zu, true\n", sizeof(bool));
     printf("\n");
 
     return 0;
