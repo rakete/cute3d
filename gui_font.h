@@ -17,6 +17,8 @@
 #define MAX_FONT_GLYPHS 256
 #endif
 
+#define MAX_FONT_ALPHABET_SIZE 65535
+
 struct Character {
     int32_t w;
     int32_t h;
@@ -33,25 +35,29 @@ struct Glyph {
 struct Font {
     char name[256];
 
-    // a glyph is a texture point plus width and height for every character that can be displayed
+    // - a glyph is a texture point plus width and height for every character that can be displayed
     // with this font
     struct Glyph glyphs[MAX_FONT_GLYPHS];
 
-    // the glyphs will only be initialized if the alphabet string given to font_create contains it,
+    // - the glyphs will only be initialized if the alphabet string given to font_create contains it,
     // so this array can be used to check if a character can be displayed with this font, if its
     // glyph is initialized
-    bool alphabet[MAX_FONT_GLYPHS];
-
-    bool unicode;
+    // - this was the same size as glyphs and had type bool, now its wchar_t (could be int, but why
+    // waste space, its never going to be > WCHAR_MAX) and has its own size so that I can store the
+    // position of the glyph here, indexed by a wchar, before _both_ alphabet and glyphs were indexed
+    // by char, which made using unicode impossible
+    wchar_t alphabet[MAX_FONT_ALPHABET_SIZE];
 
     struct {
         GLuint id;
         size_t width;
         size_t height;
         GLenum type;
-        int32_t format;
-        int32_t min_filter;
-        int32_t mag_filter;
+        GLint format;
+        GLint min_filter;
+        GLint mag_filter;
+        GLint wrap_s;
+        GLint wrap_t;
     } texture;
 
     struct Shader shader;
@@ -60,7 +66,7 @@ struct Font {
     float linespacing;
 };
 
-void font_create(const wchar_t* alphabet, bool unicode, struct Character* symbols, const char* name, struct Font* font);
+void font_create(const wchar_t* unicode_alphabet, size_t symbols_n, struct Character* symbols, size_t palette_n, size_t color_n, uint8_t* palette, const char* name, struct Font* font);
 
 void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter);
 

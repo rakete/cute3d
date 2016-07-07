@@ -55,16 +55,10 @@ void text_put(struct Canvas* canvas,
 
     // we rely on \0 not being part of the font to advance the cursor at the end of
     // the string one additional time
-    log_assert( font->alphabet['\0'] == false );
+    log_assert( font->alphabet['\0'] == MAX_FONT_ALPHABET_SIZE );
 
     float kerning = font->kerning/2.0f;
     bool newline = 0;
-
-    static char ascii_text[MAX_TEXT_PUT_SIZE] = {0};
-    size_t ascii_conversion_size = wcstombs(ascii_text, unicode_text, text_length);
-    log_assert( ascii_conversion_size < MAX_TEXT_PUT_SIZE );
-    log_assert( ascii_conversion_size == text_length );
-    ascii_text[text_length] = '\0';
 
     // glyphs that do not exist are not put into the array to be drawn, so we can't use i to
     // compute the array offsets, but must have a seperate counter that only increases if an
@@ -73,39 +67,35 @@ void text_put(struct Canvas* canvas,
     for( uint32_t i = 0; i <= text_length; i++ ) {
         struct Glyph* glyph = NULL;
 
-        static bool glyph_warnings[MAX_FONT_GLYPHS] = {0};
-        if( font->unicode ) {
-            wchar_t c = unicode_text[i];
-            if( c == '\n' ) {
-                newline = 1;
-                continue;
-            } else if( font->alphabet[c] ) {
-                glyph = &font->glyphs[c];
-            } else if( ! glyph_warnings[c] ) {
-                if( c == '\0') {
-                    log_assert(i == text_length);
-                } else {
-                    log_warn(__FILE__, __LINE__, "font %s does not contain glyph \"%c\"\n", font->name, c);
-                    glyph_warnings[c] = true;
-                }
-            }
-        } else {
-            char c = ascii_text[i];
-            if( c == '\n' ) {
-                newline = 1;
-                continue;
-            } else if( font->alphabet[(int)c] ) {
-                glyph = &font->glyphs[(int)c];
-            } else if( ! glyph_warnings[(int)c] ) {
-                if( c == '\0') {
-                    log_assert(i == text_length);
-                } else if( c != ' ' ) {
-                    log_warn(__FILE__, __LINE__, "font %s does not contain glyph \"%c\"\n", font->name, c);
-                    glyph_warnings[(int)c] = true;
-                }
+        // - this must use MAX_FONT_ALPHABET_SIZE because we can only index it with c, when a
+        // glyph does not exist glyph_i is always going to be == MAX_FONT_ALPHABET_SIZE
+        static bool glyph_warnings[MAX_FONT_ALPHABET_SIZE] = {0};
+        wchar_t c = unicode_text[i];
+        wchar_t glyph_i = font->alphabet[c];
+
+        if( c == L'\n' ) {
+            // - if c is a newline we just continue with the next line without doing anything
+            newline = 1;
+            continue;
+        } else if( glyph_i < MAX_FONT_GLYPHS ) {
+            // - if glyph_i is < MAX_FONT_GLYPHS (which also implies that it should be smaller then
+            // MAX_FONT_ALPHABET_SIZE) then that means the font_create function created a glyph and
+            // set alphabet[c] to an index into glyphs for the character c, so we can get that glyph
+            // and display it
+            glyph = &font->glyphs[glyph_i];
+        } else if( ! glyph_warnings[c] ) {
+            // - if we reach this point, then the text contain a character c, for which no glyph exists,
+            // and we want to warn about it once, but only if c is not \0
+            if( c == L'\0') {
+                log_assert(i == text_length);
+            } else {
+                log_warn(__FILE__, __LINE__, "font %s does not contain glyph \"%c\"\n", font->name, c);
+                glyph_warnings[c] = true;
             }
         }
 
+        // - handle a newline, which is just as simple as resetting x translation to 0.0 and shifting
+        // y translation
         if( newline && i > 0 ) {
             float y = 1.0f + font->linespacing;
             cursor_translation[0] = 0.0;
@@ -116,6 +106,7 @@ void text_put(struct Canvas* canvas,
         }
         newline = 0;
 
+        // - append the vertices etc. to the arrays that will be used to draw on the canvas
         if( glyph ) {
             Mat glyph_matrix = {0};
             mat_translate(NULL, cursor_translation, glyph_matrix);
@@ -160,6 +151,7 @@ void text_put(struct Canvas* canvas,
         }
     }
 
+    // - finally draw on the canvas
     if( glyph_counter > 0 ) {
         canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, TEXT_VERTEX_SIZE, GL_FLOAT, glyph_counter*4, vertices);
         canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, TEXT_COLOR_SIZE, GL_UNSIGNED_BYTE, glyph_counter*4, colors);
