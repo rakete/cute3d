@@ -14,9 +14,11 @@ struct Shadows {
         size_t width;
         size_t height;
         GLenum type;
-        int32_t format;
-        int32_t min_filter;
-        int32_t mag_filter;
+        GLint format;
+        GLint min_filter;
+        GLint mag_filter;
+        GLint wrap_s;
+        GLint wrap_t;
     } texture;
 
     GLuint fbo;
