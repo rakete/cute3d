@@ -64,8 +64,16 @@ typedef float Quat[4];
 #define TEXCOORD_SIZE 2
 
 typedef float Vertex[VERTEX_SIZE];
+typedef float VertexP;
+
 typedef float Normal[NORMAL_SIZE];
+typedef float NormalP;
+
 typedef uint8_t Color[COLOR_SIZE];
+typedef uint8_t ColorP;
+
 typedef float Texcoord[TEXCOORD_SIZE];
+typedef float TexcoordP;
+
 
 #endif
