@@ -17,8 +17,8 @@ bool colliding_test_convex_convex(struct Collision* collision) {
     const struct ShapeConvex* convex1 = (struct ShapeConvex*)collision->shape1;
     const struct ShapeConvex* convex2 = (struct ShapeConvex*)collision->shape2;
 
-    log_assert(convex1->base_shape.type == SHAPE_CONVEX);
-    log_assert(convex2->base_shape.type == SHAPE_CONVEX);
+    log_assert(convex1->base_shape.instance == SHAPE_CONVEX);
+    log_assert(convex2->base_shape.instance == SHAPE_CONVEX);
 
     const struct HalfEdgeMesh* mesh1 = convex1->mesh;
     const struct HalfEdgeMesh* mesh2 = convex2->mesh;

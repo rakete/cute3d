@@ -23,16 +23,15 @@
 
 #include "geometry_halfedgemesh.h"
 
-enum ShapeType {
+enum ShapeClass {
     SHAPE_SPHERE = 0,
     SHAPE_CONVEX,
-    NUM_SHAPE_TYPES
+    NUM_SHAPE_CLASSES
 };
 
 struct Shape {
     struct Pivot pivot;
-
-    enum ShapeType type;
+    enum ShapeClass instance;
 
     struct Pivot world_pivot;
     Mat world_transform;

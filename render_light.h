@@ -4,28 +4,28 @@
 #include "math_color.h"
 #include "math_pivot.h"
 
-enum LightType {
+enum LightClass {
     LIGHT_PERSPECTIVE_SPOT = 0,
     LIGHT_ORTHOGRAPHIC_SPOT,
     LIGHT_POINT,
-    NUM_LIGHT_TYPES
+    NUM_LIGHT_CLASSES
 };
 
 struct Light {
     struct Pivot pivot;
-
-    enum LightType type;
-
-    struct LightCone {
-        Vec3f direction;
-        float angle;
-    } cone;
+    enum LightClass instance;
 
     float attenuation;
     Color color;
 };
 
-void light_create_spotlight(Color color, float attenuation, Vec3f direction, float angle, struct Light* light);
-void light_create_pointlight(Color color, float attenuation, struct Light* light);
+struct LightPerspectiveSpot {
+    struct Light base_light;
+
+    Vec3f direction;
+    float angle;
+};
+
+void light_create_perspective_spot(Color color, float attenuation, Vec3f direction, float angle, struct LightPerspectiveSpot* light);
 
 #endif
