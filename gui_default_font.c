@@ -16,22 +16,23 @@
 
 #include "gui_default_font.h"
 
-// palette: bnw
+// palette: default_font_palette
 // format: rgb
-static float palette[1*8*3] = {
-    0.0f, 0.0f, 0.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 0.0f, 0.0f,
-    0.0f, 1.0f, 0.0f,
-    0.0f, 0.0f, 1.0f,
-    1.0f, 1.0f, 0.0f,
-    0.0f, 1.0f, 1.0f,
-    0.9f, 0.0f, 0.6f
+uint8_t global_default_font_palette[1*9*3] = {
+    0,   0,   0,
+    255, 255, 255,
+    0,   0,   0,
+    255,   0,   0,
+    0, 255,   0,
+    0,   0, 255,
+    255, 255,   0,
+    0, 255, 255,
+    230,   0, 150
 };
 
 struct Character char_A() {
     // bitmap: char_A
-    // using: bnw
+    // using: default_font_palette
     static int32_t pixels[6*7] = {
         0, 0, 0, 0, 0, 0,
         0, 0, 1, 1, 0, 0,

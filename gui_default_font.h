@@ -19,6 +19,8 @@
 
 #include "gui_font.h"
 
+extern uint8_t global_default_font_palette[1*9*3];
+
 struct Character char_A();
 struct Character char_B();
 struct Character char_C();
