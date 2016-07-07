@@ -130,14 +130,14 @@ void text_put(struct Canvas* canvas,
 
             float x_step = 1.0f/font->texture.width;
             float y_step = 1.0f/font->texture.height;
-            float u1 = x_step * (glyph->x + 0.0f * glyph->w);
-            float u2 = x_step * (glyph->x + 1.0f * glyph->w);
-            float v1 = y_step * (glyph->y + 0.0f * glyph->h);
-            float v2 = y_step * (glyph->y + 1.0f * glyph->h);
-            vec_copy2f( (Vec2f){u1, v1}, &texcoords[texcoord_offset + 0*TEXT_TEXCOORD_SIZE] );
-            vec_copy2f( (Vec2f){u2, v1}, &texcoords[texcoord_offset + 1*TEXT_TEXCOORD_SIZE] );
-            vec_copy2f( (Vec2f){u2, v2}, &texcoords[texcoord_offset + 2*TEXT_TEXCOORD_SIZE] );
-            vec_copy2f( (Vec2f){u1, v2}, &texcoords[texcoord_offset + 3*TEXT_TEXCOORD_SIZE] );
+            float u1 = x_step * glyph->x;
+            float u2 = x_step * (glyph->x + glyph->w);
+            float v1 = y_step * glyph->y;
+            float v2 = y_step * (glyph->y + glyph->h);
+            vec_copy2f( (Vec2f){u1, v2}, &texcoords[texcoord_offset + 0*TEXT_TEXCOORD_SIZE] );
+            vec_copy2f( (Vec2f){u2, v2}, &texcoords[texcoord_offset + 1*TEXT_TEXCOORD_SIZE] );
+            vec_copy2f( (Vec2f){u2, v1}, &texcoords[texcoord_offset + 2*TEXT_TEXCOORD_SIZE] );
+            vec_copy2f( (Vec2f){u1, v1}, &texcoords[texcoord_offset + 3*TEXT_TEXCOORD_SIZE] );
 
             uint32_t indices_offset = glyph_counter*6;
             indices[indices_offset+0] = canvas_offset + primitive_offset + 0;

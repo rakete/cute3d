@@ -62,6 +62,13 @@ void font_create(const wchar_t* unicode_alphabet,
     font->kerning = 0.2f;
     font->linespacing = 0.2f;
 
+    // - I want to to create a font bitmap, where the characters of the alphabet are layed out in rows
+    // in such a way that I can easily render one character by using texcoords
+    // - currently each row may contain as many characters as can be fitted into it, the character
+    // columns do not have to line up
+    // - the rows will always have the same height, so I have to loop over the whole alphabet once
+    // to find out which character is the highest, then use that max_h height as y offset when progressing
+    // to the next row
     int32_t max_h = 0;
     for( int32_t i = 0; i < (int32_t)alphabet_len; i++ ) {
         wchar_t c = unicode_alphabet[i];
@@ -106,12 +113,10 @@ void font_create(const wchar_t* unicode_alphabet,
             power2 *= 2;
         }
 
-
         wchar_t next_c = current_c;
         int32_t next_row_width = 0;
         if( i+1 < (int32_t)alphabet_len ) {
             next_c = unicode_alphabet[i+1];
-            printf("%lc %lc\n", current_c, next_c);
             next_row_width = row_width + symbols[next_c].w;
         }
 
@@ -134,7 +139,7 @@ void font_create(const wchar_t* unicode_alphabet,
             struct Glyph* glyph = &font->glyphs[i];
 
             int32_t offset_x = row_offsets[i];
-            int32_t offset_y = rows[i] * max_h;
+            int32_t offset_y = power2 - max_h - rows[i] * max_h;
             int32_t tx;
             int32_t ty;
 
@@ -152,7 +157,7 @@ void font_create(const wchar_t* unicode_alphabet,
                     ColorP* color = &palette[pixel*color_n];
 
                     tx = offset_x + gx;
-                    ty = offset_y + gy + max_h - symbols[c_i].h;
+                    ty = offset_y + (max_h - 1 - gy); //gy + max_h - symbols[c_i].h;
 
                     texture[(ty*power2+tx)*4+0] = color[0];
                     texture[(ty*power2+tx)*4+1] = color[1];
