@@ -117,7 +117,7 @@ elif build_toolset == "mingw":
     ldflags = linking + " " + libraries
 elif build_toolset == "msvc":
     sdl2_cflags = "/Ic:\\VC\\SDL2-2.0.4\\include"
-    sdl2_libs = "/LIBPATH:c:\\VC\\SDL2-2.0.4\\lib\\x86 SDL2.lib SDL2main.lib"
+    sdl2_libs = "/LIBPATH:c:\\VC\\SDL2-2.0.4\\lib\\x64 SDL2.lib SDL2main.lib"
 
     # - MD is for dynamic linking
     features = " /DDEBUG /DCUTE_BUILD_MSVC /MD"
