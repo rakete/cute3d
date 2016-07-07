@@ -106,7 +106,7 @@ elif build_toolset == "mingw":
         sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
         sdl2_libs = "-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows"
 
-    features = "-std=c11 -pg -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
+    features = "-posix -std=c11 -pg -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
     optimization = "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -Wno-unknown-pragmas -pedantic"
     linking = "-fPIC"
