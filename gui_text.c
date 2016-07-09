@@ -140,12 +140,12 @@ void text_put(struct Canvas* canvas,
             vec_copy2f( (Vec2f){u1, v1}, &texcoords[texcoord_offset + 3*TEXT_TEXCOORD_SIZE] );
 
             uint32_t indices_offset = glyph_counter*6;
-            indices[indices_offset+0] = canvas_offset + primitive_offset + 0;
+            indices[indices_offset+0] = canvas_offset + primitive_offset + 3;
             indices[indices_offset+1] = canvas_offset + primitive_offset + 1;
-            indices[indices_offset+2] = canvas_offset + primitive_offset + 2;
-            indices[indices_offset+3] = canvas_offset + primitive_offset + 0;
+            indices[indices_offset+2] = canvas_offset + primitive_offset + 0;
+            indices[indices_offset+3] = canvas_offset + primitive_offset + 3;
             indices[indices_offset+4] = canvas_offset + primitive_offset + 2;
-            indices[indices_offset+5] = canvas_offset + primitive_offset + 3;
+            indices[indices_offset+5] = canvas_offset + primitive_offset + 1;
 
             glyph_counter += 1;
         }
