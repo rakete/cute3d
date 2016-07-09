@@ -114,10 +114,15 @@ void sdl2_glcontext(int major, int minor, SDL_Window* window, const uint8_t clea
             glEnable(GL_DEPTH_TEST);
 
             glEnable(GL_BLEND);
+            glBlendEquation(GL_FUNC_ADD);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
             glEnable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
+            glEnable(GL_CULL_FACE);
+            glFrontFace(GL_CCW);
+            glCullFace(GL_BACK);
 
             glClearColor((float)clear_color[0] / 255.0f,
                          (float)clear_color[1] / 255.0f,
