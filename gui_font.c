@@ -152,10 +152,10 @@ void font_create(const wchar_t* unicode_alphabet,
             for( int32_t gy = 0; gy < symbols[c_i].h; gy++ ) {
                 for( int32_t gx = 0; gx < symbols[c_i].w; gx++ ) {
                     int32_t pixel_i = gy * symbols[c_i].w + gx;
-                    int32_t pixel = symbols[c_i].pixels[pixel_i];
+                    int32_t pixel_v = symbols[c_i].pixels[pixel_i];
 
-                    log_assert( pixel < (int32_t)palette_n );
-                    ColorP* color = &palette[pixel*color_n];
+                    log_assert( pixel_v < (int32_t)palette_n );
+                    ColorP* color = &palette[pixel_v*color_n];
 
                     tx = offset_x + gx;
                     ty = offset_y + (max_h - 1 - gy); //gy + max_h - symbols[c_i].h;
@@ -169,7 +169,7 @@ void font_create(const wchar_t* unicode_alphabet,
                         // - this hardcodes that in a palette which only has color with 3 components, the first color is
                         // fully transparent, I wanted that so that 0 would always be transparent in my coded font glyphs,
                         // even when I was only using a palette with 3-colors
-                        if( pixel == 0 ) {
+                        if( pixel_v == 0 ) {
                             texture[(ty*power2+tx)*4+3] = 0;
                         } else {
                             texture[(ty*power2+tx)*4+3] = 255;
