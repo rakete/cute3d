@@ -134,6 +134,7 @@ void font_create(const wchar_t* unicode_alphabet,
 
         for( int32_t i = 0; i < (int32_t)alphabet_len; i++ ) {
             wchar_t c_i = unicode_alphabet[i];
+            log_assert( c_i < MAX_FONT_ALPHABET_SIZE );
             font->alphabet[c_i] = i;
 
             struct Glyph* glyph = &font->glyphs[i];
