@@ -97,9 +97,7 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
     strncat(p->name, name, name_length);
 
     if( vertex_file && fragment_file ) {
-        if( strcmp( name, "default_shader") && strcmp( name, "font_shader") ) {
-            log_info(__FILE__, __LINE__, "creating shader \"%s\" from files: \"%s\", \"%s\"\n", name, vertex_file, fragment_file);
-        }
+        log_info(__FILE__, __LINE__, "creating shader \"%s\" from files: \"%s\", \"%s\"\n", name, vertex_file, fragment_file);
         p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, vertex_file);
         p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, fragment_file);
     } else {
