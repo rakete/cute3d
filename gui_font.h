@@ -52,12 +52,12 @@ struct Font {
         GLuint id;
         size_t width;
         size_t height;
-        GLenum type;
-        GLint format;
-        GLint min_filter;
-        GLint mag_filter;
-        GLint wrap_s;
-        GLint wrap_t;
+        /* GLenum type; */
+        /* GLint format; */
+        /* GLint min_filter; */
+        /* GLint mag_filter; */
+        /* GLint wrap_s; */
+        /* GLint wrap_t; */
     } texture;
 
     struct Shader shader;
@@ -67,7 +67,5 @@ struct Font {
 };
 
 void font_create(const wchar_t* unicode_alphabet, size_t symbols_n, struct Character* symbols, size_t palette_n, size_t color_n, uint8_t* palette, const char* name, struct Font* font);
-
-void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter);
 
 #endif

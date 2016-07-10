@@ -24,12 +24,12 @@ void font_create(const wchar_t* unicode_alphabet,
     font->texture.id = 0;
     font->texture.width = 0;
     font->texture.height = 0;
-    font->texture.type = 0;
-    font->texture.format = 0;
-    font->texture.min_filter = 0;
-    font->texture.mag_filter = 0;
-    font->texture.wrap_s = 0;
-    font->texture.wrap_t = 0;
+    /* font->texture.type = 0; */
+    /* font->texture.format = 0; */
+    /* font->texture.min_filter = 0; */
+    /* font->texture.mag_filter = 0; */
+    /* font->texture.wrap_s = 0; */
+    /* font->texture.wrap_t = 0; */
 
     shader_create(&font->shader);
 
@@ -188,38 +188,22 @@ void font_create(const wchar_t* unicode_alphabet,
 
         glBindTexture(GL_TEXTURE_2D, font->texture.id);
 
-        font->texture.min_filter = GL_NEAREST;
-        font->texture.mag_filter = GL_NEAREST;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, font->texture.min_filter);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, font->texture.mag_filter);
+        /* font->texture.min_filter = GL_NEAREST; */
+        /* font->texture.mag_filter = GL_NEAREST; */
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        font->texture.wrap_s = GL_CLAMP_TO_EDGE;
-        font->texture.wrap_t = GL_CLAMP_TO_EDGE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, font->texture.wrap_s);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, font->texture.wrap_t);
+        /* font->texture.wrap_s = GL_CLAMP_TO_EDGE; */
+        /* font->texture.wrap_t = GL_CLAMP_TO_EDGE; */
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        font->texture.type = GL_UNSIGNED_BYTE;
-        font->texture.format = GL_RGBA;
-        glTexImage2D(GL_TEXTURE_2D, 0, font->texture.format, power2, power2, 0, font->texture.format, font->texture.type, texture);
+        /* font->texture.type = GL_UNSIGNED_BYTE; */
+        /* font->texture.format = GL_RGBA; */
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, power2, power2, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
 
         free(texture);
 
         shader_create_from_files("shader/default_font.vert", "shader/default_font.frag", "font_shader", &font->shader);
     }
-}
-
-void font_texture_filter(struct Font* font, GLint min_filter, GLint mag_filter) {
-    glBindTexture(GL_TEXTURE_2D, font->texture.id);
-
-    if( min_filter ) {
-        font->texture.min_filter = min_filter;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
-    }
-
-    if( mag_filter ) {
-        font->texture.mag_filter = mag_filter;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
-    }
-
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
