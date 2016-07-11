@@ -125,7 +125,7 @@ int32_t main(int32_t argc, char *argv[]) {
     /* Collisions */
     size_t world_size = 2;
 
-    struct CollidingShape* world_colliders[2];
+    struct Shape* world_colliders[2];
     struct RigidBody* world_bodies[2];
     size_t candidates[2];
     size_t candidates_size = 0;

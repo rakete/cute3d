@@ -1,12 +1,14 @@
 #include "math_quaternion.h"
 
-#include "gui.h"
 #include "driver_ogl.h"
 #include "driver_sdl2.h"
+
 #include "math_arcball.h"
-#include "geometry_vbo.h"
-#include "render_shader.h"
+
+#include "gui_canvas.h"
 #include "gui_text.h"
+
+#include "render_canvas.h"
 
 int32_t main(int32_t argc, char *argv[]) {
     if( init_sdl2() ) {
@@ -14,12 +16,12 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     SDL_Window* window;
-    sdl2_window("test-text", 0, 0, 800, 600, &window);
+    sdl2_window("test-text", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, &window);
 
     SDL_GLContext* context;
-    sdl2_glcontext(window, &context);
+    sdl2_glcontext(3, 2, window, (Color){0.0, 0.0, 0.0, 1.0}, &context);
 
-    if( init_ogl(800, 600, (Color){0.0, 0.0, 0.0, 1.0}) ) {
+    if( init_shader() ) {
         return 1;
     }
 
@@ -27,23 +29,14 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    struct Vbo vbo = {0};
-    vbo_create(&vbo);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLORS, 4, GL_FLOAT, GL_STATIC_DRAW);
-
-    struct Shader shader = {0};
-    shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &shader);
+    if( init_canvas() ) {
+        return 1;
+    }
+    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
+    canvas_create("global_static_canvas", &global_static_canvas);
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){12.0,16.0,-8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001, 1000.0, &arcball);
-
-    struct Character symbols[256] = {0};
-    default_font_create(symbols);
-
-    struct Font font = {0};
-    font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font", &font);
 
     log_info(__FILE__, __LINE__, "info message %s\n", "foo");
     log_warn(__FILE__, __LINE__, "warning message %s\n", "bar");
@@ -71,18 +64,18 @@ int32_t main(int32_t argc, char *argv[]) {
         glClearColor(.0f, .0f, .0f, 1.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-        Vec4f light_direction = { 0.2, 0.5, 1.0 };
-        shader_add_uniform(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
+        Vec4f screen_cursor = {0};
+        text_put_screen(&global_dynamic_canvas, 0, screen_cursor, 25, 25, (Color){255, 255, 255, 255}, 15.0f, "default_font",
+                        L"ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789\n.,:;");
+        text_put_screen(&global_dynamic_canvas, 0, screen_cursor, 25, 25, (Color){255, 255, 255, 255}, 15.0f, "default_font",
+                        L"Hallo allerseits, dies ist ein Test.\n"
+                        L"Ich moechte an dieser Stelle auf die\n"
+                        L"blah, blah, blah hinweisen, die es mir\n"
+                        L"gestatten auf den lol, lol, lol zu ver\n"
+                        L"zichten.");
 
-        Color ambiance = { 0.25, 0.1, 0.2, 1.0 };
-        shader_add_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "ambiance", "4f", ambiance);
-
-        text_overlay(L"ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789\n.,:;", &font, 25, arcball.camera, 25, 25);
-        text_overlay(L"Hallo allerseits, dies ist ein Test.\n"
-                     L"Ich moechte an dieser Stelle auf die\n"
-                     L"blah, blah, blah hinweisen, die es mir\n"
-                     L"gestatten auf den lol, lol, lol zu ver\n"
-                     L"zichten.", &font, 15, arcball.camera, 25, 220);
+        canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
+        canvas_clear(&global_dynamic_canvas);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
 

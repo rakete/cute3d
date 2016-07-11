@@ -20,7 +20,7 @@
 struct CollisionEntity {
     const char* name;
     struct Pivot pivot;
-    struct CollidingConvexShape colliding_convex;
+    struct ShapeConvex shape;
     struct HalfEdgeMesh hemesh;
     struct Box solid;
     struct Box optimized_solid;
@@ -42,10 +42,11 @@ static void entity_create(const char* name, Color color, struct Vbo* vbo, struct
     halfedgemesh_append(&entity->hemesh, (struct Solid*)&entity->solid);
     halfedgemesh_optimize(&entity->hemesh);
 
-    colliding_create_convex_shape(&entity->hemesh, &entity->pivot, &entity->colliding_convex);
+    shape_create_convex(&entity->hemesh, &entity->shape);
+    pivot_attach(&entity->shape.base_shape.pivot, &entity->pivot);
 
     picking_create_sphere(1.0f, &entity->picking_sphere);
-    pivot_attach(&entity->pivot, &entity->picking_sphere);
+    pivot_attach(&entity->picking_sphere.pivot, &entity->pivot);
 }
 
 int32_t main(int32_t argc, char *argv[]) {
@@ -56,7 +57,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     SDL_Window* window;
-    sdl2_window("test-halfedge", 100, 60, 1280, 720, &window);
+    sdl2_window("test-collisions", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(3, 2, window, (Color){0,0,0,255}, &context);
@@ -223,17 +224,17 @@ int32_t main(int32_t argc, char *argv[]) {
         Vec3f foo = {0};
         mat_mul_vec3f(between_transform, entity_a.hemesh.vertices.array[0].position, foo);
 
-        colliding_prepare_shape((struct CollidingShape*)&entity_a.colliding_convex);
-        colliding_prepare_shape((struct CollidingShape*)&entity_b.colliding_convex);
-        for( uint32_t i = 0; i < 1000; i++ ) {
+        colliding_prepare_shape((struct Shape*)&entity_a.shape);
+        colliding_prepare_shape((struct Shape*)&entity_b.shape);
+        for( uint32_t i = 0; i < 10; i++ ) {
             struct Collision collision = {0};
             struct CollisionParameter collision_parameter = {
                 .face_tolerance = 0.9,
                 .edge_tolerance = 0.95,
                 .absolute_tolerance = 0.025
             };
-            colliding_prepare_collision((struct CollidingShape*)&entity_a.colliding_convex,
-                                        (struct CollidingShape*)&entity_b.colliding_convex,
+            colliding_prepare_collision((struct Shape*)&entity_a.shape,
+                                        (struct Shape*)&entity_b.shape,
                                         collision_parameter,
                                         &collision);
 

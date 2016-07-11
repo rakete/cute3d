@@ -40,14 +40,10 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     SDL_Window* window;
-    sdl2_window("test-canvas", 0, 0, 800, 600, &window);
+    sdl2_window("test-canvas", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, &window);
 
     SDL_GLContext* context;
-    sdl2_glcontext(window, &context);
-
-    if( init_ogl(800, 600, (Color){0, 0, 0, 255}) ) {
-        return 1;
-    }
+    sdl2_glcontext(3, 2, window, (Color){0, 0, 0, 255}, &context);
 
     if( init_shader() ) {
         return 1;
@@ -60,8 +56,8 @@ int32_t main(int32_t argc, char *argv[]) {
     if( init_canvas() ) {
         return 1;
     }
-    canvas_create(&global_dynamic_canvas);
-    canvas_create(&global_static_canvas);
+    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
+    canvas_create("global_static_canvas", &global_static_canvas);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
@@ -94,18 +90,18 @@ int32_t main(int32_t argc, char *argv[]) {
     default_font_create(symbols);
 
     struct Shader shader = {0};
-    shader_create_gl_lines("default_shader", &shader);
+    shader_create_from_files("shader/volumetric_lines.vert", "shader/volumetric_lines.frag", "lines_shader", &shader);
 
     struct Font font = {0};
-    font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, "default_font", &font);
+    font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", 256, symbols, 9, 3, global_default_font_palette, "other_font", &font);
 
     struct Canvas text_canvas = {0};
-    canvas_create(&text_canvas);
+    canvas_create("text_canvas", &text_canvas);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
-    log_assert( canvas_add_shader(&text_canvas, &shader) < NUM_CANVAS_SHADER );
-    log_assert( canvas_add_font(&text_canvas, &font) < NUM_CANVAS_FONTS );
+    log_assert( canvas_add_shader(&text_canvas, &shader) < MAX_CANVAS_SHADER );
+    log_assert( canvas_add_font(&text_canvas, &font) < MAX_CANVAS_FONTS );
 
     struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);
@@ -137,48 +133,34 @@ int32_t main(int32_t argc, char *argv[]) {
                    glClearColor(.0f, .0f, .0f, 1.0f);
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
 
-        draw_grid(&text_canvas, 0, 1.0f, 1.0f, 12, (Color){20, 180, 240, 255}, grid_transform1);
-        draw_grid(&text_canvas, 0, 2.0f, 2.0f, 12, (Color){20, 180, 240, 255}, grid_transform1);
-        draw_grid(&text_canvas, 0, 4.0f, 4.0f, 12, (Color){20, 180, 240, 255}, grid_transform1);
-        draw_grid(&text_canvas, 0, 6.0f, 6.0f, 12, (Color){20, 180, 240, 255}, grid_transform1);
-        draw_grid(&text_canvas, 0, 8.0f, 8.0f, 12, (Color){20, 180, 240, 255}, grid_transform1);
-        draw_grid(&text_canvas, 0, 10.0f, 10.0f, 12, (Color){20, 180, 240, 255}, grid_transform1);
-        draw_grid(&text_canvas, 0, 12.0f, 12.0f, 12, (Color){20, 180, 240, 255}, grid_transform1);
-        draw_grid(&text_canvas, 0, 1.0f, 1.0f, 12, (Color){240, 110, 20, 255}, (Mat)IDENTITY_MAT);
-        draw_grid(&text_canvas, 0, 2.0f, 2.0f, 12, (Color){240, 110, 20, 255}, (Mat)IDENTITY_MAT);
-        draw_grid(&text_canvas, 0, 4.0f, 4.0f, 12, (Color){240, 110, 20, 255}, (Mat)IDENTITY_MAT);
-        draw_grid(&text_canvas, 0, 6.0f, 6.0f, 12, (Color){240, 110, 20, 255}, (Mat)IDENTITY_MAT);
-        draw_grid(&text_canvas, 0, 8.0f, 8.0f, 12, (Color){240, 110, 20, 255}, (Mat)IDENTITY_MAT);
-        draw_grid(&text_canvas, 0, 10.0f, 10.0f, 12, (Color){240, 110, 20, 255}, (Mat)IDENTITY_MAT);
-        draw_grid(&text_canvas, 0, 12.0f, 12.0f, 12, (Color){240, 110, 20, 255}, (Mat)IDENTITY_MAT);
+        draw_grid(&text_canvas, 0, grid_transform1, (Color){20, 180, 240, 255}, 0.02f, 12.0f, 12.0f, 12);
 
-        draw_basis(&text_canvas, 1, 1.0f, (Mat)IDENTITY_MAT);
+        draw_basis(&text_canvas, 1, (Mat)IDENTITY_MAT, 0.02f, 1.0f);
 
         Mat text_matrix = {0};
         mat_rotate(NULL, qfrom_axis_angle((Vec4f){1.0, 0.0, 0.0, 1.0}, PI/2), text_matrix);
         mat_translate(text_matrix, (Vec4f){-3.5, -1.0, 6.25, 1.0}, text_matrix);
 
         Vec4f world_cursor = {0,0,0,1};
-        text_put_world(&text_canvas, world_cursor, 0, "default_font", 0.5, (Color){0, 255, 255, 255}, text_matrix, L"Dies ist ein Test\n");
-        text_put_world(&text_canvas, world_cursor, 0, "default_font", 0.5, (Color){255, 255, 0, 255}, text_matrix, L"fuer einen Text");
+        text_put_world(&text_canvas, 0, world_cursor, text_matrix, (Color){0, 255, 255, 255}, 0.5f, "other_font", L"Dies ist ein Test\n");
+        text_put_world(&text_canvas, 0, world_cursor, text_matrix, (Color){255, 255, 0, 255}, 0.5f, "other_font", L"fuer einen Text");
 
         gametime_integrate(&time);
         Vec4f screen_cursor = {0,0,0,1};
-        double fps = text_show_fps(&global_dynamic_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.frame);
-        printf("//FPS: %.1f\n", fps);
+        double fps = text_show_fps(&global_dynamic_canvas, 0, screen_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0f, "default_font", time.frame);
 
-        text_show_time(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.t);
+        /* text_show_time(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 255, 255, 255}, 0, 0, time.t); */
 
-        text_put_screen(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 210, 255, 255}, 0, 0, L"LALA singt das Meerschweinchen\n");
-        text_put_screen(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){0, 210, 255, 255}, 0, 0, L"FICKEN immer und ueberall\n");
-        text_put_screen(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){20, 210, 110, 255}, 0, 0, L"FUMMELN den ganzen Tag lang\n");
+        /* text_put_screen(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 210, 255, 255}, 0, 0, L"LALA singt das Meerschweinchen\n"); */
+        /* text_put_screen(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){0, 210, 255, 255}, 0, 0, L"FICKEN immer und ueberall\n"); */
+        /* text_put_screen(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){20, 210, 110, 255}, 0, 0, L"FUMMELN den ganzen Tag lang\n"); */
 
-        text_printf(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 40, 60, 255}, 0, 0, L"PRINTF %d Luftballons\n", 99);
+        /* text_printf(&text_canvas, screen_cursor, 0, "default_font", 20.0, (Color){255, 40, 60, 255}, 0, 0, L"PRINTF %d Luftballons\n", 99); */
 
-        canvas_render_layers(&text_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
+        canvas_render_layers(&text_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&text_canvas);
 
-        canvas_render_layers(&global_dynamic_canvas, 0, NUM_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
+        canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);
 
         sdl2_debug( SDL_GL_SwapWindow(window) );
