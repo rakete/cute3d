@@ -101,7 +101,7 @@ bool picking_drag_sphere_event(const struct Camera* camera, size_t n, struct Pic
 
     if( event.type == SDL_MOUSEBUTTONDOWN && event.button.button == INPUT_MOUSE_PICKING_DRAG && mouse_down == 0 ) {
         mouse_down = event.button.button;
-        dragging = picking_click_sphere_event(camera, spheres, n, event);
+        dragging = picking_click_sphere_event(camera, n, spheres, event);
         ret = dragging;
     } else if( event.type == SDL_MOUSEBUTTONUP && mouse_down == event.button.button ) {
         mouse_down = 0;
