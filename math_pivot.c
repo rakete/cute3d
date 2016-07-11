@@ -48,6 +48,10 @@ void pivot_create(Vec3f position, Quat orientation, struct Pivot* pivot) {
     pivot->parent = &global_null_pivot;
 }
 
+void pivot_attach(struct Pivot* child, const struct Pivot* parent) {
+    child->parent = parent;
+}
+
 int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
     int32_t result = -1;
 

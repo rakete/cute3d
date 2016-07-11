@@ -32,7 +32,7 @@ struct Pivot {
 extern struct Pivot global_null_pivot;
 
 void pivot_create(Vec3f position, Quat orientation, struct Pivot* pivot);
-void pivot_attach(const struct Pivot* parent, struct Pivot* child);
+void pivot_attach(struct Pivot* child, const struct Pivot* parent);
 
 int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target);
 
