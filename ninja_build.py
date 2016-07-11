@@ -93,7 +93,9 @@ if build_platform == "linux" or build_toolset == "gcc":
     optimization = "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -Wno-unknown-pragmas -pedantic"
     linking = "-fPIC"
-    libraries = "-lm -lGL " + sdl2_libs
+    # - because of bug in gcc(?), I need to explicitly link with -lasan when I use -fsanitize=address, otherwise I get
+    # tons of unresolved symbols
+    libraries = "-lm -lGL -lasan " + sdl2_libs
     includes = "-I" + source_directory
 
     cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
@@ -249,7 +251,7 @@ for shader_filename in shader_filenames:
     # copied first, and can then be used in the validate commands for the other shaders
     prefix_deps = []
     if shader_filename != "prefix":
-        prefix_deps = [os.path.join("shader", "prefix.vert"), os.path.join("shader", "prefix.frag"), ]
+        prefix_deps = [os.path.join("shader", "prefix.vert"), os.path.join("shader", "prefix.frag")]
 
     # - these following two if statements create all the build commands, check if the source actually exist because
     # it may be possible that there is a vert shader without frag equivalent for example
@@ -270,14 +272,14 @@ for shader_filename in shader_filenames:
         # get copied and validated when I build test-solid.exe for example, append is in both if branches and not
         # outside so that nothing gets append if this is _not_ an out of source build and glsl_validate.py does _not_
         # exist
-        if glsl_validate:
+        if glsl_validate and shader_filename != "prefix":
             w.build(full_vert_shader, "validate_glsl", dest_vert_shader, order_only=prefix_deps)
             w.build(vert_shader, "phony", full_vert_shader)
             shaders.append(vert_shader)
         elif os.path.relpath(build_directory, script_directory) != ".":
             w.build(vert_shader, "phony", dest_vert_shader)
             shaders.append(vert_shader)
-    w.newline()
+        w.newline()
 
     # - same thing as above but for .frag extension instead of .vert
     if os.path.isfile(source_frag_shader):
@@ -286,14 +288,14 @@ for shader_filename in shader_filenames:
         if os.path.relpath(build_directory, script_directory) != ".":
             w.build(dest_frag_shader, "copy", source_frag_shader, order_only=["shader"])
 
-        if glsl_validate:
+        if glsl_validate and shader_filename != "prefix":
             w.build(full_frag_shader, "validate_glsl", dest_frag_shader, order_only=prefix_deps)
             w.build(frag_shader, "phony", full_frag_shader)
             shaders.append(frag_shader)
         else:
             w.build(frag_shader, "phony", dest_frag_shader)
             shaders.append(frag_shader)
-    w.newline()
+        w.newline()
 w.newline()
 
 # - the rest should be pretty straightforward, here we create compile and link rules depending on which toolset
