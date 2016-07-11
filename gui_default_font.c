@@ -897,16 +897,16 @@ struct Character char_period() {
 }
 
 struct Character char_comma() {
-    static int32_t pixels[4*7] = {
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 1, 0, 0
+    static int32_t pixels[5*7] = {
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 1, 0, 0, 0,
+        0, 1, 0, 0, 0
     };
-    struct Character r = { .w = 4, .h = 7, .pixels = pixels };
+    struct Character r = { .w = 5, .h = 7, .pixels = pixels };
     return r;
 }
 
@@ -984,10 +984,10 @@ struct Character char_equal() {
 struct Character char_asterisk() {
     static int32_t pixels[5*7] = {
         0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0,
         0, 1, 0, 1, 0,
         0, 0, 1, 0, 0,
         0, 1, 0, 1, 0,
+        0, 0, 0, 0, 0,
         0, 0, 0, 0, 0,
         0, 0, 0, 0, 0
     };
@@ -1011,13 +1011,13 @@ struct Character char_slash() {
 
 struct Character char_open_paren() {
     static int32_t pixels[5*7] = {
-        0, 0, 0, 0, 0,
         0, 0, 0, 1, 0,
         0, 0, 1, 0, 0,
         0, 0, 1, 0, 0,
         0, 0, 1, 0, 0,
-        0, 0, 0, 1, 0,
-        0, 0, 0, 0, 0
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 0, 1, 0
     };
     struct Character r = { .w = 5, .h = 7, .pixels = pixels };
     return r;
@@ -1025,13 +1025,13 @@ struct Character char_open_paren() {
 
 struct Character char_close_paren() {
     static int32_t pixels[5*7] = {
-        0, 0, 0, 0, 0,
         0, 1, 0, 0, 0,
         0, 0, 1, 0, 0,
         0, 0, 1, 0, 0,
         0, 0, 1, 0, 0,
-        0, 1, 0, 0, 0,
-        0, 0, 0, 0, 0
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 1, 0, 0, 0
     };
     struct Character r = { .w = 5, .h = 7, .pixels = pixels };
     return r;
@@ -1039,13 +1039,13 @@ struct Character char_close_paren() {
 
 struct Character char_open_bracket() {
     static int32_t pixels[5*7] = {
-        0, 0, 0, 0, 0,
         0, 0, 1, 1, 0,
         0, 0, 1, 0, 0,
         0, 0, 1, 0, 0,
         0, 0, 1, 0, 0,
-        0, 0, 1, 1, 0,
-        0, 0, 0, 0, 0
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 1, 0
     };
     struct Character r = { .w = 5, .h = 7, .pixels = pixels };
     return r;
@@ -1053,13 +1053,13 @@ struct Character char_open_bracket() {
 
 struct Character char_close_bracket() {
     static int32_t pixels[5*7] = {
-        0, 0, 0, 0, 0,
         0, 1, 1, 0, 0,
         0, 0, 1, 0, 0,
         0, 0, 1, 0, 0,
         0, 0, 1, 0, 0,
-        0, 1, 1, 0, 0,
-        0, 0, 0, 0, 0
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 1, 1, 0, 0
     };
     struct Character r = { .w = 5, .h = 7, .pixels = pixels };
     return r;
@@ -1067,13 +1067,13 @@ struct Character char_close_bracket() {
 
 struct Character char_open_brace() {
     static int32_t pixels[5*7] = {
-        0, 0, 0, 0, 0,
         0, 0, 0, 1, 0,
-        0, 0, 1, 1, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
         0, 1, 0, 0, 0,
-        0, 0, 1, 1, 0,
-        0, 0, 0, 1, 0,
-        0, 0, 0, 0, 0
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 0, 1, 0
     };
     struct Character r = { .w = 5, .h = 7, .pixels = pixels };
     return r;
@@ -1081,13 +1081,13 @@ struct Character char_open_brace() {
 
 struct Character char_close_brace() {
     static int32_t pixels[5*7] = {
-        0, 0, 0, 0, 0,
         0, 1, 0, 0, 0,
-        0, 1, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
         0, 0, 0, 1, 0,
-        0, 1, 1, 0, 0,
-        0, 1, 0, 0, 0,
-        0, 0, 0, 0, 0
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 1, 0, 0, 0
     };
     struct Character r = { .w = 5, .h = 7, .pixels = pixels };
     return r;

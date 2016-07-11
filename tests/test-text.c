@@ -66,7 +66,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
         Vec4f screen_cursor = {0};
         text_put_screen(&global_dynamic_canvas, 0, screen_cursor, 25, 25, (Color){255, 255, 255, 255}, 15.0f, "default_font",
-                        L"ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789\n.,:;");
+                        L"ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789\n.,:;+-*/=()[]{}\n");
         text_put_screen(&global_dynamic_canvas, 0, screen_cursor, 25, 25, (Color){255, 255, 255, 255}, 15.0f, "default_font",
                         L"Hallo allerseits, dies ist ein Test.\n"
                         L"Ich moechte an dieser Stelle auf die\n"
