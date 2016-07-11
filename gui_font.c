@@ -149,6 +149,7 @@ void font_create(const wchar_t* unicode_alphabet,
             glyph->w = symbols[c_i].w;
             glyph->h = max_h;
 
+            int32_t symbol_h = symbols[c_i].h;
             for( int32_t gy = 0; gy < symbols[c_i].h; gy++ ) {
                 for( int32_t gx = 0; gx < symbols[c_i].w; gx++ ) {
                     int32_t pixel_i = gy * symbols[c_i].w + gx;
@@ -158,7 +159,7 @@ void font_create(const wchar_t* unicode_alphabet,
                     ColorP* color = &palette[pixel_v*color_n];
 
                     tx = offset_x + gx;
-                    ty = offset_y + (max_h - 1 - gy); //gy + max_h - symbols[c_i].h;
+                    ty = offset_y + (symbol_h - 1 - gy); //gy + max_h - symbol_h;
 
                     texture[(ty*power2+tx)*4+0] = color[0];
                     texture[(ty*power2+tx)*4+1] = color[1];
