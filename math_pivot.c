@@ -97,7 +97,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
         vec_sub(target_direction, up_projection, yaw_direction);
 
         // - angle between yaw_direction and forward_axis is the amount of yaw we
-        //   need to point32_t the forward_axis toward the target
+        //   need to point the forward_axis toward the target
         float yaw = 0.0f;
         vec_angle(yaw_direction, forward_axis, &yaw);
         log_assert( ! isnan(yaw),
@@ -159,7 +159,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
         // - the int32_t I want to return indicates the cameras 'flip' status, that is, it is
         //   one when the camera angle was pitched so much that it flipped over and its
         //   up axis is now pointing downwards
-        // - to find out if I am flipped over, I compute a the flipped up_axis called
+        // - to find out if I am flipped over, I compute the flipped up_axis called
         //   flip_axis and then use the dot product between the flip_axis and up_axis
         //   to decide if I am flipped
         Vec4f flip_axis = {0};
@@ -172,7 +172,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
         vec_normalize(target_direction, target_axis);
 
         // - check if we are flipped and if we are, set result to 1 meaning we are flipped
-        // - turn the camera around PI so that can continue pitching, otherwise we just get
+        // - turn the camera around PI so that we can continue pitching, otherwise we just get
         //   stuck when trying to flip the camera over
         if( dot_pitch < 0.0f ) {
             result = 1;

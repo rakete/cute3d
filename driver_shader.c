@@ -447,7 +447,7 @@ GLint shader_set_uniform_1f(struct Shader* shader, int32_t uniform_index, uint32
         default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
     }
 
-    // glUniform changes state of the program, so it needs to be run after glUseProgram
+    // - glUniform changes state of the program, so it needs to be run after glUseProgram
     // that does not apply to glVertexAttribPointer, which only changes global state
     ogl_debug( glUseProgram(shader->program);
                glUniform1f(location, float_value); );

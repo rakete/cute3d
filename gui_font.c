@@ -95,7 +95,7 @@ void font_create(const wchar_t* unicode_alphabet,
     // - along the way I collect row_offsets[i] that I use later when creating the texture, it
     // specifies how much pixels symbol i must be offset from the left texture border to be painted
     // at its correct place
-    // - also rows[], which just specifies which row symbol i should be in
+    // - also rows[i], which just specifies which row_n number symbol i should be in
     // - row_width is an accumulator for the row_offsets[], and row_n is an accumulator for
     // the rows[]
     int32_t row_width = 0;
@@ -121,7 +121,7 @@ void font_create(const wchar_t* unicode_alphabet,
         }
 
         // - we compute the next_row_width, then use it below to decide if we continue filling this row, or
-        // if we advanve to the next row
+        // if we advance to the next row
         wchar_t next_c = current_c;
         int32_t next_row_width = 0;
         if( i+1 < (int32_t)alphabet_len ) {
