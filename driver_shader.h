@@ -36,13 +36,39 @@
 #define SHADER_UNIFORM_LIGHT_DIRECTION 5
 #define SHADER_UNIFORM_AMBIENT_COLOR 6
 #define SHADER_UNIFORM_DIFFUSE_COLOR 7
-#define SHADER_UNIFORM_DIFFUSE_TEXTURE 8
-#define SHADER_UNIFORM_ASPECT_RATIO 9
-#define SHADER_UNIFORM_LINE_Z_SCALING 10
+#define SHADER_UNIFORM_ASPECT_RATIO 8
+#define SHADER_UNIFORM_LINE_Z_SCALING 9
+
+// - samplers are just uniforms, but they behave different so I treat them different
+// - essentially a sampler  just contains a number, which is the active texture unit that is sampled
+// - I restrict myself to max 8 active texture units, which should be supported by all opengl
+// implementations
+// - to associate shader samplers (like uniform sampler2D diffuse_texture in a shader) with a texture
+// unit (the thing that I have to call glActiveTexture on), I have these defines like
+// SHADER_SAMPLER_DIFFUSE_TEXTURE
+// - I want those to be fixed, that is I want SHADER_SAMPLER_DIFFUSE_TEXTURE with value 0 to be always
+// associated with texture unit 0, that way I can setup a shaders sampler once (with the value 0 if it
+// is the sampler for the diffuse texture) and then not worry about having to set them again while
+// rendering, reducing the amount of state changes
+// - but since I only have 8 (depending on the hardware) available texture units, I would run into
+// problems as soon as I want to have more the 8 different samplers, I need to reuse some texture units,
+// I can't directly map from SHADER_SAMPLER_DIFFUSE_TEXTURE=0 -> GL_TEXTURE0
+// - to do that I want to organize these defines in blocks of 8, where each block is associated with 8
+// unique texture units, so then while I need unique texture units for every sampler of each block, I
+// can reuse texture units in different blocks
+// - for example the diffuse texture is associated with texture unit 0 in the first block, but then I
+// want a shader which takes diffuse atlas _instead_ of a diffuse texture, then I can reuse texture
+// unit 0 for the diffuse atlas sampler by putting it at the first spot in a new block, like I've done
+// below by giving SHADER_SAMPLER_DIFFUSE_ATLAS the value 8
+#define MAX_SHADER_TEXTURE_UNITS 8
+#define MAX_SHADER_SAMPLER 16
+#define SHADER_SAMPLER_DIFFUSE_TEXTURE 0
+#define SHADER_SAMPLER_DIFFUSE_ATLAS 8
 
 // names for locations
 extern const char* global_shader_attribute_names[MAX_SHADER_ATTRIBUTES];
 extern const char* global_shader_uniform_names[MAX_SHADER_UNIFORMS];
+extern const char* global_shader_sampler_names[MAX_SHADER_SAMPLER];
 
 struct Shader {
     char name[256];
@@ -85,6 +111,13 @@ struct Shader {
         bool warn_once;
     } uniform[MAX_SHADER_UNIFORMS];
 
+    struct {
+        GLint location;
+        char name[256];
+        bool unset;
+        bool warn_once;
+    } sampler[MAX_SHADER_SAMPLER];
+
     bool verified;
 };
 
@@ -94,22 +127,25 @@ void shader_create(struct Shader* p);
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p);
 void shader_create_from_sources(const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p);
 
+void shader_use_program(const struct Shader* p);
+
 void shader_setup_locations(struct Shader* p);
 bool shader_verify_locations(struct Shader* p);
 bool shader_warn_locations(struct Shader* p);
 
 GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name);
 GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const char* name);
+GLint shader_add_sampler(struct Shader* shader, int32_t sampler_index, const char* name);
 
 void shader_print(FILE* f, const struct Shader* shader);
 
-GLint shader_set_uniform_matrices(struct Shader* shader, const Mat projection_matrix, const Mat view_matrix, const Mat model_matrix);
+GLint shader_set_uniform_matrices(struct Shader* shader, GLuint program, const Mat projection_matrix, const Mat view_matrix, const Mat model_matrix);
 
-GLint shader_set_uniform_1f(struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
-GLint shader_set_uniform_3f(struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
-GLint shader_set_uniform_4f(struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data);
+GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data);
+GLint shader_set_uniform_3f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data);
+GLint shader_set_uniform_4f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data);
 
-GLint shader_set_sampler2D(struct Shader* shader, int32_t uniform_index, GLenum texture_type, GLuint texture_unit, GLuint texture_id);
+GLint shader_set_sampler2D(struct Shader* shader, int32_t sampler_index, GLenum texture_dimension, GLuint texture_id);
 
 GLint shader_set_attribute(struct Shader* shader, int32_t attribute_i, GLuint buffer, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p);
 

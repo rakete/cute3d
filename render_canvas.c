@@ -85,7 +85,6 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
             // can now do this once, here, and then not worry about it until the very end where I unbind the locations once
             uint32_t c_num = canvas->components[attribute_i].size;
             GLenum c_type = canvas->components[attribute_i].type;
-            log_assert( c_num >= 0 );
             log_assert( c_num <= 4 );
 
             ogl_debug( glEnableVertexAttribArray((GLuint)loc[attribute_i]);
@@ -109,15 +108,15 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
         struct Shader* shader = &canvas->shader[shader_i];
 
-        ogl_debug( glUseProgram(shader->program); );
+        shader_use_program(shader);
 
         if( shader->uniform[SHADER_UNIFORM_LINE_Z_SCALING].location > -1 ) {
-            shader_set_uniform_1f(shader, SHADER_UNIFORM_LINE_Z_SCALING, 1, GL_FLOAT, &canvas->line_z_scaling);
+            shader_set_uniform_1f(shader, 0, SHADER_UNIFORM_LINE_Z_SCALING, 1, GL_FLOAT, &canvas->line_z_scaling);
         }
 
         if( shader->uniform[SHADER_UNIFORM_ASPECT_RATIO].location > -1 ) {
             float aspect_ratio = (float)camera->screen.width/(float)camera->screen.height;
-            shader_set_uniform_1f(shader, SHADER_UNIFORM_ASPECT_RATIO, 1, GL_FLOAT, &aspect_ratio);
+            shader_set_uniform_1f(shader, 0, SHADER_UNIFORM_ASPECT_RATIO, 1, GL_FLOAT, &aspect_ratio);
         }
 
         Mat projection_matrix = {0};
@@ -130,11 +129,11 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                 mat_identity(view_matrix);
 
-                GLint matrix_location = shader_set_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix);
+                GLint matrix_location = shader_set_uniform_matrices(shader, 0, projection_matrix, view_matrix, model_matrix);
                 log_assert( matrix_location > -1 );
             } else {
                 camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
-                GLint matrix_location = shader_set_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix);
+                GLint matrix_location = shader_set_uniform_matrices(shader, 0, projection_matrix, view_matrix, model_matrix);
                 log_assert( matrix_location > -1 );
             }
 
@@ -178,10 +177,10 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
         struct Font* font = &canvas->fonts[font_i];
 
         // bind font shader
-        ogl_debug( glUseProgram(font->shader.program); );
+        shader_use_program(&font->shader);
 
         // bind diffuse sampler
-        shader_set_sampler2D(&font->shader, SHADER_UNIFORM_DIFFUSE_TEXTURE, GL_TEXTURE_2D, 0, font->texture.id);
+        shader_set_sampler2D(&font->shader, SHADER_SAMPLER_DIFFUSE_TEXTURE, GL_TEXTURE_2D, font->texture.id);
 
         Mat projection_matrix = {0};
         Mat view_matrix = {0};
@@ -193,10 +192,10 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                 mat_identity(view_matrix);
 
-                log_assert( shader_set_uniform_matrices(&font->shader, projection_matrix, view_matrix, model_matrix) > -1 );
+                log_assert( shader_set_uniform_matrices(&font->shader, 0, projection_matrix, view_matrix, model_matrix) > -1 );
             } else {
                 camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
-                log_assert( shader_set_uniform_matrices(&font->shader, projection_matrix, view_matrix, model_matrix) > -1 );
+                log_assert( shader_set_uniform_matrices(&font->shader, 0, projection_matrix, view_matrix, model_matrix) > -1 );
             }
 
             // draw text for each layer
@@ -253,5 +252,5 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
     }
 
 
-    ogl_debug( glUseProgram(0); );
+    shader_use_program(NULL);
 }

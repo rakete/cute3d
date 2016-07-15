@@ -18,6 +18,7 @@
 
 const char* global_shader_attribute_names[MAX_SHADER_ATTRIBUTES] = {0};
 const char* global_shader_uniform_names[MAX_SHADER_UNIFORMS] = {0};
+const char* global_shader_sampler_names[MAX_SHADER_SAMPLER] = {0};
 
 int32_t init_shader() {
     int32_t ret = 0;
@@ -35,6 +36,10 @@ int32_t init_shader() {
 
     for( size_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
         global_shader_uniform_names[i] = "invalid_uniform";
+    }
+
+    for( size_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
+        global_shader_sampler_names[i] = "invalid_sampler";
     }
 
     global_shader_attribute_names[SHADER_ATTRIBUTE_VERTICES] = "vertex";
@@ -57,10 +62,11 @@ int32_t init_shader() {
     global_shader_uniform_names[SHADER_UNIFORM_LIGHT_DIRECTION] = "light_direction";
     global_shader_uniform_names[SHADER_UNIFORM_AMBIENT_COLOR] = "ambient_color";
     global_shader_uniform_names[SHADER_UNIFORM_DIFFUSE_COLOR] = "diffuse_color";
-    global_shader_uniform_names[SHADER_UNIFORM_DIFFUSE_TEXTURE] = "diffuse_texture";
 
     global_shader_uniform_names[SHADER_UNIFORM_ASPECT_RATIO] = "aspect_ratio";
     global_shader_uniform_names[SHADER_UNIFORM_LINE_Z_SCALING] = "line_z_scaling";
+
+    global_shader_sampler_names[SHADER_SAMPLER_DIFFUSE_TEXTURE] = "diffuse_texture";
 
     return ret;
 }
@@ -83,6 +89,13 @@ void shader_create(struct Shader* p) {
         p->uniform[j].name[0] = '\0';
         p->uniform[j].unset = true;
         p->uniform[j].warn_once = true;
+    }
+
+    for( int32_t j = 0; j < MAX_SHADER_SAMPLER; j++ ) {
+        p->sampler[j].location = -1;
+        p->sampler[j].name[0] = '\0';
+        p->sampler[j].unset = true;
+        p->sampler[j].warn_once = true;
     }
 
     p->verified = false;
@@ -159,6 +172,14 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     shader_setup_locations(p);
 }
 
+void shader_use_program(const struct Shader* p) {
+    if( p != NULL ) {
+        ogl_debug( glUseProgram(p->program) );
+    } else {
+        ogl_debug( glUseProgram(0) );
+    }
+}
+
 void shader_setup_locations(struct Shader* p) {
     GLint num_active_attributes = 0;
     glGetProgramiv(p->program, GL_ACTIVE_ATTRIBUTES, &num_active_attributes);
@@ -188,13 +209,13 @@ void shader_setup_locations(struct Shader* p) {
     glGetProgramiv(p->program, GL_ACTIVE_UNIFORMS, &num_active_uniforms);
     int32_t num_cached_uniforms = 0;
     for( int32_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
-        const char* uniform_name = global_shader_uniform_names[i];
-        GLint location = glGetUniformLocation(p->program, global_shader_uniform_names[i]);
-
         p->uniform[i].name[0] = '\0';
         p->uniform[i].location = -1;
         p->uniform[i].unset = true;
         p->uniform[i].warn_once = true;
+
+        const char* uniform_name = global_shader_uniform_names[i];
+        GLint location = glGetUniformLocation(p->program, global_shader_uniform_names[i]);
 
         if( location > -1 ) {
             p->uniform[i].name[0] = '\0';
@@ -204,6 +225,29 @@ void shader_setup_locations(struct Shader* p) {
             num_cached_uniforms += 1;
         }
     }
+
+    ogl_debug( glUseProgram(p->program); );
+    for( int32_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
+        p->sampler[i].name[0] = '\0';
+        p->sampler[i].location = -1;
+        p->sampler[i].unset = true;
+        p->sampler[i].warn_once = true;
+
+        const char* sampler_name = global_shader_sampler_names[i];
+        GLint location = glGetUniformLocation(p->program, global_shader_sampler_names[i]);
+
+        if( location > -1 ) {
+            p->sampler[i].name[0] = '\0';
+            log_assert( strlen(sampler_name) < 256 );
+            strncat(p->sampler[i].name, sampler_name, strlen(sampler_name));
+            p->sampler[i].location = location;
+            num_cached_uniforms += 1;
+
+            GLuint texture_unit = i % 8;
+            glUniform1i(location, texture_unit);
+        }
+    }
+    ogl_debug( glUseProgram(0); );
 
     if( num_active_uniforms > num_cached_uniforms) {
         log_warn(__FILE__, __LINE__, "shader \"%s\" has %d unknown uniforms\n", p->name, num_active_uniforms - num_cached_uniforms);
@@ -247,6 +291,20 @@ bool shader_verify_locations(struct Shader* p) {
         }
     }
 
+    for( int32_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
+        if( p->sampler[i].location < 0 && strlen(p->sampler[i].name) > 0 ) {
+            log_warn(__FILE__, __LINE__, "shader \"%s\" sampler \"%s\" has a name but no location\n", p->name, p->sampler[i].name);
+            ret = true;
+        }
+
+        if( p->sampler[i].location > -1 ) {
+            if( strlen(p->sampler[i].name) == 0 ) {
+                log_warn(__FILE__, __LINE__, "shader \"%s\" sampler location %d cached without a name\n", p->name, p->sampler[i].location);
+                ret = true;
+            }
+        }
+    }
+
     p->verified = true;
 
     return ret;
@@ -275,6 +333,16 @@ bool shader_warn_locations(struct Shader* p) {
                 log_warn(__FILE__, __LINE__, "shader \"%s\" uniform \"%s\" never set\n", p->name, p->uniform[i].name);
                 ret = true;
                 p->uniform[i].warn_once = false;
+            }
+        }
+    }
+
+    for( int32_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
+        if( p->sampler[i].location > -1 ) {
+            if( p->sampler[i].unset && p->sampler[i].warn_once ) {
+                log_warn(__FILE__, __LINE__, "shader \"%s\" sampler \"%s\" never set\n", p->name, p->sampler[i].name);
+                ret = true;
+                p->sampler[i].warn_once = false;
             }
         }
     }
@@ -339,6 +407,33 @@ GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const cha
     return location;
 }
 
+GLint shader_add_sampler(struct Shader* shader, int32_t sampler_index, const char* name) {
+    size_t name_length = strlen(name);
+    log_assert( name_length > 0 );
+    log_assert( name_length < 256 );
+    log_assert( shader->program > 0 );
+
+    GLint location = -1;
+    if( shader->sampler[sampler_index].location > -1 ) {
+        location = shader->sampler[sampler_index].location;
+    } else {
+        ogl_debug( location = glGetUniformLocation(shader->program, name); );
+
+        if( location > - 1 ) {
+            shader->sampler[sampler_index].location = location;
+
+            shader->sampler[sampler_index].name[0] = '\0';
+            strncat(shader->sampler[sampler_index].name, name, strlen(name));
+
+            shader->verified = false;
+        } else {
+            log_warn(__FILE__, __LINE__, "could not add sampler %d location \"%s\" to shader \"%s\"\n", sampler_index, name, shader->name);
+        }
+    }
+
+    return location;
+}
+
 void shader_print(FILE* f, const struct Shader* shader) {
     fprintf(f, "shader->vertex_shader: %d\n", shader->vertex_shader);
     fprintf(f, "shader->fragment_shader: %d\n", shader->fragment_shader);
@@ -357,9 +452,16 @@ void shader_print(FILE* f, const struct Shader* shader) {
             fprintf(f, "shader->uniform[%d].location: %d\n", i, shader->uniform[i].location);
         }
     }
+
+    for( int32_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
+        if( strlen(shader->sampler[i].name) > 0 ) {
+            fprintf(f, "shader->sampler[%d].name: %s\n", i, shader->sampler[i].name);
+            fprintf(f, "shader->sampler[%d].location: %d\n", i, shader->sampler[i].location);
+        }
+    }
 }
 
-GLint shader_set_uniform_matrices(struct Shader* shader, const Mat projection_matrix, const Mat view_matrix, const Mat model_matrix) {
+GLint shader_set_uniform_matrices(struct Shader* shader, GLuint program, const Mat projection_matrix, const Mat view_matrix, const Mat model_matrix) {
     log_assert( shader != NULL );
     log_assert( projection_matrix != NULL );
     log_assert( view_matrix != NULL );
@@ -410,7 +512,14 @@ GLint shader_set_uniform_matrices(struct Shader* shader, const Mat projection_ma
     if( normal_loc > -1 ) {
         Mat normal_matrix = {0};
         mat_copy4f(model_matrix, normal_matrix);
-        ogl_debug( glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix) );
+        if( program > 0 ) {
+            log_assert( shader->program == program );
+            ogl_debug( glUseProgram(program);
+                       glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix);
+                       glUseProgram(0) );
+        } else {
+            ogl_debug( glUniformMatrix4fv(normal_loc, 1, GL_FALSE, normal_matrix) );
+        }
         shader->uniform[SHADER_UNIFORM_NORMAL_MATRIX].unset = false;
         ret = normal_loc;
     }
@@ -418,7 +527,7 @@ GLint shader_set_uniform_matrices(struct Shader* shader, const Mat projection_ma
     return ret;
 }
 
-GLint shader_set_uniform_1f(struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
+GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
     log_assert( shader->program > 0 );
     log_assert( uniform_index >= 0 );
     log_assert( uniform_index <= MAX_SHADER_UNIFORMS );
@@ -449,14 +558,20 @@ GLint shader_set_uniform_1f(struct Shader* shader, int32_t uniform_index, uint32
 
     // - glUniform changes state of the program, so it needs to be run after glUseProgram
     // that does not apply to glVertexAttribPointer, which only changes global state
-    ogl_debug( glUseProgram(shader->program);
-               glUniform1f(location, float_value); );
+    if( program > 0 ) {
+        log_assert( shader->program == program );
+        ogl_debug( glUseProgram(program);
+                   glUniform1f(location, float_value);
+                   glUseProgram(0) );
+    } else {
+        ogl_debug( glUniform1f(location, float_value); );
+    }
     shader->uniform[uniform_index].unset = false;
 
     return location;
 }
 
-GLint shader_set_uniform_3f(struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
+GLint shader_set_uniform_3f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
     log_assert( shader->program > 0 );
     log_assert( uniform_index >= 0 );
     log_assert( uniform_index <= MAX_SHADER_UNIFORMS );
@@ -497,14 +612,20 @@ GLint shader_set_uniform_3f(struct Shader* shader, int32_t uniform_index, uint32
 
     // glUniform changes state of the program, so it needs to be run after glUseProgram
     // that does not apply to glVertexAttribPointer, which only changes global state
-    ogl_debug( glUseProgram(shader->program);
-               glUniform3f(location, float_array[0], float_array[1], float_array[2]); );
+    if( program > 0 ) {
+        log_assert( shader->program == program );
+        ogl_debug( glUseProgram(program);
+                   glUniform3f(location, float_array[0], float_array[1], float_array[2]); ;
+                   glUseProgram(0); );
+    } else {
+        ogl_debug( glUniform3f(location, float_array[0], float_array[1], float_array[2]); );
+    }
     shader->uniform[uniform_index].unset = false;
 
     return location;
 }
 
-GLint shader_set_uniform_4f(struct Shader* shader, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
+GLint shader_set_uniform_4f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
     log_assert( shader != NULL );
     log_assert( shader->program > 0 );
     log_assert( uniform_index >= 0 );
@@ -548,19 +669,24 @@ GLint shader_set_uniform_4f(struct Shader* shader, int32_t uniform_index, uint32
 
     // glUniform changes state of the program, so it needs to be run after glUseProgram
     // that does not apply to glVertexAttribPointer, which only changes global state
-    ogl_debug( glUseProgram(shader->program);
-               glUniform4f(location, float_array[0], float_array[1], float_array[2], float_array[3]); );
+    if( program > 0 ) {
+        log_assert( shader->program == program );
+        ogl_debug( glUseProgram(program);
+                   glUniform4f(location, float_array[0], float_array[1], float_array[2], float_array[3]);
+                   glUseProgram(0) );
+    } else {
+        ogl_debug( glUniform4f(location, float_array[0], float_array[1], float_array[2], float_array[3]) );
+    }
     shader->uniform[uniform_index].unset = false;
 
     return location;
 }
 
-GLint shader_set_sampler2D(struct Shader* shader, int32_t uniform_index, GLenum texture_type, GLuint texture_unit, GLuint texture_id) {
+GLint shader_set_sampler2D(struct Shader* shader, int32_t sampler_index, GLenum texture_dimension, GLuint texture_id) {
     log_assert( shader != NULL );
     log_assert( shader->program > 0 );
-    log_assert( uniform_index >= 0 );
-    log_assert( uniform_index <= MAX_SHADER_UNIFORMS );
-    log_assert( texture_unit < 8 );
+    log_assert( sampler_index >= 0 );
+    log_assert( sampler_index <= MAX_SHADER_SAMPLER );
     log_assert( texture_id > 0 );
     log_assert( GL_TEXTURE7 == GL_TEXTURE0 + 7 );
 
@@ -568,15 +694,16 @@ GLint shader_set_sampler2D(struct Shader* shader, int32_t uniform_index, GLenum 
         shader_verify_locations(shader);
     }
 
-    GLint location = shader->uniform[uniform_index].location;
+    GLint location = shader->sampler[sampler_index].location;
     log_assert( location > -1 );
-    log_assert( strlen(shader->uniform[uniform_index].name) > 0 );
+    log_assert( strlen(shader->sampler[sampler_index].name) > 0 );
 
-    log_assert( texture_unit < INT_MAX );
-    ogl_debug( glUniform1i(location, (GLint)texture_unit) ;
-               glActiveTexture(GL_TEXTURE0 + texture_unit);
-               glBindTexture(texture_type, texture_id); );
-    shader->uniform[uniform_index].unset = false;
+    GLuint texture_unit = sampler_index % 8;
+    log_assert( texture_unit < MAX_SHADER_TEXTURE_UNITS );
+
+    ogl_debug( glActiveTexture(GL_TEXTURE0 + texture_unit);
+               glBindTexture(texture_dimension, texture_id); );
+    shader->sampler[sampler_index].unset = false;
 
     return location;
 }

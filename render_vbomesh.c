@@ -238,13 +238,13 @@ void vbomesh_render(struct VboMesh* mesh, struct Shader* shader, const struct Ca
     log_assert( shader != NULL );
     log_assert( camera != NULL );
 
-    ogl_debug( glUseProgram(shader->program); );
+    shader_use_program(shader);
 
     Mat projection_matrix = {0};
     Mat view_matrix = {0};
     camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
     projection_matrix[14] += mesh->z_offset;
-    log_assert( shader_set_uniform_matrices(shader, projection_matrix, view_matrix, model_matrix) > -1 );
+    log_assert( shader_set_uniform_matrices(shader, 0, projection_matrix, view_matrix, model_matrix) > -1 );
 
     GLint loc[MAX_SHADER_ATTRIBUTES] = {0};
     bool not_binding_vao = true;
@@ -307,6 +307,5 @@ void vbomesh_render(struct VboMesh* mesh, struct Shader* shader, const struct Ca
         ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, 0); );
     }
 
-    ogl_debug( glUseProgram(0); );
-
+    shader_use_program(NULL);
 }
