@@ -84,7 +84,7 @@ void solid_set_color(struct Solid* solid, const uint8_t color[4]);
 size_t solid_optimize(struct Solid* solid);
 size_t solid_compress(struct Solid* solid);
 
-struct Tetrahedron {
+struct SolidTetrahedron {
     struct Solid solid;
 
     uint32_t indices[12];
@@ -97,9 +97,9 @@ struct Tetrahedron {
     float texcoords[24];
 };
 
-void solid_create_tetrahedron(float radius, const uint8_t color[4], struct Tetrahedron* tet);
+void solid_create_tetrahedron(float radius, const uint8_t color[4], struct SolidTetrahedron* tet);
 
-struct Box {
+struct SolidBox {
     struct Solid solid;
 
     uint32_t indices[36];
@@ -112,10 +112,10 @@ struct Box {
     float texcoords[72];
 };
 
-void solid_create_box(Vec3f size, const uint8_t color[4], struct Box* box);
-void solid_create_cube(float size, const uint8_t color[4], struct Box* cube);
+void solid_create_box(Vec3f size, const uint8_t color[4], struct SolidBox* box);
+void solid_create_cube(float size, const uint8_t color[4], struct SolidBox* cube);
 
-struct Sphere16 {
+struct SolidSphere16 {
     struct Solid solid;
 
     uint32_t indices[16*6*2*3+16*2*3];
@@ -128,7 +128,7 @@ struct Sphere16 {
     float texcoords[(16*6*2+16*2)*2*3];
 };
 
-void solid_create_sphere16(float radius, const uint8_t color[4], struct Sphere16* sphere);
+void solid_create_sphere16(float radius, const uint8_t color[4], struct SolidSphere16* sphere);
 
 // - at some point I want to have this and other solids to be able to be created with a parameter
 // specifying the subdivision level or something like that, so for these sphere I not only want 16
@@ -136,7 +136,7 @@ void solid_create_sphere16(float radius, const uint8_t color[4], struct Sphere16
 // - this conflicts with my requirement that everything in here should be static allocatable, but I
 // can work around by having these structs have enough space for say a sphere32, and then I put in
 // a sphere24 only, that should work out ok although it will waste some stack space
-struct Sphere32 {
+struct SolidSphere32 {
     struct Solid solid;
 
     // 32 longitude
@@ -153,6 +153,6 @@ struct Sphere32 {
     float texcoords[(32*14*2+32*2)*2*3];
 };
 
-void solid_create_sphere32(float radius, const uint8_t color[4], struct Sphere32* sphere);
+void solid_create_sphere32(float radius, const uint8_t color[4], struct SolidSphere32* sphere);
 
 #endif

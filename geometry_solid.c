@@ -252,29 +252,29 @@ size_t solid_compress(struct Solid* solid) {
     return solid->indices_size - solid->size;
 }
 
-void solid_create_tetrahedron(float radius, const uint8_t color[4], struct Tetrahedron* tet) {
-    *tet = (struct Tetrahedron){ .vertices = { 0 },
-                                 .triangles = { 0, 1, 2,
-                                                0, 2, 3,
-                                                0, 3, 1,
-                                                3, 2, 1 },
-                                 .optimal = { 0, 1, 2,
-                                              3, 4, 5,
-                                              6, 7, 8,
-                                              9, 10, 11 },
-                                 .indices = { 0 },
-                                 .colors = { 0 },
-                                 .normals = { 0 },
-                                 .texcoords = { 0 },
-                                 .solid.indices_size = 4*3,
-                                 .solid.size = 4*3,
-                                 .solid.triangles = tet->triangles,
-                                 .solid.optimal = tet->optimal,
-                                 .solid.indices = tet->indices,
-                                 .solid.vertices = tet->vertices,
-                                 .solid.colors = tet->colors,
-                                 .solid.normals = tet->normals,
-                                 .solid.texcoords = tet->texcoords
+void solid_create_tetrahedron(float radius, const uint8_t color[4], struct SolidTetrahedron* tet) {
+    *tet = (struct SolidTetrahedron){ .vertices = { 0 },
+                                      .triangles = { 0, 1, 2,
+                                                     0, 2, 3,
+                                                     0, 3, 1,
+                                                     3, 2, 1 },
+                                      .optimal = { 0, 1, 2,
+                                                   3, 4, 5,
+                                                   6, 7, 8,
+                                                   9, 10, 11 },
+                                      .indices = { 0 },
+                                      .colors = { 0 },
+                                      .normals = { 0 },
+                                      .texcoords = { 0 },
+                                      .solid.indices_size = 4*3,
+                                      .solid.size = 4*3,
+                                      .solid.triangles = tet->triangles,
+                                      .solid.optimal = tet->optimal,
+                                      .solid.indices = tet->indices,
+                                      .solid.vertices = tet->vertices,
+                                      .solid.colors = tet->colors,
+                                      .solid.normals = tet->normals,
+                                      .solid.texcoords = tet->texcoords
     };
 
     float phiaa  = -19.471220333f; /* the phi angle needed for generation */
@@ -323,45 +323,45 @@ void solid_create_tetrahedron(float radius, const uint8_t color[4], struct Tetra
     solid_set_color((struct Solid*)tet, color);
 }
 
-void solid_create_box(Vec3f size, const uint8_t color[4], struct Box* box) {
-    *box = (struct Box){ .triangles = { 1, 2, 3,
-                                        0, 1, 3,
-                                        6, 5, 4,
-                                        7, 6, 4,
-                                        5, 1, 0,
-                                        4, 5, 0,
-                                        6, 2, 1,
-                                        1, 5, 6,
-                                        3, 2, 7,
-                                        2, 6, 7,
-                                        7, 0, 3,
-                                        4, 0, 7 },
-                         .optimal = { 1, 2, 3,
-                                      0, 1, 3,
-                                      6, 5, 4,
-                                      7, 6, 4,
-                                      11, 9, 8,
-                                      10, 11, 8,
-                                      15, 13, 12,
-                                      12, 14, 15,
-                                      17, 16, 19,
-                                      16, 18, 19,
-                                      23, 20, 21,
-                                      22, 20, 23 },
-                         .indices = { 0 },
-                         .vertices = { 0 },
-                         .normals = { 0 },
-                         .colors = { 0 },
-                         .texcoords = { 0 },
-                         .solid.indices_size = 12*3,
-                         .solid.size = 12*3,
-                         .solid.triangles = box->triangles,
-                         .solid.optimal = box->optimal,
-                         .solid.indices = box->indices,
-                         .solid.vertices = box->vertices,
-                         .solid.colors = box->colors,
-                         .solid.normals = box->normals,
-                         .solid.texcoords = box->texcoords
+void solid_create_box(Vec3f size, const uint8_t color[4], struct SolidBox* box) {
+    *box = (struct SolidBox){ .triangles = { 1, 2, 3,
+                                             0, 1, 3,
+                                             6, 5, 4,
+                                             7, 6, 4,
+                                             5, 1, 0,
+                                             4, 5, 0,
+                                             6, 2, 1,
+                                             1, 5, 6,
+                                             3, 2, 7,
+                                             2, 6, 7,
+                                             7, 0, 3,
+                                             4, 0, 7 },
+                              .optimal = { 1, 2, 3,
+                                           0, 1, 3,
+                                           6, 5, 4,
+                                           7, 6, 4,
+                                           11, 9, 8,
+                                           10, 11, 8,
+                                           15, 13, 12,
+                                           12, 14, 15,
+                                           17, 16, 19,
+                                           16, 18, 19,
+                                           23, 20, 21,
+                                           22, 20, 23 },
+                              .indices = { 0 },
+                              .vertices = { 0 },
+                              .normals = { 0 },
+                              .colors = { 0 },
+                              .texcoords = { 0 },
+                              .solid.indices_size = 12*3,
+                              .solid.size = 12*3,
+                              .solid.triangles = box->triangles,
+                              .solid.optimal = box->optimal,
+                              .solid.indices = box->indices,
+                              .solid.vertices = box->vertices,
+                              .solid.colors = box->colors,
+                              .solid.normals = box->normals,
+                              .solid.texcoords = box->texcoords
     };
 
     Vec3f half_size = {0};
@@ -431,27 +431,27 @@ void solid_create_box(Vec3f size, const uint8_t color[4], struct Box* box) {
     solid_set_color((struct Solid*)box, color);
 }
 
-void solid_create_cube(float size, const uint8_t color[4], struct Box* cube) {
+void solid_create_cube(float size, const uint8_t color[4], struct SolidBox* cube) {
     solid_create_box((Vec3f){size, size, size}, color, cube);
 }
 
-void solid_create_sphere16(float radius, const uint8_t color[4], struct Sphere16* sphere) {
-    *sphere = (struct Sphere16){ .triangles = { 0 },
-                                 .optimal = { 0 },
-                                 .indices = { 0 },
-                                 .vertices = { 0 },
-                                 .normals = { 0 },
-                                 .colors = { 0 },
-                                 .texcoords = { 0 },
-                                 .solid.indices_size = (16*6*2+16*2)*3,
-                                 .solid.size = (16*6*2+16*2)*3,
-                                 .solid.triangles = sphere->triangles,
-                                 .solid.optimal = sphere->optimal,
-                                 .solid.indices = sphere->indices,
-                                 .solid.vertices = sphere->vertices,
-                                 .solid.colors = sphere->colors,
-                                 .solid.normals = sphere->normals,
-                                 .solid.texcoords = sphere->texcoords
+void solid_create_sphere16(float radius, const uint8_t color[4], struct SolidSphere16* sphere) {
+    *sphere = (struct SolidSphere16){ .triangles = { 0 },
+                                      .optimal = { 0 },
+                                      .indices = { 0 },
+                                      .vertices = { 0 },
+                                      .normals = { 0 },
+                                      .colors = { 0 },
+                                      .texcoords = { 0 },
+                                      .solid.indices_size = (16*6*2+16*2)*3,
+                                      .solid.size = (16*6*2+16*2)*3,
+                                      .solid.triangles = sphere->triangles,
+                                      .solid.optimal = sphere->optimal,
+                                      .solid.indices = sphere->indices,
+                                      .solid.vertices = sphere->vertices,
+                                      .solid.colors = sphere->colors,
+                                      .solid.normals = sphere->normals,
+                                      .solid.texcoords = sphere->texcoords
     };
 
     float points[16*7*3+2*3];
@@ -594,23 +594,23 @@ void solid_create_sphere16(float radius, const uint8_t color[4], struct Sphere16
     solid_set_color((struct Solid*)sphere, color);
 }
 
-void solid_create_sphere32(float radius, const uint8_t color[4], struct Sphere32* sphere) {
-    *sphere = (struct Sphere32){ .triangles = { 0 },
-                                 .optimal = { 0 },
-                                 .indices = { 0 },
-                                 .vertices = { 0 },
-                                 .normals = { 0 },
-                                 .colors = { 0 },
-                                 .texcoords = { 0 },
-                                 .solid.indices_size = (32*14*2+32*2)*3,
-                                 .solid.size = (32*14*2+32*2)*3,
-                                 .solid.triangles = sphere->triangles,
-                                 .solid.optimal = sphere->optimal,
-                                 .solid.indices = sphere->indices,
-                                 .solid.vertices = sphere->vertices,
-                                 .solid.colors = sphere->colors,
-                                 .solid.normals = sphere->normals,
-                                 .solid.texcoords = sphere->texcoords
+void solid_create_sphere32(float radius, const uint8_t color[4], struct SolidSphere32* sphere) {
+    *sphere = (struct SolidSphere32){ .triangles = { 0 },
+                                      .optimal = { 0 },
+                                      .indices = { 0 },
+                                      .vertices = { 0 },
+                                      .normals = { 0 },
+                                      .colors = { 0 },
+                                      .texcoords = { 0 },
+                                      .solid.indices_size = (32*14*2+32*2)*3,
+                                      .solid.size = (32*14*2+32*2)*3,
+                                      .solid.triangles = sphere->triangles,
+                                      .solid.optimal = sphere->optimal,
+                                      .solid.indices = sphere->indices,
+                                      .solid.vertices = sphere->vertices,
+                                      .solid.colors = sphere->colors,
+                                      .solid.normals = sphere->normals,
+                                      .solid.texcoords = sphere->texcoords
     };
 
     float points[32*15*3+2*3];
