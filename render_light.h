@@ -5,8 +5,8 @@
 #include "math_pivot.h"
 
 enum LightClass {
-    LIGHT_PERSPECTIVE_SPOT = 0,
-    LIGHT_ORTHOGRAPHIC_SPOT,
+    LIGHT_SUN = 0,
+    LIGHT_SPOT,
     LIGHT_POINT,
     NUM_LIGHT_CLASSES
 };
@@ -19,13 +19,13 @@ struct Light {
     Color color;
 };
 
-struct LightPerspectiveSpot {
+struct LightSpot {
     struct Light base_light;
 
     Vec3f direction;
     float angle;
 };
 
-void light_create_perspective_spot(Color color, float attenuation, Vec3f direction, float angle, struct LightPerspectiveSpot* light);
+void light_spot_create(Color color, float attenuation, Vec3f direction, float angle, struct LightSpot* light);
 
 #endif

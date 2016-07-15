@@ -7,7 +7,7 @@
 #include "geometry_solid.h"
 #include "geometry_draw.h"
 
-#include "render_vbomesh.h"
+#include "render_vbo.h"
 #include "render_canvas.h"
 
 int32_t main(int32_t argc, char *argv[]) {
@@ -46,11 +46,11 @@ int32_t main(int32_t argc, char *argv[]) {
     struct SolidBox cube = {0};
     struct SolidSphere16 sphere16 = {0};
     struct SolidSphere32 sphere32 = {0};
-    solid_create_tetrahedron(1.0, (Color){255, 0, 0, 255}, &tetrahedron);
-    solid_create_box((Vec3f){1.5, 0.25, 1.75}, (Color){0, 255, 0, 255}, &box);
-    solid_create_cube(1.0, (Color){255, 0, 255, 255}, &cube);
-    solid_create_sphere16(1.0, (Color){0, 255, 255, 255}, &sphere16);
-    solid_create_sphere32(1.0, (Color){255, 255, 0, 255}, &sphere32);
+    solid_tetrahedron_create(1.0, (Color){255, 0, 0, 255}, &tetrahedron);
+    solid_box_create((Vec3f){1.5, 0.25, 1.75}, (Color){0, 255, 0, 255}, &box);
+    solid_cube_create(1.0, (Color){255, 0, 255, 255}, &cube);
+    solid_sphere16_create(1.0, (Color){0, 255, 255, 255}, &sphere16);
+    solid_sphere32_create(1.0, (Color){255, 255, 0, 255}, &sphere32);
 
     solid_optimize((struct Solid*)&tetrahedron);
     solid_optimize((struct Solid*)&box);
@@ -59,11 +59,11 @@ int32_t main(int32_t argc, char *argv[]) {
     solid_optimize((struct Solid*)&sphere32);
 
     struct VboMesh tetrahedron_mesh,box_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
-    vbomesh_create_from_solid((struct Solid*)&tetrahedron, &vbo, &tetrahedron_mesh);
-    vbomesh_create_from_solid((struct Solid*)&box, &vbo, &box_mesh);
-    vbomesh_create_from_solid((struct Solid*)&cube, &vbo, &cube_mesh);
-    vbomesh_create_from_solid((struct Solid*)&sphere16, &vbo, &sphere16_mesh);
-    vbomesh_create_from_solid((struct Solid*)&sphere32, &vbo, &sphere32_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&tetrahedron, &vbo, &tetrahedron_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&box, &vbo, &box_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&cube, &vbo, &cube_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&sphere16, &vbo, &sphere16_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&sphere32, &vbo, &sphere32_mesh);
 
     struct Shader shader = {0};
     shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &shader);
@@ -114,11 +114,11 @@ int32_t main(int32_t argc, char *argv[]) {
         mat_translate(identity, (float[4]){ -1.5, 0.0, -2.0, 1.0 }, sphere16_transform);
         mat_translate(identity, (float[4]){ 1.5, 0.0, -2.0, 1.0 }, sphere32_transform);
 
-        vbomesh_render(&tetrahedron_mesh, &shader, &arcball.camera, tetrahedron_transform);
-        vbomesh_render(&box_mesh, &shader, &arcball.camera, box_transform);
-        vbomesh_render(&cube_mesh, &shader, &arcball.camera, cube_transform);
-        vbomesh_render(&sphere16_mesh, &shader, &arcball.camera, sphere16_transform);
-        vbomesh_render(&sphere32_mesh, &shader, &arcball.camera, sphere32_transform);
+        vbo_mesh_render(&tetrahedron_mesh, &shader, &arcball.camera, tetrahedron_transform);
+        vbo_mesh_render(&box_mesh, &shader, &arcball.camera, box_transform);
+        vbo_mesh_render(&cube_mesh, &shader, &arcball.camera, cube_transform);
+        vbo_mesh_render(&sphere16_mesh, &shader, &arcball.camera, sphere16_transform);
+        vbo_mesh_render(&sphere32_mesh, &shader, &arcball.camera, sphere32_transform);
 
         Quat grid_rotation = {0};
         quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);

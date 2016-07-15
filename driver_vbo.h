@@ -194,40 +194,40 @@ struct VboMesh {
 #endif
 };
 
-void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh);
-void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh);
+void vbo_mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh);
+void vbo_mesh_destroy(struct Vbo* vbo, struct VboMesh* mesh);
 
-void vbomesh_print(struct VboMesh* mesh);
+void vbo_mesh_print(struct VboMesh* mesh);
 
 // put a common pattern to check if a mesh is last in vbo in here so I don't wonder about it
 // everytime I come back to this code/have to only document it once, here
-bool vbomesh_test_last(struct VboMesh* mesh);
+bool vbo_mesh_test_last(struct VboMesh* mesh);
 
 // functions to allocate new space in a mesh
-WARN_UNUSED_RESULT size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n);
-WARN_UNUSED_RESULT size_t vbomesh_alloc_indices(struct VboMesh* mesh, size_t n);
+WARN_UNUSED_RESULT size_t vbo_mesh_alloc_attributes(struct VboMesh* mesh, size_t n);
+WARN_UNUSED_RESULT size_t vbo_mesh_alloc_indices(struct VboMesh* mesh, size_t n);
 
 // clearing just resets the occupied counter to 0
-void vbomesh_clear_attributes(struct VboMesh* mesh);
-void vbomesh_clear_indices(struct VboMesh* mesh);
+void vbo_mesh_clear_attributes(struct VboMesh* mesh);
+void vbo_mesh_clear_indices(struct VboMesh* mesh);
 
 // append adds new stuff at the end of occupied, allocates new capacity if neccessary
-WARN_UNUSED_RESULT size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t components_size, GLenum components_type, size_t n, void* data);
-WARN_UNUSED_RESULT size_t vbomesh_append_indices(struct VboMesh* mesh, size_t n, void* data);
+WARN_UNUSED_RESULT size_t vbo_mesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t components_size, GLenum components_type, size_t n, void* data);
+WARN_UNUSED_RESULT size_t vbo_mesh_append_indices(struct VboMesh* mesh, size_t n, void* data);
 
 // mapping whole mesh into host memory, probably untested
-WARN_UNUSED_RESULT void* vbomesh_map(struct VboMesh* mesh, size_t offset, size_t length, GLbitfield access);
-GLboolean vbomesh_unmap(struct VboMesh* mesh);
+WARN_UNUSED_RESULT void* vbo_mesh_map(struct VboMesh* mesh, size_t offset, size_t length, GLbitfield access);
+GLboolean vbo_mesh_unmap(struct VboMesh* mesh);
 
 #endif
 
-/* struct VboMesh* vbomesh_clone(struct VboMesh* mesh); */
+/* struct VboMesh* vbo_mesh_clone(struct VboMesh* mesh); */
 
-/* void vbomesh_quad(struct mesh* mesh, uint32_t a, uint32_t b, uint32_t c, uint32_t d); */
+/* void vbo_mesh_quad(struct mesh* mesh, uint32_t a, uint32_t b, uint32_t c, uint32_t d); */
 
-/* struct mesh* vbomesh_union(struct mesh* a, struct mesh* b); */
+/* struct mesh* vbo_mesh_union(struct mesh* a, struct mesh* b); */
 
-/* struct mesh* vbomesh_copy(struct mesh* mesh, struct vbo* to_vbo, uint64_t to_offset); */
+/* struct mesh* vbo_mesh_copy(struct mesh* mesh, struct vbo* to_vbo, uint64_t to_offset); */
 
 // mesh operations
 // create:
@@ -276,9 +276,9 @@ GLboolean vbomesh_unmap(struct VboMesh* mesh);
 // 5 and 8 are mesh1->offset + mesh1->size and mesh2->offset + mesh2->size,
 //   they can only change for the last mesh in the buffer, when data is added
 //   that makes the used space grow beyond the meshes size
-// range 9-10 is returned by vbomesh_freespace(mesh1), it is equal to
+// range 9-10 is returned by vbo_mesh_freespace(mesh1), it is equal to
 //   mesh1->size - mesh1->used
-// range 11-10 is a special case, vbomesh_freespace(mesh2) should return the
+// range 11-10 is a special case, vbo_mesh_freespace(mesh2) should return the
 //   remaining space in the buffer since mesh2 is the last mesh,
 //   finding the last mesh can be done by going through all meshes of the
 //   buffer in reverse order (most likely the first test is going to be

@@ -48,11 +48,11 @@ int32_t main(int32_t argc, char *argv[]) {
     struct SolidBox cube = {0};
     struct SolidSphere16 sphere16 = {0};
     struct SolidSphere32 sphere32 = {0};
-    solid_create_tetrahedron(1.0, (Color){255, 0, 0, 255}, &tetrahedron);
-    solid_create_box((Vec3f){1.0, 1.0, 1.0}, (Color){0, 255, 0, 255}, &box);
-    solid_create_cube(1.0, (Color){255, 0, 255, 255}, &cube);
-    solid_create_sphere16(1.0, (Color){0, 255, 255, 255}, &sphere16);
-    solid_create_sphere32(1.0, (Color){255, 255, 0, 255}, &sphere32);
+    solid_tetrahedron_create(1.0, (Color){255, 0, 0, 255}, &tetrahedron);
+    solid_box_create((Vec3f){1.0, 1.0, 1.0}, (Color){0, 255, 0, 255}, &box);
+    solid_cube_create(1.0, (Color){255, 0, 255, 255}, &cube);
+    solid_sphere16_create(1.0, (Color){0, 255, 255, 255}, &sphere16);
+    solid_sphere32_create(1.0, (Color){255, 255, 0, 255}, &sphere32);
 
     struct HalfEdgeMesh tetrahedron_hemesh = {0};
     struct HalfEdgeMesh box_hemesh = {0};

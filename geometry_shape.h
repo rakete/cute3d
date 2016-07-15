@@ -56,7 +56,7 @@ struct ShapeConvex {
 };
 
 // each supported bounding volume data structure should have a constructor to initialize it
-void shape_create_sphere(float radius, struct ShapeSphere* sphere);
-void shape_create_convex(const struct HalfEdgeMesh* mesh, struct ShapeConvex* convex);
+void shape_sphere_create(float radius, struct ShapeSphere* sphere);
+void shape_convex_create(const struct HalfEdgeMesh* mesh, struct ShapeConvex* convex);
 
 #endif

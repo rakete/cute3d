@@ -205,7 +205,7 @@ GLboolean vbo_unmap(struct Vbo* vbo, int32_t i) {
     return result;
 }
 
-void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh) {
+void vbo_mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh) {
     log_assert( vbo != NULL );
     log_assert( mesh != NULL );
 
@@ -248,19 +248,19 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
 #endif
 }
 
-void vbomesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
+void vbo_mesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
     log_assert( vbo != NULL );
     log_assert( mesh != NULL );
     log_assert( mesh->vbo != NULL );
 
-    if( vbomesh_test_last(mesh) ) {
+    if( vbo_mesh_test_last(mesh) ) {
         mesh->vbo->occupied = mesh->offset;
     }
 
     log_assert( 0 == 1 );
 }
 
-void vbomesh_print(struct VboMesh* mesh) {
+void vbo_mesh_print(struct VboMesh* mesh) {
     log_assert( mesh != NULL );
     log_assert( mesh->vbo != NULL );
 
@@ -307,7 +307,7 @@ void vbomesh_print(struct VboMesh* mesh) {
                         break;
                     }
                     case GL_INT: {
-                        log_fail(__FILE__, __LINE__, "GL_INT case not implemented in vbomesh_print\n");
+                        log_fail(__FILE__, __LINE__, "GL_INT case not implemented in vbo_mesh_print\n");
                         break;
                     }
                 }
@@ -326,7 +326,7 @@ void vbomesh_print(struct VboMesh* mesh) {
     printf("mesh->indices:\n");
     switch(mesh->index.type) {
         case GL_UNSIGNED_INT: {
-            GLuint* array = (GLuint*)vbomesh_map(mesh, 0, mesh->indices->capacity, GL_MAP_READ_BIT);
+            GLuint* array = (GLuint*)vbo_mesh_map(mesh, 0, mesh->indices->capacity, GL_MAP_READ_BIT);
             if( array ) {
                 uint32_t primitive_size = mesh->primitives.size;
                 for( size_t k = 0; k < mesh->indices->capacity; k+=primitive_size ) {
@@ -345,31 +345,31 @@ void vbomesh_print(struct VboMesh* mesh) {
                     }
                 }
             }
-            vbomesh_unmap(mesh);
+            vbo_mesh_unmap(mesh);
             break;
         }
     }
 }
 
-bool vbomesh_test_last(struct VboMesh* mesh) {
+bool vbo_mesh_test_last(struct VboMesh* mesh) {
     log_assert( mesh != NULL );
     log_assert( mesh->vbo != NULL );
 
     // - return always true when mesh->capacity == 0, because that means the mesh has never been allocated space
-    // and can therefore be moved at the end of the vbo by vbomesh_alloc as soon as we use it to actually allocate
+    // and can therefore be moved at the end of the vbo by vbo_mesh_alloc as soon as we use it to actually allocate
     // some space
     // - the part after || is the actual test, when mesh->offset + mesh->capacity equal vbo->occupied no other mesh
     // has been added to the vbo after this one, so we are the last
     return mesh->capacity == 0 || mesh->offset + mesh->capacity == mesh->vbo->occupied;
 }
 
-size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
+size_t vbo_mesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
     log_assert( mesh != NULL );
     log_assert( mesh->vbo != NULL );
     log_assert( n > 0 );
 
     // - only resize if the mesh is the last mesh, otherwise this needs to stay the same size
-    if( vbomesh_test_last(mesh) ) {
+    if( vbo_mesh_test_last(mesh) ) {
         size_t resized_n = vbo_alloc(mesh->vbo, n);
         if( resized_n == n ) {
             // if this mesh has never been touched before (when no space has been allocated for it in the vbo), move
@@ -393,7 +393,7 @@ size_t vbomesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
     return 0;
 }
 
-size_t vbomesh_alloc_indices(struct VboMesh* mesh, size_t n) {
+size_t vbo_mesh_alloc_indices(struct VboMesh* mesh, size_t n) {
     log_assert( mesh != NULL );
     log_assert( n > 0 );
 
@@ -421,7 +421,7 @@ size_t vbomesh_alloc_indices(struct VboMesh* mesh, size_t n) {
     return 0;
 }
 
-void vbomesh_clear_attributes(struct VboMesh* mesh) {
+void vbo_mesh_clear_attributes(struct VboMesh* mesh) {
     log_assert( mesh != NULL );
 
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
@@ -429,7 +429,7 @@ void vbomesh_clear_attributes(struct VboMesh* mesh) {
     }
 }
 
-void vbomesh_clear_indices(struct VboMesh* mesh) {
+void vbo_mesh_clear_indices(struct VboMesh* mesh) {
     log_assert( mesh != NULL );
 
     for( int32_t i = 0; i < MAX_VBO_PHASES; i++ ) {
@@ -437,7 +437,7 @@ void vbomesh_clear_indices(struct VboMesh* mesh) {
     }
 }
 
-size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t components_size, GLenum components_type, size_t n, void* data) {
+size_t vbo_mesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t components_size, GLenum components_type, size_t n, void* data) {
     log_assert( mesh != NULL );
     log_assert( mesh->vbo != NULL );
     log_assert( i >= 0 );
@@ -475,14 +475,14 @@ size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t compo
     } else if(// only when this mesh is the last mesh in the vbo can we append without overwriting
               // other meshes, we check if we are last buy checking if our offset + capacity is equal
               // to the vbo occupied counter
-              vbomesh_test_last(mesh) &&
+              vbo_mesh_test_last(mesh) &&
               // this does not work genericly, so we just do not allocate anything at all,
               // if num and type do not fit the stored values in vbo
               mesh->vbo->components[i].size == components_size &&
               mesh->vbo->components[i].type == components_type )
     {
         if( vbo_available_capacity(mesh->vbo) < n ) {
-            size_t result = vbomesh_alloc_attributes(mesh,n);
+            size_t result = vbo_mesh_alloc_attributes(mesh,n);
             log_assert( result == n );
         }
 
@@ -499,13 +499,13 @@ size_t vbomesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t compo
     return 0;
 }
 
-size_t vbomesh_append_indices(struct VboMesh* mesh, size_t n, void* data) {
+size_t vbo_mesh_append_indices(struct VboMesh* mesh, size_t n, void* data) {
     log_assert( mesh != NULL );
     log_assert( n > 0 );
 
     if( mesh->indices->occupied + n > mesh->indices->capacity ) {
         size_t alloc = mesh->indices->occupied + n - mesh->indices->capacity;
-        size_t result = vbomesh_alloc_indices(mesh, alloc);
+        size_t result = vbo_mesh_alloc_indices(mesh, alloc);
         log_assert( result == alloc );
     }
 
@@ -524,14 +524,14 @@ size_t vbomesh_append_indices(struct VboMesh* mesh, size_t n, void* data) {
     return n;
 }
 
-void* vbomesh_map(struct VboMesh* mesh, size_t offset, size_t length, GLbitfield access) {
+void* vbo_mesh_map(struct VboMesh* mesh, size_t offset, size_t length, GLbitfield access) {
     log_assert( mesh != NULL );
     log_assert( mesh->indices->id > 0 );
     log_assert( offset < mesh->indices->capacity );
 
     if( offset + length > mesh->indices->capacity ) {
         size_t alloc = offset + length - mesh->indices->capacity + 1;
-        size_t result = vbomesh_alloc_indices(mesh, alloc);
+        size_t result = vbo_mesh_alloc_indices(mesh, alloc);
         log_assert( result == alloc );
     }
 
@@ -553,7 +553,7 @@ void* vbomesh_map(struct VboMesh* mesh, size_t offset, size_t length, GLbitfield
     return pointer;
 }
 
-GLboolean vbomesh_unmap(struct VboMesh* mesh) {
+GLboolean vbo_mesh_unmap(struct VboMesh* mesh) {
     log_assert( mesh != NULL );
     log_assert( mesh->indices->id > 0 );
 

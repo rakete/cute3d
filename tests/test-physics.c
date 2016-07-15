@@ -89,7 +89,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
     /* Cube */
     struct BouncingCube entity = {0};
-    solid_create_cube(2.0f, (Color){180, 25, 0, 255}, &entity.solid);
+    solid_cube_create(2.0f, (Color){180, 25, 0, 255}, &entity.solid);
     vbomesh_create_from_solid((struct Solid*)&entity.solid, &vbo, &entity.vbomesh);
 
     pivot_create(NULL, NULL, & entity.current.pivot);
@@ -98,7 +98,7 @@ int32_t main(int32_t argc, char *argv[]) {
     /* Ground */
     struct Ground ground = {0};
     pivot_create((Vec3f){0.0, 0.0, 0.0}, (Quat){0.0, 0.0, 0.0, 1.0}, &ground.pivot);
-    solid_create_box((Vec3f){10.0, 1.0, 10.0}, (Color){0, 180, 120, 255}, &ground.solid);
+    solid_box_create((Vec3f){10.0, 1.0, 10.0}, (Color){0, 180, 120, 255}, &ground.solid);
     vbomesh_create_from_solid((struct Solid*)&ground.solid, &vbo, &ground.vbomesh);
 
     /* Shader */

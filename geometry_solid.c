@@ -252,7 +252,7 @@ size_t solid_compress(struct Solid* solid) {
     return solid->indices_size - solid->size;
 }
 
-void solid_create_tetrahedron(float radius, const uint8_t color[4], struct SolidTetrahedron* tet) {
+void solid_tetrahedron_create(float radius, const uint8_t color[4], struct SolidTetrahedron* tet) {
     *tet = (struct SolidTetrahedron){ .vertices = { 0 },
                                       .triangles = { 0, 1, 2,
                                                      0, 2, 3,
@@ -323,7 +323,7 @@ void solid_create_tetrahedron(float radius, const uint8_t color[4], struct Solid
     solid_set_color((struct Solid*)tet, color);
 }
 
-void solid_create_box(Vec3f size, const uint8_t color[4], struct SolidBox* box) {
+void solid_box_create(Vec3f size, const uint8_t color[4], struct SolidBox* box) {
     *box = (struct SolidBox){ .triangles = { 1, 2, 3,
                                              0, 1, 3,
                                              6, 5, 4,
@@ -431,11 +431,11 @@ void solid_create_box(Vec3f size, const uint8_t color[4], struct SolidBox* box) 
     solid_set_color((struct Solid*)box, color);
 }
 
-void solid_create_cube(float size, const uint8_t color[4], struct SolidBox* cube) {
-    solid_create_box((Vec3f){size, size, size}, color, cube);
+void solid_cube_create(float size, const uint8_t color[4], struct SolidBox* cube) {
+    solid_box_create((Vec3f){size, size, size}, color, cube);
 }
 
-void solid_create_sphere16(float radius, const uint8_t color[4], struct SolidSphere16* sphere) {
+void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSphere16* sphere) {
     *sphere = (struct SolidSphere16){ .triangles = { 0 },
                                       .optimal = { 0 },
                                       .indices = { 0 },
@@ -594,7 +594,7 @@ void solid_create_sphere16(float radius, const uint8_t color[4], struct SolidSph
     solid_set_color((struct Solid*)sphere, color);
 }
 
-void solid_create_sphere32(float radius, const uint8_t color[4], struct SolidSphere32* sphere) {
+void solid_sphere32_create(float radius, const uint8_t color[4], struct SolidSphere32* sphere) {
     *sphere = (struct SolidSphere32){ .triangles = { 0 },
                                       .optimal = { 0 },
                                       .indices = { 0 },

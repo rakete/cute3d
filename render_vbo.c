@@ -14,36 +14,36 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "render_vbomesh.h"
+#include "render_vbo.h"
 
-void vbomesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct VboMesh* mesh) {
+void vbo_mesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct VboMesh* mesh) {
     log_assert( solid != NULL );
     log_assert( mesh != NULL );
 
-    vbomesh_create(vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, mesh);
+    vbo_mesh_create(vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, mesh);
 
-    size_t vertices_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, solid->size, solid->vertices);
+    size_t vertices_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, solid->size, solid->vertices);
     log_assert( vertices_n == solid->size );
 
     if( vbo->buffer[SHADER_ATTRIBUTE_NORMALS].id ) {
-        size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, solid->size, solid->normals);
+        size_t normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, solid->size, solid->normals);
         log_assert( normals_n == solid->size );
     }
 
     if( vbo->buffer[SHADER_ATTRIBUTE_COLORS].id ) {
-        size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, solid->size, solid->colors);
+        size_t colors_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, solid->size, solid->colors);
         log_assert( colors_n == solid->size );
     }
 
     if( vbo->buffer[SHADER_ATTRIBUTE_TEXCOORDS].id ) {
-        size_t texcoords_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT, solid->size, solid->texcoords);
+        size_t texcoords_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT, solid->size, solid->texcoords);
         log_assert( texcoords_n == solid->size );
     }
 
     // - if solid->size is smaller then solid->indices_size, the solid has been optimized or compressed and needs
     // to have indices uploaded to render correctly
     if( solid->size < solid->indices_size ) {
-        size_t indices_n = vbomesh_append_indices(mesh, solid->indices_size, solid->indices);
+        size_t indices_n = vbo_mesh_append_indices(mesh, solid->indices_size, solid->indices);
         log_assert( indices_n == solid->indices_size );
     }
 }
@@ -74,7 +74,7 @@ void shitty_triangulate(float* vertices, int32_t n, int32_t m, int32_t* triangle
     log_assert( n == 3 || n == 4 );
 }
 
-void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct VboMesh* mesh) {
+void vbo_mesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct VboMesh* mesh) {
     log_assert( halfedgemesh->size >= 0 );
 
     uint32_t* triangles = malloc(sizeof(uint32_t) * (size_t)halfedgemesh->size);
@@ -88,7 +88,7 @@ void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, s
     log_assert( halfedgemesh->size > 0 );
 
     // - I use a solid internally because this code originally filled a solid, since it is only used locally
-    // and as input for vbomesh_create_from_solid below, this is not a problem
+    // and as input for vbo_mesh_create_from_solid below, this is not a problem
     struct Solid solid = {
         .size = (uint32_t)halfedgemesh->size,
         .indices_size = (uint32_t)halfedgemesh->size,
@@ -216,13 +216,13 @@ void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, s
 #endif
     }
 
-    // - running solid_optimize on the solid before making a vbomesh out of it results in cool looking meshes,
+    // - running solid_optimize on the solid before making a vbo_mesh out of it results in cool looking meshes,
     // but not what I expect, the face_triangles don't take into account which vertices have equal normals, so
     // optimizing is currently not possible, or rather its the same as compressing
     //solid_optimize(&solid, &solid);
 
     // using a solid as input somewhere else is ok
-    vbomesh_create_from_solid(&solid, vbo, mesh);
+    vbo_mesh_create_from_solid(&solid, vbo, mesh);
 
     free(triangles);
     free(optimal);
@@ -233,7 +233,7 @@ void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, s
     free(texcoords);
 }
 
-void vbomesh_render(struct VboMesh* mesh, struct Shader* shader, const struct Camera* camera, const Mat model_matrix) {
+void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct Camera* camera, const Mat model_matrix) {
     log_assert( mesh != NULL );
     log_assert( shader != NULL );
     log_assert( camera != NULL );
@@ -268,7 +268,7 @@ void vbomesh_render(struct VboMesh* mesh, struct Shader* shader, const struct Ca
             loc[array_id] = -1;
             if( c_num == 0 || c_bytes == 0 ) {
                 if( shader->attribute[array_id].location > -1 ) {
-                    log_warn(__FILE__, __LINE__, "the shader \"%s\" has a location for attribute %d but the vbomesh that is rendered has no such attributes\n", shader->name, array_id);
+                    log_warn(__FILE__, __LINE__, "the shader \"%s\" has a location for attribute %d but the vbo_mesh that is rendered has no such attributes\n", shader->name, array_id);
                 }
                 continue;
             }

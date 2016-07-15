@@ -14,8 +14,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef RENDER_VBOMESH_H
-#define RENDER_VBOMESH_H
+#ifndef RENDER_VBO_H
+#define RENDER_VBO_H
 
 #include "driver_ogl.h"
 #include "driver_log.h"
@@ -27,12 +27,12 @@
 #include "geometry_solid.h"
 #include "geometry_halfedgemesh.h"
 
-void vbomesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct VboMesh* mesh);
+void vbo_mesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct VboMesh* mesh);
 
 // - this used to be halfedgemesh_flush function which I rewrote and put here because this originally
 // used a struct Solid as output, which was a very unfitting choise, so this now fills a vbomesh instead
-void vbomesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct VboMesh* mesh);
+void vbo_mesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct VboMesh* mesh);
 
-void vbomesh_render(struct VboMesh* mesh, struct Shader* shader, const struct Camera* camera, const Mat model_matrix);
+void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct Camera* camera, const Mat model_matrix);
 
 #endif

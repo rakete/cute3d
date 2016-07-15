@@ -40,7 +40,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     struct Box solid_cube = {0};
-    solid_create_cube(1.0, (Color){255, 0, 255, 255}, &solid_cube);
+    solid_cube_create(1.0, (Color){255, 0, 255, 255}, &solid_cube);
     solid_compute_normals((struct Solid*)&solid_cube);
 
     struct HalfEdgeMesh hemesh_cube = {0};

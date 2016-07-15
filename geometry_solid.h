@@ -97,7 +97,7 @@ struct SolidTetrahedron {
     float texcoords[24];
 };
 
-void solid_create_tetrahedron(float radius, const uint8_t color[4], struct SolidTetrahedron* tet);
+void solid_tetrahedron_create(float radius, const uint8_t color[4], struct SolidTetrahedron* tet);
 
 struct SolidBox {
     struct Solid solid;
@@ -112,8 +112,8 @@ struct SolidBox {
     float texcoords[72];
 };
 
-void solid_create_box(Vec3f size, const uint8_t color[4], struct SolidBox* box);
-void solid_create_cube(float size, const uint8_t color[4], struct SolidBox* cube);
+void solid_box_create(Vec3f size, const uint8_t color[4], struct SolidBox* box);
+void solid_cube_create(float size, const uint8_t color[4], struct SolidBox* cube);
 
 struct SolidSphere16 {
     struct Solid solid;
@@ -128,7 +128,7 @@ struct SolidSphere16 {
     float texcoords[(16*6*2+16*2)*2*3];
 };
 
-void solid_create_sphere16(float radius, const uint8_t color[4], struct SolidSphere16* sphere);
+void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSphere16* sphere);
 
 // - at some point I want to have this and other solids to be able to be created with a parameter
 // specifying the subdivision level or something like that, so for these sphere I not only want 16
@@ -153,6 +153,6 @@ struct SolidSphere32 {
     float texcoords[(32*14*2+32*2)*2*3];
 };
 
-void solid_create_sphere32(float radius, const uint8_t color[4], struct SolidSphere32* sphere);
+void solid_sphere32_create(float radius, const uint8_t color[4], struct SolidSphere32* sphere);
 
 #endif

@@ -30,12 +30,12 @@ struct TextureAtlas {
     struct Texture texture;
 };
 
-void texture_create_atlas();
+void texture_atlas_create();
 
 struct TextureTile {
     struct TextureAtlas atlas;
 };
 
-void texture_create_tile();
+void texture_tile_create();
 
 #endif

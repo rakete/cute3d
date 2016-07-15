@@ -1,5 +1,6 @@
 //CUTE
 uniform sampler2D diffuse_texture;
+
 shader_in vec4 frag_color;
 shader_in vec2 frag_texcoord;
 

@@ -1,6 +1,6 @@
 #include "geometry_picking.h"
 
-void picking_create_sphere(float radius, struct PickingSphere* sphere) {
+void picking_sphere_create(float radius, struct PickingSphere* sphere) {
     pivot_create(NULL, NULL, &sphere->pivot);
 
     sphere->picked = false;
@@ -11,7 +11,7 @@ void picking_create_sphere(float radius, struct PickingSphere* sphere) {
     sphere->back = -FLT_MAX;
 }
 
-bool picking_test_sphere(struct PickingSphere* sphere, const Vec4f origin, const Vec4f ray) {
+bool picking_sphere_test(struct PickingSphere* sphere, const Vec4f origin, const Vec4f ray) {
     log_assert( origin != NULL );
     log_assert( ray != NULL );
     log_assert( sphere != NULL );
@@ -65,7 +65,7 @@ bool picking_test_sphere(struct PickingSphere* sphere, const Vec4f origin, const
     return true;
 }
 
-bool picking_click_sphere_event(const struct Camera* camera, size_t n, struct PickingSphere** spheres, SDL_Event event) {
+bool picking_sphere_click_event(const struct Camera* camera, size_t n, struct PickingSphere** spheres, SDL_Event event) {
     log_assert( camera != NULL );
     log_assert( spheres != NULL );
     log_assert( n < INT32_MAX );
@@ -79,7 +79,7 @@ bool picking_click_sphere_event(const struct Camera* camera, size_t n, struct Pi
         camera_ray(camera, CAMERA_PERSPECTIVE, mouse.x, mouse.y, click_ray);
 
         for( size_t i = 0; i < n; i++ ) {
-            picking_test_sphere(spheres[i], camera->pivot.position, click_ray);
+            picking_sphere_test(spheres[i], camera->pivot.position, click_ray);
 
             if( spheres[i]->picked ) {
                 clicked = spheres[i]->picked;
@@ -90,7 +90,7 @@ bool picking_click_sphere_event(const struct Camera* camera, size_t n, struct Pi
     return clicked;
 }
 
-bool picking_drag_sphere_event(const struct Camera* camera, size_t n, struct PickingSphere** spheres, SDL_Event event) {
+bool picking_sphere_drag_event(const struct Camera* camera, size_t n, struct PickingSphere** spheres, SDL_Event event) {
     log_assert( camera != NULL );
     log_assert( spheres != NULL );
     log_assert( n < INT32_MAX );
@@ -101,7 +101,7 @@ bool picking_drag_sphere_event(const struct Camera* camera, size_t n, struct Pic
 
     if( event.type == SDL_MOUSEBUTTONDOWN && event.button.button == INPUT_MOUSE_PICKING_DRAG && mouse_down == 0 ) {
         mouse_down = event.button.button;
-        dragging = picking_click_sphere_event(camera, n, spheres, event);
+        dragging = picking_sphere_click_event(camera, n, spheres, event);
         ret = dragging;
     } else if( event.type == SDL_MOUSEBUTTONUP && mouse_down == event.button.button ) {
         mouse_down = 0;

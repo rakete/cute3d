@@ -41,7 +41,7 @@ int32_t main(int32_t argc, char *argv[]) {
     canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
 
     struct SolidBox solid_in = {0};
-    solid_create_cube(1.0, (Color){255, 0, 255, 255}, &solid_in);
+    solid_cube_create(1.0, (Color){255, 0, 255, 255}, &solid_in);
     solid_compute_normals((struct Solid*)&solid_in);
 
     struct Vbo vbo = {0};
