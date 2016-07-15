@@ -10,7 +10,7 @@
 #include "render_vbomesh.h"
 #include "render_canvas.h"
 
-#include "geometry_vbo.h"
+#include "driver_vbo.h"
 #include "geometry_halfedgemesh.h"
 #include "geometry_draw.h"
 #include "geometry_picking.h"

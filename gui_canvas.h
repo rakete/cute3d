@@ -4,8 +4,8 @@
 #include "string.h"
 
 #include "driver_ogl.h"
-#include "driver_shader.h"
 #include "driver_log.h"
+#include "driver_texture.h"
 
 #include "math_matrix.h"
 

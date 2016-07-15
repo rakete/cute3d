@@ -4,7 +4,7 @@
 #include "math_gametime.h"
 #include "math_arcball.h"
 
-#include "geometry_vbo.h"
+#include "driver_vbo.h"
 #include "geometry_halfedgemesh.h"
 
 #include "gui_draw.h"

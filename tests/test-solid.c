@@ -3,7 +3,7 @@
 #include "gui_canvas.h"
 #include "gui_draw.h"
 
-#include "geometry_vbo.h"
+#include "driver_vbo.h"
 #include "geometry_solid.h"
 #include "geometry_draw.h"
 

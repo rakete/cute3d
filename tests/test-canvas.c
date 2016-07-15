@@ -4,7 +4,7 @@
 
 #include "driver_sdl2.h"
 #include "math_arcball.h"
-#include "geometry_vbo.h"
+#include "driver_vbo.h"
 
 #include "gui_draw.h"
 #include "gui_canvas.h"

@@ -13,8 +13,8 @@
 
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
-#ifndef GEOMETRY_VBO_H
-#define GEOMETRY_VBO_H
+#ifndef DRIVER_VBO_H
+#define DRIVER_VBO_H
 
 #include "stdint.h"
 #include "stdlib.h"
@@ -173,7 +173,7 @@ struct VboMesh {
     struct VboMeshIndexBuffer {
         GLuint id; // index buffer
         GLenum usage;
-#ifndef EMSCRIPTEN
+#ifndef CUTE_BUILD_ES2
         // glDrawElementsBaseVertex is not in OpenGL ES 2.0, so I disable this here when I compile
         // with emscripten so that I get errors when I use it elsewhere
         size_t base; // base vertex index

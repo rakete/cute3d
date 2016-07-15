@@ -19,8 +19,6 @@
 
 #include "gui_canvas.h"
 #include "math_camera.h"
-#include "geometry_vbo.h"
-#include "render_vbomesh.h"
 
 void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t layer_end, const struct Camera* camera, const Mat model_matrix);
 

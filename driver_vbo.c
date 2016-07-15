@@ -14,7 +14,7 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "geometry_vbo.h"
+#include "driver_vbo.h"
 
 int32_t init_vbo() {
     int32_t ret = 0;
@@ -227,7 +227,7 @@ void vbomesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, G
     for( int32_t i = 0; i < MAX_VBO_PHASES; i++ ) {
         mesh->_internal_indices[i].id = 0;
         mesh->_internal_indices[i].usage = usage;
-#ifndef EMSCRIPTEN
+#ifndef CUTE_BUILD_ES2
         mesh->_internal_indices[i].base = 0;
 #endif
         mesh->_internal_indices[i].capacity = 0;

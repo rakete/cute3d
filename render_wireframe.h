@@ -19,11 +19,11 @@
 
 #include "driver_ogl.h"
 #include "driver_log.h"
+#include "driver_vbo.h"
 
 #include "math_camera.h"
 #include "math_pivot.h"
 
-#include "geometry_vbo.h"
 #include "geometry_solid.h"
 #include "geometry_halfedgemesh.h"
 
