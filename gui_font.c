@@ -90,7 +90,7 @@ void font_create(const wchar_t* unicode_alphabet,
     // the meaning of these variables and how I came up with their computation
     // - so main thing the next loop figures out is the power2 value, which will be the sidelength
     // of the font texture
-    int32_t power2 = 8;
+    int32_t power2 = 64;
 
     // - along the way I collect row_offsets[i] that I use later when creating the texture, it
     // specifies how much pixels symbol i must be offset from the left texture border to be painted
@@ -141,7 +141,7 @@ void font_create(const wchar_t* unicode_alphabet,
             row_width = 0;
         }
     }
-    log_assert( power2 <= 4096 );
+    log_assert( power2 <= 2048 );
     log_assert( power2 > -1 );
 
     // - now that we have the row_offsets[] and rows[] figured out, all thats left is putting them to use

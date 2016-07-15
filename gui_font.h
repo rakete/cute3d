@@ -8,10 +8,11 @@
 #include "string.h"
 #include "wchar.h"
 
-#include "math_types.h"
 #include "driver_ogl.h"
 #include "driver_glsl.h"
 #include "driver_shader.h"
+
+#include "math_types.h"
 
 #ifndef MAX_FONT_GLYPHS
 #define MAX_FONT_GLYPHS 256
