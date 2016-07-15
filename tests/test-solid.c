@@ -41,11 +41,11 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
-    struct Tetrahedron tetrahedron = {0};
-    struct Box box = {0};
-    struct Box cube = {0};
-    struct Sphere16 sphere16 = {0};
-    struct Sphere32 sphere32 = {0};
+    struct SolidTetrahedron tetrahedron = {0};
+    struct SolidBox box = {0};
+    struct SolidBox cube = {0};
+    struct SolidSphere16 sphere16 = {0};
+    struct SolidSphere32 sphere32 = {0};
     solid_create_tetrahedron(1.0, (Color){255, 0, 0, 255}, &tetrahedron);
     solid_create_box((Vec3f){1.5, 0.25, 1.75}, (Color){0, 255, 0, 255}, &box);
     solid_create_cube(1.0, (Color){255, 0, 255, 255}, &cube);
@@ -65,9 +65,17 @@ int32_t main(int32_t argc, char *argv[]) {
     vbomesh_create_from_solid((struct Solid*)&sphere16, &vbo, &sphere16_mesh);
     vbomesh_create_from_solid((struct Solid*)&sphere32, &vbo, &sphere32_mesh);
 
-
     struct Shader shader = {0};
     shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &shader);
+
+    Vec4f light_direction = { 0.2, -0.5, -1.0 };
+    shader_set_uniform_3f(&shader, shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
+
+    Color ambiance = {50, 25, 150, 255};
+    shader_set_uniform_4f(&shader, shader.program, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
+
+    /* float foo[4] = {0.2, 0.1, 0.2, 1.0}; */
+    /* shader_set_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "4f", 4, GL_FLOAT, foo); */
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){0.0,8.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
@@ -95,16 +103,6 @@ int32_t main(int32_t argc, char *argv[]) {
         ogl_debug( glClearDepth(1.0f);
                    glClearColor(.0f, .0f, .0f, 1.0f);
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
-
-
-        Vec4f light_direction = { 0.2, -0.5, -1.0 };
-        shader_set_uniform_3f(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
-
-        Color ambiance = {50, 25, 150, 255};
-        shader_set_uniform_4f(&shader, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
-
-        /* float foo[4] = {0.2, 0.1, 0.2, 1.0}; */
-        /* shader_set_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "4f", 4, GL_FLOAT, foo); */
 
         Mat identity;
         mat_identity(identity);

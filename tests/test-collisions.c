@@ -22,8 +22,8 @@ struct CollisionEntity {
     struct Pivot pivot;
     struct ShapeConvex shape;
     struct HalfEdgeMesh hemesh;
-    struct Box solid;
-    struct Box optimized_solid;
+    struct SolidBox solid;
+    struct SolidBox optimized_solid;
     struct VboMesh vbomesh;
     struct PickingSphere picking_sphere;
 };
@@ -98,10 +98,10 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &flat_shader);
 
     Vec4f light_direction = { 0.2, -0.5, -1.0 };
-    shader_set_uniform_3f(&flat_shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
+    shader_set_uniform_3f(&flat_shader, flat_shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
     Color ambiance = { 65, 25, 50, 255 };
-    shader_set_uniform_4f(&flat_shader, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
+    shader_set_uniform_4f(&flat_shader, flat_shader.program, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){0.0, 5.0, 10.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0, 1000.0, &arcball);
