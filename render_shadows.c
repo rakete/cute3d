@@ -1,37 +1,50 @@
 #include "render_shadows.h"
 
 void shadows_create(int32_t width, int32_t height, struct Shadows* shadows) {
+    shadows->texture.width = width;
+    shadows->texture.height = height;
+
     glGenTextures(1, &shadows->texture.id);
     log_assert( shadows->texture.id > 0 );
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, shadows->texture.id);
 
-    shadows->texture.width = width;
-    shadows->texture.height = height;
-    shadows->texture.type = GL_UNSIGNED_BYTE;
-    shadows->texture.format = GL_RGBA;
-    glTexImage2D(GL_TEXTURE_2D, 0, shadows->texture.format, width, height, 0, shadows->texture.format, shadows->texture.type, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-    shadows->texture.min_filter = GL_LINEAR;
-    shadows->texture.mag_filter = GL_LINEAR;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, shadows->texture.min_filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, shadows->texture.mag_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    shadows->texture.wrap_s = GL_CLAMP_TO_EDGE;
-    shadows->texture.wrap_t = GL_CLAMP_TO_EDGE;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, shadows->texture.wrap_s);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, shadows->texture.wrap_t);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glGenRenderbuffers(1, &shadows->renderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, shadows->renderbuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, shadows->texture.width, shadows->texture.height);
+
+    glGenFramebuffers(1, &shadows->fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadows->fbo);
+
+    glBindTexture(GL_TEXTURE_2D, shadows->texture.id);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                              GL_DEPTH_ATTACHMENT,
+                              GL_RENDERBUFFER,
+                              shadows->renderbuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, shadows->texture.id, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        printf("Error: FrameBufferObject is not complete!\n");
+    }
 
 }
 
 void shadows_normal_pass(const struct Light* light, struct Shadows* shadows) {
 }
 
-/* glGenTextures(1, &theNameTexture); */
+/* glGenTextures(1, &shadows->texture.id); */
 /* glActiveTexture(GL_TEXTURE0); */
-/* glBindTexture(GL_TEXTURE_2D, theNameTexture); */
-/* glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, theWidth, theHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); */
+/* glBindTexture(GL_TEXTURE_2D, shadows->texture.id); */
+/* glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, shadows->width, shadows->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); */
 /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); */
 /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); */
 /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); */

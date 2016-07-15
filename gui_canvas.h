@@ -36,6 +36,10 @@
 #define MAX_CANVAS_PROJECTIONS 2
 #endif
 
+#ifndef MAX_CANVAS_TEXTURES
+#define MAX_CANVAS_TEXTURES 16
+#endif
+
 #define CANVAS_PROJECT_WORLD 0
 #define CANVAS_PROJECT_SCREEN 1
 
@@ -99,6 +103,8 @@ struct Canvas {
     // - text can have different fonts or projections, to put text directly on the screen
     // or display in the world
     struct CanvasLayer {
+        struct Texture textures[MAX_CANVAS_TEXTURES];
+
         struct CanvasIndices {
             GLuint* array;
             GLuint id;
