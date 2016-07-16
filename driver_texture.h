@@ -23,6 +23,7 @@ struct Texture {
     GLint wrap_t;
 };
 
+void texture_create(struct Texture* texture);
 void texture_create_from_id(size_t width, size_t height, GLenum type, GLint format, GLint min_filter, GLint mag_filter, GLint wrap_s, GLint wrap_t, struct Texture* texture);
 void texture_create_from_array(size_t width, size_t height, GLenum type, GLint format, GLint min_filter, GLint mag_filter, GLint wrap_s, GLint wrap_t, struct Texture* texture);
 
@@ -31,11 +32,5 @@ struct TextureAtlas {
 };
 
 void texture_atlas_create();
-
-struct TextureTile {
-    struct TextureAtlas atlas;
-};
-
-void texture_tile_create();
 
 #endif

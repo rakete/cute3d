@@ -34,8 +34,6 @@ struct Glyph {
 };
 
 struct Font {
-    char name[256];
-
     // - a glyph is a texture point plus width and height for every character that can be displayed
     // with this font
     struct Glyph glyphs[MAX_FONT_GLYPHS];
@@ -61,6 +59,7 @@ struct Font {
     float linespacing;
 };
 
-void font_create(const wchar_t* unicode_alphabet, size_t symbols_n, struct Character* symbols, size_t palette_n, size_t color_n, uint8_t* palette, const char* name, struct Font* font);
+void font_create(struct Font* font);
+void font_create_from_alphabet(const wchar_t* unicode_alphabet, size_t symbols_n, struct Character* symbols, size_t palette_n, size_t color_n, uint8_t* palette, struct Font* font);
 
 #endif

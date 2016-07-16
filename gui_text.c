@@ -89,7 +89,7 @@ void text_put(struct Canvas* canvas,
             if( c == L'\0') {
                 log_assert(i == text_length);
             } else {
-                log_warn(__FILE__, __LINE__, "font %s does not contain glyph \"%c\"\n", font->name, c);
+                log_warn(__FILE__, __LINE__, "font %s does not contain glyph \"%c\"\n", font_name, c);
                 glyph_warnings[c] = true;
             }
         }

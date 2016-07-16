@@ -66,14 +66,14 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
             // - this needs to be outside of the not_binding_vao check, sadly, because a shader might be added to the canvas
             // after the first render and so we'll have to always check for unset attributes
             for( int32_t shader_i = 0; shader_i < MAX_CANVAS_SHADER; shader_i++ ) {
-                if( canvas->shader[shader_i].attribute[attribute_i].location > -1 ) {
-                    canvas->shader[shader_i].attribute[attribute_i].unset = false;
+                if( canvas->shaders[shader_i].shader.attribute[attribute_i].location > -1 ) {
+                    canvas->shaders[shader_i].shader.attribute[attribute_i].unset = false;
                 }
             }
 
             for( int32_t font_i = 0; font_i < MAX_CANVAS_FONTS; font_i++ ) {
-                if( canvas->fonts[font_i].shader.attribute[attribute_i].location > -1 ) {
-                    canvas->fonts[font_i].shader.attribute[attribute_i].unset = false;
+                if( canvas->fonts[font_i].font.shader.attribute[attribute_i].location > -1 ) {
+                    canvas->fonts[font_i].font.shader.attribute[attribute_i].unset = false;
                 }
             }
         }
@@ -102,11 +102,11 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
     // second loop goes through all shaders, binds their locations, then loops through all layers, uploads the indices and renders
     for( int32_t shader_i = 0; shader_i < MAX_CANVAS_SHADER; shader_i++ ) {
-        if( strlen(canvas->shader[shader_i].name) == 0 ) {
+        if( strlen(canvas->shaders[shader_i].name) == 0 ) {
             continue;
         }
 
-        struct Shader* shader = &canvas->shader[shader_i];
+        struct Shader* shader = &canvas->shaders[shader_i].shader;
 
         shader_use_program(shader);
 
@@ -174,7 +174,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
             continue;
         }
 
-        struct Font* font = &canvas->fonts[font_i];
+        struct Font* font = &canvas->fonts[font_i].font;
 
         // bind font shader
         shader_use_program(&font->shader);

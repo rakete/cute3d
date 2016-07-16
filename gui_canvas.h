@@ -17,15 +17,11 @@
 #endif
 
 #ifndef MAX_CANVAS_LAYERS
-#define MAX_CANVAS_LAYERS 8
+#define MAX_CANVAS_LAYERS 4
 #endif
 
 #ifndef MAX_CANVAS_SHADER
 #define MAX_CANVAS_SHADER 8
-#endif
-
-#ifndef MAX_CANVAS_UNIFORMS
-#define MAX_CANVAS_UNIFORMS 8
 #endif
 
 #ifndef MAX_CANVAS_FONTS
@@ -36,12 +32,12 @@
 #define MAX_CANVAS_PROJECTIONS 2
 #endif
 
+#define CANVAS_PROJECT_WORLD 0
+#define CANVAS_PROJECT_SCREEN 1
+
 #ifndef MAX_CANVAS_TEXTURES
 #define MAX_CANVAS_TEXTURES 16
 #endif
-
-#define CANVAS_PROJECT_WORLD 0
-#define CANVAS_PROJECT_SCREEN 1
 
 // - I created this so I could create functions that draw by stuff by filling arrays with transformed
 // vertices, and then render those all at once in a mainloop
@@ -81,7 +77,10 @@ struct Canvas {
     // which belong to different shaders
     // - adding them like this makes it more convenient to implement render functions, I
     // probably could also have solved this with an argument give to render functions
-    struct Shader shader[MAX_CANVAS_SHADER];
+    struct CanvasShader {
+        struct Shader shader;
+        char name[256];
+    } shaders[MAX_CANVAS_SHADER];
 
     // - I decided to make text rendering a special case and put fonts in here too,
     // a font is just a special shader with some extra info, so maybe this could have
@@ -91,7 +90,15 @@ struct Canvas {
     // I also did not want to redo the font creation stuff in here
     // - I'll probably have to add more special cases anyways, widget for example
     // come to mind
-    struct Font fonts[MAX_CANVAS_FONTS];
+    struct CanvasFonts {
+        struct Font font;
+        char name[256];
+    } fonts[MAX_CANVAS_FONTS];
+
+    struct CanvasTextures {
+        struct Texture sampler[MAX_CANVAS_SHADER][MAX_SHADER_SAMPLER];
+        char name[256];
+    } textures[MAX_CANVAS_TEXTURES];
 
     // - the arrays and vbos above only hold vertex data, the indices are kept in these
     // structs, the struct are indexed by all the things that are needed to distinguish
@@ -103,8 +110,6 @@ struct Canvas {
     // - text can have different fonts or projections, to put text directly on the screen
     // or display in the world
     struct CanvasLayer {
-        struct Texture textures[MAX_CANVAS_TEXTURES];
-
         struct CanvasIndices {
             GLuint* array;
             GLuint id;
@@ -152,11 +157,14 @@ void canvas_destroy(struct Canvas* canvas);
 // struct with that name
 void canvas_add_attribute(struct Canvas* canvas, int32_t attribute, uint32_t size, GLenum type);
 
-WARN_UNUSED_RESULT int32_t canvas_add_shader(struct Canvas* canvas, const struct Shader* shader);
+WARN_UNUSED_RESULT int32_t canvas_add_shader(struct Canvas* canvas, const char* shader_name, const struct Shader* shader);
 WARN_UNUSED_RESULT int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name);
 
-WARN_UNUSED_RESULT int32_t canvas_add_font(struct Canvas* canvas, const struct Font* font);
+WARN_UNUSED_RESULT int32_t canvas_add_font(struct Canvas* canvas, const char* font_name, const struct Font* font);
 WARN_UNUSED_RESULT int32_t canvas_find_font(struct Canvas* canvas, const char* font_name);
+
+WARN_UNUSED_RESULT int32_t canvas_add_texture(struct Canvas* canvas, const char* shader_name, int32_t sampler, const char* texture_name, const struct Texture* texture);
+WARN_UNUSED_RESULT int32_t canvas_find_texture(struct Canvas* canvas, const char* texture_name);
 
 // - allocating the heap memory for the arrays
 size_t canvas_alloc_attributes(struct Canvas* canvas, uint32_t attribute_i, size_t n);

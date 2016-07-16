@@ -1,16 +1,6 @@
 #include "gui_font.h"
 
-void font_create(const wchar_t* unicode_alphabet,
-                 size_t symbols_n,
-                 struct Character* symbols,
-                 size_t palette_n,
-                 size_t color_n,
-                 uint8_t* palette,
-                 const char* name,
-                 struct Font* font)
-{
-    font->name[0] = '\0';
-
+void font_create(struct Font* font) {
     // - first create empty font, this gets rid of the stupid _empty function that I needed once, and then started
     // to implement in all other modules, now this function does this, with NULL arguments
     for( size_t i = 0; i < MAX_FONT_GLYPHS; i++ ) {
@@ -29,19 +19,37 @@ void font_create(const wchar_t* unicode_alphabet,
 
     font->kerning = 0.0f;
     font->linespacing = 0.0f;
+}
 
-    // - originally I had two functions, one to create an empty font, and one that actually creates a font,
-    // but then I merged them togeter into this one function
-    // - if any of the arrays given to this function are NULL, then only create an empty font and return here
-    if( unicode_alphabet == NULL || symbols == NULL || palette == NULL || name == NULL ) {
-        return;
+void font_create_from_alphabet(const wchar_t* unicode_alphabet,
+                               size_t symbols_n,
+                               struct Character* symbols,
+                               size_t palette_n,
+                               size_t color_n,
+                               uint8_t* palette,
+                               struct Font* font)
+{
+    for( size_t i = 0; i < MAX_FONT_GLYPHS; i++ ) {
+        log_assert( font->glyphs[i].x == 0 );
+        log_assert( font->glyphs[i].y == 0 );
+        log_assert( font->glyphs[i].w == 0 );
+        log_assert( font->glyphs[i].h == 0 );
     }
 
-    // - the real _create starts here
-    size_t name_length = strlen(name);
-    log_assert( name_length > 0 );
-    log_assert( name_length < 256 );
+    for( size_t i = 0; i < MAX_FONT_ALPHABET_SIZE; i++ ) {
+        log_assert( font->alphabet[i] == MAX_FONT_ALPHABET_SIZE || font->alphabet[i] == 0 );
+    }
 
+    log_assert( font->texture.id == 0 );
+    log_assert( font->texture.width == 0 );
+    log_assert( font->texture.height == 0 );
+
+    log_assert( font->kerning == 0.0f );
+    log_assert( font->linespacing == 0.0f );
+
+    font_create(font);
+
+    // - the real _create starts here
     size_t alphabet_len = wcslen(unicode_alphabet);
     log_assert( alphabet_len < MAX_FONT_ALPHABET_SIZE );
     log_assert( alphabet_len < MAX_FONT_GLYPHS );
@@ -49,9 +57,6 @@ void font_create(const wchar_t* unicode_alphabet,
 
     log_assert( palette_n > 0 );
     log_assert( color_n == 3 || color_n == 4 );
-
-    font->name[0] = '\0';
-    strncat(font->name, name, name_length);
 
     font->kerning = 0.2f;
     font->linespacing = 0.2f;
