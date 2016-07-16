@@ -22,7 +22,7 @@
 #include "math_types.h"
 #include "driver_glsl.h"
 #include "gui_draw.h"
-#include "render_vbomesh.h"
+#include "render_vbo.h"
 #include "geometry_solid.h"
 #include "gui.h"
 #include "gui_default_font.h"

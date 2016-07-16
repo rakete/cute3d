@@ -7,7 +7,7 @@
 #include "geometry_solid.h"
 #include "geometry_draw.h"
 
-#include "render_vbomesh.h"
+#include "render_vbo.h"
 #include "render_canvas.h"
 
 int32_t main(int32_t argc, char *argv[]) {

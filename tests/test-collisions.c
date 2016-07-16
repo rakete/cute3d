@@ -7,7 +7,7 @@
 #include "gui_draw.h"
 #include "gui_text.h"
 
-#include "render_vbomesh.h"
+#include "render_vbo.h"
 #include "render_canvas.h"
 
 #include "driver_vbo.h"

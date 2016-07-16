@@ -11,7 +11,7 @@
 #include "gui_text.h"
 
 #include "render_canvas.h"
-#include "render_vbomesh.h"
+#include "render_vbo.h"
 
 int32_t main(int32_t argc, char *argv[]) {
     printf("<<watchlist//>>\n");

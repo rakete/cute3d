@@ -12,7 +12,7 @@
 #include "geometry_solid.h"
 #include "geometry_shape.h"
 
-#include "render_vbomesh.h"
+#include "render_vbo.h"
 #include "render_canvas.h"
 
 #include "physics_colliding.h"
