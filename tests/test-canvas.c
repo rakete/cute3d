@@ -60,6 +60,8 @@ int32_t main(int32_t argc, char *argv[]) {
     canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
     canvas_create("global_static_canvas", &global_static_canvas);
 
+    printf("sizeof(struct Canvas): %zu\n", sizeof(struct Canvas));
+
     struct Vbo vbo = {0};
     vbo_create(&vbo);
 
@@ -94,15 +96,15 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_create_from_files("shader/volumetric_lines.vert", "shader/volumetric_lines.frag", "lines_shader", &shader);
 
     struct Font font = {0};
-    font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", 256, symbols, 9, 3, global_default_font_palette, "other_font", &font);
+    font_create_from_alphabet(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", 256, symbols, 9, 3, global_default_font_palette, &font);
 
     struct Canvas text_canvas = {0};
     canvas_create("text_canvas", &text_canvas);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
-    log_assert( canvas_add_shader(&text_canvas, &shader) < MAX_CANVAS_SHADER );
-    log_assert( canvas_add_font(&text_canvas, &font) < MAX_CANVAS_FONTS );
+    log_assert( canvas_add_shader(&text_canvas, shader.name, &shader) < MAX_CANVAS_SHADER );
+    log_assert( canvas_add_font(&text_canvas, "other_font", &font) < MAX_CANVAS_FONTS );
 
     struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);

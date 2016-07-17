@@ -91,11 +91,11 @@ int32_t main(int32_t argc, char *argv[]) {
     halfedgemesh_verify(&sphere32_hemesh);
 
     struct VboMesh tetrahedron_mesh,box_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
-    vbomesh_create_from_halfedgemesh(&tetrahedron_hemesh, &vbo, &tetrahedron_mesh);
-    vbomesh_create_from_halfedgemesh(&box_hemesh, &vbo, &box_mesh);
-    vbomesh_create_from_halfedgemesh(&cube_hemesh, &vbo, &cube_mesh);
-    vbomesh_create_from_halfedgemesh(&sphere16_hemesh, &vbo, &sphere16_mesh);
-    vbomesh_create_from_halfedgemesh(&sphere32_hemesh, &vbo, &sphere32_mesh);
+    vbo_mesh_create_from_halfedgemesh(&tetrahedron_hemesh, &vbo, &tetrahedron_mesh);
+    vbo_mesh_create_from_halfedgemesh(&box_hemesh, &vbo, &box_mesh);
+    vbo_mesh_create_from_halfedgemesh(&cube_hemesh, &vbo, &cube_mesh);
+    vbo_mesh_create_from_halfedgemesh(&sphere16_hemesh, &vbo, &sphere16_mesh);
+    vbo_mesh_create_from_halfedgemesh(&sphere32_hemesh, &vbo, &sphere32_mesh);
 
     struct Shader shader = {0};
     shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &shader);
@@ -145,11 +145,11 @@ int32_t main(int32_t argc, char *argv[]) {
         mat_translate(identity, (float[4]){ -1.5, 0.0, -2.0, 1.0 }, sphere16_transform);
         mat_translate(identity, (float[4]){ 1.5, 0.0, -2.0, 1.0 }, sphere32_transform);
 
-        vbomesh_render(&tetrahedron_mesh, &shader, &arcball.camera, tetrahedron_transform);
-        vbomesh_render(&box_mesh, &shader, &arcball.camera, box_transform);
-        vbomesh_render(&cube_mesh, &shader, &arcball.camera, cube_transform);
-        vbomesh_render(&sphere16_mesh, &shader, &arcball.camera, sphere16_transform);
-        vbomesh_render(&sphere32_mesh, &shader, &arcball.camera, sphere32_transform);
+        vbo_mesh_render(&tetrahedron_mesh, &shader, &arcball.camera, tetrahedron_transform);
+        vbo_mesh_render(&box_mesh, &shader, &arcball.camera, box_transform);
+        vbo_mesh_render(&cube_mesh, &shader, &arcball.camera, cube_transform);
+        vbo_mesh_render(&sphere16_mesh, &shader, &arcball.camera, sphere16_transform);
+        vbo_mesh_render(&sphere32_mesh, &shader, &arcball.camera, sphere32_transform);
 
         Quat grid_rotation = {0};
         quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);

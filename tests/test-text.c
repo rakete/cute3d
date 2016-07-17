@@ -25,10 +25,6 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_vbo() ) {
-        return 1;
-    }
-
     if( init_canvas() ) {
         return 1;
     }

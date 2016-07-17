@@ -35,7 +35,7 @@ struct BouncingCube {
 
     /* Mesh */
     struct Box solid;
-    struct VboMesh vbomesh;
+    struct VboMesh vbo_mesh;
 };
 
 struct Ground {
@@ -44,7 +44,7 @@ struct Ground {
 
     /* Mesh */
     struct Box solid;
-    struct VboMesh vbomesh;
+    struct VboMesh vbo_mesh;
 };
 
 int32_t main(int32_t argc, char *argv[]) {
@@ -90,7 +90,7 @@ int32_t main(int32_t argc, char *argv[]) {
     /* Cube */
     struct BouncingCube entity = {0};
     solid_cube_create(2.0f, (Color){180, 25, 0, 255}, &entity.solid);
-    vbomesh_create_from_solid((struct Solid*)&entity.solid, &vbo, &entity.vbomesh);
+    vbo_mesh_create_from_solid((struct Solid*)&entity.solid, &vbo, &entity.vbo_mesh);
 
     pivot_create(NULL, NULL, & entity.current.pivot);
     vec_add(entity.current.pivot.position, (Vec3f){0.0, 2.0, 0.0}, entity.current.pivot.position);
@@ -99,7 +99,7 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Ground ground = {0};
     pivot_create((Vec3f){0.0, 0.0, 0.0}, (Quat){0.0, 0.0, 0.0, 1.0}, &ground.pivot);
     solid_box_create((Vec3f){10.0, 1.0, 10.0}, (Color){0, 180, 120, 255}, &ground.solid);
-    vbomesh_create_from_solid((struct Solid*)&ground.solid, &vbo, &ground.vbomesh);
+    vbo_mesh_create_from_solid((struct Solid*)&ground.solid, &vbo, &ground.vbo_mesh);
 
     /* Shader */
     struct Shader flat_shader = {0};
@@ -188,11 +188,11 @@ int32_t main(int32_t argc, char *argv[]) {
         /* const double alpha = time.accumulator / time.dt; */
         /* entity.current = physics_interpolate(entity.previous, entity.current, alpha); */
 
-        vbomesh_render(&ground.vbomesh, &flat_shader, &arcball.camera, (Mat)IDENTITY_MAT);
+        vbo_mesh_render(&ground.vbo_mesh, &flat_shader, &arcball.camera, (Mat)IDENTITY_MAT);
 
         Mat entity_transform = {0};
         pivot_world_transform(&entity.current.pivot, entity_transform);
-        vbomesh_render(&entity.vbomesh, &flat_shader, &arcball.camera, entity_transform);
+        vbo_mesh_render(&entity.vbo_mesh, &flat_shader, &arcball.camera, entity_transform);
 
         Vec4f text_cursor = {0, 0, 0, 1};
         text_show_fps(&global_dynamic_canvas, 0, text_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0, "default_font", time.frame);

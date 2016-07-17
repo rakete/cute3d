@@ -50,8 +50,8 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
-    struct VboMesh vbomesh = {0};
-    vbomesh_create_from_solid((struct Solid*)&solid_in, &vbo, &vbomesh);
+    struct VboMesh vbo_mesh = {0};
+    vbo_mesh_create_from_solid((struct Solid*)&solid_in, &vbo, &vbo_mesh);
 
     struct Shader shader = {0};
     shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &shader);
@@ -102,7 +102,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
         Mat identity;
         mat_identity(identity);
-        vbomesh_render(&vbomesh, &shader, &arcball.camera, identity);
+        vbo_mesh_render(&vbo_mesh, &shader, &arcball.camera, identity);
 
         draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){20, 180, 240, 255}, 0.02f, 12.0f, 12.0f, 12);
 

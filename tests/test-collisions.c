@@ -24,7 +24,7 @@ struct CollisionEntity {
     struct HalfEdgeMesh hemesh;
     struct SolidBox solid;
     struct SolidBox optimized_solid;
-    struct VboMesh vbomesh;
+    struct VboMesh vbo_mesh;
     struct PickingSphere picking_sphere;
 };
 
@@ -36,7 +36,7 @@ static void entity_create(const char* name, Color color, struct Vbo* vbo, struct
     solid_cube_create(1.0f, color, &entity->solid);
     solid_cube_create(1.0f, color, &entity->optimized_solid);
     solid_optimize((struct Solid*)&entity->optimized_solid);
-    vbomesh_create_from_solid((struct Solid*)&entity->optimized_solid, vbo, &entity->vbomesh);
+    vbo_mesh_create_from_solid((struct Solid*)&entity->optimized_solid, vbo, &entity->vbo_mesh);
 
     halfedgemesh_create(&entity->hemesh);
     halfedgemesh_append(&entity->hemesh, (struct Solid*)&entity->solid);
@@ -210,12 +210,12 @@ int32_t main(int32_t argc, char *argv[]) {
 
         Mat transform_a = {0};
         pivot_world_transform(&entity_a.pivot, transform_a);
-        //vbomesh_render(&entity_a.vbomesh, &flat_shader, &arcball.camera, transform_a);
+        //vbo_mesh_render(&entity_a.vbo_mesh, &flat_shader, &arcball.camera, transform_a);
         draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_a, (Color){255, 0, 0, 255}, 0.02f, &entity_a.hemesh);
 
         Mat transform_b = {0};
         pivot_world_transform(&entity_b.pivot, transform_b);
-        //vbomesh_render(&entity_b.vbomesh, &flat_shader, &arcball.camera, transform_b);
+        //vbo_mesh_render(&entity_b.vbo_mesh, &flat_shader, &arcball.camera, transform_b);
         draw_halfedgemesh_wire(&global_dynamic_canvas, 0, transform_b, (Color){0, 255, 0, 255}, 0.02f, &entity_b.hemesh);
 
         Mat between_transform = {0};

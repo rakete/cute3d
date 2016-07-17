@@ -66,13 +66,13 @@ int32_t main(int32_t argc, char** argv) {
     vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
 
     struct VboMesh triangle_mesh = {0};
-    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &triangle_mesh);
+    vbo_mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &triangle_mesh);
 
-    vbomesh_append_attributes(&triangle_mesh, OGL_VERTICES, vertices1, 3);
-    vbomesh_append_attributes(&triangle_mesh, OGL_COLORS, colors, 3);
-    vbomesh_append_indices(&triangle_mesh, (uint32_t[3]){0, 1, 2}, 3);
+    vbo_mesh_append_attributes(&triangle_mesh, OGL_VERTICES, vertices1, 3);
+    vbo_mesh_append_attributes(&triangle_mesh, OGL_COLORS, colors, 3);
+    vbo_mesh_append_indices(&triangle_mesh, (uint32_t[3]){0, 1, 2}, 3);
 
-    vbomesh_print(&triangle_mesh);
+    vbo_mesh_print(&triangle_mesh);
 
     init_shader();
     struct Shader default_shader = {0};
@@ -95,19 +95,19 @@ int32_t main(int32_t argc, char** argv) {
     solid_normals((struct Solid*)&cube);
 
     struct VboMesh cube_mesh = {0};
-    vbomesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
-    vbomesh_append_attributes(&cube_mesh, OGL_VERTICES, cube.vertices, cube.solid.size);
-    vbomesh_append_attributes(&cube_mesh, OGL_COLORS, cube.colors, cube.solid.size);
-    vbomesh_append_attributes(&cube_mesh, OGL_NORMALS, cube.normals, cube.solid.size);
-    vbomesh_append_indices(&cube_mesh, cube.indices, cube.solid.size);
+    vbo_mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &cube_mesh);
+    vbo_mesh_append_attributes(&cube_mesh, OGL_VERTICES, cube.vertices, cube.solid.size);
+    vbo_mesh_append_attributes(&cube_mesh, OGL_COLORS, cube.colors, cube.solid.size);
+    vbo_mesh_append_attributes(&cube_mesh, OGL_NORMALS, cube.normals, cube.solid.size);
+    vbo_mesh_append_indices(&cube_mesh, cube.indices, cube.solid.size);
 
-    vbomesh_print(&cube_mesh);
+    vbo_mesh_print(&cube_mesh);
 
     struct Character symbols[256] = {0};
     default_font_create(symbols);
 
     struct Font foo = {0};
-    font_create(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, &foo);
+    font_create_from_alphabet(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", false, symbols, &foo);
 
     Quat cube_spinning = {0};
     qidentity(cube_spinning);
@@ -161,7 +161,7 @@ int32_t main(int32_t argc, char** argv) {
 
         mat_translate(cube_transform, (Vec4f){ -2.0, 0.0, 0.0, 1.0 }, cube_transform);
 
-        vbomesh_render(&cube_mesh, &default_shader, &arcball.camera, cube_transform);
+        vbo_mesh_render(&cube_mesh, &default_shader, &arcball.camera, cube_transform);
         /* draw_normals_array(cube.vertices, */
         /*                    cube.normals, */
         /*                    cube.solid.size, */
