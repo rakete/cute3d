@@ -96,73 +96,73 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                        // make use of vaos
                        glVertexAttribPointer((GLuint)loc[attribute_i], (GLint)c_num, c_type, GL_TRUE, 0, 0); );
         }
-
-
     }
 
-    // second loop goes through all shaders, binds their locations, then loops through all layers, uploads the indices and renders
-    for( int32_t shader_i = 0; shader_i < MAX_CANVAS_SHADER; shader_i++ ) {
-        if( strlen(canvas->shaders[shader_i].name) == 0 ) {
-            continue;
-        }
-
-        struct Shader* shader = &canvas->shaders[shader_i].shader;
-
-        shader_use_program(shader);
-
-        if( shader->uniform[SHADER_UNIFORM_LINE_Z_SCALING].location > -1 ) {
-            shader_set_uniform_1f(shader, 0, SHADER_UNIFORM_LINE_Z_SCALING, 1, GL_FLOAT, &canvas->line_z_scaling);
-        }
-
-        if( shader->uniform[SHADER_UNIFORM_ASPECT_RATIO].location > -1 ) {
-            float aspect_ratio = (float)camera->screen.width/(float)camera->screen.height;
-            shader_set_uniform_1f(shader, 0, SHADER_UNIFORM_ASPECT_RATIO, 1, GL_FLOAT, &aspect_ratio);
-        }
-
-        Mat projection_matrix = {0};
-        Mat view_matrix = {0};
-        for( uint32_t projection_i = 0; projection_i < MAX_CANVAS_PROJECTIONS; projection_i++ ) {
-            // binding matrices to uniforms
-            if( projection_i == CANVAS_PROJECT_SCREEN ) {
-                mat_identity(projection_matrix);
-                mat_orthographic(0.0f, (float)camera->screen.width, 0.0f, (float)-camera->screen.height, -0.1f, 0.1f, projection_matrix);
-
-                mat_identity(view_matrix);
-
-                GLint matrix_location = shader_set_uniform_matrices(shader, 0, projection_matrix, view_matrix, model_matrix);
-                log_assert( matrix_location > -1 );
-            } else {
-                camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
-                GLint matrix_location = shader_set_uniform_matrices(shader, 0, projection_matrix, view_matrix, model_matrix);
-                log_assert( matrix_location > -1 );
+    for( int32_t texture_i = 0; texture_i < MAX_CANVAS_TEXTURES+1; texture_i++ ) {
+        // second loop goes through all shaders, binds their locations, then loops through all layers, uploads the indices and renders
+        for( int32_t shader_i = 0; shader_i < MAX_CANVAS_SHADER; shader_i++ ) {
+            if( strlen(canvas->shaders[shader_i].name) == 0 ) {
+                continue;
             }
 
-            for( int32_t layer_i = layer_start; layer_i < layer_end; layer_i++ ) {
-                for( uint32_t primitive_i = 0; primitive_i < MAX_OGL_PRIMITIVES; primitive_i++ ) {
-                    if( canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].occupied == 0 ) {
-                        continue;
+            struct Shader* shader = &canvas->shaders[shader_i].shader;
+
+            shader_use_program(shader);
+
+            if( shader->uniform[SHADER_UNIFORM_LINE_Z_SCALING].location > -1 ) {
+                shader_set_uniform_1f(shader, 0, SHADER_UNIFORM_LINE_Z_SCALING, 1, GL_FLOAT, &canvas->line_z_scaling);
+            }
+
+            if( shader->uniform[SHADER_UNIFORM_ASPECT_RATIO].location > -1 ) {
+                float aspect_ratio = (float)camera->screen.width/(float)camera->screen.height;
+                shader_set_uniform_1f(shader, 0, SHADER_UNIFORM_ASPECT_RATIO, 1, GL_FLOAT, &aspect_ratio);
+            }
+
+            Mat projection_matrix = {0};
+            Mat view_matrix = {0};
+            for( uint32_t projection_i = 0; projection_i < MAX_CANVAS_PROJECTIONS; projection_i++ ) {
+                // binding matrices to uniforms
+                if( projection_i == CANVAS_PROJECT_SCREEN ) {
+                    mat_identity(projection_matrix);
+                    mat_orthographic(0.0f, (float)camera->screen.width, 0.0f, (float)-camera->screen.height, -0.1f, 0.1f, projection_matrix);
+
+                    mat_identity(view_matrix);
+
+                    GLint matrix_location = shader_set_uniform_matrices(shader, 0, projection_matrix, view_matrix, model_matrix);
+                    log_assert( matrix_location > -1 );
+                } else {
+                    camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
+                    GLint matrix_location = shader_set_uniform_matrices(shader, 0, projection_matrix, view_matrix, model_matrix);
+                    log_assert( matrix_location > -1 );
+                }
+
+                for( int32_t layer_i = layer_start; layer_i < layer_end; layer_i++ ) {
+                    for( uint32_t primitive_i = 0; primitive_i < MAX_OGL_PRIMITIVES; primitive_i++ ) {
+                        if( canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].occupied == 0 ) {
+                            continue;
+                        }
+
+                        if( canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id == 0 ) {
+                            ogl_debug( glGenBuffers(1, &canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id) );
+                        }
+
+                        GLenum indices_type = GL_UNSIGNED_INT;
+
+                        size_t indices_occupied = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].occupied;
+                        size_t indices_bytes = indices_occupied * ogl_sizeof_type(indices_type);
+                        void* indices_array = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].array;
+
+                        log_assert( indices_bytes < PTRDIFF_MAX );
+
+                        shader_warn_locations(shader);
+
+                        ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
+                                   glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW);
+
+                                   glDrawElements(primitive_i, indices_occupied, indices_type, 0);
+                                   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
+
                     }
-
-                    if( canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].id == 0 ) {
-                        ogl_debug( glGenBuffers(1, &canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].id) );
-                    }
-
-                    GLenum indices_type = GL_UNSIGNED_INT;
-
-                    size_t indices_occupied = canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].occupied;
-                    size_t indices_bytes = indices_occupied * ogl_sizeof_type(indices_type);
-                    void* indices_array = canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].array;
-
-                    log_assert( indices_bytes < PTRDIFF_MAX );
-
-                    shader_warn_locations(shader);
-
-                    ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[shader_i][projection_i][primitive_i].id);
-                               glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW);
-
-                               glDrawElements(primitive_i, indices_occupied, indices_type, 0);
-                               glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
-
                 }
             }
         }

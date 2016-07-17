@@ -189,7 +189,7 @@ void draw_line(struct Canvas* canvas,
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT, 14, texcoords);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_NEXT_VERTEX, 3, GL_FLOAT, 14, next_vertices);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_LINE_THICKNESS, 1, GL_FLOAT, 14, thickness_array);
-    canvas_append_indices(canvas, layer_i, CANVAS_PROJECT_WORLD, "volumetric_lines_shader", GL_TRIANGLES, 12*3, triangles, offset);
+    canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "volumetric_lines_shader", CANVAS_PROJECT_WORLD, GL_TRIANGLES, 12*3, triangles, offset);
 }
 
 void draw_grid(struct Canvas* canvas,

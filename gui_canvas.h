@@ -39,6 +39,8 @@
 #define MAX_CANVAS_TEXTURES 16
 #endif
 
+#define CANVAS_NO_TEXTURE MAX_CANVAS_TEXTURES
+
 // - I created this so I could create functions that draw by stuff by filling arrays with transformed
 // vertices, and then render those all at once in a mainloop
 // - this behaves somewhat similar to the vbo stuff I implemented
@@ -96,19 +98,22 @@ struct Canvas {
     } fonts[MAX_CANVAS_FONTS];
 
     struct CanvasTextures {
-        struct Texture sampler[MAX_CANVAS_SHADER][MAX_SHADER_SAMPLER];
+        struct Texture sampler[MAX_SHADER_SAMPLER];
         char name[256];
     } textures[MAX_CANVAS_TEXTURES];
 
     // - the arrays and vbos above only hold vertex data, the indices are kept in these
     // structs, the struct are indexed by all the things that are needed to distinguish
-    // stuff for rendering
+    // stuff for rendering, they can't be in a single large buffer because I want to append
+    // indices in arbitrary order without worrying about chunk sizes
     // - layers are at the top level and mostly convenience to easly group stuff when
     // drawing on the canvas, so I can selectivly render
     // - the indices struct is indexed so that different shaders, projections and primitives
     // are possible options when drawing
     // - text can have different fonts or projections, to put text directly on the screen
     // or display in the world
+    // - I added the MAX_CANVAS_TEXTURES+1 dim to the indices array so that I can different
+    // textures, it needs to be +1 so I can have one index representing no texture CANVAS_NO_TEXTURE
     struct CanvasLayer {
         struct CanvasIndices {
             GLuint* array;
@@ -116,7 +121,7 @@ struct Canvas {
 
             size_t capacity;
             size_t occupied;
-        } indices[MAX_CANVAS_SHADER][MAX_CANVAS_PROJECTIONS][MAX_OGL_PRIMITIVES];
+        } indices[MAX_CANVAS_TEXTURES+1][MAX_CANVAS_SHADER][MAX_CANVAS_PROJECTIONS][MAX_OGL_PRIMITIVES];
 
         struct CanvasText {
             GLuint* array;
@@ -158,18 +163,18 @@ void canvas_destroy(struct Canvas* canvas);
 void canvas_add_attribute(struct Canvas* canvas, int32_t attribute, uint32_t size, GLenum type);
 
 WARN_UNUSED_RESULT int32_t canvas_add_shader(struct Canvas* canvas, const char* shader_name, const struct Shader* shader);
-WARN_UNUSED_RESULT int32_t canvas_find_shader(struct Canvas* canvas, const char* shader_name);
+WARN_UNUSED_RESULT int32_t canvas_find_shader(const struct Canvas* canvas, const char* shader_name);
 
 WARN_UNUSED_RESULT int32_t canvas_add_font(struct Canvas* canvas, const char* font_name, const struct Font* font);
-WARN_UNUSED_RESULT int32_t canvas_find_font(struct Canvas* canvas, const char* font_name);
+WARN_UNUSED_RESULT int32_t canvas_find_font(const struct Canvas* canvas, const char* font_name);
 
-WARN_UNUSED_RESULT int32_t canvas_add_texture(struct Canvas* canvas, const char* shader_name, int32_t sampler, const char* texture_name, const struct Texture* texture);
-WARN_UNUSED_RESULT int32_t canvas_find_texture(struct Canvas* canvas, const char* texture_name);
+WARN_UNUSED_RESULT int32_t canvas_add_texture(struct Canvas* canvas, int32_t sampler, const char* texture_name, const struct Texture* texture);
+WARN_UNUSED_RESULT int32_t canvas_find_texture(const struct Canvas* canvas, const char* texture_name);
 
 // - allocating the heap memory for the arrays
 size_t canvas_alloc_attributes(struct Canvas* canvas, uint32_t attribute_i, size_t n);
-size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* shader_name, GLenum primitive_type, size_t n);
-size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* font_name, size_t n);
+size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, GLenum primitive_type, size_t n);
+size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, const char* font_name, int32_t projection_i, size_t n);
 
 // - clear is supposed to be called every frame and completely resets all occupied counters, but leaves
 // the allocated memory, so that memory once allocated is reused in repeating draw calls, that should
@@ -186,8 +191,9 @@ size_t canvas_append_attributes(struct Canvas* canvas, uint32_t attribute_i, uin
 // - the append functions for the indices, they take all neccessary arguments to distinguish drawn stuff for rendering,
 // e.g. what to render with what shader, what projection, etc.
 // - then the functions also takes an offset that is to be added to every index before appending
-size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* shader_name, GLenum primitive_type, size_t n, uint32_t* indices, size_t offset);
-size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, int32_t projection_i, const char* font_name, size_t n, uint32_t* indices, size_t offset);
+size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, GLenum primitive_type, size_t n, uint32_t* indices, size_t offset);
+size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, const char* font_name, int32_t projection_i, size_t n, uint32_t* indices, size_t offset);
+
 #define canvas_shader_create(canvas, symbol, name) do {                 \
         static int32_t found_##symbol##_shader = -1;                    \
         if( found_##symbol##_shader < 0 || canvas->shaders[found_##symbol##_shader].shader.program == 0 ) { \
