@@ -38,6 +38,7 @@
 #define SHADER_UNIFORM_DIFFUSE_COLOR 7
 #define SHADER_UNIFORM_ASPECT_RATIO 8
 #define SHADER_UNIFORM_LINE_Z_SCALING 9
+#define SHADER_UNIFORM_USE_TEXTURE 10
 
 // - samplers are just uniforms, but they behave different so I treat them different
 // - essentially a sampler  just contains a number, which is the active texture unit that is sampled

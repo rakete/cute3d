@@ -65,6 +65,7 @@ int32_t init_shader() {
 
     global_shader_uniform_names[SHADER_UNIFORM_ASPECT_RATIO] = "aspect_ratio";
     global_shader_uniform_names[SHADER_UNIFORM_LINE_Z_SCALING] = "line_z_scaling";
+    global_shader_uniform_names[SHADER_UNIFORM_USE_TEXTURE] = "use_texture";
 
     global_shader_sampler_names[SHADER_SAMPLER_DIFFUSE_TEXTURE] = "diffuse_texture";
 
