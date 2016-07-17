@@ -32,20 +32,6 @@
 
 #include "gui_canvas.h"
 
-#define draw_add_shader(canvas, symbol, name) do {                      \
-        static int32_t found_##symbol##_shader = -1;                    \
-        if( found_##symbol##_shader < 0 || canvas->shaders[found_##symbol##_shader].shader.program == 0 ) {                             \
-            if( canvas_find_shader(canvas, name) == MAX_CANVAS_SHADER ) { \
-                struct Shader symbol##_shader;                          \
-                shader_create_from_files("shader/" #symbol ".vert", "shader/" #symbol ".frag", name, &symbol##_shader); \
-                found_##symbol##_shader = canvas_add_shader(canvas, name, &symbol##_shader); \
-                if( found_##symbol##_shader == MAX_CANVAS_SHADER ) {    \
-                    log_warn(__FILE__, __LINE__, "could not add \"%s\" as \"%s\" to canvas because there is no space left for it\n", #symbol, name); \
-                }                                                       \
-            }                                                           \
-        }                                                               \
-    }while(0);
-
 void draw_transform_vertices(size_t vertex_size,
                              GLenum component_type,
                              size_t num_vertices,
