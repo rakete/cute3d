@@ -227,6 +227,8 @@ void shader_setup_locations(struct Shader* p) {
         }
     }
 
+    // - subtle difference to the uniforms and attributes is that samplers get set here, with the glUniform
+    // call below a fixed texture unit is set that is always going to be the same
     ogl_debug( glUseProgram(p->program); );
     for( int32_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
         p->sampler[i].name[0] = '\0';
@@ -246,6 +248,7 @@ void shader_setup_locations(struct Shader* p) {
 
             GLuint texture_unit = i % 8;
             glUniform1i(location, texture_unit);
+            p->sampler[i].unset = false;
         }
     }
     ogl_debug( glUseProgram(0); );
@@ -338,15 +341,28 @@ bool shader_warn_locations(struct Shader* p) {
         }
     }
 
+#ifdef DEBUG
     for( int32_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
-        if( p->sampler[i].location > -1 ) {
-            if( p->sampler[i].unset && p->sampler[i].warn_once ) {
-                log_warn(__FILE__, __LINE__, "shader \"%s\" sampler \"%s\" never set\n", p->name, p->sampler[i].name);
+        if( p->sampler[i].location > -1 && p->sampler[i].warn_once ) {
+            GLuint texture_unit = i % 8;
+            log_assert( texture_unit < MAX_SHADER_TEXTURE_UNITS );
+
+            GLint texture_id = 0;
+            ogl_debug( glActiveTexture(GL_TEXTURE0 + texture_unit);
+                       glGetIntegerv(GL_TEXTURE_BINDING_2D, &texture_id); );
+
+            if( texture_id == 0 ) {
+                ogl_debug( glGetIntegerv(GL_TEXTURE_BINDING_CUBE_MAP, &texture_id) );
+            }
+
+            if( texture_id == 0 ) {
+                log_warn(__FILE__, __LINE__, "shader \"%s\" sampler \"%s\" texture unit %d has no texture id bound\n", p->name, p->sampler[i].name, texture_unit);
                 ret = true;
                 p->sampler[i].warn_once = false;
             }
         }
     }
+#endif
 
     return ret;
 }
