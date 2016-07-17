@@ -683,32 +683,6 @@ GLint shader_set_uniform_4f(struct Shader* shader, GLuint program, int32_t unifo
     return location;
 }
 
-GLint shader_set_sampler2D(struct Shader* shader, int32_t sampler_index, GLenum texture_dimension, GLuint texture_id) {
-    log_assert( shader != NULL );
-    log_assert( shader->program > 0 );
-    log_assert( sampler_index >= 0 );
-    log_assert( sampler_index <= MAX_SHADER_SAMPLER );
-    log_assert( texture_id > 0 );
-    log_assert( GL_TEXTURE7 == GL_TEXTURE0 + 7 );
-
-    if( ! shader->verified ) {
-        shader_verify_locations(shader);
-    }
-
-    GLint location = shader->sampler[sampler_index].location;
-    log_assert( location > -1 );
-    log_assert( strlen(shader->sampler[sampler_index].name) > 0 );
-
-    GLuint texture_unit = sampler_index % 8;
-    log_assert( texture_unit < MAX_SHADER_TEXTURE_UNITS );
-
-    ogl_debug( glActiveTexture(GL_TEXTURE0 + texture_unit);
-               glBindTexture(texture_dimension, texture_id); );
-    shader->sampler[sampler_index].unset = false;
-
-    return location;
-}
-
 GLint shader_set_attribute(struct Shader* shader, int32_t attribute_i, GLuint buffer, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p) {
     log_assert( shader != NULL );
     log_assert( attribute_i >= SHADER_ATTRIBUTE_VERTICES );

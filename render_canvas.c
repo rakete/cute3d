@@ -180,7 +180,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
         shader_use_program(&font->shader);
 
         // bind diffuse sampler
-        shader_set_sampler2D(&font->shader, SHADER_SAMPLER_DIFFUSE_TEXTURE, GL_TEXTURE_2D, font->texture.id);
+        texture_bind((struct Texture){font->texture.id, GL_TEXTURE_2D}, SHADER_SAMPLER_DIFFUSE_TEXTURE);
 
         Mat projection_matrix = {0};
         Mat view_matrix = {0};

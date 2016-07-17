@@ -146,8 +146,6 @@ GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t unifo
 GLint shader_set_uniform_3f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data);
 GLint shader_set_uniform_4f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data);
 
-GLint shader_set_sampler2D(struct Shader* shader, int32_t sampler_index, GLenum texture_dimension, GLuint texture_id);
-
 GLint shader_set_attribute(struct Shader* shader, int32_t attribute_i, GLuint buffer, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p);
 
 #endif

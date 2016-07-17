@@ -17,6 +17,7 @@
 #ifndef RENDER_CANVAS_H
 #define RENDER_CANVAS_H
 
+#include "driver_texture.h"
 #include "gui_canvas.h"
 #include "math_camera.h"
 
