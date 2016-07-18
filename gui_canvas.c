@@ -110,6 +110,37 @@ void canvas_create(const char* name, struct Canvas* canvas) {
     log_assert( canvas_add_font(canvas, "default_font", &font) < MAX_CANVAS_FONTS );
 }
 
+void canvas_destroy(struct Canvas* canvas) {
+    for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
+        if( canvas->attributes[i].array ) {
+            free(canvas->attributes[i].array);
+        }
+    }
+
+    for( int32_t i = 0; i < MAX_CANVAS_LAYERS; i++ ) {
+        for( int32_t j = 0; j < MAX_CANVAS_TEXTURES+1; j++ ) {
+            for( int32_t k = 0; k < MAX_CANVAS_SHADER; k++ ) {
+                for( int32_t l = 0; l < MAX_CANVAS_PROJECTIONS; l++ ) {
+                    for( int32_t m = 0; m < MAX_CANVAS_PRIMITIVES; m++ ) {
+                        if( canvas->layer[i].indices[j][k][l][m].array ) {
+                            printf("%d %d %d %d %d\n", i, j, k, l, m);
+                            free(canvas->layer[i].indices[j][k][l][m].array);
+                        }
+                    }
+                }
+            }
+        }
+
+        for( int32_t j = 0; j < MAX_CANVAS_FONTS; j++ ) {
+            for( int32_t k = 0; k < MAX_CANVAS_PROJECTIONS; k++ ) {
+                if( canvas->layer[i].text[j][k].array ) {
+                    free(canvas->layer[i].text[j][k].array);
+                }
+            }
+        }
+    }
+}
+
 void canvas_add_attribute(struct Canvas* canvas, int32_t added_attribute, uint32_t size, GLenum type) {
     log_assert( canvas != NULL );
     log_assert( added_attribute >= 0 && added_attribute < MAX_SHADER_ATTRIBUTES );
