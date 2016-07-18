@@ -1,12 +1,12 @@
-#ifndef RENDER_SHADOWS_H
-#define RENDER_SHADOWS_H
+#ifndef MATERIAL_SHADOWS_H
+#define MATERIAL_SHADOWS_H
 
 #include "driver_ogl.h"
 
 #include "math_matrix.h"
 #include "math_pivot.h"
 
-#include "render_light.h"
+#include "material_light.h"
 
 struct Shadows {
     struct {

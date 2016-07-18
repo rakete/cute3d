@@ -1,4 +1,4 @@
-#include "render_shadows.h"
+#include "material_shadows.h"
 
 void shadows_create(int32_t width, int32_t height, struct Shadows* shadows) {
     shadows->texture.width = width;

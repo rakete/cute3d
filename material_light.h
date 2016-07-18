@@ -1,5 +1,5 @@
-#ifndef RENDER_LIGHT_H
-#define RENDER_LIGHT_H
+#ifndef MATERIAL_LIGHT_H
+#define MATERIAL_LIGHT_H
 
 #include "math_color.h"
 #include "math_pivot.h"
