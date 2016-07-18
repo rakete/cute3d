@@ -89,13 +89,14 @@ if build_platform == "linux" or build_toolset == "gcc":
     sdl2_cflags = subprocess.check_output(["bash", "sdl2-config", "--cflags"]).rstrip()
     sdl2_libs = subprocess.check_output(["bash", "sdl2-config", "--libs"]).rstrip()
 
-    features = "-std=c11 -pg -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
-    optimization = "-flto=4 -march=native"
+    features = "-std=c11 -g -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
+    optimization = "-O0" # "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -Wno-unknown-pragmas -pedantic"
     linking = "-fPIC"
     # - because of bug in gcc(?), I need to explicitly link with -lasan when I use -fsanitize=address, otherwise I get
     # tons of unresolved symbols
-    libraries = "-lm -lGL -lasan " + sdl2_libs
+    # - asan should come first
+    libraries = "-lasan -lm -lGL " + sdl2_libs
     includes = "-I" + source_directory
 
     cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
@@ -108,8 +109,8 @@ elif build_toolset == "mingw":
         sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
         sdl2_libs = "-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows"
 
-    features = "-posix -std=c11 -pg -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
-    optimization = "-flto=4 -march=native"
+    features = "-posix -std=c11 -g -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
+    optimization = "-O0" # "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -Wno-unknown-pragmas -pedantic"
     linking = "-fPIC"
     libraries = "-lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32 " + sdl2_libs
