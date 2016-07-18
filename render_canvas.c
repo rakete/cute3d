@@ -156,10 +156,14 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                         shader_warn_locations(shader);
 
+                        GLenum primitive_type = GL_TRIANGLES;
+                        if( primitive_i == CANVAS_LINES ) {
+                            primitive_type = CANVAS_LINES;
+                        }
                         ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
                                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW);
 
-                                   glDrawElements(primitive_i, indices_occupied, indices_type, 0);
+                                   glDrawElements(primitive_type, indices_occupied, indices_type, 0);
                                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
 
                     }

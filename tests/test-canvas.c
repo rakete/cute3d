@@ -61,6 +61,7 @@ int32_t main(int32_t argc, char *argv[]) {
     canvas_create("global_static_canvas", &global_static_canvas);
 
     printf("sizeof(struct Canvas): %zu\n", sizeof(struct Canvas));
+    printf("MAX_OGL_PRIMITIVES: %d\n", MAX_OGL_PRIMITIVES);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
@@ -169,7 +170,8 @@ int32_t main(int32_t argc, char *argv[]) {
         sdl2_debug( SDL_GL_SwapWindow(window) );
     }
 
-
 done:
+    canvas_destroy(&text_canvas);
+
     return 0;
 }

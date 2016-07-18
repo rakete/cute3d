@@ -47,11 +47,18 @@ void canvas_create(const char* name, struct Canvas* canvas) {
         canvas->fonts[i].name[0] = '\0';
     }
 
+    for( int32_t i = 0; i < MAX_CANVAS_TEXTURES; i++ ) {
+        for( int32_t j = 0; j < MAX_SHADER_SAMPLER; j++ ) {
+            texture_create(&canvas->textures[i].sampler[j]);
+        }
+        canvas->textures[i].name[0] = '\0';
+    }
+
     for( int32_t i = 0; i < MAX_CANVAS_LAYERS; i++ ) {
-        for( int32_t j = 0; j < MAX_CANVAS_TEXTURES; j++ ) {
+        for( int32_t j = 0; j < MAX_CANVAS_TEXTURES+1; j++ ) {
             for( int32_t k = 0; k < MAX_CANVAS_SHADER; k++ ) {
                 for( int32_t l = 0; l < MAX_CANVAS_PROJECTIONS; l++ ) {
-                    for( int32_t m = 0; m < MAX_OGL_PRIMITIVES; m++ ) {
+                    for( int32_t m = 0; m < MAX_CANVAS_PRIMITIVES; m++ ) {
                         canvas->layer[i].indices[j][k][l][m].array = NULL;
                         canvas->layer[i].indices[j][k][l][m].id = 0;
                         canvas->layer[i].indices[j][k][l][m].occupied = 0;
@@ -218,7 +225,7 @@ int32_t canvas_add_font(struct Canvas* canvas, const char* font_name, const stru
         return MAX_CANVAS_FONTS;
     }
 
-    memcpy(&canvas->fonts[font_i].name, font_name, name_length+1);
+    strncat(canvas->fonts[font_i].name, font_name, name_length);
     memcpy(&canvas->fonts[font_i].font, font, sizeof(struct Font));
 
     return font_i;
@@ -277,7 +284,7 @@ int32_t canvas_add_texture(struct Canvas* canvas, int32_t sampler, const char* t
         return MAX_CANVAS_TEXTURES;
     }
 
-    memcpy(&canvas->textures[texture_i].name, texture_name, name_length+1);
+    strncat(canvas->textures[texture_i].name, texture_name, name_length);
     memcpy(&canvas->textures[texture_i].sampler[sampler_i], texture, sizeof(struct Texture));
 
     return texture_i;
@@ -358,16 +365,21 @@ size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t text
         return 0;
     }
 
-    size_t old_capacity = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_type].capacity;
+    int32_t primitive_i = CANVAS_TRIANGLES;
+    if( primitive_type == GL_LINES ) {
+        primitive_i = CANVAS_LINES;
+    }
+
+    size_t old_capacity = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].capacity;
     log_assert( INT32_MAX - n > old_capacity );
     size_t new_capacity = old_capacity + n;
 
-    GLuint* old_array_pointer = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_type].array;
+    GLuint* old_array_pointer = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].array;
     GLuint* new_array_pointer = realloc(old_array_pointer, new_capacity * sizeof(GLuint));
 
     log_assert( new_array_pointer != NULL );
-    canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_type].array = new_array_pointer;
-    canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_type].capacity = new_capacity;
+    canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].array = new_array_pointer;
+    canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].capacity = new_capacity;
 
     return n;
 }
@@ -408,10 +420,10 @@ void canvas_clear(struct Canvas* canvas) {
     }
 
     for( int32_t i = 0; i < MAX_CANVAS_LAYERS; i++ ) {
-        for( int32_t j = 0; j < MAX_CANVAS_TEXTURES; j++ ) {
+        for( int32_t j = 0; j < MAX_CANVAS_TEXTURES+1; j++ ) {
             for( int32_t k = 0; k < MAX_CANVAS_SHADER; k++ ) {
                 for( int32_t l = 0; l < MAX_CANVAS_PROJECTIONS; l++ ) {
-                    for( int32_t m = 0; m < MAX_OGL_PRIMITIVES; m++ ) {
+                    for( int32_t m = 0; m < MAX_CANVAS_PRIMITIVES; m++ ) {
                         canvas->layer[i].indices[j][k][l][m].occupied = 0;
                     }
                 }
@@ -483,6 +495,7 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t tex
     log_assert( layer_i >= 0 );
     log_assert( n > 0 );
     log_assert( indices != NULL );
+    log_assert( primitive_type == GL_TRIANGLES || primitive_type == GL_LINES );
 
     if( n == 0 ) {
         return 0;
@@ -504,12 +517,17 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t tex
         return 0;
     }
 
-    size_t old_occupied = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_type].occupied;
+    int32_t primitive_i = CANVAS_TRIANGLES;
+    if( primitive_type == GL_LINES ) {
+        primitive_i = CANVAS_LINES;
+    }
+
+    size_t old_occupied = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].occupied;
     log_assert( INT32_MAX - n > old_occupied );
     size_t new_occupied = old_occupied + n;
 
     size_t alloc = DEFAULT_CANVAS_ALLOC;
-    while( new_occupied > canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_type].capacity ) {
+    while( new_occupied > canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].capacity ) {
         canvas_alloc_indices(canvas, layer_i, texture_i, shader_name, projection_i, primitive_type, alloc);
         alloc = alloc * 2;
     }
@@ -518,10 +536,10 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t tex
         for( size_t i = 0; i < n; i++ ) {
             log_assert( offset + indices[i] < UINT_MAX );
             GLuint offset_index = (GLuint)offset + indices[i];
-            canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_type].array[old_occupied+i] = offset_index;
+            canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].array[old_occupied+i] = offset_index;
         }
     } else {
-        GLuint* indices_array = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_type].array;
+        GLuint* indices_array = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].array;
         size_t n_bytes = n*sizeof(uint32_t);
         memcpy((char*)indices_array + old_occupied*sizeof(GLuint), (char*)indices, n_bytes);
     }
@@ -566,7 +584,7 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t tex
         }
     }
 
-    canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_type].occupied = new_occupied;
+    canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].occupied = new_occupied;
 
     return n;
 }

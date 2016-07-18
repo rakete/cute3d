@@ -39,6 +39,13 @@
 #define MAX_CANVAS_TEXTURES 16
 #endif
 
+#ifndef MAX_CANVAS_PRIMITIVES
+#define MAX_CANVAS_PRIMITIVES 2
+#endif
+
+#define CANVAS_TRIANGLES 0
+#define CANVAS_LINES 1
+
 #define CANVAS_NO_TEXTURE MAX_CANVAS_TEXTURES
 
 // - I created this so I could create functions that draw by stuff by filling arrays with transformed
@@ -78,7 +85,7 @@ struct Canvas {
     // to be able to use different shaders, I need to be able to distinguish attributes
     // which belong to different shaders
     // - adding them like this makes it more convenient to implement render functions, I
-    // probably could also have solved this with an argument give to render functions
+    // probably could also have solved this with an argument given to render the functions
     struct CanvasShader {
         struct Shader shader;
         char name[256];
@@ -121,7 +128,7 @@ struct Canvas {
 
             size_t capacity;
             size_t occupied;
-        } indices[MAX_CANVAS_TEXTURES+1][MAX_CANVAS_SHADER][MAX_CANVAS_PROJECTIONS][MAX_OGL_PRIMITIVES];
+        } indices[MAX_CANVAS_TEXTURES+1][MAX_CANVAS_SHADER][MAX_CANVAS_PROJECTIONS][MAX_CANVAS_PRIMITIVES];
 
         struct CanvasText {
             GLuint* array;
