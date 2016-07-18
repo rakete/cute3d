@@ -42,7 +42,7 @@ void draw_line(struct Canvas* canvas,
                const Vec3f p,
                const Vec3f q)
 {
-    canvas_shader_create(canvas, volumetric_lines, "volumetric_lines_shader");
+    canvas_shader_macro(canvas, volumetric_lines, "volumetric_lines_shader");
 
     // - the colors and thickness arrays are filled here, but there is one caveat:
     // I encode into the thickness which endpoint I am rendering, by using a differently signed thickness,

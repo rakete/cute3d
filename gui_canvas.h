@@ -194,7 +194,7 @@ size_t canvas_append_attributes(struct Canvas* canvas, uint32_t attribute_i, uin
 size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, GLenum primitive_type, size_t n, uint32_t* indices, size_t offset);
 size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, const char* font_name, int32_t projection_i, size_t n, uint32_t* indices, size_t offset);
 
-#define canvas_shader_create(canvas, symbol, name) do {                 \
+#define canvas_shader_macro(canvas, symbol, name) do {                  \
         static int32_t found_##symbol##_shader = -1;                    \
         if( found_##symbol##_shader < 0 || canvas->shaders[found_##symbol##_shader].shader.program == 0 ) { \
             if( canvas_find_shader(canvas, name) == MAX_CANVAS_SHADER ) { \
