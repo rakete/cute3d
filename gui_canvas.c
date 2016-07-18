@@ -123,7 +123,6 @@ void canvas_destroy(struct Canvas* canvas) {
                 for( int32_t l = 0; l < MAX_CANVAS_PROJECTIONS; l++ ) {
                     for( int32_t m = 0; m < MAX_CANVAS_PRIMITIVES; m++ ) {
                         if( canvas->layer[i].indices[j][k][l][m].array ) {
-                            printf("%d %d %d %d %d\n", i, j, k, l, m);
                             free(canvas->layer[i].indices[j][k][l][m].array);
                         }
                     }
