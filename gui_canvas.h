@@ -191,6 +191,10 @@ size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, const char* fon
 // still around useless, so now this function always clears all layers
 void canvas_clear(struct Canvas* canvas);
 
+void canvas_clear_shaders(struct Canvas* canvas);
+void canvas_clear_fonts(struct Canvas* canvas);
+void canvas_clear_textures(struct Canvas* canvas);
+
 // - the _append_ functions are used to fill the arrays with data, they always append to the end of the already occupied space
 // - these check the allocated capacity and call the alloc functions if there is not enough space available for the new data
 size_t canvas_append_attributes(struct Canvas* canvas, uint32_t attribute_i, uint32_t size, GLenum type, size_t n, void* attributes);

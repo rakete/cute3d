@@ -471,6 +471,25 @@ void canvas_clear(struct Canvas* canvas) {
     }
 }
 
+void canvas_clear_shaders(struct Canvas* canvas) {
+    for( int32_t i = 0; i < MAX_CANVAS_SHADER; i++ ) {
+        canvas->shaders[i].name[0] = '\0';
+    }
+}
+
+void canvas_clear_fonts(struct Canvas* canvas) {
+    for( int32_t i = 0; i < MAX_CANVAS_FONTS; i++ ) {
+        canvas->fonts[i].name[0] = '\0';
+    }
+}
+
+void canvas_clear_textures(struct Canvas* canvas) {
+    for( int32_t i = 0; i < MAX_CANVAS_TEXTURES; i++ ) {
+        canvas->textures[i].name[0] = '\0';
+    }
+}
+
+
 size_t canvas_append_attributes(struct Canvas* canvas, uint32_t attribute_i, uint32_t size, GLenum type, size_t n, void* attributes) {
     log_assert( canvas != NULL );
 
