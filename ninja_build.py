@@ -138,8 +138,9 @@ elif build_toolset == "msvc":
     libraries = "msvcrt.lib opengl32.lib chkstk.obj " + sdl2_libs
     includes = "/I" + source_directory
 
+    # - /STACK seems to be a linker option only
     cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
-    ldflags = "/SUBSYSTEM:CONSOLE " + linking + " " + libraries
+    ldflags = "/SUBSYSTEM:CONSOLE /STACK:8388608 " + linking + " " + libraries
 else:
     print "building with " + build_toolset + " on " + build_platform + " is not supported yet."
     sys.exit(1)
