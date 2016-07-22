@@ -251,6 +251,6 @@ void font_create_from_alphabet(const wchar_t* unicode_alphabet,
 
         free(texture);
 
-        shader_create_from_files("shader/default_font.vert", "shader/default_font.frag", "font_shader", &font->shader);
+        shader_create_from_files("shader/font_shading.vert", "shader/font_shading.frag", "font_shader", &font->shader);
     }
 }

@@ -66,7 +66,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_mesh_create_from_solid((struct Solid*)&sphere32, &vbo, &sphere32_mesh);
 
     struct Shader shader = {0};
-    shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &shader);
+    shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", "flat_shader", &shader);
 
     Vec4f light_direction = { 0.2, -0.5, -1.0 };
     shader_set_uniform_3f(&shader, shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);

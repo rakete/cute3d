@@ -76,7 +76,7 @@ int32_t main(int32_t argc, char** argv) {
 
     init_shader();
     struct Shader default_shader = {0};
-    shader_create_from_files("shader/flat.vert", "shader/flat.frag", &default_shader);
+    shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", &default_shader);
     shader_add_attribute(&default_shader, OGL_VERTICES, "vertex");
     shader_add_attribute(&default_shader, OGL_COLORS, "color");
     shader_add_attribute(&default_shader, OGL_NORMALS, "normal");

@@ -57,7 +57,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_mesh_create_from_solid((struct Solid*)&solid_cube, &vbo, &vbo_mesh);
 
     struct Shader shader = {0};
-    shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &shader);
+    shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", "flat_shader", &shader);
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1f, 1000.0, &arcball);

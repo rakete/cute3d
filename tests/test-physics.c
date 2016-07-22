@@ -103,7 +103,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
     /* Shader */
     struct Shader flat_shader = {0};
-    shader_create_from_files("shader/flat.vert", "shader/flat.frag", "flat_shader", &flat_shader);
+    shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", "flat_shader", &flat_shader);
 
     Vec4f light_direction = { 0.2, -0.5, -1.0, 1.0 };
     shader_set_uniform_3f(&flat_shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);

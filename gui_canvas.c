@@ -98,7 +98,7 @@ void canvas_create(const char* name, struct Canvas* canvas) {
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_BARYCENTRIC_COORDINATE, 3, GL_FLOAT);
 
     struct Shader shader = {0};
-    shader_create_from_files("shader/default_shader.vert", "shader/default_shader.frag", "default_shader", &shader);
+    shader_create_from_files("shader/no_shading.vert", "shader/no_shading.frag", "default_shader", &shader);
     log_assert( canvas_add_shader(canvas, "default_shader", &shader) < MAX_CANVAS_SHADER );
 
     struct Character symbols[256] = {0};
