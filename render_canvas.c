@@ -208,21 +208,29 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                         GLenum primitive_type = GL_TRIANGLES;
                         if( primitive_i == CANVAS_LINES ) {
-                            primitive_type = CANVAS_LINES;
+                            primitive_type = GL_LINES;
                         }
+
+                        if( projection_i == CANVAS_PROJECT_SCREEN ) {
+                            ogl_debug( glDisable(GL_DEPTH_TEST) );
+                        }
+
                         ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
                                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW);
 
                                    glDrawElements(primitive_type, indices_occupied, indices_type, 0);
                                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
 
+                        if( projection_i == CANVAS_PROJECT_SCREEN ) {
+                            ogl_debug( glEnable(GL_DEPTH_TEST) );
+                        }
                     }
                 }
             }
         }
     }
 
-    // third loop goes through fonts and renders text
+    // this loop goes through fonts and renders text
     for( int32_t font_i = 0; font_i < MAX_CANVAS_FONTS; font_i++ ) {
         if( strlen(canvas->fonts[font_i].name) == 0 ) {
             continue;
