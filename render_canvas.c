@@ -187,7 +187,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                 }
 
                 for( int32_t layer_i = layer_start; layer_i < layer_end; layer_i++ ) {
-                    for( uint32_t primitive_i = 0; primitive_i < MAX_OGL_PRIMITIVES; primitive_i++ ) {
+                    for( uint32_t primitive_i = 0; primitive_i < MAX_CANVAS_PRIMITIVES; primitive_i++ ) {
                         if( canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].occupied == 0 ) {
                             continue;
                         }
