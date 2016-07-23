@@ -90,7 +90,7 @@ bool _log_assert(const char* condition, const char* format, ...);
 #define alloc_vla(t, name, n) t name[n]; do {                           \
         size_t size = sizeof(t) * n;                                    \
         if( size > 30000 ) {                                            \
-            log_warn(stderr, __FILE__, __LINE__, "%lu bytes stack allocation\n", size); \
+            log_warn(__FILE__, __LINE__, "%lu bytes stack allocation\n", size); \
         }                                                               \
     } while(0);
 
