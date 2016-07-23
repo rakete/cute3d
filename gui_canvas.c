@@ -624,23 +624,34 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t tex
     // and colors in the single, huge attribute buffers all line up correctly
     for( int32_t i = 1; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         size_t attribute_capacity = canvas->attributes[i].capacity;
+        size_t attribute_occupied = canvas->attributes[i].occupied;
         uint32_t attribute_size = canvas->components[i].size;
 
         // an attribute is only filled when its components have a size, that means we called canvas_add_attribute
         // with a size > 0 before, adding the attribute
         if( attribute_size > 0 ) {
 
-            // we take the vertices capacity and compare them to the attribute capacity, if an attribute has
-            // smaller capacity we'll just allocate new memory and zero it completely, then sync both occupied
+            // - we take the vertices occupied and compare them to the attribute occupied, if an attribute has
+            // smaller occupied we'll just allocate new memory and zero it completely, then sync both occupied
             // and capacity counters
-            // the else case just handles when the capacity is already the same, enough, then we just sync the
+            // - the else case just handles when the capacity is already the same, enough, then we just sync the
             // occupied counters
-            if( attribute_capacity < vertices_capacity ) {
+            // - this originally compared capacities only, I later fixed it so it would compare occupied instead,
+            // and also memset only the difference in occupied, instead of just everything
+            if( attribute_occupied < vertices_occupied ) {
                 uint32_t attribute_bytes = canvas->components[i].bytes;
 
-                canvas->attributes[i].array = realloc(canvas->attributes[i].array, vertices_capacity * attribute_size * attribute_bytes);
-                log_assert( canvas->attributes[i].array != NULL );
-                memset((char*)canvas->attributes[i].array, 0, vertices_capacity * attribute_size * attribute_bytes);
+                if( attribute_capacity < vertices_capacity ) {
+                    canvas->attributes[i].array = realloc(canvas->attributes[i].array, vertices_capacity * attribute_size * attribute_bytes);
+                    log_assert( canvas->attributes[i].array != NULL );
+                }
+                size_t dst_offset = attribute_occupied * attribute_size * attribute_bytes;
+                size_t set_length = (vertices_occupied - attribute_occupied) * attribute_size * attribute_bytes;
+                if( i == SHADER_ATTRIBUTE_COLORS ) {
+                    memset((char*)canvas->attributes[i].array + dst_offset, 255, set_length);
+                } else {
+                    memset((char*)canvas->attributes[i].array + dst_offset, 0, set_length);
+                }
 
                 canvas->attributes[i].capacity = vertices_capacity;
                 canvas->attributes[i].occupied = vertices_occupied;
