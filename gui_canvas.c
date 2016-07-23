@@ -318,8 +318,8 @@ int32_t canvas_add_texture(struct Canvas* canvas, int32_t sampler, const char* t
     log_assert( sampler_i >= 0 );
     log_assert( sampler_i < MAX_SHADER_SAMPLER );
 
-    static int32_t texture_i = 0;
-    while( texture_i < MAX_CANVAS_FONTS && strlen(canvas->textures[texture_i].name) != 0 ) {
+    int32_t texture_i = 0;
+    while( texture_i < MAX_CANVAS_TEXTURES && strlen(canvas->textures[texture_i].name) != 0 ) {
         if( strncmp(canvas->textures[texture_i].name, texture_name, 256) == 0 ) {
             return texture_i;
         }
@@ -344,21 +344,21 @@ WARN_UNUSED_RESULT int32_t canvas_find_texture(const struct Canvas* canvas, cons
 
     static int32_t check_first = 0;
     if( check_first > 0 &&
-        check_first < MAX_CANVAS_FONTS &&
+        check_first < MAX_CANVAS_TEXTURES &&
         strncmp(canvas->textures[check_first].name, texture_name, 256) == 0 )
     {
         return check_first;
     }
 
     int32_t texture_i = 0;
-    while( texture_i < MAX_CANVAS_FONTS && strncmp(canvas->textures[texture_i].name, texture_name, 256) != 0 ) {
+    while( texture_i < MAX_CANVAS_TEXTURES && strncmp(canvas->textures[texture_i].name, texture_name, 256) != 0 ) {
         if( strlen(canvas->textures[texture_i].name) == 0 ) {
-            return MAX_CANVAS_FONTS;
+            return MAX_CANVAS_TEXTURES;
         }
         texture_i += 1;
     }
 
-    if( texture_i == MAX_CANVAS_FONTS && check_first == 0 ) {
+    if( texture_i == MAX_CANVAS_TEXTURES && check_first == 0 ) {
         log_warn(__FILE__, __LINE__, "texture \"%s\" not found\n", texture_name);
     }
 
