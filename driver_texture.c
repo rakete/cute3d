@@ -17,6 +17,31 @@ void texture_create(struct Texture* texture) {
     texture->wrap_t = 0;
 }
 
+void texture_create_from_array(size_t width, size_t height, GLenum type, GLint format, GLint min_filter, GLint mag_filter, GLint wrap_s, GLint wrap_t, uint8_t* array, struct Texture* texture) {
+    glGenTextures(1, &texture->id);
+    log_assert( texture->id > 0 );
+    texture->dimension = GL_TEXTURE_2D;
+
+    texture->width = width;
+    texture->height = height;
+
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+
+    texture->min_filter = min_filter;
+    texture->mag_filter = mag_filter;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+
+    texture->wrap_s = wrap_s;
+    texture->wrap_t = wrap_t;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
+
+    texture->format = format;
+    texture->type = type;
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, type, array);
+}
+
 GLuint texture_bind(struct Texture texture, int32_t sampler_index) {
     log_assert( sampler_index >= 0 );
     log_assert( sampler_index <= MAX_SHADER_SAMPLER );
