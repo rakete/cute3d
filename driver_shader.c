@@ -549,7 +549,7 @@ GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t unifo
     log_assert( uniform_index >= 0 );
     log_assert( uniform_index <= MAX_SHADER_UNIFORMS );
     log_assert( size <= 4 );
-    log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
+    log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE || type == GL_INT );
     log_assert( data != NULL );
 
     if( ! shader->verified ) {
@@ -570,7 +570,11 @@ GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t unifo
             float_value = size > 0 ? ((uint8_t*)data)[0] / 255.0f : 0.0f;
             break;
         }
-        default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
+        case GL_INT: {
+            float_value = size > 0 ? ((int32_t*)data)[0] : 0.0f;
+            break;
+        }
+        default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE || type == GL_INT );
     }
 
     // - glUniform changes state of the program, so it needs to be run after glUseProgram
@@ -582,6 +586,54 @@ GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t unifo
                    glUseProgram(0) );
     } else {
         ogl_debug( glUniform1f(location, float_value); );
+    }
+    shader->uniform[uniform_index].unset = false;
+
+    return location;
+}
+
+GLint shader_set_uniform_1i(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
+    log_assert( shader->program > 0 );
+    log_assert( uniform_index >= 0 );
+    log_assert( uniform_index <= MAX_SHADER_UNIFORMS );
+    log_assert( size <= 4 );
+    log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE || type == GL_INT );
+    log_assert( data != NULL );
+
+    if( ! shader->verified ) {
+        shader_verify_locations(shader);
+    }
+
+    GLint location = shader->uniform[uniform_index].location;
+    log_assert( location > -1 );
+    log_assert( strlen(shader->uniform[uniform_index].name) > 0 );
+
+    GLint int_value = 0;
+    switch(type) {
+        case GL_FLOAT: {
+            int_value = size > 0 ? ((float*)data)[0] : 0;
+            break;
+        }
+        case GL_UNSIGNED_BYTE: {
+            int_value = size > 0 ? ((uint8_t*)data)[0] : 0;
+            break;
+        }
+        case GL_INT: {
+            int_value = size > 0 ? ((int32_t*)data)[0] : 0;
+            break;
+        }
+        default: log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE || type == GL_INT );
+    }
+
+    // - glUniform changes state of the program, so it needs to be run after glUseProgram
+    // that does not apply to glVertexAttribPointer, which only changes global state
+    if( program > 0 ) {
+        log_assert( shader->program == program );
+        ogl_debug( glUseProgram(program);
+                   glUniform1i(location, int_value);
+                   glUseProgram(0) );
+    } else {
+        ogl_debug( glUniform1i(location, int_value); );
     }
     shader->uniform[uniform_index].unset = false;
 

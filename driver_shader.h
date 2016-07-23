@@ -143,6 +143,8 @@ void shader_print(FILE* f, const struct Shader* shader);
 GLint shader_set_uniform_matrices(struct Shader* shader, GLuint program, const Mat projection_matrix, const Mat view_matrix, const Mat model_matrix);
 
 GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data);
+GLint shader_set_uniform_1i(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data);
+
 GLint shader_set_uniform_3f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data);
 GLint shader_set_uniform_4f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data);
 
