@@ -60,6 +60,6 @@ struct Font {
 };
 
 void font_create(struct Font* font);
-void font_create_from_alphabet(const wchar_t* unicode_alphabet, size_t symbols_n, struct Character* symbols, size_t palette_n, size_t color_n, uint8_t* palette, struct Font* font);
+void font_create_from_characters(const wchar_t* unicode_alphabet, size_t symbols_n, struct Character* symbols, size_t palette_n, size_t color_n, uint8_t* palette, struct Font* font);
 
 #endif

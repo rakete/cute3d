@@ -21,13 +21,13 @@ void font_create(struct Font* font) {
     font->linespacing = 0.0f;
 }
 
-void font_create_from_alphabet(const wchar_t* unicode_alphabet,
-                               size_t symbols_n,
-                               struct Character* symbols,
-                               size_t palette_n,
-                               size_t color_n,
-                               uint8_t* palette,
-                               struct Font* font)
+void font_create_from_characters(const wchar_t* unicode_alphabet,
+                                 size_t symbols_n,
+                                 struct Character* symbols,
+                                 size_t palette_n,
+                                 size_t color_n,
+                                 uint8_t* palette,
+                                 struct Font* font)
 {
     for( size_t i = 0; i < MAX_FONT_GLYPHS; i++ ) {
         log_assert( font->glyphs[i].x == 0 );

@@ -105,7 +105,7 @@ void canvas_create(const char* name, struct Canvas* canvas) {
     default_font_create(symbols);
 
     struct Font font = {0};
-    font_create_from_alphabet(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;+-*/=()[]{}", 256, symbols, 9, 3, global_default_font_palette, &font);
+    font_create_from_characters(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;+-*/=()[]{}", 256, symbols, 9, 3, global_default_font_palette, &font);
 
     log_assert( canvas_add_font(canvas, "default_font", &font) < MAX_CANVAS_FONTS );
 }
