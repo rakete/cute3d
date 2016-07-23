@@ -337,7 +337,7 @@ int32_t canvas_add_texture(struct Canvas* canvas, int32_t sampler, const char* t
     return texture_i;
 }
 
-WARN_UNUSED_RESULT int32_t canvas_find_texture(const struct Canvas* canvas, const char* texture_name) {
+int32_t canvas_find_texture(const struct Canvas* canvas, const char* texture_name) {
     size_t name_length = strlen(texture_name);
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
