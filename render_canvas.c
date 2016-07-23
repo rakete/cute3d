@@ -98,8 +98,35 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
         }
     }
 
+    // this loops goes through textures and potentially binds all associated samplers
     for( int32_t texture_i = 0; texture_i < MAX_CANVAS_TEXTURES+1; texture_i++ ) {
-        // second loop goes through all shaders, binds their locations, then loops through all layers, uploads the indices and renders
+
+        // - I organized the textures in the canvas as groups of samplers (which should or should not have
+        // equivalents in the shader), so each texture may actually several textures, but bound to different
+        // texture units
+        // - so this loop just goes through all sampler textures and binds them, then marks them as bound in
+        // active_textures as active
+        // - there are some checks here so that if there is no texture name (meaning no texture), we just continue
+        // to not waste cycles, especially the pointless binding of the shader would hurt
+        // - we also have to check for texture_i < MAX_CANVAS_TEXTURES, because only those represent textures, but
+        // the loop goes up to MAX_CANVAS_TEXTURES+1 because the last index represents geometry without any texture,
+        // and we need to render that too
+        bool active_textures[MAX_SHADER_SAMPLER] = {0};
+        if( texture_i < MAX_CANVAS_TEXTURES ) {
+            if( strlen(canvas->textures[texture_i].name) > 0 ) {
+                for( int32_t sampler_i = 0; sampler_i < MAX_SHADER_SAMPLER; sampler_i++ ) {
+                    struct Texture* texture = &canvas->textures[texture_i].sampler[sampler_i];
+                    if( texture->id > 0 ) {
+                        texture_bind(*texture, sampler_i);
+                        active_textures[sampler_i] = true;
+                    }
+                }
+            } else {
+                continue;
+            }
+        }
+
+        // this loop goes through all shaders, binds their locations, then loops through all layers, uploads the indices and renders
         for( int32_t shader_i = 0; shader_i < MAX_CANVAS_SHADER; shader_i++ ) {
             if( strlen(canvas->shaders[shader_i].name) == 0 ) {
                 continue;
@@ -108,6 +135,29 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
             struct Shader* shader = &canvas->shaders[shader_i].shader;
 
             shader_use_program(shader);
+
+            if( texture_i < MAX_CANVAS_TEXTURES ) {
+                // - we check all shader samplers if they have a texture bound by using the active_textures array from above,
+                // while we're at it we set enable_texture, which is the value we may set if the shader as support for textures
+                // _and_ attribute colors and lets us switch between them with enable_texture
+                // - if there is a sampler location but no active texture, or if there is no location but an active texture, then
+                // warn about those
+                int32_t enable_texture = 1;
+                for( int32_t sampler_i = 0; sampler_i < MAX_SHADER_SAMPLER; sampler_i++ ) {
+                    if( shader->sampler[sampler_i].location > -1 && active_textures[sampler_i] == false ) {
+                        log_warn(__FILE__, __LINE__, "shader \"%s\" sampler \"%s\" has no active texture\n", shader->name, global_shader_sampler_names[sampler_i]);
+                        enable_texture = 0;
+                    } else if( shader->sampler[sampler_i].location < 0 && active_textures[sampler_i] == true ) {
+                        log_warn(__FILE__, __LINE__, "shader \"%s\" has no sampler \"%s\" for texture \"%s\"\n", shader->name, global_shader_sampler_names[sampler_i], canvas->textures[texture_i].name);
+                        enable_texture = 0;
+                    }
+                }
+
+                // - not all shaders support colors _and_ textures, so only set enable_texture if there is a location
+                if( enable_texture > 0 && shader->uniform[SHADER_UNIFORM_ENABLE_TEXTURE].location > -1 ) {
+                    shader_set_uniform_1i(shader, 0, SHADER_UNIFORM_ENABLE_TEXTURE, 1, GL_INT, &enable_texture);
+                }
+            }
 
             if( shader->uniform[SHADER_UNIFORM_LINE_Z_SCALING].location > -1 ) {
                 shader_set_uniform_1f(shader, 0, SHADER_UNIFORM_LINE_Z_SCALING, 1, GL_FLOAT, &canvas->line_z_scaling);

@@ -8,6 +8,7 @@
 
 #include "gui_draw.h"
 #include "gui_text.h"
+#include "gui_widgets.h"
 
 #include "geometry_solid.h"
 #include "geometry_shape.h"
@@ -17,6 +18,8 @@
 
 #include "physics_colliding.h"
 #include "physics_rigidbody.h"
+
+#include "texture_pattern.h"
 
 /* man könnte vielleicht einfach ein array mit diesen components in ein struct
    wie den bouncing cube packen um dann in einem loop alle komponenten zu updaten
@@ -118,6 +121,12 @@ int32_t main(int32_t argc, char *argv[]) {
     struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);
 
+    uint8_t pattern[10*10*12*12*4] = {0};
+    pattern_checkerboard(10, 10, 12, 12, (Color){0, 0, 255, 0}, (Color){255, 0, 0, 255}, pattern);
+
+    struct Texture checkerboard_texture;
+    texture_create_from_array(10*12, 10*12, GL_UNSIGNED_BYTE, GL_RGBA, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, pattern, &checkerboard_texture);
+
     /* Eventloop */
     while(true) {
         SDL_Event event;
@@ -155,6 +164,9 @@ int32_t main(int32_t argc, char *argv[]) {
 
         Vec4f text_cursor = {0, 0, 0, 1};
         text_show_fps(&global_dynamic_canvas, 0, text_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0, "default_font", time.frame);
+
+        widgets_display_texture(&global_dynamic_canvas, 0, 0, 0, 128, 128, "checkerboard1", checkerboard_texture);
+        //widgets_display_texture(&global_dynamic_canvas, 0, widgets_cursor, arcball.camera.screen.width-128, 0, (Color){255, 0, 0, 255}, 128, 128, "red", NULL);
 
         canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);

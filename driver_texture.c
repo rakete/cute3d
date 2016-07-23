@@ -49,6 +49,11 @@ GLuint texture_bind(struct Texture texture, int32_t sampler_index) {
     log_assert( texture.dimension == 0 || texture.dimension == GL_TEXTURE_2D || texture.dimension == GL_TEXTURE_CUBE_MAP );
     log_assert( GL_TEXTURE7 == GL_TEXTURE0 + 7 );
 
+    // - since the sampler number and texture unit number are always the same (I set them up like that in shader_setup_locations),
+    // the sampler_index is all thats needed to compute the correct texture_unit
+    // - the mod 8 operation is so that sampler can be organized as blocks of (in this case 8), which allows me to reuse
+    // texture units for different sampler, also it makes sense because 8 is the absolute minimum required number of texture
+    // units each opengl implementation must provide, it may provide more though
     GLuint texture_unit = sampler_index % 8;
     log_assert( texture_unit < MAX_SHADER_TEXTURE_UNITS );
 
