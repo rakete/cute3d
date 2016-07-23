@@ -1,19 +1,47 @@
 #include "gui_widgets.h"
 
+#define WIDGETS_VERTEX_SIZE 3
+#define WIDGETS_COLOR_SIZE 4
+#define WIDGETS_TEXCOORD_SIZE 2
+
 void widgets_display_texture(struct Canvas* canvas,
-                             int32_t layer,
-                             Vec4f cursor,
+                             int32_t layer_i,
                              int32_t x, int32_t y,
-                             const Mat model_matrix,
-                             const Color color,
                              int32_t width,
                              int32_t height,
-                             const struct Texture* texture)
+                             const char* name,
+                             struct Texture texture)
 {
-    /* canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, 14, vertices); */
-    /* canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, 14, colors); */
-    /* canvas_append_attributes(canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT, 14, texcoords); */
-    /* canvas_append_attributes(canvas, SHADER_ATTRIBUTE_NEXT_VERTEX, 3, GL_FLOAT, 14, next_vertices); */
-    /* canvas_append_attributes(canvas, SHADER_ATTRIBUTE_LINE_THICKNESS, 1, GL_FLOAT, 14, thickness_array); */
-    /* canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "volumetric_lines_shader", CANVAS_PROJECT_WORLD, GL_TRIANGLES, 12*3, triangles, offset); */
+    float vertices[4*WIDGETS_VERTEX_SIZE] = {
+              x,        -1*y, 0.0f,
+        x+width,        -1*y, 0.0f,
+        x+width, -1*y-height, 0.0f,
+              x, -1*y-height, 0.0f
+    };
+
+    float texcoords[4*WIDGETS_TEXCOORD_SIZE] = {
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        1.0f, 1.0f,
+        0.0f, 1.0f
+    };
+
+    uint32_t indices[6] = {0};
+    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    indices[0] = offset + 3;
+    indices[1] = offset + 1;
+    indices[2] = offset + 0;
+    indices[3] = offset + 3;
+    indices[4] = offset + 2;
+    indices[5] = offset + 1;
+
+    static int32_t texture_i = MAX_CANVAS_TEXTURES;
+    if( texture_i == MAX_CANVAS_TEXTURES ) {
+        texture_i = canvas_add_texture(canvas, SHADER_SAMPLER_DIFFUSE_TEXTURE, name, &texture);
+        log_assert( texture_i < MAX_CANVAS_TEXTURES );
+    }
+
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, 4, vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT, 4, texcoords);
+    canvas_append_indices(canvas, layer_i, texture_i, "default_shader", CANVAS_PROJECT_SCREEN, GL_TRIANGLES, 2*3, indices, 0);
 }
