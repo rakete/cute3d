@@ -182,7 +182,9 @@ int32_t canvas_add_shader(struct Canvas* canvas, const char* shader_name, const 
     // the warning
     // - the shaders are added one after the other, and can not be removed, so I make this static because we can
     // assume that all shaders before shader_i will _always_ be set
-    static int32_t shader_i = 0;
+    // - I removed the static again, I want this function to return the index of the shader if it already exists,
+    // for that I have to check all shaders
+    int32_t shader_i = 0;
     while( shader_i < MAX_CANVAS_SHADER && strlen(canvas->shaders[shader_i].name) != 0 ) {
         if( strncmp(canvas->shaders[shader_i].name, shader_name, 256) == 0 ) {
             return shader_i;
@@ -203,6 +205,21 @@ int32_t canvas_add_shader(struct Canvas* canvas, const char* shader_name, const 
     memcpy(&canvas->shaders[shader_i].shader, shader, sizeof(struct Shader));
 
     return shader_i;
+}
+
+int32_t canvas_add_shader_files(struct Canvas* canvas, const char* vertex_file, const char* fragment_file, const char* shader_name) {
+    int32_t shader_index = canvas_find_shader(canvas, shader_name);
+    if( shader_index == MAX_CANVAS_SHADER ) {
+        struct Shader shader = {0};
+        shader_create_from_files(vertex_file, fragment_file, shader_name, &shader);
+
+        shader_index = canvas_add_shader(canvas, shader_name, &shader);
+        if( shader_index == MAX_CANVAS_SHADER ) {
+            log_warn(__FILE__, __LINE__, "could not insert \"%s\" to canvas because there is no space left for it\n", shader_name);
+        }
+    }
+
+    return shader_index;
 }
 
 int32_t canvas_find_shader(const struct Canvas* canvas, const char* shader_name) {
@@ -242,7 +259,7 @@ int32_t canvas_add_font(struct Canvas* canvas, const char* font_name, const stru
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
 
-    static int32_t font_i = 0;
+    int32_t font_i = 0;
     while( font_i < MAX_CANVAS_FONTS && strlen(canvas->fonts[font_i].name) != 0 ) {
         if( strncmp(canvas->fonts[font_i].name, font_name, 256) == 0 ) {
             return font_i;

@@ -170,6 +170,8 @@ void canvas_destroy(struct Canvas* canvas);
 void canvas_add_attribute(struct Canvas* canvas, int32_t attribute, uint32_t size, GLenum type);
 
 WARN_UNUSED_RESULT int32_t canvas_add_shader(struct Canvas* canvas, const char* shader_name, const struct Shader* shader);
+WARN_UNUSED_RESULT int32_t canvas_add_shader_files(struct Canvas* canvas, const char* shader_name, const char* vertex_file, const char* fragment_file);
+#define canvas_add_shader_symbol(canvas, name, symbol) canvas_add_shader_files(canvas, name, "shader/" #symbol ".vert", "shader/" #symbol ".frag");
 WARN_UNUSED_RESULT int32_t canvas_find_shader(const struct Canvas* canvas, const char* shader_name);
 
 WARN_UNUSED_RESULT int32_t canvas_add_font(struct Canvas* canvas, const char* font_name, const struct Font* font);
@@ -204,19 +206,5 @@ size_t canvas_append_attributes(struct Canvas* canvas, uint32_t attribute_i, uin
 // - then the functions also takes an offset that is to be added to every index before appending
 size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, GLenum primitive_type, size_t n, uint32_t* indices, size_t offset);
 size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, const char* font_name, int32_t projection_i, size_t n, uint32_t* indices, size_t offset);
-
-#define canvas_shader_macro(canvas, symbol, name) do {                  \
-        static int32_t found_##symbol##_shader = -1;                    \
-        if( found_##symbol##_shader < 0 || canvas->shaders[found_##symbol##_shader].shader.program == 0 ) { \
-            if( canvas_find_shader(canvas, name) == MAX_CANVAS_SHADER ) { \
-                struct Shader symbol##_shader;                          \
-                shader_create_from_files("shader/" #symbol ".vert", "shader/" #symbol ".frag", name, &symbol##_shader); \
-                found_##symbol##_shader = canvas_add_shader(canvas, name, &symbol##_shader); \
-                if( found_##symbol##_shader == MAX_CANVAS_SHADER ) {    \
-                    log_warn(__FILE__, __LINE__, "could not add \"%s\" as \"%s\" to canvas because there is no space left for it\n", #symbol, name); \
-                }                                                       \
-            }                                                           \
-        }                                                               \
-    }while(0);
 
 #endif
