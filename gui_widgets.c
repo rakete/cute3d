@@ -12,6 +12,9 @@ void widgets_display_texture(struct Canvas* canvas,
                              const char* name,
                              struct Texture texture)
 {
+    if( x < 0 ) x = canvas->width + x;
+    if( y < 0 ) y = canvas->height + y;
+
     float vertices[4*WIDGETS_VERTEX_SIZE] = {
               x,        -1*y, 0.0f,
         x+width,        -1*y, 0.0f,
