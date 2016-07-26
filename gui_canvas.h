@@ -54,6 +54,9 @@
 struct Canvas {
     char name[256];
 
+    int32_t width;
+    int32_t height;
+
     // information about size and type the vertex/normal/color/texcoord attribute components
     // that are stored in the arrays/vbos
     struct CanvasComponents {
@@ -151,9 +154,9 @@ struct Canvas {
 extern struct Canvas global_dynamic_canvas;
 extern struct Canvas global_static_canvas;
 
-WARN_UNUSED_RESULT int32_t init_canvas();
+WARN_UNUSED_RESULT int32_t init_canvas(int32_t width, int32_t height);
 
-void canvas_create(const char* name, struct Canvas* canvas);
+void canvas_create(const char* name, int32_t width, int32_t height, struct Canvas* canvas);
 // - I use malloc for the arrays, I should implement a destructor eventually, but since the canvas
 // is meant to be present throughout the whole runtime of the program this is not a priority
 void canvas_destroy(struct Canvas* canvas);

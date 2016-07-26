@@ -50,7 +50,7 @@ void text_put(struct Canvas* canvas,
         return;
     }
 
-    size_t canvas_offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    size_t canvas_offset = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].occupied;
     struct Font* font = &canvas->fonts[font_i].font;
 
     // we rely on \0 not being part of the font to advance the cursor at the end of
@@ -153,9 +153,9 @@ void text_put(struct Canvas* canvas,
 
     // - finally draw on the canvas
     if( glyph_counter > 0 ) {
-        canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, TEXT_VERTEX_SIZE, GL_FLOAT, glyph_counter*4, vertices);
-        canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLORS, TEXT_COLOR_SIZE, GL_UNSIGNED_BYTE, glyph_counter*4, colors);
-        canvas_append_attributes(canvas, SHADER_ATTRIBUTE_TEXCOORDS, TEXT_TEXCOORD_SIZE, GL_FLOAT, glyph_counter*4, texcoords);
+        canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX, TEXT_VERTEX_SIZE, GL_FLOAT, glyph_counter*4, vertices);
+        canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLOR, TEXT_COLOR_SIZE, GL_UNSIGNED_BYTE, glyph_counter*4, colors);
+        canvas_append_attributes(canvas, SHADER_ATTRIBUTE_TEXCOORD, TEXT_TEXCOORD_SIZE, GL_FLOAT, glyph_counter*4, texcoords);
         canvas_append_text(canvas, layer, font_name, projection, glyph_counter*6, indices, 0);
     }
 

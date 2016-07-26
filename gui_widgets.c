@@ -30,7 +30,7 @@ void widgets_display_texture(struct Canvas* canvas,
     };
 
     uint32_t indices[6] = {0};
-    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].occupied;
     indices[0] = offset + 3;
     indices[1] = offset + 1;
     indices[2] = offset + 0;
@@ -44,7 +44,7 @@ void widgets_display_texture(struct Canvas* canvas,
         log_assert( texture_i < MAX_CANVAS_TEXTURES );
     }
 
-    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, 4, vertices);
-    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT, 4, texcoords);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, 4, vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_TEXCOORD, 2, GL_FLOAT, 4, texcoords);
     canvas_append_indices(canvas, layer_i, texture_i, "default_shader", CANVAS_PROJECT_SCREEN, GL_TRIANGLES, 2*3, indices, 0);
 }

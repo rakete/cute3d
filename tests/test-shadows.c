@@ -82,9 +82,9 @@ int32_t main(int32_t argc, char *argv[]) {
     /* Vbo */
     struct Vbo vbo = {0};
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_VERTEX, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_NORMAL, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, OGL_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
     /* Cube */
     struct BouncingCube entity = {0};
@@ -165,7 +165,7 @@ int32_t main(int32_t argc, char *argv[]) {
         Vec4f text_cursor = {0, 0, 0, 1};
         text_show_fps(&global_dynamic_canvas, 0, text_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0, "default_font", time.frame);
 
-        widgets_display_texture(&global_dynamic_canvas, 0, 0, 0, 128, 128, "checkerboard1", checkerboard_texture);
+        widgets_display_texture(&global_dynamic_canvas, 0, -256, -256, 256, 256, "checkerboard1", checkerboard_texture);
         //widgets_display_texture(&global_dynamic_canvas, 0, widgets_cursor, arcball.camera.screen.width-128, 0, (Color){255, 0, 0, 255}, 128, 128, "red", NULL);
 
         canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);

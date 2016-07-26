@@ -91,10 +91,10 @@ void canvas_create(const char* name, int32_t width, int32_t height, struct Canva
     canvas->line_z_scaling = 1.0f;
 
     // canvas_create
-    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
-    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT);
-    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
-    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_NORMAL, 3, GL_FLOAT);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_COLOR, 4, GL_UNSIGNED_BYTE);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_TEXCOORD, 2, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_NEXT_VERTEX, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_PREV_VERTEX, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_LINE_THICKNESS, 1, GL_FLOAT);
@@ -160,8 +160,8 @@ void canvas_add_attribute(struct Canvas* canvas, int32_t added_attribute, uint32
         //
         // next time the user calls clear the occupied will be reset and the buffer is used
         // just as any other, so this should just handle a very rare edge case
-        size_t vertices_capacity = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].capacity;
-        size_t vertices_occupied = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+        size_t vertices_capacity = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].capacity;
+        size_t vertices_occupied = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].occupied;
         if( vertices_capacity > 0 ) {
             // because this should be rare, I'll warn about it
             log_warn(__FILE__, __LINE__, "vertices already allocated when adding attribute %d\n", added_attribute);
@@ -534,8 +534,8 @@ size_t canvas_append_attributes(struct Canvas* canvas, uint32_t attribute_i, uin
     // possible to add 3 vertices, and then just to add 2 texcoords, this would leave not only one vertex without a texcoord
     // but also the offsets of all following texcoords would be of by one, so we should only allow appending exactly the
     // amount of attributes that is needed to match the vertices that are already there
-    if( attribute_i != SHADER_ATTRIBUTE_VERTICES ) {
-        log_assert( n == canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied - canvas->attributes[attribute_i].occupied );
+    if( attribute_i != SHADER_ATTRIBUTE_VERTEX ) {
+        log_assert( n == canvas->attributes[SHADER_ATTRIBUTE_VERTEX].occupied - canvas->attributes[attribute_i].occupied );
     }
 
     size_t old_occupied = canvas->attributes[attribute_i].occupied;
@@ -613,12 +613,12 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t tex
         memcpy((char*)indices_array + old_occupied*sizeof(GLuint), (char*)indices, n_bytes);
     }
 
-    size_t vertices_capacity = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].capacity;
-    size_t vertices_occupied = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    size_t vertices_capacity = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].capacity;
+    size_t vertices_occupied = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].occupied;
 
     // the for loop below starts at one because we assume that 0 are the vertices, which we check
     // capcities against
-    log_assert( SHADER_ATTRIBUTE_VERTICES == 0 );
+    log_assert( SHADER_ATTRIBUTE_VERTEX == 0 );
 
     // we need to 'fill up' all attribute for which there are vertices but nothing added into the
     // buffers, so this is done here, this is neccessary so that we can have a canvas with e.g.
@@ -650,7 +650,7 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t tex
                 }
                 size_t dst_offset = attribute_occupied * attribute_size * attribute_bytes;
                 size_t set_length = (vertices_occupied - attribute_occupied) * attribute_size * attribute_bytes;
-                if( i == SHADER_ATTRIBUTE_COLORS ) {
+                if( i == SHADER_ATTRIBUTE_COLOR ) {
                     memset((char*)canvas->attributes[i].array + dst_offset, 255, set_length);
                 } else {
                     memset((char*)canvas->attributes[i].array + dst_offset, 0, set_length);
@@ -705,10 +705,10 @@ size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, const char* fo
         memcpy((char*)indices_array + old_occupied*sizeof(GLuint), (char*)indices, n_bytes);
     }
 
-    size_t vertices_capacity = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].capacity;
-    size_t vertices_occupied = canvas->attributes[SHADER_ATTRIBUTE_VERTICES].occupied;
+    size_t vertices_capacity = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].capacity;
+    size_t vertices_occupied = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].occupied;
 
-    log_assert( SHADER_ATTRIBUTE_VERTICES == 0 );
+    log_assert( SHADER_ATTRIBUTE_VERTEX == 0 );
 
     for( int32_t i = 1; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         size_t attribute_capacity = canvas->attributes[i].capacity;

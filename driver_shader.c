@@ -42,16 +42,17 @@ int32_t init_shader() {
         global_shader_sampler_names[i] = "invalid_sampler";
     }
 
-    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTICES] = "vertex";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_NORMALS] = "normal";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_COLORS] = "color";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_TEXCOORDS] = "texcoord";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX] = "vertex";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_NORMAL] = "normal";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_COLOR] = "color";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_TEXCOORD] = "texcoord";
 
     global_shader_attribute_names[SHADER_ATTRIBUTE_INSTANCE_ID] = "instance_id";
     global_shader_attribute_names[SHADER_ATTRIBUTE_PREV_VERTEX] = "prev_vertex";
     global_shader_attribute_names[SHADER_ATTRIBUTE_NEXT_VERTEX] = "next_vertex";
     global_shader_attribute_names[SHADER_ATTRIBUTE_LINE_THICKNESS] = "line_thickness";
     global_shader_attribute_names[SHADER_ATTRIBUTE_BARYCENTRIC_COORDINATE] = "barycentric_coordinate";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_SMOOTH_NORMAL] = "smooth_normal";
 
     global_shader_uniform_names[SHADER_UNIFORM_MVP_MATRIX] = "mvp_matrix";
     global_shader_uniform_names[SHADER_UNIFORM_MODEL_MATRIX] = "model_matrix";
@@ -753,7 +754,7 @@ GLint shader_set_uniform_4f(struct Shader* shader, GLuint program, int32_t unifo
 
 GLint shader_set_attribute(struct Shader* shader, int32_t attribute_i, GLuint buffer, GLint c_num, GLenum c_type, GLsizei stride, const GLvoid* p) {
     log_assert( shader != NULL );
-    log_assert( attribute_i >= SHADER_ATTRIBUTE_VERTICES );
+    log_assert( attribute_i >= SHADER_ATTRIBUTE_VERTEX );
     log_assert( attribute_i < MAX_SHADER_ATTRIBUTES );
     log_assert( c_num >= 0 );
     log_assert( c_num <= 4 );

@@ -39,10 +39,10 @@ void ogl_error_print(GLenum error);
 #define MAX_OGL_PRIMITIVES GL_TRIANGLE_FAN+1
 
 #define MAX_OGL_ATTRIBUTES 4
-#define OGL_VERTICES 0
-#define OGL_NORMALS 1
-#define OGL_COLORS 2
-#define OGL_TEXCOORDS 3
+#define OGL_VERTEX 0
+#define OGL_NORMAL 1
+#define OGL_COLOR 2
+#define OGL_TEXCOORD 3
 
 /* #ifndef MAX_CUTE_ATTRIBUTES */
 /* enum CuteAttributeType { */

@@ -22,21 +22,21 @@ void vbo_mesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo
 
     vbo_mesh_create(vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, mesh);
 
-    size_t vertices_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, solid->size, solid->vertices);
+    size_t vertices_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, solid->size, solid->vertices);
     log_assert( vertices_n == solid->size );
 
-    if( vbo->buffer[SHADER_ATTRIBUTE_NORMALS].id ) {
-        size_t normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, solid->size, solid->normals);
+    if( vbo->buffer[SHADER_ATTRIBUTE_NORMAL].id ) {
+        size_t normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMAL, 3, GL_FLOAT, solid->size, solid->normals);
         log_assert( normals_n == solid->size );
     }
 
-    if( vbo->buffer[SHADER_ATTRIBUTE_COLORS].id ) {
-        size_t colors_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, solid->size, solid->colors);
+    if( vbo->buffer[SHADER_ATTRIBUTE_COLOR].id ) {
+        size_t colors_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLOR, 4, GL_UNSIGNED_BYTE, solid->size, solid->colors);
         log_assert( colors_n == solid->size );
     }
 
-    if( vbo->buffer[SHADER_ATTRIBUTE_TEXCOORDS].id ) {
-        size_t texcoords_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT, solid->size, solid->texcoords);
+    if( vbo->buffer[SHADER_ATTRIBUTE_TEXCOORD].id ) {
+        size_t texcoords_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_TEXCOORD, 2, GL_FLOAT, solid->size, solid->texcoords);
         log_assert( texcoords_n == solid->size );
     }
 
@@ -288,7 +288,7 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
         // - the offset is 0 here because we specify the offset already in the glVertexAttribPointer call above
         // - in this case we'd actually better just render the whole buffer as one batch anyways, and that
         // would be better done in another function
-        ogl_debug( glDrawArrays(mesh->primitives.type, 0, mesh->occupied[SHADER_ATTRIBUTE_VERTICES]) );
+        ogl_debug( glDrawArrays(mesh->primitives.type, 0, mesh->occupied[SHADER_ATTRIBUTE_VERTEX]) );
     }
 
 #ifndef CUTE_BUILD_ES2
