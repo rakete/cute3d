@@ -7,8 +7,10 @@ shader_in vec2 frag_texcoord;
 uniform int enable_texture;
 
 void main() {
+    // - instead of using an if, I could do this:
+    //gl_FragColor = mix(frag_color, texture2D(diffuse_texture, vec2(frag_texcoord.x,frag_texcoord.y)), float(enable_texture > 0));
+
     if( enable_texture > 0 ) {
-        //gl_FragColor = vec4(1.0, 0, 0, 1.0);
         vec4 diffuse_value = texture2D(diffuse_texture, vec2(frag_texcoord.x,frag_texcoord.y));
         gl_FragColor = vec4(diffuse_value[0]*frag_color[0],
                             diffuse_value[1]*frag_color[1],
