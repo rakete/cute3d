@@ -60,9 +60,15 @@ int32_t init_shader() {
     global_shader_uniform_names[SHADER_UNIFORM_PROJECTION_MATRIX] = "projection_matrix";
     global_shader_uniform_names[SHADER_UNIFORM_NORMAL_MATRIX] = "normal_matrix";
 
-    global_shader_uniform_names[SHADER_UNIFORM_LIGHT_DIRECTION] = "light_direction";
     global_shader_uniform_names[SHADER_UNIFORM_AMBIENT_COLOR] = "ambient_color";
     global_shader_uniform_names[SHADER_UNIFORM_DIFFUSE_COLOR] = "diffuse_color";
+    global_shader_uniform_names[SHADER_UNIFORM_SPECULAR_COLOR] = "specular_color";
+    global_shader_uniform_names[SHADER_UNIFORM_LIGHT_DIRECTION] = "light_direction";
+    global_shader_uniform_names[SHADER_UNIFORM_LIGHT_POSITION] = "light_position";
+    global_shader_uniform_names[SHADER_UNIFORM_LIGHT_ATTENUATION] = "light_attenuation";
+    global_shader_uniform_names[SHADER_UNIFORM_MATERIAL_SHININESS] = "material_shininess";
+    global_shader_uniform_names[SHADER_UNIFORM_MATERIAL_COEFFICIENTS] = "material_coefficients";
+    global_shader_uniform_names[SHADER_UNIFORM_EYE_POSITION] = "eye_position";
 
     global_shader_uniform_names[SHADER_UNIFORM_ASPECT_RATIO] = "aspect_ratio";
     global_shader_uniform_names[SHADER_UNIFORM_LINE_Z_SCALING] = "line_z_scaling";
@@ -207,6 +213,7 @@ void shader_setup_locations(struct Shader* p) {
         log_warn(__FILE__, __LINE__, "shader \"%s\" has %d unknown attributes\n", p->name, num_active_attributes - num_cached_attributes);
     }
 
+    // - go through all uniforms, get their location and set defaults
     GLint num_active_uniforms = 0;
     glGetProgramiv(p->program, GL_ACTIVE_UNIFORMS, &num_active_uniforms);
     int32_t num_cached_uniforms = 0;
