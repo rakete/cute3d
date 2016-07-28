@@ -38,7 +38,7 @@ int32_t init_vbo() {
         ret = 1;
     }
 
-#if OPENGLES2
+#if CUTE_BUILD_ES2
     // - opengl es 2 does not have mapping of buffers! that sucks because I use it,
     // so I need to check for this extension
     if( ! SDL_GL_ExtensionSupported("GL_OES_mapbuffer") ) {
@@ -126,9 +126,14 @@ size_t vbo_alloc(struct Vbo* vbo, size_t n) {
     log_assert( n > 0 );
 
     size_t resized_bytes = 0;
+    size_t alloc_n = VBO_DEFAULT_ALLOC;
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         if( vbo->buffer[i].id ) {
-            size_t new_bytes = (vbo->capacity + n) * vbo->components[i].size * vbo->components[i].bytes;
+            while( alloc_n < n ) {
+                alloc_n += VBO_DEFAULT_ALLOC;
+            }
+
+            size_t new_bytes = (vbo->capacity + alloc_n) * vbo->components[i].size * vbo->components[i].bytes;
             size_t old_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
 
             resized_bytes = ogl_buffer_resize(&vbo->buffer[i].id, old_bytes, new_bytes);
@@ -139,8 +144,8 @@ size_t vbo_alloc(struct Vbo* vbo, size_t n) {
     // - only increase capacity if all vbos were resized
     // - resized_bytes is different per buffer, so just return n instead
     log_assert( resized_bytes > 0 );
-    vbo->capacity += n;
-    return n;
+    vbo->capacity += alloc_n;
+    return alloc_n;
 }
 
 size_t vbo_available_capacity(struct Vbo* vbo) {
@@ -153,29 +158,13 @@ size_t vbo_available_capacity(struct Vbo* vbo) {
     return freespace;
 }
 
-size_t vbo_available_bytes(struct Vbo* vbo, int32_t i) {
-    log_assert( vbo != NULL );
-    log_assert( i >= 0 );
-
-    size_t freespace = 0;
-    freespace = vbo_available_capacity(vbo) * vbo->components[i].size * vbo->components[i].bytes;
-
-    return freespace;
-}
-
 void* vbo_map(struct Vbo* vbo, int32_t i, size_t offset, size_t length, GLbitfield access) {
     log_assert( offset < vbo->capacity );
     log_assert( vbo != NULL );
     log_assert( i >= 0 );
     log_assert( vbo->buffer[i].id > 0 );
-
-    if( offset + length > vbo->capacity ) {
-        size_t alloc = offset + length - vbo->capacity;
-        size_t result = vbo_alloc(vbo, alloc);
-        log_assert( result == alloc );
-    }
-
     log_assert( offset + length <= vbo->capacity );
+
     size_t offset_bytes = offset * vbo->components[i].size * vbo->components[i].bytes;
     size_t length_bytes = length * vbo->components[i].size * vbo->components[i].bytes;
     if( length <= offset || length > vbo->capacity ) {
@@ -199,6 +188,112 @@ GLboolean vbo_unmap(struct Vbo* vbo, int32_t i) {
 
     GLboolean result = 0;
     ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, vbo->buffer[i].id);
+               result = glUnmapBuffer(GL_ARRAY_BUFFER);
+               glBindBuffer(GL_ARRAY_BUFFER, 0); );
+
+    return result;
+}
+
+void ibo_create(GLenum primitive_type, GLenum index_type, GLenum usage, struct Ibo* ibo) {
+    log_assert( ibo != NULL );
+
+    for( int32_t i = 0; i < MAX_VBO_PHASES; i++ ) {
+        ibo->_internal_buffer[i].id = 0;
+        ibo->_internal_buffer[i].usage = usage;
+    }
+    ibo->buffer = &ibo->_internal_buffer[0];
+
+    ibo->primitives.type = primitive_type;
+    ibo->primitives.size = (uint32_t)ogl_sizeof_primitive(primitive_type);
+
+    ibo->index.type = index_type;
+    ibo->index.bytes = (uint32_t)ogl_sizeof_type(index_type);
+
+#ifndef CUTE_BUILD_ES2
+    ibo->base = 0;
+#endif
+    ibo->capacity = 0;
+    ibo->occupied = 0;
+}
+
+void ibo_print(struct Ibo* ibo) {
+    log_assert( ibo != NULL );
+
+    printf("ibo->capacity: %zu\n", ibo->capacity);
+    printf("ibo->occupied: %zu\n", ibo->occupied);
+
+    printf("ibo->primitives.type: %d\n", ibo->primitives.type);
+    printf("ibo->primitives.size: %d\n", ibo->primitives.size);
+
+    printf("ibo->index.type: %d\n", ibo->index.type);
+    printf("ibo->index.bytes: %d\n", ibo->index.bytes);
+}
+
+size_t ibo_alloc(struct Ibo* ibo, size_t n) {
+    log_assert( ibo != NULL );
+    log_assert( n > 0 );
+
+    if( ! ibo->buffer->id ) {
+        ogl_debug( glGenBuffers(1, &ibo->buffer->id) );
+    }
+    log_assert( ibo->buffer->id > 0 );
+
+    size_t size_bytes = ibo->capacity * ibo->index.bytes;
+    size_t alloc_bytes = n * ibo->index.bytes;
+
+    log_assert( size_bytes + alloc_bytes < PTRDIFF_MAX );
+    size_t resized_bytes = ogl_buffer_resize(&ibo->buffer->id, size_bytes, size_bytes + alloc_bytes);
+
+    // - we could return resized_bytes, but all other alloc functions return the number
+    // of elements allocated, so we just do the same here
+    if( resized_bytes == alloc_bytes ) {
+        ibo->capacity += n;
+        return n;
+    } else {
+        log_fail(__FILE__, __LINE__, "failed to allocate indices\n");
+        log_assert( resized_bytes == 0 );
+    }
+
+    return 0;
+}
+
+size_t ibo_available_capacity(struct Ibo* ibo) {
+    log_assert( ibo != NULL );
+    log_assert( ibo->capacity >= ibo->occupied );
+
+    size_t freespace = 0;
+    freespace = ibo->capacity - ibo->occupied;
+
+    return freespace;
+}
+
+void* ibo_map(struct Ibo* ibo, size_t offset, size_t length, GLbitfield access) {
+    log_assert( ibo != NULL );
+    log_assert( ibo->buffer->id > 0 );
+    log_assert( offset + length <= ibo->capacity );
+
+    size_t offset_bytes = offset * ibo->index.bytes;
+    size_t length_bytes = length * ibo->index.bytes;
+    if( length <= offset ) {
+        length_bytes = ibo->capacity * ibo->index.bytes;
+    }
+    log_assert( offset_bytes < INTPTR_MAX );
+    log_assert( length_bytes < INTPTR_MAX );
+
+    void* pointer = NULL;
+    ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, ibo->buffer->id);
+               pointer = glMapBufferRange(GL_ARRAY_BUFFER, (intptr_t)offset_bytes, (intptr_t)length_bytes, access);
+               glBindBuffer(GL_ARRAY_BUFFER, 0); );
+
+    return pointer;
+}
+
+GLboolean ibo_unmap(struct Ibo* ibo) {
+    log_assert( ibo != NULL );
+    log_assert( ibo->buffer->id > 0 );
+
+    GLboolean result = 0;
+    ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, ibo->buffer->id);
                result = glUnmapBuffer(GL_ARRAY_BUFFER);
                glBindBuffer(GL_ARRAY_BUFFER, 0); );
 
@@ -246,18 +341,6 @@ void vbo_mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, 
 #ifndef CUTE_BUILD_ES2
     mesh->vao = 0;
 #endif
-}
-
-void vbo_mesh_destroy(struct Vbo* vbo, struct VboMesh* mesh) {
-    log_assert( vbo != NULL );
-    log_assert( mesh != NULL );
-    log_assert( mesh->vbo != NULL );
-
-    if( vbo_mesh_test_last(mesh) ) {
-        mesh->vbo->occupied = mesh->offset;
-    }
-
-    log_assert( 0 == 1 );
 }
 
 void vbo_mesh_print(struct VboMesh* mesh) {
@@ -371,15 +454,15 @@ size_t vbo_mesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
     // - only resize if the mesh is the last mesh, otherwise this needs to stay the same size
     if( vbo_mesh_test_last(mesh) ) {
         size_t resized_n = vbo_alloc(mesh->vbo, n);
-        if( resized_n == n ) {
+        if( resized_n >= n ) {
             // if this mesh has never been touched before (when no space has been allocated for it in the vbo), move
             // the mesh to the last position just after allocating
             if( mesh->capacity == 0 ) {
                 mesh->offset = mesh->vbo->occupied;
             }
 
-            mesh->vbo->occupied += n;
-            mesh->capacity += n;
+            mesh->vbo->occupied += resized_n;
+            mesh->capacity += resized_n;
         } else {
             log_fail(__FILE__, __LINE__, "failed to allocate attributes\n");
             log_assert( resized_n == 0 );
@@ -406,6 +489,7 @@ size_t vbo_mesh_alloc_indices(struct VboMesh* mesh, size_t n) {
     size_t alloc_bytes = n * mesh->index.bytes;
 
     log_assert( size_bytes + alloc_bytes < PTRDIFF_MAX );
+    printf("%zu %zu %zu\n", size_bytes, size_bytes + alloc_bytes, n);
     size_t resized_bytes = ogl_buffer_resize(&mesh->indices->id, size_bytes, size_bytes + alloc_bytes);
 
     // - we could return resized_bytes, but all other alloc functions return the number
@@ -483,7 +567,7 @@ size_t vbo_mesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t comp
     {
         if( vbo_available_capacity(mesh->vbo) < n ) {
             size_t result = vbo_mesh_alloc_attributes(mesh,n);
-            log_assert( result == n );
+            log_assert( result >= n );
         }
 
         ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo->buffer[i].id);
@@ -527,14 +611,6 @@ size_t vbo_mesh_append_indices(struct VboMesh* mesh, size_t n, void* data) {
 void* vbo_mesh_map(struct VboMesh* mesh, size_t offset, size_t length, GLbitfield access) {
     log_assert( mesh != NULL );
     log_assert( mesh->indices->id > 0 );
-    log_assert( offset < mesh->indices->capacity );
-
-    if( offset + length > mesh->indices->capacity ) {
-        size_t alloc = offset + length - mesh->indices->capacity + 1;
-        size_t result = vbo_mesh_alloc_indices(mesh, alloc);
-        log_assert( result == alloc );
-    }
-
     log_assert( offset + length <= mesh->indices->capacity );
 
     size_t offset_bytes = offset * mesh->index.bytes;

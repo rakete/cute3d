@@ -31,8 +31,9 @@ size_t ogl_buffer_resize(GLuint* buffer, size_t old_bytes, size_t new_bytes) {
     log_assert( new_bytes < PTRDIFF_MAX );
     log_assert( new_bytes > old_bytes );
 
-    GLuint new_buffer;
     GLuint old_buffer = *buffer;
+#ifndef CUTE_BUILD_ES2
+    GLuint new_buffer;
 
     ogl_debug( glGenBuffers(1, &new_buffer);
                glBindBuffer(GL_COPY_WRITE_BUFFER, new_buffer);
@@ -55,6 +56,18 @@ size_t ogl_buffer_resize(GLuint* buffer, size_t old_bytes, size_t new_bytes) {
     ogl_debug( glBindBuffer(GL_COPY_WRITE_BUFFER, 0) );
 
     return new_bytes - old_bytes;
+#else
+    if( old_buffer > 0 ) {
+        if( old_bytes > 0 ) {
+            log_warn(__FILE__, __LINE__, "resizing a buffer will clear its contents!\n");
+        }
+
+        ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, old_buffer);
+                   glBufferData(GL_ARRAY_BUFFER, (ptrdiff_t)new_bytes, NULL, GL_STATIC_COPY); );
+    }
+
+    return new_bytes;
+#endif
 }
 
 size_t ogl_sizeof_type(GLenum type) {

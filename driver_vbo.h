@@ -33,6 +33,14 @@
 #define MAX_VBO_PHASES 1
 #endif
 
+#ifndef VBO_DEFAULT_ALLOC
+#ifdef CUTE_BUILD_ES2
+#define VBO_DEFAULT_ALLOC 32768
+#else
+#define VBO_DEFAULT_ALLOC 32768
+#endif
+#endif
+
 WARN_UNUSED_RESULT int32_t init_vbo();
 
 enum VboScheduling {
@@ -95,13 +103,52 @@ void vbo_add_buffer(struct Vbo* vbo,
 WARN_UNUSED_RESULT size_t vbo_alloc(struct Vbo* vbo, size_t n);
 
 WARN_UNUSED_RESULT size_t vbo_available_capacity(struct Vbo* vbo);
-WARN_UNUSED_RESULT size_t vbo_available_bytes(struct Vbo* vbo, int32_t i);
 
 void* vbo_map(struct Vbo* vbo, int32_t i, size_t offset, size_t length, GLbitfield access);
 GLboolean vbo_unmap(struct Vbo* vbo, int32_t i);
 
-void vbo_wait(struct Vbo* vbo);
-void vbo_sync(struct Vbo* vbo);
+/* void vbo_wait(struct Vbo* vbo); */
+/* void vbo_sync(struct Vbo* vbo); */
+
+struct Ibo {
+    struct IboBuffer {
+        GLuint id; // index buffer
+        GLenum usage;
+    } _internal_buffer[MAX_VBO_PHASES];
+    struct IboBuffer* buffer;
+
+    struct IboIndex {
+        GLenum type; // something GL_UNSIGNED_INT
+        uint32_t bytes; // sizeof type
+    } index;
+
+    // the primitives (like triangles)
+    struct IboPrimitives {
+        GLenum type; // something like GL_TRIANGLES
+        uint32_t size; // how many attributes per primitive
+    } primitives;
+
+    // the unit here is indices, not primitives
+    size_t capacity; // size of the buffer
+    size_t occupied; // space already used
+
+#ifndef CUTE_BUILD_ES2
+    // glDrawElementsBaseVertex is not in OpenGL ES 2.0, so I disable this here when I compile
+    // with emscripten so that I get errors when I use it elsewhere
+    size_t base; // base vertex index
+#endif
+};
+
+void ibo_create(GLenum primitive_type, GLenum index_type, GLenum usage, struct Ibo* ibo);
+
+void ibo_print(struct Ibo* ibo);
+
+WARN_UNUSED_RESULT size_t ibo_alloc(struct Ibo* ibo, size_t n);
+
+WARN_UNUSED_RESULT size_t ibo_available_capacity(struct Ibo* ibo);
+
+void* ibo_map(struct Ibo* ibo, size_t offset, size_t length, GLbitfield access);
+GLboolean ibo_unmap(struct Ibo* ibo);
 
 // meshes are made up of primitives
 // to construct those primitives a fixed number of attributes is combined together, a triangle for
@@ -109,6 +156,20 @@ void vbo_sync(struct Vbo* vbo);
 // since these come from the arrays that are stored in vbos, there is an additional type of buffer
 // called the index buffer that contains not components, but indices into the vbos
 struct VboMesh {
+    struct VboMeshAttributes {
+        struct Vbo* vbo;
+        size_t offset;
+        size_t capacity; // capacity of mesh in vbo
+        size_t occupied[MAX_SHADER_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer
+    } attributes_new;
+
+    struct VboMeshIndices {
+        struct Ibo* ibo;
+        size_t offset;
+        size_t capacity;
+        size_t occupied;
+    } indices_new;
+
     struct Vbo* vbo;
 
     size_t offset; // offset in vbo buffers
@@ -195,7 +256,6 @@ struct VboMesh {
 };
 
 void vbo_mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh);
-void vbo_mesh_destroy(struct Vbo* vbo, struct VboMesh* mesh);
 
 void vbo_mesh_print(struct VboMesh* mesh);
 
