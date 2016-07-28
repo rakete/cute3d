@@ -14,10 +14,14 @@ void draw_solid_normals(struct Canvas* canvas,
     for( uint32_t i = 0; i < solid->indices_size; i++ ) {
         uint32_t index = solid->indices[i];
 
-        Vec4f normal = { normals[index*3+0], normals[index*3+1], normals[index*3+2], 1.0f };
-        Vec4f vertex = { vertices[index*3+0], vertices[index*3+1], vertices[index*3+2], 1.0f };
+        const VecP* normal = &normals[index*3+0];
+        const VecP* vertex = &vertices[index*3+0];
 
-        draw_vec(canvas, layer, model_matrix, color, line_thickness, normal, vertex, 0.0f, scale);
+        Vec3f other = {0};
+        vec_mul1f(normal, scale, other);
+        vec_add(vertex, other, other);
+
+        draw_line(canvas, layer, model_matrix, color, line_thickness, vertex, other);
     }
 }
 

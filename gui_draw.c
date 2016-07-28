@@ -305,7 +305,6 @@ void draw_vec(struct Canvas* canvas,
               float arrow,
               float scale)
 {
-
     Mat arrow_matrix = {0};
     mat_identity(arrow_matrix);
 
@@ -337,25 +336,25 @@ void draw_vec(struct Canvas* canvas,
     // move the arrow along scaled vector down so that the value given in arrow will fit the
     // 1.0f == arrow at the top, 0.0f arrow invisible scheme
     // arrow == 0.9f -> arrow -10% (-1.0f + 0.9f) from the top of the vectorMat arrow_offset_matrix = IDENTITY_MAT;
-    Mat arrow_offset_matrix = IDENTITY_MAT;
-    Vec4f arrow_translation = {0};
-    vec_mul1f(v, arrow * scale, arrow_translation);
-    mat_translate(arrow_matrix, arrow_translation, arrow_offset_matrix);
-
-    if( model_matrix ) {
-        mat_mul(arrow_matrix, model_matrix, arrow_matrix);
-        mat_mul(arrow_offset_matrix, model_matrix, arrow_offset_matrix);
-    }
-
-    draw_line(canvas, layer_i, arrow_matrix, color, line_thickness, (Vertex){0.0f, 0.0f, 0.0f}, (Vertex){0.0f, 0.0f, 1.0f});
-
     if( arrow > 0.0f ) {
+        Mat arrow_offset_matrix = IDENTITY_MAT;
+        Vec4f arrow_translation = {0};
+        vec_mul1f(v, arrow * scale, arrow_translation);
+        mat_translate(arrow_matrix, arrow_translation, arrow_offset_matrix);
+
+        if( model_matrix ) {
+            mat_mul(arrow_matrix, model_matrix, arrow_matrix);
+            mat_mul(arrow_offset_matrix, model_matrix, arrow_offset_matrix);
+        }
+
         float arrow_vertices[5*3] =
             { 0.0f,  0.0f,  0.0f,
               0.05f,  0.0f,  -0.1f,
               0.0f,  0.05f,  -0.1f,
               -0.05f, 0.0f,  -0.1f,
               0.0f,  -0.05f, -0.1f };
+
+        draw_line(canvas, layer_i, arrow_matrix, color, line_thickness, (Vertex){0.0f, 0.0f, 0.0f}, (Vertex){0.0f, 0.0f, 1.0f});
 
         draw_line(canvas, layer_i, arrow_offset_matrix, color, line_thickness, &arrow_vertices[0*3], &arrow_vertices[1*3]);
         draw_line(canvas, layer_i, arrow_offset_matrix, color, line_thickness, &arrow_vertices[0*3], &arrow_vertices[2*3]);
@@ -365,6 +364,9 @@ void draw_vec(struct Canvas* canvas,
         draw_line(canvas, layer_i, arrow_offset_matrix, color, line_thickness, &arrow_vertices[2*3], &arrow_vertices[3*3]);
         draw_line(canvas, layer_i, arrow_offset_matrix, color, line_thickness, &arrow_vertices[3*3], &arrow_vertices[4*3]);
         draw_line(canvas, layer_i, arrow_offset_matrix, color, line_thickness, &arrow_vertices[4*3], &arrow_vertices[1*3]);
+    } else if( model_matrix ) {
+        mat_mul(arrow_matrix, model_matrix, arrow_matrix);
+        draw_line(canvas, layer_i, arrow_matrix, color, line_thickness, (Vertex){0.0f, 0.0f, 0.0f}, (Vertex){0.0f, 0.0f, 1.0f});
     }
 }
 
