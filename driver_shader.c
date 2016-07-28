@@ -593,7 +593,11 @@ GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t unifo
     }
 
     GLint location = shader->uniform[uniform_index].location;
-    log_assert( location > -1 );
+    if( location == -1 ) {
+        log_warn(__FILE__, __LINE__, "can not set uniform 1f, shader \"%s\" has no location \"%s\"\n", shader->name, global_shader_uniform_names[uniform_index]);
+        return location;
+    }
+
     log_assert( strlen(shader->uniform[uniform_index].name) > 0 );
 
     GLfloat float_value = 0.0f;
@@ -641,7 +645,11 @@ GLint shader_set_uniform_1i(struct Shader* shader, GLuint program, int32_t unifo
     }
 
     GLint location = shader->uniform[uniform_index].location;
-    log_assert( location > -1 );
+    if( location == -1 ) {
+        log_warn(__FILE__, __LINE__, "can not set uniform 1i, shader \"%s\" has no location \"%s\"\n", shader->name, global_shader_uniform_names[uniform_index]);
+        return location;
+    }
+
     log_assert( strlen(shader->uniform[uniform_index].name) > 0 );
 
     GLint int_value = 0;
@@ -689,7 +697,11 @@ GLint shader_set_uniform_3f(struct Shader* shader, GLuint program, int32_t unifo
     }
 
     GLint location = shader->uniform[uniform_index].location;
-    log_assert( location > -1 );
+    if( location == -1 ) {
+        log_warn(__FILE__, __LINE__, "can not set uniform 3f, shader \"%s\" has no location \"%s\"\n", shader->name, global_shader_uniform_names[uniform_index]);
+        return location;
+    }
+
     log_assert( strlen(shader->uniform[uniform_index].name) > 0 );
 
     // - pad data with zeros so that argument size can be smaller than 3 and not cause a crash
@@ -744,7 +756,11 @@ GLint shader_set_uniform_4f(struct Shader* shader, GLuint program, int32_t unifo
     }
 
     GLint location = shader->uniform[uniform_index].location;
-    log_assert( location > -1 );
+    if( location == -1 ) {
+        log_warn(__FILE__, __LINE__, "can not set uniform 4f, shader \"%s\" has no location \"%s\"\n", shader->name, global_shader_uniform_names[uniform_index]);
+        return location;
+    }
+
     log_assert( strlen(shader->uniform[uniform_index].name) > 0 );
 
     // - pad data with zeros so that argument size can be smaller than 3 and not cause a crash
