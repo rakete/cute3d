@@ -40,6 +40,16 @@ void vbo_mesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo
         log_assert( texcoords_n == solid->size );
     }
 
+    if( vbo->buffer[SHADER_ATTRIBUTE_SMOOTH_NORMAL].id ) {
+        float* smooth_normals = (float*)malloc(solid->size * NORMAL_SIZE * sizeof(float));
+        solid_smooth_normals(solid, solid->normals, smooth_normals);
+
+        size_t smooth_normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_SMOOTH_NORMAL, NORMAL_SIZE, GL_FLOAT, solid->size, smooth_normals);
+        log_assert( smooth_normals_n == solid->size );
+
+        free(smooth_normals);
+    }
+
     // - if solid->size is smaller then solid->indices_size, the solid has been optimized or compressed and needs
     // to have indices uploaded to render correctly
     if( solid->size < solid->indices_size ) {
