@@ -189,6 +189,9 @@ void shader_use_program(const struct Shader* p) {
 }
 
 void shader_setup_locations(struct Shader* p) {
+    ogl_debug( glUseProgram(p->program); );
+
+    // - go through all attributes and get their locations
     GLint num_active_attributes = 0;
     glGetProgramiv(p->program, GL_ACTIVE_ATTRIBUTES, &num_active_attributes);
     int32_t num_cached_attributes = 0;
@@ -232,12 +235,36 @@ void shader_setup_locations(struct Shader* p) {
             strncat(p->uniform[i].name, uniform_name, strlen(uniform_name));
             p->uniform[i].location = location;
             num_cached_uniforms += 1;
+
+            // - set defaults for all uniforms
+            // - this might cause problems when an glUniform call and type in the shader don't match
+            switch(i) {
+                case SHADER_UNIFORM_MVP_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
+                case SHADER_UNIFORM_MODEL_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
+                case SHADER_UNIFORM_VIEW_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
+                case SHADER_UNIFORM_PROJECTION_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
+                case SHADER_UNIFORM_NORMAL_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
+
+                case SHADER_UNIFORM_AMBIENT_COLOR: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
+                case SHADER_UNIFORM_DIFFUSE_COLOR: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
+                case SHADER_UNIFORM_SPECULAR_COLOR: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
+                case SHADER_UNIFORM_LIGHT_DIRECTION: ogl_debug(glUniform3f(location, 0.0f, 0.0f, 1.0f)); break;
+                case SHADER_UNIFORM_LIGHT_POSITION: ogl_debug(glUniform3f(location, 0.0f, 1.0f, 0.0f)); break;
+                case SHADER_UNIFORM_LIGHT_ATTENUATION: ogl_debug(glUniform1f(location, 1.0f)); break;
+                case SHADER_UNIFORM_MATERIAL_SHININESS: ogl_debug(glUniform1f(location, 1.0f)); break;
+                case SHADER_UNIFORM_MATERIAL_COEFFICIENTS: ogl_debug(glUniform3f(location, 1.0f, 1.0f, 1.0f)); break;
+                case SHADER_UNIFORM_EYE_POSITION: ogl_debug(glUniform3f(location, 0.0f, 0.0f, -1.0f)); break;
+
+                case SHADER_UNIFORM_ASPECT_RATIO: ogl_debug(glUniform1f(location, (float)1920/1080)); break;
+                case SHADER_UNIFORM_LINE_Z_SCALING: ogl_debug(glUniform1f(location, 0.0f)); break;
+                case SHADER_UNIFORM_ENABLE_TEXTURE: ogl_debug(glUniform1i(location, 0)); break;
+                default: break;
+            };
         }
     }
 
-    // - subtle difference to the uniforms and attributes is that samplers get set here, with the glUniform
+    // - difference to the uniforms and attributes is that samplers get set here, with the glUniform
     // call below a fixed texture unit is set that is always going to be the same
-    ogl_debug( glUseProgram(p->program); );
     for( int32_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
         p->sampler[i].name[0] = '\0';
         p->sampler[i].location = -1;
@@ -259,11 +286,12 @@ void shader_setup_locations(struct Shader* p) {
             p->sampler[i].unset = false;
         }
     }
-    ogl_debug( glUseProgram(0); );
 
     if( num_active_uniforms > num_cached_uniforms) {
         log_warn(__FILE__, __LINE__, "shader \"%s\" has %d unknown uniforms\n", p->name, num_active_uniforms - num_cached_uniforms);
     }
+
+    ogl_debug( glUseProgram(0); );
 
     shader_verify_locations(p);
 }
