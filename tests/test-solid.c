@@ -29,17 +29,18 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_canvas() ) {
+    if( init_canvas(1280,720) ) {
         return 1;
     }
-    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
-    canvas_create("global_static_canvas", &global_static_canvas);
+    canvas_create("global_dynamic_canvas", 1280, 720, &global_dynamic_canvas);
+    canvas_create("global_static_canvas", 1280, 720, &global_static_canvas);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_NORMAL, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    //vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_SMOOTH_NORMAL, NORMAL_SIZE, GL_FLOAT, GL_STATIC_DRAW);
 
     struct SolidTetrahedron tetrahedron = {0};
     struct SolidBox box = {0};
