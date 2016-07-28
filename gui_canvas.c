@@ -210,7 +210,7 @@ int32_t canvas_add_shader(struct Canvas* canvas, const char* shader_name, const 
     return shader_i;
 }
 
-int32_t canvas_add_shader_files(struct Canvas* canvas, const char* vertex_file, const char* fragment_file, const char* shader_name) {
+int32_t canvas_add_shader_files(struct Canvas* canvas, const char* shader_name, const char* vertex_file, const char* fragment_file) {
     int32_t shader_index = canvas_find_shader(canvas, shader_name);
     if( shader_index == MAX_CANVAS_SHADER ) {
         struct Shader shader = {0};
