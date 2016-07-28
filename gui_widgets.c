@@ -1,9 +1,5 @@
 #include "gui_widgets.h"
 
-#define WIDGETS_VERTEX_SIZE 3
-#define WIDGETS_COLOR_SIZE 4
-#define WIDGETS_TEXCOORD_SIZE 2
-
 void widgets_display_texture(struct Canvas* canvas,
                              int32_t layer_i,
                              int32_t x, int32_t y,
@@ -15,14 +11,14 @@ void widgets_display_texture(struct Canvas* canvas,
     if( x < 0 ) x = canvas->width + x;
     if( y < 0 ) y = canvas->height + y;
 
-    float vertices[4*WIDGETS_VERTEX_SIZE] = {
+    float vertices[4*VERTEX_SIZE] = {
               x,        -1*y, 0.0f,
         x+width,        -1*y, 0.0f,
         x+width, -1*y-height, 0.0f,
               x, -1*y-height, 0.0f
     };
 
-    float texcoords[4*WIDGETS_TEXCOORD_SIZE] = {
+    float texcoords[4*TEXCOORD_SIZE] = {
         0.0f, 0.0f,
         1.0f, 0.0f,
         1.0f, 1.0f,
