@@ -16,8 +16,8 @@
 
 #include "geometry_solid.h"
 
-void solid_compute_normals(struct Solid* solid) {
-    log_assert(solid->normals != NULL);
+void solid_hard_normals(const struct Solid* solid, float* normals) {
+    log_assert(normals != NULL);
 
     if( solid->vertices && solid->indices ) {
         size_t size = solid->size/3;
@@ -42,19 +42,55 @@ void solid_compute_normals(struct Solid* solid) {
             vec_cross(u,v,normal);
             vec_normalize(normal,normal);
 
-            solid->normals[a*3+0] = normal[0];
-            solid->normals[a*3+1] = normal[1];
-            solid->normals[a*3+2] = normal[2];
+            normals[a*3+0] = normal[0];
+            normals[a*3+1] = normal[1];
+            normals[a*3+2] = normal[2];
 
-            solid->normals[b*3+0] = normal[0];
-            solid->normals[b*3+1] = normal[1];
-            solid->normals[b*3+2] = normal[2];
+            normals[b*3+0] = normal[0];
+            normals[b*3+1] = normal[1];
+            normals[b*3+2] = normal[2];
 
-            solid->normals[c*3+0] = normal[0];
-            solid->normals[c*3+1] = normal[1];
-            solid->normals[c*3+2] = normal[2];
+            normals[c*3+0] = normal[0];
+            normals[c*3+1] = normal[1];
+            normals[c*3+2] = normal[2];
         }
     }
+}
+
+void solid_smooth_normals(const struct Solid* solid, const float* hard_normals, float* smooth_normals) {
+    float* average_normals = (float*)malloc(solid->size * 3 * sizeof(float));
+    uint32_t* average_counters = (uint32_t*)malloc(solid->size * sizeof(uint32_t));
+
+    for( size_t i = 0; i < solid->size; i++ ) {
+        average_normals[i*3+0] = 0.0f;
+        average_normals[i*3+1] = 0.0f;
+        average_normals[i*3+2] = 0.0f;
+
+        average_counters[i] = 0;
+    }
+
+    for( size_t i = 0; i < solid->indices_size; i++ ) {
+        uint32_t index_i = solid->indices[i];
+        uint32_t triangle_i = solid->triangles[i];
+
+        average_normals[triangle_i*3+0] += hard_normals[index_i*3+0];
+        average_normals[triangle_i*3+1] += hard_normals[index_i*3+1];
+        average_normals[triangle_i*3+2] += hard_normals[index_i*3+2];
+
+        average_counters[triangle_i] += 1;
+    }
+
+    for( size_t i = 0; i < solid->indices_size; i++ ) {
+        uint32_t index_i = solid->indices[i];
+        uint32_t triangle_i = solid->triangles[i];
+
+        smooth_normals[index_i*3+0] = average_normals[triangle_i*3+0] / average_counters[triangle_i];
+        smooth_normals[index_i*3+1] = average_normals[triangle_i*3+1] / average_counters[triangle_i];
+        smooth_normals[index_i*3+2] = average_normals[triangle_i*3+2] / average_counters[triangle_i];
+    }
+
+    free(average_normals);
+    free(average_counters);
 }
 
 void solid_set_color(struct Solid* solid, const uint8_t color[4]) {
@@ -319,7 +355,7 @@ void solid_tetrahedron_create(float radius, const uint8_t color[4], struct Solid
         tet->indices[i*3+2] = i*3+2;
     }
 
-    solid_compute_normals((struct Solid*)tet);
+    solid_hard_normals((struct Solid*)tet, tet->normals);
     solid_set_color((struct Solid*)tet, color);
 }
 
@@ -427,7 +463,7 @@ void solid_box_create(Vec3f size, const uint8_t color[4], struct SolidBox* box) 
         box->indices[i*6+5] = i*6+5;
     }
 
-    solid_compute_normals((struct Solid*)box);
+    solid_hard_normals((struct Solid*)box, box->normals);
     solid_set_color((struct Solid*)box, color);
 }
 
@@ -590,7 +626,7 @@ void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSph
         sphere->optimal[i*3+2] = i*3+2;
     }
 
-    solid_compute_normals((struct Solid*)sphere);
+    solid_hard_normals((struct Solid*)sphere, sphere->normals);
     solid_set_color((struct Solid*)sphere, color);
 }
 
@@ -688,6 +724,6 @@ void solid_sphere32_create(float radius, const uint8_t color[4], struct SolidSph
         sphere->optimal[i*3+2] = i*3+2;
     }
 
-    solid_compute_normals((struct Solid*)sphere);
+    solid_hard_normals((struct Solid*)sphere, sphere->normals);
     solid_set_color((struct Solid*)sphere, color);
 }

@@ -71,7 +71,8 @@ struct Solid {
     float* texcoords;
 };
 
-void solid_compute_normals(struct Solid* solid);
+void solid_hard_normals(const struct Solid* solid, float* normals);
+void solid_smooth_normals(const struct Solid* solid, const float* hard_normals, float* smooth_normals);
 void solid_set_color(struct Solid* solid, const uint8_t color[4]);
 
 // - optimize takes the indices from the optimal array, looks through it and merges attributes
