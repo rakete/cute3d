@@ -278,13 +278,17 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
             loc[array_id] = -1;
             if( c_num == 0 || c_bytes == 0 ) {
                 if( shader->attribute[array_id].location > -1 ) {
-                    log_warn(__FILE__, __LINE__, "the shader \"%s\" has a location for attribute %d but the vbo_mesh that is rendered has no such attributes\n", shader->name, array_id);
+                    log_warn(__FILE__, __LINE__, "the shader \"%s\" has a location for attribute \"%s\" but the vbo has no such attributes\n", shader->name, global_shader_attribute_names[array_id]);
                 }
                 continue;
             }
 
-            log_assert( c_num < INT_MAX );
-            loc[array_id] = shader_set_attribute(shader, array_id, mesh->vbo->buffer[array_id].id, (GLint)c_num, c_type, 0, (void*)(intptr_t)offset);
+            if( shader->attribute[array_id].location > -1 ) {
+                log_assert( c_num < INT_MAX );
+                loc[array_id] = shader_set_attribute(shader, array_id, mesh->vbo->buffer[array_id].id, (GLint)c_num, c_type, 0, (void*)(intptr_t)offset);
+            } else {
+                log_warn(__FILE__, __LINE__, "the shader \"%s\" is missing a location for the vbo attribute \"%s\"\n", shader->name, global_shader_attribute_names[array_id]);
+            }
         }
     }
 
