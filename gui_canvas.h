@@ -17,15 +17,15 @@
 #endif
 
 #ifndef MAX_CANVAS_LAYERS
-#define MAX_CANVAS_LAYERS 4
+#define MAX_CANVAS_LAYERS 3
 #endif
 
 #ifndef MAX_CANVAS_SHADER
-#define MAX_CANVAS_SHADER 8
+#define MAX_CANVAS_SHADER 4
 #endif
 
 #ifndef MAX_CANVAS_FONTS
-#define MAX_CANVAS_FONTS 4
+#define MAX_CANVAS_FONTS 2
 #endif
 
 #ifndef MAX_CANVAS_PROJECTIONS
@@ -36,7 +36,7 @@
 #define CANVAS_PROJECT_SCREEN 1
 
 #ifndef MAX_CANVAS_TEXTURES
-#define MAX_CANVAS_TEXTURES 16
+#define MAX_CANVAS_TEXTURES 8
 #endif
 
 #ifndef MAX_CANVAS_PRIMITIVES
