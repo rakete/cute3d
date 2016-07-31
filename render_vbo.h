@@ -27,11 +27,11 @@
 #include "geometry_solid.h"
 #include "geometry_halfedgemesh.h"
 
-void vbo_mesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct VboMesh* mesh);
+void vbo_mesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct Ibo* const ibo, struct VboMesh* mesh);
 
 // - this used to be halfedgemesh_flush function which I rewrote and put here because this originally
 // used a struct Solid as output, which was a very unfitting choise, so this now fills a vbomesh instead
-void vbo_mesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct VboMesh* mesh);
+void vbo_mesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct Ibo* const ibo, struct VboMesh* mesh);
 
 void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct Camera* camera, const Mat model_matrix);
 

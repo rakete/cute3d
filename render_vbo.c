@@ -16,14 +16,14 @@
 
 #include "render_vbo.h"
 
-void vbo_mesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct VboMesh* mesh) {
+void vbo_mesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct Ibo* const ibo, struct VboMesh* mesh) {
     log_assert( solid != NULL );
     log_assert( mesh != NULL );
 
-    vbo_mesh_create(vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, mesh);
+    vbo_mesh_create(vbo, ibo, mesh);
 
     size_t vertices_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX, VERTEX_SIZE, GL_FLOAT, solid->size, solid->vertices);
-    log_assert( vertices_n == solid->size );
+    log_assert( vertices_n == solid->size, "%zu == %zu\n", vertices_n, solid->size );
 
     if( vbo->buffer[SHADER_ATTRIBUTE_NORMAL].id ) {
         size_t normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMAL, NORMAL_SIZE, GL_FLOAT, solid->size, solid->normals);
@@ -84,7 +84,7 @@ void shitty_triangulate(float* vertices, int32_t n, int32_t m, int32_t* triangle
     log_assert( n == 3 || n == 4 );
 }
 
-void vbo_mesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct VboMesh* mesh) {
+void vbo_mesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, struct Vbo* const vbo, struct Ibo* const ibo, struct VboMesh* mesh) {
     log_assert( halfedgemesh->size >= 0 );
 
     uint32_t* triangles = malloc(sizeof(uint32_t) * (size_t)halfedgemesh->size);
@@ -232,7 +232,7 @@ void vbo_mesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, 
     //solid_optimize(&solid, &solid);
 
     // using a solid as input somewhere else is ok
-    vbo_mesh_create_from_solid(&solid, vbo, mesh);
+    vbo_mesh_create_from_solid(&solid, vbo, ibo, mesh);
 
     free(triangles);
     free(optimal);
@@ -247,6 +247,8 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
     log_assert( mesh != NULL );
     log_assert( shader != NULL );
     log_assert( camera != NULL );
+    log_assert( mesh->vbo != NULL);
+    log_assert( mesh->vbo->buffer->id > 0 );
 
     shader_use_program(shader);
 
@@ -273,7 +275,7 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
             uint32_t c_num = mesh->vbo->components[array_id].size;
             GLenum c_type = mesh->vbo->components[array_id].type;
             uint32_t c_bytes = mesh->vbo->components[array_id].bytes;
-            size_t offset = mesh->offset * c_num * c_bytes;
+            size_t attributes_offset = mesh->attributes.offset * c_num * c_bytes;
 
             loc[array_id] = -1;
             if( c_num == 0 || c_bytes == 0 ) {
@@ -284,25 +286,39 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
             }
 
             if( shader->attribute[array_id].location > -1 ) {
+                // - the shader_set_attribute functions call the glVertexAttribPointer function, the attributes_offset is set to indicate the where the meshes
+                // attributes start, this offset makes it possible that I can use indices that start from zero
+                // - the vertex attrib pointer (and therefore the attributes offset) becomes part of the vao, that means changing it later becomes difficult,
+                // if I need that, I could either throw away the vao, thus triggering this code again on the next render, or I could use the glDrawElementsBaseVertex
+                // call below instead of the plain glDrawElements, but that would not be possible in opengl es2
                 log_assert( c_num < INT_MAX );
-                loc[array_id] = shader_set_attribute(shader, array_id, mesh->vbo->buffer[array_id].id, (GLint)c_num, c_type, 0, (void*)(intptr_t)offset);
+                loc[array_id] = shader_set_attribute(shader, array_id, mesh->vbo->buffer[array_id].id, (GLint)c_num, c_type, 0, (void*)(intptr_t)attributes_offset);
             } else {
                 log_warn(__FILE__, __LINE__, "the shader \"%s\" is missing a location for the vbo attribute \"%s\"\n", shader->name, global_shader_attribute_names[array_id]);
             }
+        }
+
+        // - the element array buffer binding should be part of the vao, but it may be not on some drivers (intel):
+        // http://stackoverflow.com/questions/8973690/vao-and-element-array-buffer-state
+        if( mesh->indices.occupied > 0 ) {
+            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo->buffer->id); );
         }
     }
 
     shader_warn_locations(shader);
 
-    if( mesh->indices->id ) {
-        ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indices->id); );
-        ogl_debug( glDrawElements(mesh->primitives.type, mesh->indices->occupied, mesh->index.type, 0); );
-        ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) );
+    if( mesh->indices.occupied > 0 ) {
+        // - the 4th argument of glDrawElements is a pointer, but it is only used as a pointer if we are using a client side array, if
+        // we use a server side array, a vbo, then it acts like an offset
+        // - the indices_offset is the offset in bytes to where the indices start of the mesh we want to render, in the mesh->ibo->buffer->id
+        // buffer, we don't have to
+        intptr_t indices_offset = mesh->indices.offset * mesh->ibo->index.bytes;
+        ogl_debug( glDrawElements(mesh->ibo->primitives.type, mesh->indices.occupied, mesh->ibo->index.type, (void*)indices_offset); );
     } else {
         // - the offset is 0 here because we specify the offset already in the glVertexAttribPointer call above
         // - in this case we'd actually better just render the whole buffer as one batch anyways, and that
         // would be better done in another function
-        ogl_debug( glDrawArrays(mesh->primitives.type, 0, mesh->occupied[SHADER_ATTRIBUTE_VERTEX]) );
+        ogl_debug( glDrawArrays(mesh->ibo->primitives.type, 0, mesh->attributes.occupied[SHADER_ATTRIBUTE_VERTEX]) );
     }
 
 #ifndef CUTE_BUILD_ES2
@@ -318,6 +334,9 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
             }
         }
 
+        if( mesh->indices.occupied > 0 ) {
+            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) );
+        }
         ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, 0); );
     }
 

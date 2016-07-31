@@ -35,9 +35,17 @@
 
 #ifndef VBO_DEFAULT_ALLOC
 #ifdef CUTE_BUILD_ES2
-#define VBO_DEFAULT_ALLOC 32768
+#define VBO_DEFAULT_ALLOC 32786
 #else
-#define VBO_DEFAULT_ALLOC 32768
+#define VBO_DEFAULT_ALLOC 32786
+#endif
+#endif
+
+#ifndef IBO_DEFAULT_ALLOC
+#ifdef CUTE_BUILD_ES2
+#define IBO_DEFAULT_ALLOC 32786
+#else
+#define IBO_DEFAULT_ALLOC 32786
 #endif
 #endif
 
@@ -50,7 +58,8 @@ enum VboScheduling {
 
 // meshes are made up of primitives, like triangles, quads, lines, points
 // a primitive is made up of attributes, those could be vertices, normals, texcoords
-// each element itself is just a bunch of numbers, like three floats for a vertex, or two ints for a texcoord
+// each element itself is just a bunch of numbers, like three floats for a vertex, or two ints for a texcoord,
+// these are components
 //
 // vbos are buffers that contain the components
 // for example a vertex array might contain floats of which three at a time make up a single vertex
@@ -74,23 +83,27 @@ struct Vbo {
     } components[MAX_SHADER_ATTRIBUTES];
 
     // - the units of these are in attributes, capacity is universally used for the different attribute buffers,
-    //   which may all have different numbers of components, so then these must indicate for example how many
-    //   vertices are in a buffer, and to get the actual buffer size, these must be multiplied by
-    //   components[buffer]->size
+    // which may all have different numbers of components, so then these must indicate for example how many
+    // vertices are in a buffer, and to get the actual buffer size in bytes these must be multiplied by
+    // components[buffer]->size * components[buffer]->bytes
     size_t capacity; // size of the whole buffer
     size_t occupied; // actual space used by meshes
 
-    struct VboScheduler{
-        uint32_t phase;
-        int32_t dirty[MAX_VBO_PHASES];
-        GLsync fence[MAX_VBO_PHASES];
-        enum VboScheduling type;
-        size_t offset;
-    } scheduler;
+    // - this is not used yet, I wanted to have a system at some point in the future where I could stream attributes
+    // into vbos constantly, and rotate between multiple vbos so that rendering and uploading could all happen simultanously,
+    // just like it is described in my opengl insights book, this is just an idea on how to do that
+    /* struct VboScheduler{ */
+    /*     uint32_t phase; */
+    /*     int32_t dirty[MAX_VBO_PHASES]; */
+    /*     GLsync fence[MAX_VBO_PHASES]; */
+    /*     enum VboScheduling type; */
+    /*     size_t offset; */
+    /* } scheduler; */
+    /* void vbo_wait(struct Vbo* vbo); */
+    /* void vbo_sync(struct Vbo* vbo); */
 };
 
 void vbo_create(struct Vbo* p);
-void vbo_destroy(struct Vbo* p);
 
 void vbo_print(struct Vbo* vbo);
 
@@ -107,9 +120,6 @@ WARN_UNUSED_RESULT size_t vbo_available_capacity(struct Vbo* vbo);
 void* vbo_map(struct Vbo* vbo, int32_t i, size_t offset, size_t length, GLbitfield access);
 GLboolean vbo_unmap(struct Vbo* vbo, int32_t i);
 
-/* void vbo_wait(struct Vbo* vbo); */
-/* void vbo_sync(struct Vbo* vbo); */
-
 struct Ibo {
     struct IboBuffer {
         GLuint id; // index buffer
@@ -117,6 +127,7 @@ struct Ibo {
     } _internal_buffer[MAX_VBO_PHASES];
     struct IboBuffer* buffer;
 
+    // type information about individual index values
     struct IboIndex {
         GLenum type; // something GL_UNSIGNED_INT
         uint32_t bytes; // sizeof type
@@ -133,8 +144,7 @@ struct Ibo {
     size_t occupied; // space already used
 
 #ifndef CUTE_BUILD_ES2
-    // glDrawElementsBaseVertex is not in OpenGL ES 2.0, so I disable this here when I compile
-    // with emscripten so that I get errors when I use it elsewhere
+    // glDrawElementsBaseVertex is not in OpenGL es2
     size_t base; // base vertex index
 #endif
 };
@@ -156,41 +166,47 @@ GLboolean ibo_unmap(struct Ibo* ibo);
 // since these come from the arrays that are stored in vbos, there is an additional type of buffer
 // called the index buffer that contains not components, but indices into the vbos
 struct VboMesh {
+    struct Vbo* vbo;
     struct VboMeshAttributes {
-        struct Vbo* vbo;
-        size_t offset;
+        size_t offset; // offset in vbo buffers
+
+        // - capacity in vbomesh is occupied in vbo
+        // - occupied in vbomesh is the actual used space that has attributes in it
+        // - same unit as the ones in struct Vbo
+        // - there is only one capacity, but one occupied for each attribute, because when
+        // we allocate, we always allocate all attributes, then capacity represents all
+        // space available for all attributes, but occupied needs to be specific for each
+        // attribute because we append each one in a seperate vbo_mesh_append_attributes
+        // call and therefore need to keep track of how much is occupied seperately
         size_t capacity; // capacity of mesh in vbo
         size_t occupied[MAX_SHADER_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer
-    } attributes_new;
+    } attributes;
 
+    struct Ibo* ibo;
     struct VboMeshIndices {
-        struct Ibo* ibo;
         size_t offset;
         size_t capacity;
         size_t occupied;
-    } indices_new;
+    } indices;
 
-    struct Vbo* vbo;
+    /* struct Vbo* vbo; */
 
-    size_t offset; // offset in vbo buffers
+    /* size_t offset; */
 
-    // - capacity in vbomesh is occupied in vbo
-    // - occupied in vbomesh is the actual used space that has attributes in it
-    // - same unit as the ones in struct Vbo
-    size_t capacity; // capacity of mesh in vbo
-    size_t occupied[MAX_SHADER_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer
+    /* size_t capacity; // capacity of mesh in vbo */
+    /* size_t occupied[MAX_SHADER_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer */
 
     // information about the index type used in the primitives buffer
-    struct VboMeshIndex {
-        GLenum type; // something GL_UNSIGNED_INT
-        uint32_t bytes; // sizeof type
-    } index;
+    /* struct VboMeshIndex { */
+    /*     GLenum type; // something GL_UNSIGNED_INT */
+    /*     uint32_t bytes; // sizeof type */
+    /* } index; */
 
-    // the primitives (like triangles)
-    struct VboMeshPrimitives {
-        GLenum type; // something like GL_TRIANGLES
-        uint32_t size; // how many attributes per primitive
-    } primitives;
+    /* // the primitives (like triangles) */
+    /* struct VboMeshPrimitives { */
+    /*     GLenum type; // something like GL_TRIANGLES */
+    /*     uint32_t size; // how many attributes per primitive */
+    /* } primitives; */
 
     // - this is the buffer that contains the actual indices making up the primitives
     // - I could put this into vbo instead, it is possible since glDrawElements can take an
@@ -231,20 +247,20 @@ struct VboMesh {
     // - when I do this I also should check that a mesh can be created without indices, because
     // often my simple solids can be render just fine with glDrawArrays, and I should just make
     // sure that everthing works when I just not call vbomesh_append_indices at all
-    struct VboMeshIndexBuffer {
-        GLuint id; // index buffer
-        GLenum usage;
-#ifndef CUTE_BUILD_ES2
-        // glDrawElementsBaseVertex is not in OpenGL ES 2.0, so I disable this here when I compile
-        // with emscripten so that I get errors when I use it elsewhere
-        size_t base; // base vertex index
-#endif
+/*     struct VboMeshIndexBuffer { */
+/*         GLuint id; // index buffer */
+/*         GLenum usage; */
+/* #ifndef CUTE_BUILD_ES2 */
+/*         // glDrawElementsBaseVertex is not in OpenGL es2, so I disable this here when I compile */
+/*         // with emscripten so that I get errors when I use it elsewhere */
+/*         size_t base; // base vertex index */
+/* #endif */
 
-        // the unit here is indices, not primitives
-        size_t capacity; // size of the buffer
-        size_t occupied; // space already used
-    } _internal_indices[MAX_VBO_PHASES];
-    struct VboMeshIndexBuffer* indices;
+/*         // the unit here is indices, not primitives */
+/*         size_t capacity; // size of the buffer */
+/*         size_t occupied; // space already used */
+/*     } _internal_indices[MAX_VBO_PHASES]; */
+/*     struct VboMeshIndexBuffer* indices_old; */
 
     // - to prevent z fighting a random small offset value is put here that can be
     // used in a rendering function to offset the mesh by a small amount
@@ -255,13 +271,14 @@ struct VboMesh {
 #endif
 };
 
-void vbo_mesh_create(struct Vbo* vbo, GLenum primitive_type, GLenum index_type, GLenum usage, struct VboMesh* mesh);
+void vbo_mesh_create(struct Vbo* vbo, struct Ibo* ibo, struct VboMesh* mesh);
 
 void vbo_mesh_print(struct VboMesh* mesh);
 
 // put a common pattern to check if a mesh is last in vbo in here so I don't wonder about it
 // everytime I come back to this code/have to only document it once, here
-bool vbo_mesh_test_last(struct VboMesh* mesh);
+bool vbo_mesh_test_last_attributes(struct VboMesh* mesh);
+bool vbo_mesh_test_last_indices(struct VboMesh* mesh);
 
 // functions to allocate new space in a mesh
 WARN_UNUSED_RESULT size_t vbo_mesh_alloc_attributes(struct VboMesh* mesh, size_t n);
@@ -274,10 +291,6 @@ void vbo_mesh_clear_indices(struct VboMesh* mesh);
 // append adds new stuff at the end of occupied, allocates new capacity if neccessary
 WARN_UNUSED_RESULT size_t vbo_mesh_append_attributes(struct VboMesh* mesh, int32_t i, uint32_t components_size, GLenum components_type, size_t n, void* data);
 WARN_UNUSED_RESULT size_t vbo_mesh_append_indices(struct VboMesh* mesh, size_t n, void* data);
-
-// mapping whole mesh into host memory, probably untested
-WARN_UNUSED_RESULT void* vbo_mesh_map(struct VboMesh* mesh, size_t offset, size_t length, GLbitfield access);
-GLboolean vbo_mesh_unmap(struct VboMesh* mesh);
 
 #endif
 
