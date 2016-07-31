@@ -189,79 +189,6 @@ struct VboMesh {
         size_t occupied;
     } indices;
 
-    /* struct Vbo* vbo; */
-
-    /* size_t offset; */
-
-    /* size_t capacity; // capacity of mesh in vbo */
-    /* size_t occupied[MAX_SHADER_ATTRIBUTES]; // information about how many attributes are occupied by this mesh per buffer */
-
-    // information about the index type used in the primitives buffer
-    /* struct VboMeshIndex { */
-    /*     GLenum type; // something GL_UNSIGNED_INT */
-    /*     uint32_t bytes; // sizeof type */
-    /* } index; */
-
-    /* // the primitives (like triangles) */
-    /* struct VboMeshPrimitives { */
-    /*     GLenum type; // something like GL_TRIANGLES */
-    /*     uint32_t size; // how many attributes per primitive */
-    /* } primitives; */
-
-    // - this is the buffer that contains the actual indices making up the primitives
-    // - I could put this into vbo instead, it is possible since glDrawElements can take an
-    // offset into a buffer as last argument, I don't remember why I originally put this
-    // in vbomesh instead, but I suspect because it made things somehow easier to implement
-    // - as of now, I decided against refactoring this part and putting the indices into
-    // vbo because the existing solution should be more flexible for meshes where I have
-    // a fixed amount of vertices and then change the indices to get dynamic geometry, that was,
-    // I believe, my original intention here
-    // - of course, if I would instead stream my data every frame, this solution is not optimal
-    // because I would have to map/bind every index buffer for every mesh, instead of just
-    // mapping/binding one big index buffer once, as I could do with the attributes buffers
-    // in vbo
-    // - I just came back to this again thinking about putting the index buffer somehow into
-    // the vbo instead of here, the reason I wanted to do this is so that memory management
-    // becomes easier, without the index buffer, the meshes can just be treated like local stack
-    // variables, they'll deallocate automatically once they go out of scope, with the index
-    // buffer allocated on the gpu, I have to explicitly deconstruct every mesh
-    // - one problem with this right here: I can not create a local VboMesh and then return
-    // a copy, the indices pointer will always be wrong! moving this into Vbo would help
-    // - when thinking about implementing color picking, to minimize drawcalls, it would be
-    // better if the indices would be in one big buffer instead of multiple smaller ones, then
-    // I could just pass a whole vbo (and ibo?) into a picking function and would only need
-    // one drawcall, but (!) I would additionally need something like instancing, something
-    // to pass in the model matrices for the seperate meshes! otherwise it would not reduce
-    // the amount of drawcalls
-    // - given the last two points, I want to make this seperate from VboMesh, but, my initial
-    // thinking it should be part of Vbo, is not optimal I believe, it should be seperate,
-    // I want an Ibo struct in addition to an Vbo struct, which I then point to from VboMesh,
-    // that also reflects better the notion that attribute data is 'fixed', whereas indices can
-    // be streamed in for every frame, or may be completely replaced
-    // - the reason I don't want to put it into the struct Vbo is because I will need to have to
-    // implement all the alloc/management functions for the ibo, and I don't want to have to deal
-    // with the conflicting names of the vbo functions
-    // - when I do this, I could wrap the vbo pointer above together with offset, occupied and
-    // capacity in a attributes struct, and then have the same, but with an ibo pointer, in an
-    // indices struct
-    // - when I do this I also should check that a mesh can be created without indices, because
-    // often my simple solids can be render just fine with glDrawArrays, and I should just make
-    // sure that everthing works when I just not call vbomesh_append_indices at all
-/*     struct VboMeshIndexBuffer { */
-/*         GLuint id; // index buffer */
-/*         GLenum usage; */
-/* #ifndef CUTE_BUILD_ES2 */
-/*         // glDrawElementsBaseVertex is not in OpenGL es2, so I disable this here when I compile */
-/*         // with emscripten so that I get errors when I use it elsewhere */
-/*         size_t base; // base vertex index */
-/* #endif */
-
-/*         // the unit here is indices, not primitives */
-/*         size_t capacity; // size of the buffer */
-/*         size_t occupied; // space already used */
-/*     } _internal_indices[MAX_VBO_PHASES]; */
-/*     struct VboMeshIndexBuffer* indices_old; */
-
     // - to prevent z fighting a random small offset value is put here that can be
     // used in a rendering function to offset the mesh by a small amount
     float z_offset;
@@ -294,14 +221,6 @@ WARN_UNUSED_RESULT size_t vbo_mesh_append_indices(struct VboMesh* mesh, size_t n
 
 #endif
 
-/* struct VboMesh* vbo_mesh_clone(struct VboMesh* mesh); */
-
-/* void vbo_mesh_quad(struct mesh* mesh, uint32_t a, uint32_t b, uint32_t c, uint32_t d); */
-
-/* struct mesh* vbo_mesh_union(struct mesh* a, struct mesh* b); */
-
-/* struct mesh* vbo_mesh_copy(struct mesh* mesh, struct vbo* to_vbo, uint64_t to_offset); */
-
 // mesh operations
 // create:
 //   initialize mesh struct with default values, does not allocate any space
@@ -326,10 +245,10 @@ WARN_UNUSED_RESULT size_t vbo_mesh_append_indices(struct VboMesh* mesh, size_t n
 
 // OUTDATED (?) STUFF BELOW
 
-// a buffer has a SIZE
-// space in a buffer is RESERVED for meshes
-// a mesh represents a certain SIZE of occupied buffer space
-// space is USED by actual geometry data
+// a buffer has a CAPACITY
+// space in a buffer is OCCUPIED by meshes
+// a mesh represents a certain chunk of buffer space, which itself has
+// a CAPACITY of which space is OCCUPIED by the actual geometry
 
 // buffer: 0+++++++++++++++++++++++++++++++++++++++++1--------------------2
 // mesh1 : 3**********4=======5
@@ -340,20 +259,19 @@ WARN_UNUSED_RESULT size_t vbo_mesh_append_indices(struct VboMesh* mesh, size_t n
 // 1 is buffer->occupied, it changes when a new mesh is created,
 //   the last meshs size grows, data is appended to the last mesh that
 //   is bigger then the remaining space in the last mesh
-// 2 is buffer->size, it changes when the buffer grows, the last mesh
-//   grows beyond the buffersize, a new mesh is created bigger then
-//   the remaining free space in a buffer
+// 2 is buffer->capacity, it changes when the buffer grows
 // 3 and 6 are mesh1->offset and mesh2->offset, they never change
-// 4 and 7 are mesh1->offset + mesh1->used and mesh2->offset + mesh2->used
+// 4 and 7 are mesh1->offset + mesh1->occupied and mesh2->offset + mesh2->occupied
 //   they change when data is added to the mesh
-// 5 and 8 are mesh1->offset + mesh1->size and mesh2->offset + mesh2->size,
+// 5 and 8 are mesh1->offset + mesh1->capacity and mesh2->offset + mesh2->capacity,
 //   they can only change for the last mesh in the buffer, when data is added
-//   that makes the used space grow beyond the meshes size
-// range 9-10 is returned by vbo_mesh_freespace(mesh1), it is equal to
-//   mesh1->size - mesh1->used
-// range 11-10 is a special case, vbo_mesh_freespace(mesh2) should return the
-//   remaining space in the buffer since mesh2 is the last mesh,
-//   finding the last mesh can be done by going through all meshes of the
-//   buffer in reverse order (most likely the first test is going to be
-//   successful) and checking if mesh->offset + mesh->size equals
-//   buffer->occupied
+//   that makes the used space grow beyond the meshes size (it may at some point be
+//   possible to grow a mesh beyond its capacity even when it is not the last mesh of
+//   a buffer by implementing some way that copies the mesh from its position to the
+//   last position, invaldiates the old one and appends data to the new one)
+// range 9-10 is the free space in mesh1, it is computed with mesh1->capacity -
+//   mesh1->occupied
+// range 11-12 is a special case, it is actually the free space range of mesh2
+//   (mesh2->capacity - mesh2->occupied) together with the free space range of the whole
+//   buffer, which can be computed with the function vbo_available_capacity(vbo), so:
+//   (mesh2->capacity - mesh2->occupied) + vbo_available_capacity(vbo)
