@@ -4,6 +4,7 @@ import platform
 import subprocess
 import sys
 import os
+import re
 
 def command_exists(cmd):
     for path in os.environ["PATH"].split(os.pathsep):
@@ -21,8 +22,8 @@ def pairwise(it):
         yield next(it), next(it)
 
 # - I support out of tree builds, and so I take the path where this script lies, an absolute path,
-# and then use that script_directory to compute a relative path from the current_directory, which is
-# also the (potential) out of tree build_directory, to the source_directory
+# and then use that script_directory to compute a relative path from the current_directory to the
+# source_directory
 script_directory = os.path.dirname(os.path.realpath(__file__))
 current_directory = os.getcwd()
 source_directory = os.path.relpath(script_directory, current_directory)
@@ -63,7 +64,7 @@ print "build_toolset: " + build_toolset
 
 # - now that the toolset and platform are known, I set the compiler and linker parameter settings according
 # to which toolset/platform combination has been selected
-# - I try to organize this settings into different categories:
+# - I try to organize these. settings into different categories:
 #  - features: compiler features and debugging
 #  - optimization: code optimization settings
 #  - linking: parameters that influence linking
@@ -215,7 +216,7 @@ if glsl_validate:
     prefix_shader = [os.path.join("shader", "prefix.vert"), os.path.join("shader", "prefix.frag")]
     prefix_shader_string = " ".join(prefix_shader)
 
-    w.rule(name="validate_glsl", command="python " + glsl_validate + " " + prefix_shader_string + " $in --write")
+    w.rule(name="validate_glsl", command="python " + glsl_validate + " --no-color " + prefix_shader_string + " $in --write shader")
     w.newline()
 
 # - for every shader in the source+shader directory, we need to create several build statements:
@@ -241,6 +242,9 @@ os.chdir(current_directory)
 # writes if given the --write parameter (like shader/flat.full.vert)
 # - notice that the full_vert_shader path is relative to the current build directory
 for shader_filename in shader_filenames:
+    if re.search("\.full$", shader_filename):
+        continue
+
     vert_shader = shader_filename + ".vert"
     frag_shader = shader_filename + ".frag"
     source_vert_shader = os.path.join(shader_directory, vert_shader)
@@ -275,8 +279,8 @@ for shader_filename in shader_filenames:
         # outside so that nothing gets append if this is _not_ an out of source build and glsl_validate.py does _not_
         # exist
         if glsl_validate and shader_filename != "prefix":
-            w.build(full_vert_shader, "validate_glsl", dest_vert_shader, order_only=prefix_deps)
-            w.build(vert_shader, "phony", full_vert_shader)
+            w.build(full_vert_shader, "validate_glsl", source_vert_shader, order_only=prefix_deps)
+            w.build(vert_shader, "phony", full_vert_shader, dest_vert_shader)
             shaders.append(vert_shader)
         elif os.path.relpath(build_directory, script_directory) != ".":
             w.build(vert_shader, "phony", dest_vert_shader)
@@ -291,8 +295,8 @@ for shader_filename in shader_filenames:
             w.build(dest_frag_shader, "copy", source_frag_shader, order_only=["shader"])
 
         if glsl_validate and shader_filename != "prefix":
-            w.build(full_frag_shader, "validate_glsl", dest_frag_shader, order_only=prefix_deps)
-            w.build(frag_shader, "phony", full_frag_shader)
+            w.build(full_frag_shader, "validate_glsl", source_frag_shader, order_only=prefix_deps)
+            w.build(frag_shader, "phony", full_frag_shader, dest_frag_shader)
             shaders.append(frag_shader)
         else:
             w.build(frag_shader, "phony", dest_frag_shader)
