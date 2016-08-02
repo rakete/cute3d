@@ -71,7 +71,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_set_uniform_3f(&shader, shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
     Color ambiance = {50, 25, 150, 255};
-    shader_set_uniform_4f(&shader, shader.program, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
+    shader_set_uniform_4f(&shader, shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
 
     while (true) {
         SDL_Event event;

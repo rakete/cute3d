@@ -2,8 +2,8 @@
 uniform mat4 mvp_matrix;
 
 shader_in vec3 vertex;
-shader_in vec4 color;
-shader_in vec2 texcoord;
+shader_in vec4 diffuse_color;
+shader_in vec2 vertex_texcoord;
 shader_in vec3 next_vertex;
 shader_in float line_thickness;
 
@@ -20,8 +20,8 @@ void main()
         safe_aspect = aspect_ratio;
     }
 
-    frag_texcoord = texcoord;
-    frag_color = color;
+    frag_texcoord = vertex_texcoord;
+    frag_color = diffuse_color;
 
     //compute vertices position in clip space
     vec4 current_projected = mvp_matrix * vec4(vertex, 1.0);
@@ -38,8 +38,8 @@ void main()
     }
 
     // offset position in screen space along line direction and orthogonal direction
-    vec2 offset_x = line_dir.xy * texcoord.xx * vec2(1.0, safe_aspect);
-    vec2 offset_y = line_dir.yx * vec2(1.0, -1.0) * texcoord.yy * vec2(1.0, safe_aspect);
+    vec2 offset_x = line_dir.xy * vertex_texcoord.xx * vec2(1.0, safe_aspect);
+    vec2 offset_y = line_dir.yx * vec2(1.0, -1.0) * vertex_texcoord.yy * vec2(1.0, safe_aspect);
     if( line_z_scaling > 0.0 ) {
         // I scale according to the projected z coordinate so that lines will always have
         // a minimum thickness on the screen, even when very far away, the clamping is what

@@ -186,8 +186,8 @@ void draw_line(struct Canvas* canvas,
     // makes the stack allocations much more predictable, since the arrays here are fixed size
     uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].occupied;
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, 14, vertices);
-    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_COLOR, 4, GL_UNSIGNED_BYTE, 14, colors);
-    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_TEXCOORD, 2, GL_FLOAT, 14, texcoords);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, 14, colors);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, 2, GL_FLOAT, 14, texcoords);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_NEXT_VERTEX, 3, GL_FLOAT, 14, next_vertices);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_LINE_THICKNESS, 1, GL_FLOAT, 14, thickness_array);
     canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "volumetric_lines_shader", CANVAS_PROJECT_WORLD, GL_TRIANGLES, 12*3, triangles, offset);

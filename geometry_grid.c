@@ -492,8 +492,8 @@ void grid_pageout(struct Grid* grid, struct GridPages* pages, uint64_t page, uin
 
 
 /*     size_t vertices_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, n, vertices); */
-/*     size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, n, normals); */
-/*     size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, n, colors); */
+/*     size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, n, normals); */
+/*     size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, n, colors); */
 /*     log_assert( vertices_n == n ); */
 /*     log_assert( normals_n == n ); */
 /*     log_assert( colors_n == n ); */

@@ -43,10 +43,12 @@ int32_t init_shader() {
     }
 
     global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX] = "vertex";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_NORMAL] = "normal";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_COLOR] = "color";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_TEXCOORD] = "texcoord";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX_NORMAL] = "vertex_normal";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX_TEXCOORD] = "vertex_texcoord";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_DIFFUSE_COLOR] = "diffuse_color";
 
+    global_shader_attribute_names[SHADER_ATTRIBUTE_AMBIENT_COLOR] = "ambient_color";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_SPECULAR_COLOR] = "specular_color";
     global_shader_attribute_names[SHADER_ATTRIBUTE_INSTANCE_ID] = "instance_id";
     global_shader_attribute_names[SHADER_ATTRIBUTE_PREV_VERTEX] = "prev_vertex";
     global_shader_attribute_names[SHADER_ATTRIBUTE_NEXT_VERTEX] = "next_vertex";
@@ -60,9 +62,9 @@ int32_t init_shader() {
     global_shader_uniform_names[SHADER_UNIFORM_PROJECTION_MATRIX] = "projection_matrix";
     global_shader_uniform_names[SHADER_UNIFORM_NORMAL_MATRIX] = "normal_matrix";
 
-    global_shader_uniform_names[SHADER_UNIFORM_AMBIENT_COLOR] = "ambient_color";
-    global_shader_uniform_names[SHADER_UNIFORM_DIFFUSE_COLOR] = "diffuse_color";
-    global_shader_uniform_names[SHADER_UNIFORM_SPECULAR_COLOR] = "specular_color";
+    global_shader_uniform_names[SHADER_UNIFORM_AMBIENT_LIGHT] = "ambient_light";
+    global_shader_uniform_names[SHADER_UNIFORM_DIFFUSE_LIGHT] = "diffuse_light";
+    global_shader_uniform_names[SHADER_UNIFORM_SPECULAR_LIGHT] = "specular_light";
     global_shader_uniform_names[SHADER_UNIFORM_LIGHT_DIRECTION] = "light_direction";
     global_shader_uniform_names[SHADER_UNIFORM_LIGHT_POSITION] = "light_position";
     global_shader_uniform_names[SHADER_UNIFORM_LIGHT_ATTENUATION] = "light_attenuation";
@@ -245,9 +247,9 @@ void shader_setup_locations(struct Shader* p) {
                 case SHADER_UNIFORM_PROJECTION_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
                 case SHADER_UNIFORM_NORMAL_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
 
-                case SHADER_UNIFORM_AMBIENT_COLOR: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
-                case SHADER_UNIFORM_DIFFUSE_COLOR: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
-                case SHADER_UNIFORM_SPECULAR_COLOR: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
+                case SHADER_UNIFORM_AMBIENT_LIGHT: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
+                case SHADER_UNIFORM_DIFFUSE_LIGHT: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
+                case SHADER_UNIFORM_SPECULAR_LIGHT: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
                 case SHADER_UNIFORM_LIGHT_DIRECTION: ogl_debug(glUniform3f(location, 0.0f, 0.0f, 1.0f)); break;
                 case SHADER_UNIFORM_LIGHT_POSITION: ogl_debug(glUniform3f(location, 0.0f, 1.0f, 0.0f)); break;
                 case SHADER_UNIFORM_LIGHT_ATTENUATION: ogl_debug(glUniform1f(location, 1.0f)); break;
@@ -822,6 +824,8 @@ GLint shader_set_attribute(struct Shader* shader, int32_t attribute_i, GLuint bu
     log_assert( location > -1 );
     log_assert( strlen(shader->attribute[attribute_i].name) > 0 );
 
+    // - is here potential for optimization? can I just glEnableVertexAttribArray the same location and
+    // get the assigned state back?
     ogl_debug( glEnableVertexAttribArray((GLuint)location);
                glBindBuffer(GL_ARRAY_BUFFER, buffer);
                // - glVertexAttribPointer requires a vao to be bound in core 3.0+, if none is bound,

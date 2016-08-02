@@ -2,7 +2,7 @@
 uniform mat4 mvp_matrix;
 
 shader_in vec3 vertex;
-shader_in vec4 color;
+shader_in vec4 diffuse_color;
 
 shader_in vec3 next_vertex;
 shader_in vec3 prev_vertex;
@@ -73,5 +73,5 @@ void main() {
     gl_Position = current_projected + offset;
     gl_PointSize = 1.0;
 
-    frag_color = color;
+    frag_color = diffuse_color;
 }

@@ -73,7 +73,7 @@ int32_t main(int32_t argc, char *argv[]) {
     /* shader_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction); */
 
     /* Color ambiance = { 0.25, 0.1, 0.2, 1.0 }; */
-    /* shader_uniform(&shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance); */
+    /* shader_uniform(&shader, SHADER_UNIFORM_AMBIENT_LIGHT, "ambiance", "4f", ambiance); */
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.01, 1000.0, &arcball);
@@ -102,8 +102,8 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Canvas text_canvas = {0};
     canvas_create("text_canvas", &text_canvas);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
-    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE);
-    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_TEXCOORDS, 2, GL_FLOAT);
+    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_DIFFUSE_COLORS, 4, GL_UNSIGNED_BYTE);
+    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORDS, 2, GL_FLOAT);
     log_assert( canvas_add_shader(&text_canvas, shader.name, &shader) < MAX_CANVAS_SHADER );
     log_assert( canvas_add_font(&text_canvas, "other_font", &font) < MAX_CANVAS_FONTS );
 

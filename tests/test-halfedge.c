@@ -40,8 +40,8 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Vbo vbo = {0};
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
     struct SolidTetrahedron tetrahedron = {0};
     struct SolidBox box = {0};
@@ -104,10 +104,10 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_set_uniform_3f(&shader, shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
     Color ambiance = {50, 25, 150, 255};
-    shader_set_uniform_4f(&shader, shader.program, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
+    shader_set_uniform_4f(&shader, shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
 
     /* float foo[4] = {0.2, 0.1, 0.2, 1.0}; */
-    /* shader_set_uniform(&shader, SHADER_UNIFORM_AMBIENT_COLOR, "4f", 4, GL_FLOAT, foo); */
+    /* shader_set_uniform(&shader, SHADER_UNIFORM_AMBIENT_LIGHT, "4f", 4, GL_FLOAT, foo); */
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){0.0,8.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 1.0, 100.0, &arcball);
@@ -156,15 +156,6 @@ int32_t main(int32_t argc, char *argv[]) {
         Mat grid_transform = {0};
         quat_to_mat(grid_rotation, grid_transform);
         draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 0.02f, 12.0f, 12.0f, 12);
-
-        /* draw_solid_normals(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, (struct Solid*)&tetrahedron, 0.1f); */
-        /* draw_solid_normals(&global_dynamic_canvas, 1, box_transform, (Color){255, 255, 0, 255}, (struct Solid*)&box, 0.1f); */
-        /* draw_solid_normals(&global_dynamic_canvas, 1, cube_transform, (Color){255, 255, 0, 255}, (struct Solid*)&cube, 0.1f); */
-        /* draw_solid_normals(&global_dynamic_canvas, 1, sphere16_transform, (Color){255, 255, 0, 255}, (struct Solid*)&sphere16, 0.1f); */
-        /* draw_solid_normals(&global_dynamic_canvas, 1, sphere32_transform, (Color){255, 255, 0, 255}, (struct Solid*)&sphere32, 0.1f); */
-
-        //draw_halfedgemesh_face(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, &tetrahedron_hemesh, 0);
-        //draw_halfedgemesh_edge(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, &tetrahedron_hemesh, 0);
 
         draw_halfedgemesh_wire(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, 0.02f, &tetrahedron_hemesh);
         draw_halfedgemesh_wire(&global_dynamic_canvas, 1, box_transform, (Color){255, 255, 0, 255}, 0.02f, &box_hemesh);

@@ -84,7 +84,7 @@ int32_t main(int32_t argc, char** argv) {
     shader_set_uniform(&default_shader, SHADER_MVP_MATRIX, "mvp_matrix", NULL, NULL);
     shader_set_uniform(&default_shader, SHADER_NORMAL_MATRIX, "normal_matrix", NULL, NULL);
     shader_set_uniform(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction", NULL, NULL);
-    shader_set_uniform(&default_shader, SHADER_AMBIENT_COLOR, "ambiance", NULL, NULL);
+    shader_set_uniform(&default_shader, SHADER_UNIFORM_AMBIENT_LIGHT, "ambiance", NULL, NULL);
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){0.0, 4.0, 8.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 0.001, 1000.0, &arcball);
@@ -144,7 +144,7 @@ int32_t main(int32_t argc, char** argv) {
         shader_set_uniform(&default_shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction);
 
         Color ambiance = { .1, .1, .3, 1.0 };
-        shader_set_uniform(&default_shader, SHADER_AMBIENT_COLOR, "ambiance", "4f", ambiance);
+        shader_set_uniform(&default_shader, SHADER_UNIFORM_AMBIENT_LIGHT, "ambiance", "4f", ambiance);
 
         Mat cube_transform = {0};
         mat_identity(cube_transform);

@@ -12,20 +12,22 @@
 
 // sooner or later I am going to need to supply custom attributes to shaders,
 // defining them here like this seems to be the most sane way
-#define MAX_CUSTOM_ATTRIBUTES 6
-#define SHADER_ATTRIBUTE_INSTANCE_ID MAX_OGL_ATTRIBUTES+0
-#define SHADER_ATTRIBUTE_PREV_VERTEX MAX_OGL_ATTRIBUTES+1
-#define SHADER_ATTRIBUTE_NEXT_VERTEX MAX_OGL_ATTRIBUTES+2
-#define SHADER_ATTRIBUTE_LINE_THICKNESS MAX_OGL_ATTRIBUTES+3
-#define SHADER_ATTRIBUTE_BARYCENTRIC_COORDINATE MAX_OGL_ATTRIBUTES+4
-#define SHADER_ATTRIBUTE_SMOOTH_NORMAL MAX_OGL_ATTRIBUTES+5
+#define MAX_CUSTOM_ATTRIBUTES 8
+#define SHADER_ATTRIBUTE_AMBIENT_COLOR MAX_OGL_ATTRIBUTES+0
+#define SHADER_ATTRIBUTE_SPECULAR_COLOR MAX_OGL_ATTRIBUTES+1
+#define SHADER_ATTRIBUTE_SMOOTH_NORMAL MAX_OGL_ATTRIBUTES+2
+#define SHADER_ATTRIBUTE_INSTANCE_ID MAX_OGL_ATTRIBUTES+3
+#define SHADER_ATTRIBUTE_PREV_VERTEX MAX_OGL_ATTRIBUTES+4
+#define SHADER_ATTRIBUTE_NEXT_VERTEX MAX_OGL_ATTRIBUTES+5
+#define SHADER_ATTRIBUTE_LINE_THICKNESS MAX_OGL_ATTRIBUTES+6
+#define SHADER_ATTRIBUTE_BARYCENTRIC_COORDINATE MAX_OGL_ATTRIBUTES+7
 
 // attribute ids for arrays (and maybe locations)
 #define MAX_SHADER_ATTRIBUTES MAX_CUSTOM_ATTRIBUTES+MAX_OGL_ATTRIBUTES
 #define SHADER_ATTRIBUTE_VERTEX OGL_VERTEX
-#define SHADER_ATTRIBUTE_NORMAL OGL_NORMAL
-#define SHADER_ATTRIBUTE_COLOR OGL_COLOR
-#define SHADER_ATTRIBUTE_TEXCOORD OGL_TEXCOORD
+#define SHADER_ATTRIBUTE_VERTEX_NORMAL OGL_NORMAL
+#define SHADER_ATTRIBUTE_VERTEX_TEXCOORD OGL_TEXCOORD
+#define SHADER_ATTRIBUTE_DIFFUSE_COLOR OGL_COLOR
 
 // uniform ids for arrays (and maybe locations)
 #define MAX_SHADER_UNIFORMS 17
@@ -35,9 +37,9 @@
 #define SHADER_UNIFORM_PROJECTION_MATRIX 3
 #define SHADER_UNIFORM_NORMAL_MATRIX 4
 
-#define SHADER_UNIFORM_AMBIENT_COLOR 5
-#define SHADER_UNIFORM_DIFFUSE_COLOR 6
-#define SHADER_UNIFORM_SPECULAR_COLOR 7
+#define SHADER_UNIFORM_AMBIENT_LIGHT 5
+#define SHADER_UNIFORM_DIFFUSE_LIGHT 6
+#define SHADER_UNIFORM_SPECULAR_LIGHT 7
 #define SHADER_UNIFORM_LIGHT_DIRECTION 8
 #define SHADER_UNIFORM_LIGHT_POSITION 9
 #define SHADER_UNIFORM_LIGHT_ATTENUATION 10
@@ -91,7 +93,7 @@ struct Shader {
     // - but I don't because I have to use glGetUniformLocation anyways and I like that both cases
     // are handled in a similar fashion
     // - I could use (layout = 0) qualifiers but opengl 3.1 only has those for attributes and not
-    // uniforms and opengl es 2 has them not at all (I think)
+    // uniforms and opengl es2 has them not at all (I think)
     struct {
         GLint location;
         char name[256];
@@ -110,7 +112,7 @@ struct Shader {
     // - I decided against it and kept using the standard glUniform... calls because there
     // are quite a lot of hits for "uniform buffer objects performance" where peoply are having
     // problems with them
-    // - ubo are not supported in opengl es 2
+    // - ubo are not supported in opengl es2
     // - there are implementation dependent limitations that would have to be checked and handled
     // and I just don't think the added complexity is worth it
     // - debugging is twice as hard as writing code, so if you write your code as smart as you can,
