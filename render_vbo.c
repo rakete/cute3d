@@ -250,6 +250,8 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
     log_assert( mesh->vbo != NULL);
     log_assert( mesh->vbo->buffer->id > 0 );
 
+    shader_verify_locations(shader);
+
     shader_use_program(shader);
 
     Mat projection_matrix = {0};
@@ -259,6 +261,9 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
     log_assert( shader_set_uniform_matrices(shader, 0, projection_matrix, view_matrix, model_matrix) > -1 );
 
     GLint loc[MAX_SHADER_ATTRIBUTES] = {0};
+    for( int32_t array_id = 0; array_id < MAX_SHADER_ATTRIBUTES; array_id++ ) {
+        loc[array_id] = -1;
+    }
     bool not_binding_vao = true;
 
 #ifndef CUTE_BUILD_ES2
@@ -270,22 +275,22 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
     glBindVertexArray(mesh->vao);
 #endif
 
-    if( not_binding_vao ) {
-        for( int32_t array_id = 0; array_id < MAX_SHADER_ATTRIBUTES; array_id++ ) {
-            uint32_t c_num = mesh->vbo->components[array_id].size;
-            GLenum c_type = mesh->vbo->components[array_id].type;
-            uint32_t c_bytes = mesh->vbo->components[array_id].bytes;
-            size_t attributes_offset = mesh->attributes.offset * c_num * c_bytes;
+    for( int32_t array_id = 0; array_id < MAX_SHADER_ATTRIBUTES; array_id++ ) {
+        uint32_t c_num = mesh->vbo->components[array_id].size;
+        GLenum c_type = mesh->vbo->components[array_id].type;
+        uint32_t c_bytes = mesh->vbo->components[array_id].bytes;
+        size_t attributes_offset = mesh->attributes.offset * c_num * c_bytes;
 
-            loc[array_id] = -1;
-            if( c_num == 0 || c_bytes == 0 ) {
-                if( shader->attribute[array_id].location > -1 ) {
-                    log_warn(__FILE__, __LINE__, "the shader \"%s\" has a location for attribute \"%s\" but the vbo has no such attributes\n", shader->name, global_shader_attribute_names[array_id]);
-                }
-                continue;
-            }
+        if( c_num == 0 || c_bytes == 0 ) {
+            // - when this attribute is not part of the vbo, just continue
+            // - there used to be a warning here, when an attribute is not in the vbo, but the shader has a location for it, I got rid of it
+            // because I wanted all location warnings to happen in shader_warn_locations instead, it should sufficient that I warn when a shader
+            // location has never been set, to notice that something is missing, which I still do
+            continue;
+        }
 
-            if( shader->attribute[array_id].location > -1 ) {
+        if( shader->attribute[array_id].location > -1 ) {
+            if( not_binding_vao ) {
                 // - the shader_set_attribute functions call the glVertexAttribPointer function, the attributes_offset is set to indicate the where the meshes
                 // attributes start, this offset makes it possible that I can use indices that start from zero
                 // - the vertex attrib pointer (and therefore the attributes offset) becomes part of the vao, that means changing it later becomes difficult,
@@ -294,18 +299,27 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
                 log_assert( c_num < INT_MAX );
                 loc[array_id] = shader_set_attribute(shader, array_id, mesh->vbo->buffer[array_id].id, (GLint)c_num, c_type, 0, (void*)(intptr_t)attributes_offset);
             } else {
-                log_warn(__FILE__, __LINE__, "the shader \"%s\" is missing a location for the vbo attribute \"%s\"\n", shader->name, global_shader_attribute_names[array_id]);
+                // - bit of a hack here: I need to indicate that this attribute would have been set with shader_set_attribute, when using a vao,
+                // thats why the if( not_binding_vao ) check was moved from around the for loop, to here
+                // - we need to do this so the warning code works correctly, if we use a vao, we set the attributes only once per mesh, and the for every other shader
+                // using the same mesh we still may need to indicate that the attributes have been set, even though we don't need to call shader_set_attribute when
+                // using a vao
+                shader->attribute[array_id].unset = false;
             }
-        }
-
-        // - the element array buffer binding should be part of the vao, but it may be not on some drivers (intel):
-        // http://stackoverflow.com/questions/8973690/vao-and-element-array-buffer-state
-        if( mesh->indices.occupied > 0 ) {
-            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo->buffer->id); );
         }
     }
 
-    shader_warn_locations(shader);
+    // - the element array buffer binding should be part of the vao, but it may be not on some drivers (intel):
+    // http://stackoverflow.com/questions/8973690/vao-and-element-array-buffer-state
+    // - so I could optionally condition on not_binding_vao so that this only done once, for now, this is done
+    // always (don't forget same check below to unbind)
+    if( mesh->indices.occupied > 0 ) {
+        ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo->buffer->id); );
+    }
+
+    // - I am passing the loc array so that shader_warn_locations can warn about missing locations for attributes,
+    // but only if those attributes are found in the current vbo
+    shader_warn_locations(shader, loc);
 
     if( mesh->indices.occupied > 0 ) {
         // - the 4th argument of glDrawElements is a pointer, but it is only used as a pointer if we are using a client side array, if
@@ -334,10 +348,11 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
             }
         }
 
-        if( mesh->indices.occupied > 0 ) {
-            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) );
-        }
         ogl_debug( glBindBuffer(GL_ARRAY_BUFFER, 0); );
+    }
+
+    if( mesh->indices.occupied > 0 ) {
+        ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) );
     }
 
     shader_use_program(NULL);

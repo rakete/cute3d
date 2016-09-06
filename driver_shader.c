@@ -298,23 +298,20 @@ void shader_setup_locations(struct Shader* p) {
     shader_verify_locations(p);
 }
 
-bool shader_verify_locations(struct Shader* p) {
-    bool ret = false;
+void shader_verify_locations(struct Shader* p) {
 
     if( p->verified ) {
-        return ret;
+        return;
     }
 
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         if( p->attribute[i].location < 0 && strlen(p->attribute[i].name) > 0 ) {
             log_warn(__FILE__, __LINE__, "shader \"%s\" attribute \"%s\" has a name but no location\n", p->name, p->attribute[i].name);
-            ret = true;
         }
 
         if( p->attribute[i].location > -1 ) {
             if( strlen(p->attribute[i].name) == 0 ) {
                 log_warn(__FILE__, __LINE__, "shader \"%s\" attribute location %d cached without a name\n", p->name, p->attribute[i].location);
-                ret = true;
             }
         }
     }
@@ -322,13 +319,11 @@ bool shader_verify_locations(struct Shader* p) {
     for( int32_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
         if( p->uniform[i].location < 0 && strlen(p->uniform[i].name) > 0 ) {
             log_warn(__FILE__, __LINE__, "shader \"%s\" uniform \"%s\" has a name but no location\n", p->name, p->uniform[i].name);
-            ret = true;
         }
 
         if( p->uniform[i].location > -1 ) {
             if( strlen(p->uniform[i].name) == 0 ) {
                 log_warn(__FILE__, __LINE__, "shader \"%s\" uniform location %d cached without a name\n", p->name, p->uniform[i].location);
-                ret = true;
             }
         }
     }
@@ -336,36 +331,32 @@ bool shader_verify_locations(struct Shader* p) {
     for( int32_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
         if( p->sampler[i].location < 0 && strlen(p->sampler[i].name) > 0 ) {
             log_warn(__FILE__, __LINE__, "shader \"%s\" sampler \"%s\" has a name but no location\n", p->name, p->sampler[i].name);
-            ret = true;
         }
 
         if( p->sampler[i].location > -1 ) {
             if( strlen(p->sampler[i].name) == 0 ) {
                 log_warn(__FILE__, __LINE__, "shader \"%s\" sampler location %d cached without a name\n", p->name, p->sampler[i].location);
-                ret = true;
             }
         }
     }
 
     p->verified = true;
-
-    return ret;
 }
 
-bool shader_warn_locations(struct Shader* p) {
-    bool ret = false;
-
-    if( ! p->verified ) {
-        shader_verify_locations(p);
-    }
+void shader_warn_locations(struct Shader* p, GLint* attribute_locations) {
+    shader_verify_locations(p);
 
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
-        if( p->attribute[i].location > -1 ) {
-            if( p->attribute[i].unset && p->attribute[i].warn_once ) {
-                log_warn(__FILE__, __LINE__, "shader \"%s\" attribute \"%s\" never set\n", p->name, p->attribute[i].name);
-                ret = true;
-                p->attribute[i].warn_once = false;
+        if( p->attribute[i].warn_once ) {
+            if( p->attribute[i].location > -1 ) {
+                if( p->attribute[i].unset ) {
+                    log_warn(__FILE__, __LINE__, "shader \"%s\" attribute \"%s\" never set\n", p->name, p->attribute[i].name);
+                }
+            } else if( attribute_locations != NULL && attribute_locations[i] > -1 ) {
+                log_warn(__FILE__, __LINE__, "the shader \"%s\" is missing a location for the vbo attribute \"%s\"\n", p->name, global_shader_attribute_names[i]);
             }
+
+            p->attribute[i].warn_once = false;
         }
     }
 
@@ -373,7 +364,6 @@ bool shader_warn_locations(struct Shader* p) {
         if( p->uniform[i].location > -1 ) {
             if( p->uniform[i].unset && p->uniform[i].warn_once ) {
                 log_warn(__FILE__, __LINE__, "shader \"%s\" uniform \"%s\" never set\n", p->name, p->uniform[i].name);
-                ret = true;
                 p->uniform[i].warn_once = false;
             }
         }
@@ -395,14 +385,11 @@ bool shader_warn_locations(struct Shader* p) {
 
             if( texture_id == 0 ) {
                 log_warn(__FILE__, __LINE__, "shader \"%s\" sampler \"%s\" texture unit %d has no texture id bound\n", p->name, p->sampler[i].name, texture_unit);
-                ret = true;
                 p->sampler[i].warn_once = false;
             }
         }
     }
 #endif
-
-    return ret;
 }
 
 GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name) {
@@ -523,9 +510,7 @@ GLint shader_set_uniform_matrices(struct Shader* shader, GLuint program, const M
     log_assert( model_matrix != NULL );
     log_assert( shader->program > 0 );
 
-    if( ! shader->verified ) {
-        shader_verify_locations(shader);
-    }
+    shader_verify_locations(shader);
 
     GLint ret = -1;
     GLint mvp_loc = shader->uniform[SHADER_UNIFORM_MVP_MATRIX].location;
@@ -590,9 +575,7 @@ GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t unifo
     log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE || type == GL_INT );
     log_assert( data != NULL );
 
-    if( ! shader->verified ) {
-        shader_verify_locations(shader);
-    }
+    shader_verify_locations(shader);
 
     GLint location = shader->uniform[uniform_index].location;
     if( location == -1 ) {
@@ -642,9 +625,7 @@ GLint shader_set_uniform_1i(struct Shader* shader, GLuint program, int32_t unifo
     log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE || type == GL_INT );
     log_assert( data != NULL );
 
-    if( ! shader->verified ) {
-        shader_verify_locations(shader);
-    }
+    shader_verify_locations(shader);
 
     GLint location = shader->uniform[uniform_index].location;
     if( location == -1 ) {
@@ -694,9 +675,7 @@ GLint shader_set_uniform_3f(struct Shader* shader, GLuint program, int32_t unifo
     log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
     log_assert( data != NULL );
 
-    if( ! shader->verified ) {
-        shader_verify_locations(shader);
-    }
+    shader_verify_locations(shader);
 
     GLint location = shader->uniform[uniform_index].location;
     if( location == -1 ) {
@@ -753,9 +732,7 @@ GLint shader_set_uniform_4f(struct Shader* shader, GLuint program, int32_t unifo
     log_assert( type == GL_FLOAT || type == GL_UNSIGNED_BYTE );
     log_assert( data != NULL );
 
-    if( ! shader->verified ) {
-        shader_verify_locations(shader);
-    }
+    shader_verify_locations(shader);
 
     GLint location = shader->uniform[uniform_index].location;
     if( location == -1 ) {
@@ -812,15 +789,18 @@ GLint shader_set_attribute(struct Shader* shader, int32_t attribute_i, GLuint bu
     log_assert( c_num >= 0 );
     log_assert( c_num <= 4 );
 
-    if( ! shader->verified ) {
-        shader_verify_locations(shader);
-    }
+    shader_verify_locations(shader);
 
     if( buffer == 0 || c_num == 0 ) {
         return -1;
     }
 
     GLint location = shader->attribute[attribute_i].location;
+    if( location == -1 ) {
+        log_warn(__FILE__, __LINE__, "can not set attribute, shader \"%s\" has no location \"%s\"\n", shader->name, global_shader_attribute_names[attribute_i]);
+        return location;
+    }
+
     log_assert( location > -1 );
     log_assert( strlen(shader->attribute[attribute_i].name) > 0 );
 

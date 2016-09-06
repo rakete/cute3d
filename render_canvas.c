@@ -133,6 +133,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
             }
 
             struct Shader* shader = &canvas->shaders[shader_i].shader;
+            shader_verify_locations(shader);
 
             shader_use_program(shader);
 
@@ -204,7 +205,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                         log_assert( indices_bytes < PTRDIFF_MAX );
 
-                        shader_warn_locations(shader);
+                        shader_warn_locations(shader, NULL);
 
                         GLenum primitive_type = GL_TRIANGLES;
                         if( primitive_i == CANVAS_LINES ) {
@@ -237,6 +238,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
         }
 
         struct Font* font = &canvas->fonts[font_i].font;
+        shader_verify_locations(&font->shader);
 
         // bind font shader
         shader_use_program(&font->shader);
@@ -282,7 +284,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                 ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].text[font_i][projection_i].id);
                            glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW); );
 
-                shader_warn_locations(&font->shader);
+                shader_warn_locations(&font->shader, NULL);
 
                 if( projection_i == CANVAS_PROJECT_SCREEN ) {
                     ogl_debug( glDisable(GL_DEPTH_TEST);
