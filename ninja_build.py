@@ -179,8 +179,8 @@ if build_platform == "windows":
     else:
         print "WARNING: using windows copy command!"
         print "if you want a reliable and sane build experience you should get gnu cp and"
-        print "put it in your PATH, I am writing this as I am about to give up to make things"
-        print "with windows builtin copy and xcopy.exe, this script will use the cmd builtin"
+        print "put it in your PATH, I am writing this as I am about to give up to try and make things"
+        print "work with windows builtin copy and xcopy.exe, this script will use the cmd builtin"
         print "copy for copying, but I know that this has several issues and is slow, if you"
         print "happen to know a better way, please file an issue, thank you"
         w.rule(name="copy", command="cmd /c \"copy $in $out >nul\"")
@@ -218,7 +218,7 @@ w.newline()
 
 # - when the glsl-validate.py script is found in path, create validate_glsl rule
 # - we use prefix shaders for glsl version compatibilty, and need to prepend those when validating, this only
-# with my own glsl-validator.py fork for now
+# works with my own glsl-validator.py fork for now
 # - the --write parameter is important, it outputs the full shader as flat.full.vert (for example), so that we
 # can rely on those files as dependencies in ninja, they serve us no other function
 prefix_shader = []
