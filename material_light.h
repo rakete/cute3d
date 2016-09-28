@@ -17,15 +17,11 @@ struct Light {
 
     float attenuation;
     Color color;
-};
-
-struct LightSpot {
-    struct Light base_light;
 
     Vec3f direction;
     float angle;
 };
 
-void light_spot_create(Color color, float attenuation, Vec3f direction, float angle, struct LightSpot* light);
+void light_create(enum LightClass instance, Color color, float attenuation, Vec3f direction, float angle, struct LightSpot* light);
 
 #endif
