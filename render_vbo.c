@@ -25,19 +25,36 @@ void vbo_mesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo
     size_t vertices_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX, VERTEX_SIZE, GL_FLOAT, solid->size, solid->vertices);
     log_assert( vertices_n == solid->size, "%zu == %zu\n", vertices_n, solid->size );
 
+    if( vbo->buffer[SHADER_ATTRIBUTE_VERTEX_TEXCOORD].id ) {
+        size_t texcoords_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, TEXCOORD_SIZE, GL_FLOAT, solid->size, solid->texcoords);
+        log_assert( texcoords_n == solid->size );
+    }
+
     if( vbo->buffer[SHADER_ATTRIBUTE_VERTEX_NORMAL].id ) {
         size_t normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_NORMAL, NORMAL_SIZE, GL_FLOAT, solid->size, solid->normals);
         log_assert( normals_n == solid->size );
     }
 
+    // - I kept both the vertex color and diffuse color attribute, I prefer the diffuse color attribute
+    // but the colors can go into either of those two
     if( vbo->buffer[SHADER_ATTRIBUTE_DIFFUSE_COLOR].id ) {
         size_t colors_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_DIFFUSE_COLOR, COLOR_SIZE, GL_UNSIGNED_BYTE, solid->size, solid->colors);
         log_assert( colors_n == solid->size );
+    } else if( vbo->buffer[SHADER_ATTRIBUTE_VERTEX_COLOR].id ) {
+        size_t colors_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_COLOR, COLOR_SIZE, GL_UNSIGNED_BYTE, solid->size, solid->colors);
+        log_assert( colors_n == solid->size );
     }
 
-    if( vbo->buffer[SHADER_ATTRIBUTE_VERTEX_TEXCOORD].id ) {
-        size_t texcoords_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, TEXCOORD_SIZE, GL_FLOAT, solid->size, solid->texcoords);
-        log_assert( texcoords_n == solid->size );
+    // - hard normals and smooth normals are attributes, but the struct solid datastructure has only
+    // one field for normals, so I generate hard and smooth normals here on the fly if needed
+    if( vbo->buffer[SHADER_ATTRIBUTE_HARD_NORMAL].id ) {
+        float* hard_normals = (float*)malloc(solid->size * NORMAL_SIZE * sizeof(float));
+        solid_hard_normals(solid, hard_normals);
+
+        size_t hard_normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_SMOOTH_NORMAL, NORMAL_SIZE, GL_FLOAT, solid->size, hard_normals);
+        log_assert( hard_normals_n == solid->size );
+
+        free(hard_normals);
     }
 
     if( vbo->buffer[SHADER_ATTRIBUTE_SMOOTH_NORMAL].id ) {

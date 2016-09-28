@@ -1,9 +1,11 @@
 //CUTE
 uniform sampler2D diffuse_texture;
+
 uniform vec4 ambient_light;
-uniform vec4 specular_light;
+
 uniform int enable_texture;
 
+shader_in vec2 frag_texcoord;
 shader_in vec4 frag_color;
 shader_in float intensity;
 

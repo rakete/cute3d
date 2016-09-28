@@ -40,9 +40,9 @@ void ogl_error_print(GLenum error);
 
 #define MAX_OGL_ATTRIBUTES 4
 #define OGL_VERTEX 0
-#define OGL_NORMAL 1
-#define OGL_COLOR 2
-#define OGL_TEXCOORD 3
+#define OGL_TEXCOORD 1
+#define OGL_NORMAL 2
+#define OGL_COLOR 3
 
 /* #ifndef MAX_CUTE_ATTRIBUTES */
 /* enum CuteAttributeType { */

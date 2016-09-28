@@ -43,10 +43,11 @@ int32_t init_shader() {
     }
 
     global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX] = "vertex";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX_NORMAL] = "vertex_normal";
     global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX_TEXCOORD] = "vertex_texcoord";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_DIFFUSE_COLOR] = "diffuse_color";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX_NORMAL] = "vertex_normal";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX_COLOR] = "vertex_color";
 
+    global_shader_attribute_names[SHADER_ATTRIBUTE_DIFFUSE_COLOR] = "diffuse_color";
     global_shader_attribute_names[SHADER_ATTRIBUTE_AMBIENT_COLOR] = "ambient_color";
     global_shader_attribute_names[SHADER_ATTRIBUTE_SPECULAR_COLOR] = "specular_color";
     global_shader_attribute_names[SHADER_ATTRIBUTE_INSTANCE_ID] = "instance_id";
@@ -54,6 +55,7 @@ int32_t init_shader() {
     global_shader_attribute_names[SHADER_ATTRIBUTE_NEXT_VERTEX] = "next_vertex";
     global_shader_attribute_names[SHADER_ATTRIBUTE_LINE_THICKNESS] = "line_thickness";
     global_shader_attribute_names[SHADER_ATTRIBUTE_BARYCENTRIC_COORDINATE] = "barycentric_coordinate";
+    global_shader_attribute_names[SHADER_ATTRIBUTE_HARD_NORMAL] = "hard_normal";
     global_shader_attribute_names[SHADER_ATTRIBUTE_SMOOTH_NORMAL] = "smooth_normal";
 
     global_shader_uniform_names[SHADER_UNIFORM_MVP_MATRIX] = "mvp_matrix";
@@ -62,8 +64,8 @@ int32_t init_shader() {
     global_shader_uniform_names[SHADER_UNIFORM_PROJECTION_MATRIX] = "projection_matrix";
     global_shader_uniform_names[SHADER_UNIFORM_NORMAL_MATRIX] = "normal_matrix";
 
-    global_shader_uniform_names[SHADER_UNIFORM_AMBIENT_LIGHT] = "ambient_light";
     global_shader_uniform_names[SHADER_UNIFORM_DIFFUSE_LIGHT] = "diffuse_light";
+    global_shader_uniform_names[SHADER_UNIFORM_AMBIENT_LIGHT] = "ambient_light";
     global_shader_uniform_names[SHADER_UNIFORM_SPECULAR_LIGHT] = "specular_light";
     global_shader_uniform_names[SHADER_UNIFORM_LIGHT_DIRECTION] = "light_direction";
     global_shader_uniform_names[SHADER_UNIFORM_LIGHT_POSITION] = "light_position";
