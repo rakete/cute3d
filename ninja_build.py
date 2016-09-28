@@ -82,6 +82,7 @@ sdl2_libs = ""
 features = ""
 optimization = ""
 warnings = ""
+errors = ""
 linking = ""
 libraries = ""
 includes = ""
@@ -98,9 +99,10 @@ if build_platform == "linux" or build_toolset == "gcc":
         print "could not find sdl2-config, is libsdl2-dev package installed?"
         sys.exit(1)
 
-    features = "-std=c11 -g -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
+    features = "-std=c11 -g -DDEBUG -fsanitize=address -fno-omit-frame-pointer "
     optimization = "-O0" # "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -Wno-unknown-pragmas -pedantic"
+    errors = "-Werror=implicit-function-declaration"
     linking = "-fPIC"
     # - because of bug in gcc(?), I need to explicitly link with -lasan when I use -fsanitize=address, otherwise I get
     # tons of unresolved symbols
@@ -108,7 +110,7 @@ if build_platform == "linux" or build_toolset == "gcc":
     libraries = "-lasan -lm -lGL " + sdl2_libs
     includes = "-I" + source_directory
 
-    cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
+    cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
     ldflags = linking + " " + libraries
 elif build_toolset == "mingw":
     if command_exists("sdl2-config") and command_exists("bash"):
@@ -124,11 +126,12 @@ elif build_toolset == "mingw":
     features = "-posix -std=c11 -g -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
     optimization = "-O0" # "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -Wno-unknown-pragmas -pedantic"
+    errors = "-Werror=implicit-function-declaration"
     linking = "-fPIC"
     libraries = "-lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32 " + sdl2_libs
     includes = "-I" + source_directory
 
-    cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
+    cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
     ldflags = linking + " " + libraries
 elif build_toolset == "msvc":
     sdl2_cflags = "/Ic:\\VC\\SDL2-2.0.4\\include"
@@ -142,6 +145,7 @@ elif build_toolset == "msvc":
     # warning C4996: 'strncat': This function or variable may be unsafe. Consider using strncat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
     # warning C4068: unknown pragma
     warnings = "/W4 /wd4204 /wd4996 /wd4068"
+    errors = ""
     linking = ""
     # - chkstk.obj for _alloca
     # - msvcurt.lib: Static library for the pure managed CRT.
@@ -151,7 +155,7 @@ elif build_toolset == "msvc":
     includes = "/I" + source_directory
 
     # - /STACK seems to be a linker option only
-    cflags = features + " " + warnings + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
+    cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
     ldflags = "/SUBSYSTEM:CONSOLE /STACK:8388608 " + linking + " " + libraries
 else:
     print "building with " + build_toolset + " on " + build_platform + " is not supported yet."
