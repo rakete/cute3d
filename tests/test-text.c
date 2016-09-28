@@ -16,20 +16,20 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     SDL_Window* window;
-    sdl2_window("test-text", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, &window);
+    sdl2_window("test-text", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, &window);
 
     SDL_GLContext* context;
-    sdl2_glcontext(3, 2, window, (Color){0.0, 0.0, 0.0, 1.0}, &context);
+    sdl2_glcontext(3, 2, window, (Color){0.0, 0.0, 0.0, 255}, &context);
 
     if( init_shader() ) {
         return 1;
     }
 
-    if( init_canvas() ) {
+    if( init_canvas(1280,720) ) {
         return 1;
     }
-    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
-    canvas_create("global_static_canvas", &global_static_canvas);
+    canvas_create("global_dynamic_canvas", 1280, 720, &global_dynamic_canvas);
+    canvas_create("global_static_canvas", 1280, 720, &global_static_canvas);
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){12.0,16.0,-8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001, 1000.0, &arcball);
