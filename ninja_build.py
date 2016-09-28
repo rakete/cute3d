@@ -21,6 +21,10 @@ def pairwise(it):
     while True:
         yield next(it), next(it)
 
+if not command_exists("ninja"):
+    print "could not find ninja, is ninja-build package installed?"
+    sys.exit(1)
+
 # - I support out of tree builds, and so I take the path where this script lies, an absolute path,
 # and then use that script_directory to compute a relative path from the current_directory to the
 # source_directory
@@ -87,8 +91,12 @@ ldflags = ""
 # is supposed to create with the actual, mmh, maybe only the things that I can not know, like paths to libraries and stuff
 # like that
 if build_platform == "linux" or build_toolset == "gcc":
-    sdl2_cflags = subprocess.check_output(["bash", "sdl2-config", "--cflags"]).rstrip()
-    sdl2_libs = subprocess.check_output(["bash", "sdl2-config", "--libs"]).rstrip()
+    if command_exists("sdl2-config"):
+        sdl2_cflags = subprocess.check_output(["bash", "sdl2-config", "--cflags"]).rstrip()
+        sdl2_libs = subprocess.check_output(["bash", "sdl2-config", "--libs"]).rstrip()
+    else:
+        print "could not find sdl2-config, is libsdl2-dev package installed?"
+        sys.exit(1)
 
     features = "-std=c11 -g -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
     optimization = "-O0" # "-flto=4 -march=native"
@@ -107,6 +115,9 @@ elif build_toolset == "mingw":
         sdl2_cflags = subprocess.check_output(["bash", "sdl2-config", "--cflags"]).rstrip()
         sdl2_libs = subprocess.check_output(["bash", "sdl2-config", "--libs"]).rstrip()
     else:
+        print "could not find sdl2-config, trying to build with:"
+        print "sdl2_cflags = \"-Ic:/MinGW/include/SDL2 -Dmain=SDL_main\""
+        print "sdl2_libs = \"-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows\""
         sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
         sdl2_libs = "-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows"
 
