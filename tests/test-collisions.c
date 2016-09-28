@@ -28,7 +28,7 @@ struct CollisionEntity {
     struct PickingSphere picking_sphere;
 };
 
-static void entity_create(const char* name, Color color, struct Vbo* vbo, struct CollisionEntity* entity) {
+static void entity_create(const char* name, Color color, struct Vbo* vbo, struct Ibo* ibo, struct CollisionEntity* entity) {
     entity->name = name;
 
     pivot_create(NULL, NULL, &entity->pivot);
@@ -36,7 +36,7 @@ static void entity_create(const char* name, Color color, struct Vbo* vbo, struct
     solid_cube_create(1.0f, color, &entity->solid);
     solid_cube_create(1.0f, color, &entity->optimized_solid);
     solid_optimize((struct Solid*)&entity->optimized_solid);
-    vbo_mesh_create_from_solid((struct Solid*)&entity->optimized_solid, vbo, &entity->vbo_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&entity->optimized_solid, vbo, ibo, &entity->vbo_mesh);
 
     halfedgemesh_create(&entity->hemesh);
     halfedgemesh_append(&entity->hemesh, (struct Solid*)&entity->solid);
@@ -70,26 +70,29 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_canvas() ) {
+    if( init_canvas(1280,720) ) {
         return 1;
     }
-    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
-    canvas_create("global_static_canvas", &global_static_canvas);
+    canvas_create("global_dynamic_canvas", 1280, 720, &global_dynamic_canvas);
+    canvas_create("global_static_canvas", 1280, 720, &global_static_canvas);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+
+    struct Ibo ibo = {0};
+    ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);
 
     struct CollisionEntity entity_a = {0};
-    entity_create("red", (Color){ 255, 0, 0, 255 }, &vbo, &entity_a);
+    entity_create("red", (Color){ 255, 0, 0, 255 }, &vbo, &ibo, &entity_a);
     /* quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_a.pivot.orientation); */
     /* quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)RIGHT_AXIS, PI/2 + 0.2, entity_a.pivot.orientation); */
     vec_add(entity_a.pivot.position, (Vec4f){3.0, 0.15, 0.0, 1.0}, entity_a.pivot.position);
 
     struct CollisionEntity entity_b = {0};
-    entity_create("green", (Color){ 0, 255, 0, 255 }, &vbo, &entity_b);
+    entity_create("green", (Color){ 0, 255, 0, 255 }, &vbo, &ibo, &entity_b);
     quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)RIGHT_AXIS, PI/4 - 0.2, entity_b.pivot.orientation);
     quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)UP_AXIS, PI/2 + 0.0, entity_b.pivot.orientation);
     //vec_add(entity_b.pivot.position, (Vec4f){-3.0, 0.0, 0.0, 1.0}, entity_b.pivot.position);
@@ -101,7 +104,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_set_uniform_3f(&flat_shader, flat_shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
     Color ambiance = { 65, 25, 50, 255 };
-    shader_set_uniform_4f(&flat_shader, flat_shader.program, SHADER_UNIFORM_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, ambiance);
+    shader_set_uniform_4f(&flat_shader, flat_shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){0.0, 5.0, 10.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0, 1000.0, &arcball);

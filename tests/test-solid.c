@@ -42,6 +42,9 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
     //vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_SMOOTH_NORMAL, NORMAL_SIZE, GL_FLOAT, GL_STATIC_DRAW);
 
+    struct Ibo ibo = {0};
+    ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);
+
     struct SolidTetrahedron tetrahedron = {0};
     struct SolidBox box = {0};
     struct SolidBox cube = {0};
@@ -60,11 +63,11 @@ int32_t main(int32_t argc, char *argv[]) {
     solid_optimize((struct Solid*)&sphere32);
 
     struct VboMesh tetrahedron_mesh,box_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
-    vbo_mesh_create_from_solid((struct Solid*)&tetrahedron, &vbo, &tetrahedron_mesh);
-    vbo_mesh_create_from_solid((struct Solid*)&box, &vbo, &box_mesh);
-    vbo_mesh_create_from_solid((struct Solid*)&cube, &vbo, &cube_mesh);
-    vbo_mesh_create_from_solid((struct Solid*)&sphere16, &vbo, &sphere16_mesh);
-    vbo_mesh_create_from_solid((struct Solid*)&sphere32, &vbo, &sphere32_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&tetrahedron, &vbo, &ibo, &tetrahedron_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&box, &vbo, &ibo, &box_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&cube, &vbo, &ibo, &cube_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&sphere16, &vbo, &ibo, &sphere16_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&sphere32, &vbo, &ibo, &sphere32_mesh);
 
     struct Shader shader = {0};
     shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", "flat_shader", &shader);
