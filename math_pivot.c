@@ -52,7 +52,7 @@ void pivot_attach(struct Pivot* child, const struct Pivot* parent) {
     child->parent = parent;
 }
 
-int32_t pivot_lookat(struct Pivot* pivot, const Vec4f target) {
+int32_t pivot_lookat(struct Pivot* pivot, const Vec3f target) {
     int32_t result = -1;
 
     Vec4f right_axis = RIGHT_AXIS;
