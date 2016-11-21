@@ -22,6 +22,6 @@ struct Light {
     float angle;
 };
 
-void light_create(enum LightClass instance, Color color, float attenuation, Vec3f direction, float angle, struct LightSpot* light);
+void light_create(enum LightClass instance, Color color, float attenuation, Vec3f direction, float angle, struct Light* light);
 
 #endif
