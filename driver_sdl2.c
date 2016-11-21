@@ -35,6 +35,7 @@ int32_t init_sdl2() {
     // - I'll implement multisampling as glsl shader, or figure out how to setup
     // a fbo then render to that with GL_MULTISAMPLE enabled, thats more portable
     // then setting it here globally
+    // - when I use these I always get a 2.0 context? (on Ubuntu 16.04 with Intel)
     /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); */
     /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16); */
 
