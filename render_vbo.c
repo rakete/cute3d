@@ -273,7 +273,7 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
 
     Mat projection_matrix = {0};
     Mat view_matrix = {0};
-    camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
+    camera_matrices(camera, camera->projection, projection_matrix, view_matrix);
     projection_matrix[14] += mesh->z_offset;
     log_assert( shader_set_uniform_matrices(shader, 0, projection_matrix, view_matrix, model_matrix) > -1 );
 

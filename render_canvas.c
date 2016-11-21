@@ -182,7 +182,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                     GLint matrix_location = shader_set_uniform_matrices(shader, 0, projection_matrix, view_matrix, model_matrix);
                     log_assert( matrix_location > -1 );
                 } else {
-                    camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
+                    camera_matrices(camera, camera->projection, projection_matrix, view_matrix);
                     GLint matrix_location = shader_set_uniform_matrices(shader, 0, projection_matrix, view_matrix, model_matrix);
                     log_assert( matrix_location > -1 );
                 }
@@ -258,7 +258,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                 log_assert( shader_set_uniform_matrices(&font->shader, 0, projection_matrix, view_matrix, model_matrix) > -1 );
             } else {
-                camera_matrices(camera, CAMERA_PERSPECTIVE, projection_matrix, view_matrix);
+                camera_matrices(camera, camera->projection, projection_matrix, view_matrix);
                 log_assert( shader_set_uniform_matrices(&font->shader, 0, projection_matrix, view_matrix, model_matrix) > -1 );
             }
 
