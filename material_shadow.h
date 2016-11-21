@@ -1,14 +1,22 @@
-#ifndef MATERIAL_SHADOWS_H
-#define MATERIAL_SHADOWS_H
+#ifndef MATERIAL_SHADOW_H
+#define MATERIAL_SHADOW_H
 
 #include "driver_ogl.h"
 
 #include "math_matrix.h"
 #include "math_pivot.h"
 
-#include "material_light.h"
+#include "math_camera.h"
 
-struct Shadows {
+#ifndef MAX_SHADOW_LIGHTS
+#define MAX_SHADOW_LIGHTS 8
+#endif
+
+#ifndef MAX_SHADOW_CASCADES
+#define MAX_SHADOW_CASCADES 8
+#endif
+
+struct Shadow {
     struct {
         GLuint id;
         size_t width;
@@ -19,8 +27,10 @@ struct Shadows {
     GLuint renderbuffer;
 };
 
-void shadows_create(int32_t width, int32_t height, struct Shadows* shadows);
+void shadow_create(int32_t width, int32_t height, struct Shadow* shadow);
 
-void shadows_normal_pass(const struct Light* light, struct Shadows* shadows);
+void shadow_sunlight_pass(Vec3f up_axis, Vec3f light_direction, float attenuation, struct Shadow* shadow);
+
+void shadow_normal_pass(struct Shadow* shadow);
 
 #endif

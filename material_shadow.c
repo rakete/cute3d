@@ -1,14 +1,28 @@
-#include "material_shadows.h"
+#include "material_shadow.h"
 
-void shadows_create(int32_t width, int32_t height, struct Shadows* shadows) {
-    shadows->texture.width = width;
-    shadows->texture.height = height;
+void shadow_frustum_matrices(const struct Camera* camera, Vec3f light_position, Vec3f light_direction, float frustum_near, float frustum_far, Mat projection_mat, Mat view_mat) {
+    Mat camera_to_light_transform = {0};
 
-    glGenTextures(1, &shadows->texture.id);
-    log_assert( shadows->texture.id > 0 );
+    struct CameraVertices frustum_vertices = {0};
+    camera_vertices(camera, camera_to_light_transform, &frustum_vertices);
+
+    Vec3f diagonal_vec = {0};
+    vec_sub(frustum_vertices.left_top_far, frustum_vertices.right_bottom_near, diagonal_vec);
+
+    float longest_diagonal = 0.0f;
+    vec_length(diagonal_vec, &longest_diagonal);
+
+}
+
+void shadow_create(int32_t width, int32_t height, struct Shadow* shadow) {
+    shadow->texture.width = width;
+    shadow->texture.height = height;
+
+    glGenTextures(1, &shadow->texture.id);
+    log_assert( shadow->texture.id > 0 );
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, shadows->texture.id);
+    glBindTexture(GL_TEXTURE_2D, shadow->texture.id);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
@@ -18,27 +32,24 @@ void shadows_create(int32_t width, int32_t height, struct Shadows* shadows) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glGenRenderbuffers(1, &shadows->renderbuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, shadows->renderbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, shadows->texture.width, shadows->texture.height);
+    glGenRenderbuffers(1, &shadow->renderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, shadow->renderbuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, shadow->texture.width, shadow->texture.height);
 
-    glGenFramebuffers(1, &shadows->fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, shadows->fbo);
+    glGenFramebuffers(1, &shadow->fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow->fbo);
 
-    glBindTexture(GL_TEXTURE_2D, shadows->texture.id);
+    glBindTexture(GL_TEXTURE_2D, shadow->texture.id);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER,
                               GL_DEPTH_ATTACHMENT,
                               GL_RENDERBUFFER,
-                              shadows->renderbuffer);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, shadows->texture.id, 0);
+                              shadow->renderbuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, shadow->texture.id, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
         printf("Error: FrameBufferObject is not complete!\n");
     }
 
-}
-
-void shadows_normal_pass(const struct Light* light, struct Shadows* shadows) {
 }
 
 /* glGenTextures(1, &shadows->texture.id); */
