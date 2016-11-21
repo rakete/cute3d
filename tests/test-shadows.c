@@ -53,8 +53,8 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    int32_t width = 800;
-    int32_t height = 600;
+    int32_t width = 1280;
+    int32_t height = 720;
 
     SDL_Window* window;
     sdl2_window("test-shadows", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
@@ -86,10 +86,13 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, NORMAL_SIZE, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLOR, COLOR_SIZE, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
+    struct Ibo ibo = {0};
+    ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);
+
     /* Cube */
     struct BouncingCube entity = {0};
     solid_cube_create(2.0f, (Color){180, 25, 0, 255}, &entity.solid);
-    vbo_mesh_create_from_solid((struct Solid*)&entity.solid, &vbo, &entity.vbo_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&entity.solid, &vbo, &ibo, &entity.vbo_mesh);
 
     pivot_create(NULL, NULL, & entity.pivot);
     vec_add(entity.pivot.position, (Vec3f){0.0, 2.0, 0.0}, entity.pivot.position);
@@ -98,13 +101,13 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Ground ground = {0};
     pivot_create((Vec3f){0.0, 0.0, 0.0}, (Quat){0.0, 0.0, 0.0, 1.0}, &ground.pivot);
     solid_box_create((Vec3f){10.0, 1.0, 10.0}, (Color){0, 180, 120, 255}, &ground.solid);
-    vbo_mesh_create_from_solid((struct Solid*)&ground.solid, &vbo, &ground.vbo_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&ground.solid, &vbo, &ibo, &ground.vbo_mesh);
 
     /* Shader */
     struct Shader flat_shader = {0};
     shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", "flat_shader", &flat_shader);
 
-    Vec4f light_direction = { 0.2, -0.5, -1.0, 1.0 };
+    Vec4f light_direction = { 2.0, -5.0, -10.0, 1.0 };
     shader_set_uniform_3f(&flat_shader, flat_shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
     Color ambiance = { 0, 0, 12, 255 };
@@ -115,7 +118,13 @@ int32_t main(int32_t argc, char *argv[]) {
 
     /* Matrices */
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){0.0,4.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
+    arcball_create(window, (Vec4f){0.0,8.0,16.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 1000.0, &arcball);
+
+    struct Camera shadow_camera = {0};
+    camera_create(512, 512, &shadow_camera);
+    shadow_camera.projection = CAMERA_ORTHOGRAPHIC_ZOOM;
+    vec_sub(shadow_camera.pivot.position, (Vec3f){light_direction[0], light_direction[1], light_direction[2]}, shadow_camera.pivot.position);
+    pivot_lookat(&shadow_camera.pivot, (Vec4f){0.0, 0.0, 0.0});
 
     /* Time */
     struct GameTime time = {0};
@@ -167,6 +176,9 @@ int32_t main(int32_t argc, char *argv[]) {
 
         widgets_display_texture(&global_dynamic_canvas, 0, -256, -256, 256, 256, "checkerboard1", checkerboard_texture);
         //widgets_display_texture(&global_dynamic_canvas, 0, widgets_cursor, arcball.camera.screen.width-128, 0, (Color){255, 0, 0, 255}, 128, 128, "red", NULL);
+
+        draw_camera(&global_dynamic_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 255, 0, 255}, 0.01, &shadow_camera);
+        //draw_camera(&global_dynamic_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 128, 0, 255}, 0.01, &arcball.camera);
 
         canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);

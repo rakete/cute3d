@@ -34,7 +34,7 @@ struct BouncingCube {
     /* struct ShapeConvex collider; */
 
     /* Mesh */
-    struct Box solid;
+    struct SolidBox solid;
     struct VboMesh vbo_mesh;
 };
 
@@ -43,7 +43,7 @@ struct Ground {
     struct ShapeConvex collider;
 
     /* Mesh */
-    struct Box solid;
+    struct SolidBox solid;
     struct VboMesh vbo_mesh;
 };
 
@@ -54,8 +54,8 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    int32_t width = 800;
-    int32_t height = 600;
+    int32_t width = 1280;
+    int32_t height = 720;
 
     SDL_Window* window;
     sdl2_window("test-physics", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
@@ -72,25 +72,26 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_canvas() ) {
+    if( init_canvas(width,height) ) {
         return 1;
     }
-
-    if( init_shader() ) {
-        return 1;
-    }
+    canvas_create("global_dynamic_canvas", 1280, 720, &global_dynamic_canvas);
+    canvas_create("global_static_canvas", 1280, 720, &global_static_canvas);
 
     /* Vbo */
     struct Vbo vbo = {0};
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+
+    struct Ibo ibo = {0};
+    ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);
 
     /* Cube */
     struct BouncingCube entity = {0};
     solid_cube_create(2.0f, (Color){180, 25, 0, 255}, &entity.solid);
-    vbo_mesh_create_from_solid((struct Solid*)&entity.solid, &vbo, &entity.vbo_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&entity.solid, &vbo, &ibo, &entity.vbo_mesh);
 
     pivot_create(NULL, NULL, & entity.current.pivot);
     vec_add(entity.current.pivot.position, (Vec3f){0.0, 2.0, 0.0}, entity.current.pivot.position);
@@ -99,24 +100,24 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Ground ground = {0};
     pivot_create((Vec3f){0.0, 0.0, 0.0}, (Quat){0.0, 0.0, 0.0, 1.0}, &ground.pivot);
     solid_box_create((Vec3f){10.0, 1.0, 10.0}, (Color){0, 180, 120, 255}, &ground.solid);
-    vbo_mesh_create_from_solid((struct Solid*)&ground.solid, &vbo, &ground.vbo_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&ground.solid, &vbo, &ibo, &ground.vbo_mesh);
 
     /* Shader */
     struct Shader flat_shader = {0};
     shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", "flat_shader", &flat_shader);
 
     Vec4f light_direction = { 0.2, -0.5, -1.0, 1.0 };
-    shader_set_uniform_3f(&flat_shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
+    shader_set_uniform_3f(&flat_shader, flat_shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
     Color ambiance = { 0, 0, 12, 255 };
-    shader_set_uniform_4f(&flat_shader, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
+    shader_set_uniform_4f(&flat_shader, flat_shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
 
     struct Shader lines_shader = {0};
     shader_create_from_files("shader/volumetric_lines.vert", "shader/volumetric_lines.frag", "lines_shader", &lines_shader);
 
     /* Matrices */
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){0.0,4.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
+    arcball_create(window, (Vec4f){0.0,8.0,16.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
 
     /* Time */
     struct GameTime time = {0};
