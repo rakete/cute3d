@@ -44,12 +44,27 @@ struct Camera {
         float z_far;
     } frustum;
 
+    enum CameraProjection projection;
     float zoom;
+};
+
+struct CameraVertices {
+    Vec3f left_top_near;
+    Vec3f right_top_near;
+    Vec3f right_bottom_near;
+    Vec3f left_bottom_near;
+
+    Vec3f left_top_far;
+    Vec3f right_top_far;
+    Vec3f right_bottom_far;
+    Vec3f left_bottom_far;
 };
 
 void camera_create(int32_t width, int32_t height, struct Camera* camera);
 
-void camera_frustum(struct Camera* camera, float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
+void camera_set_frustum(struct Camera* camera, float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
+
+void camera_vertices(const struct Camera* camera, Mat transform, struct CameraVertices* vertices);
 
 void camera_matrices(const struct Camera* camera, enum CameraProjection projection_type, Mat projection_mat, Mat view_mat);
 

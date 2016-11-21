@@ -26,7 +26,7 @@ void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float z_near, f
     camera_create(width, height, &arcball->camera);
     float top = (z_near/width) * height/2.0f;
     float bottom = -top;
-    camera_frustum(&arcball->camera, -z_near/2.0f, z_near/2.0f, bottom, top, z_near, z_far);
+    camera_set_frustum(&arcball->camera, -z_near/2.0f, z_near/2.0f, bottom, top, z_near, z_far);
 
     vec_copy4f(eye, arcball->camera.pivot.position);
     arcball->flipped = pivot_lookat(&arcball->camera.pivot, target);

@@ -543,12 +543,36 @@ void draw_camera(struct Canvas* canvas,
     float y_top = camera->frustum.y_top;
     float y_bottom = camera->frustum.y_bottom;
 
-    float camera_vertices[5*3] =
-        {    0.0f,     0.0f,     0.0f,
-          x_right,    y_top,  -z_near,
-           x_left,    y_top,  -z_near,
-           x_left, y_bottom,  -z_near,
-          x_right, y_bottom,  -z_near };
+    if( camera->projection == CAMERA_ORTHOGRAPHIC_ZOOM ) {
+        x_left *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->zoom;
+        x_right *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->zoom;
+        y_top *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->zoom;
+        y_bottom *= (camera->pivot.eye_distance * (1.0f/z_near)) * camera->zoom;
+    }
+
+    float z_far = camera->frustum.z_far;
+    float x_left_far = x_left;
+    float x_right_far = x_right;
+    float y_top_far = y_top;
+    float y_bottom_far = y_bottom;
+
+    if( camera->projection == CAMERA_PERSPECTIVE ) {
+        x_left_far = z_far/z_near * x_left;
+        x_right_far = z_far/z_near * x_right;
+        y_top_far = z_far/z_near * y_top;
+        y_bottom_far = z_far/z_near * y_bottom;
+    }
+
+    float camera_vertices[9*3] =
+        {    0.0f, 0.0f, 0.0f,
+             x_right, y_top, -z_near,
+             x_left, y_top, -z_near,
+             x_left, y_bottom, -z_near,
+             x_right, y_bottom, -z_near,
+             x_right_far, y_top_far, -z_far,
+             x_left_far, y_top_far, -z_far,
+             x_left_far, y_bottom_far, -z_far,
+             x_right_far, y_bottom_far, -z_far };
 
     Mat camera_matrix = {0};
     pivot_world_transform(&camera->pivot, camera_matrix);
@@ -558,8 +582,19 @@ void draw_camera(struct Canvas* canvas,
     draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[0*3], &camera_vertices[2*3]);
     draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[0*3], &camera_vertices[3*3]);
     draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[0*3], &camera_vertices[4*3]);
+
     draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[1*3], &camera_vertices[2*3]);
     draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[2*3], &camera_vertices[3*3]);
     draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[3*3], &camera_vertices[4*3]);
     draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[4*3], &camera_vertices[1*3]);
+
+    draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[1*3], &camera_vertices[5*3]);
+    draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[2*3], &camera_vertices[6*3]);
+    draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[3*3], &camera_vertices[7*3]);
+    draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[4*3], &camera_vertices[8*3]);
+
+    draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[5*3], &camera_vertices[6*3]);
+    draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[6*3], &camera_vertices[7*3]);
+    draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[7*3], &camera_vertices[8*3]);
+    draw_line(canvas, layer, camera_matrix, color, line_thickness, &camera_vertices[8*3], &camera_vertices[5*3]);
 }

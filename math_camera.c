@@ -11,12 +11,13 @@ void camera_create(int32_t width, int32_t height, struct Camera* camera) {
     camera->frustum.y_top = -0.375f;
     camera->frustum.y_bottom = 0.375f;
     camera->frustum.z_near = 0.9f;
-    camera->frustum.z_far = 1000.0f;
+    camera->frustum.z_far = 100.0f;
 
+    camera->projection = CAMERA_PERSPECTIVE;
     camera->zoom = 1.0;
 }
 
-void camera_frustum(struct Camera* camera, float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far) {
+void camera_set_frustum(struct Camera* camera, float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far) {
     if( z_far / z_near > 10000.0f ) {
         log_warn(__FILE__, __LINE__, "you are trying to create a frustum with a very large far/near ratio\n");
     }
@@ -27,6 +28,33 @@ void camera_frustum(struct Camera* camera, float x_left, float x_right, float y_
     camera->frustum.y_bottom = y_bottom;
     camera->frustum.z_near = z_near;
     camera->frustum.z_far = z_far;
+}
+
+void camera_vertices(const struct Camera* camera, Mat transform, struct CameraVertices* vertices) {
+    log_assert( vertices != NULL );
+
+    vec_copy3f((Vec3f){camera->frustum.x_left, camera->frustum.y_top, camera->frustum.z_near}, vertices->left_top_near);
+    vec_copy3f((Vec3f){camera->frustum.x_right, camera->frustum.y_top, camera->frustum.z_near}, vertices->right_top_near);
+    vec_copy3f((Vec3f){camera->frustum.x_right, camera->frustum.y_bottom, camera->frustum.z_near}, vertices->right_bottom_near);
+    vec_copy3f((Vec3f){camera->frustum.x_left, camera->frustum.y_bottom, camera->frustum.z_near}, vertices->left_bottom_near);
+
+    vec_copy3f((Vec3f){camera->frustum.x_left, camera->frustum.y_top, camera->frustum.z_far}, vertices->left_top_far);
+    vec_copy3f((Vec3f){camera->frustum.x_right, camera->frustum.y_top, camera->frustum.z_far}, vertices->right_top_far);
+    vec_copy3f((Vec3f){camera->frustum.x_right, camera->frustum.y_bottom, camera->frustum.z_far}, vertices->right_bottom_far);
+    vec_copy3f((Vec3f){camera->frustum.x_left, camera->frustum.y_bottom, camera->frustum.z_far}, vertices->left_bottom_far);
+
+    if( transform != NULL ) {
+        mat_mul_vec3f(transform, vertices->left_top_near, vertices->left_top_near);
+        mat_mul_vec3f(transform, vertices->right_top_near, vertices->right_top_near);
+        mat_mul_vec3f(transform, vertices->right_bottom_near, vertices->right_bottom_near);
+        mat_mul_vec3f(transform, vertices->left_bottom_near, vertices->left_bottom_near);
+
+        mat_mul_vec3f(transform, vertices->left_top_far, vertices->left_top_far);
+        mat_mul_vec3f(transform, vertices->right_top_far, vertices->right_top_far);
+        mat_mul_vec3f(transform, vertices->right_bottom_far, vertices->right_bottom_far);
+        mat_mul_vec3f(transform, vertices->left_bottom_far, vertices->left_bottom_far);
+    }
+
 }
 
 void camera_matrices(const struct Camera* camera, enum CameraProjection projection_type, Mat projection_mat, Mat view_mat) {
