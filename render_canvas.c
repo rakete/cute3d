@@ -149,7 +149,6 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                         log_warn(__FILE__, __LINE__, "shader \"%s\" sampler \"%s\" has no active texture\n", shader->name, global_shader_sampler_names[sampler_i]);
                         enable_texture = 0;
                     } else if( shader->sampler[sampler_i].location < 0 && active_textures[sampler_i] == true ) {
-                        log_warn(__FILE__, __LINE__, "shader \"%s\" has no sampler \"%s\" for texture \"%s\"\n", shader->name, global_shader_sampler_names[sampler_i], canvas->textures[texture_i].name);
                         enable_texture = 0;
                     }
                 }
