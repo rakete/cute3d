@@ -41,7 +41,7 @@ void allegro_orbit_create(ALLEGRO_DISPLAY* display, Vec4f origin, Vec4f translat
 
     camera_create(CAMERA_PERSPECTIVE, width, height, camera);
     //camera_projection(camera, orthographic_zoom);
-    camera_frustum(camera, -0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f);
+    camera_set_frustum(camera, -0.5f, 0.5f, -0.375f, 0.375f, 1.0f, 200.0f);
 
     vec_add3f(camera->pivot.position, translation, camera->pivot.position);
     pivot_lookat(&camera->pivot, origin);
