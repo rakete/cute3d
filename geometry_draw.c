@@ -32,6 +32,8 @@ void draw_halfedgemesh_wire(struct Canvas* canvas,
                             float line_thickness,
                             const struct HalfEdgeMesh* mesh)
 {
+    log_assert( mesh != NULL );
+
     uint32_t num_edges = mesh->edges.occupied;
 
     for( uint32_t edge_i = 0; edge_i < num_edges; edge_i += 2 ) {
