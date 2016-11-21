@@ -29,7 +29,7 @@ void glsl_debug_info_log(GLuint object) {
     free(log);
 }
 
-GLuint glsl_compile_source(GLenum type, const char* shader_source) {
+GLuint glsl_compile_source(GLenum type, const char* prefix_source, const char* shader_source) {
     log_assert( type == GL_FRAGMENT_SHADER || type == GL_VERTEX_SHADER );
 
     // check for cute header in source and warn if this looks like it is
@@ -43,6 +43,84 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
            shader_source[5] == 'E') )
     {
         log_warn(__FILE__, __LINE__, "%s\n does not look like cute3d glsl code\n", shader_source);
+    }
+
+    size_t source_length = strlen(shader_source);
+    log_assert( source_length > 0 );
+    log_assert( source_length < INT_MAX );
+
+    size_t prefix_length = strlen(prefix_source);
+    log_assert( prefix_length > 0 );
+    log_assert( prefix_length < INT_MAX );
+
+    // - the final shader source is made up from the compatibilty source defined
+    // in GLSL_VERT_COMPAT and GLSL_FRAG_COMPAT, and the actual shader_source
+    // both have their length and their pointer are put into source_array, their
+    // length are put into length_array, glShaderSource takes those and assembles
+    // the final source and puts it into shader, glCompileShader finally produces
+    // the compiled shader
+    // - see above, instead of defines now using files
+    const GLchar* source_array[2] = {prefix_source, shader_source};
+    GLint length_array[2] = {(GLint)prefix_length, (GLint)source_length};
+
+    GLuint shader = 0;
+    shader = glCreateShader(type);
+    log_assert( shader > 0 );
+
+    glShaderSource(shader, 2, source_array, length_array);
+    glCompileShader(shader);
+
+    // check for compilation errors and inform the user about them
+    GLint shader_ok;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_ok);
+    if ( ! shader_ok ) {
+        log_fail(__FILE__, __LINE__, "failed to compile:\n%s%s\n\n\n", prefix_source, shader_source);
+        glsl_debug_info_log(shader);
+        glDeleteShader(shader);
+        goto finish;
+    }
+
+finish:
+    return shader;
+}
+
+GLuint glsl_compile_file(GLenum type, const char* filename) {
+    FILE* file = fopen(filename, "rb");
+
+    if( ! file ) {
+        log_fail(__FILE__, __LINE__, "could not open file %s\n", filename);
+        return 0;
+    }
+
+    long filepos;
+    fseek(file, 0, SEEK_END);
+    filepos = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    log_assert( filepos > 0 );
+
+    GLchar* shader_source = malloc((size_t)filepos+1);
+    GLuint id = 0;
+    if( shader_source == NULL ) {
+        fclose(file);
+        goto finish_shader;
+    } else {
+        fread(shader_source, (size_t)filepos, 1, file);
+        fclose(file);
+        shader_source[filepos] = '\0';
+    }
+
+    size_t prefix_filename_length = strlen(filename) + 12;
+    char* prefix_dirname = malloc(prefix_filename_length);
+    for( size_t i = 0; i < prefix_filename_length; i++ ) {
+        prefix_dirname[i] = '\0';
+    }
+
+    const char* last_slash_in_filename = strrchr(filename, '/');
+    if( last_slash_in_filename != NULL ) {
+        memcpy(prefix_dirname, filename, strlen(filename) - strlen(last_slash_in_filename));
+    } else {
+        prefix_dirname[0] = '\0';
     }
 
     // I need this compatibilty crap if I want to be able to deploy stuff on webgl/android
@@ -67,20 +145,24 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
     // from files shader/prefix.vert and shader/prefix.frag
     FILE* prefix_file = NULL;
     if( type == GL_VERTEX_SHADER ) {
-        const char* filename = "shader/prefix.vert";
-        prefix_file = fopen(filename, "rb");
+        char prefix_vert_filename[prefix_filename_length];
+        snprintf(prefix_vert_filename, prefix_filename_length, "%s/%s", prefix_dirname, "prefix.vert");
+
+        prefix_file = fopen(prefix_vert_filename, "rb");
 
         if( ! prefix_file ) {
-            log_fail(__FILE__, __LINE__, "could not open file %s\n", filename);
-            return 0;
+            log_fail(__FILE__, __LINE__, "could not open file %s\n", prefix_vert_filename);
+            goto finish_dirname;
         }
     } else if( type == GL_FRAGMENT_SHADER ) {
-        const char* filename = "shader/prefix.frag";
-        prefix_file = fopen(filename, "rb");
+        char prefix_frag_filename[prefix_filename_length];
+        snprintf(prefix_frag_filename, prefix_filename_length, "%s/%s", prefix_dirname, "prefix.frag");
+
+        prefix_file = fopen(prefix_frag_filename, "rb");
 
         if( ! prefix_file ) {
-            log_fail(__FILE__, __LINE__, "could not open file %s\n", filename);
-            return 0;
+            log_fail(__FILE__, __LINE__, "could not open file %s\n", prefix_frag_filename);
+            goto finish_dirname;
         }
     }
     log_assert( prefix_file != NULL );
@@ -93,85 +175,27 @@ GLuint glsl_compile_source(GLenum type, const char* shader_source) {
     log_assert( prefix_length > 0 );
     log_assert( prefix_length < INT_MAX );
 
-    GLuint shader = 0;
     GLchar* prefix_source = malloc((size_t)prefix_length+1);
     if( prefix_source == NULL ) {
         fclose(prefix_file);
-        goto finish;
+        goto finish_prefix;
     } else {
         fread(prefix_source, (size_t)prefix_length, 1, prefix_file);
         fclose(prefix_file);
         prefix_source[prefix_length] = '\0';
     }
 
-    size_t source_length = strlen(shader_source);
-    log_assert( source_length > 0 );
-    log_assert( source_length < INT_MAX );
-
-    // - the final shader source is made up from the compatibilty source defined
-    // in GLSL_VERT_COMPAT and GLSL_FRAG_COMPAT, and the actual shader_source
-    // both have their length and their pointer are put into source_array, their
-    // length are put into length_array, glShaderSource takes those and assembles
-    // the final source and puts it into shader, glCompileShader finally produces
-    // the compiled shader
-    // - see above, instead of defines now using files
-    const GLchar* source_array[2] = {prefix_source, shader_source};
-    GLint length_array[2] = {(GLint)prefix_length, (GLint)source_length};
-
-    shader = glCreateShader(type);
-    log_assert( shader > 0 );
-
-    glShaderSource(shader, 2, source_array, length_array);
-    glCompileShader(shader);
-
-    // check for compilation errors and inform the user about them
-    GLint shader_ok;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_ok);
-    if ( ! shader_ok ) {
-        log_fail(__FILE__, __LINE__, "failed to compile:\n%s%s\n\n\n", prefix_source, shader_source);
-        glsl_debug_info_log(shader);
-        glDeleteShader(shader);
-        goto finish;;
-    }
-
-finish:
-    free(prefix_source);
-    return shader;
-}
-
-GLuint glsl_compile_file(GLenum type, const char* filename) {
-    FILE* file = fopen(filename, "rb");
-
-    if( ! file ) {
-        log_fail(__FILE__, __LINE__, "could not open file %s\n", filename);
-        return 0;
-    }
-
-    long filepos;
-    fseek(file, 0, SEEK_END);
-    filepos = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    log_assert( filepos > 0 );
-
-    GLchar* source = malloc((size_t)filepos+1);
-    GLuint id = 0;
-    if( source == NULL ) {
-        fclose(file);
-        goto finish;
-    } else {
-        fread(source, (size_t)filepos, 1, file);
-        fclose(file);
-        source[filepos] = '\0';
-    }
-
-    id = glsl_compile_source(type, source);
+    id = glsl_compile_source(type, prefix_source, shader_source);
     if( ! id ) {
-        log_fail(__FILE__, __LINE__, "compilation failed in: %s\n", filename);
+        log_fail(__FILE__, __LINE__, "compilation failed in: prefix + %s\n", filename);
     }
 
-finish:
-    free(source);
+finish_prefix:
+    free(prefix_source);
+finish_dirname:
+    free(prefix_dirname);
+finish_shader:
+    free(shader_source);
     return id;
 }
 

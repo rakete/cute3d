@@ -125,8 +125,10 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
         log_info(__FILE__, __LINE__, "creating shader \"%s\" from files: \"%s\", \"%s\"\n", name, vertex_file, fragment_file);
         p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, vertex_file);
         p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, fragment_file);
-    } else {
-        log_warn(__FILE__, __LINE__, "shader files \"%s\" and \"%s\" do not exist, using default shader\n", vertex_file, fragment_file);
+    }
+
+    if( p->vertex_shader == 0 || p->fragment_shader == 0 ) {
+        log_warn(__FILE__, __LINE__, "shader files \"%s\" or \"%s\" failed to compile, using default shader\n", vertex_file, fragment_file);
         p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, "shader/default.vert");
         p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, "shader/default.frag");
     }
@@ -149,7 +151,7 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
     shader_setup_locations(p);
 }
 
-void shader_create_from_sources(const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p) {
+void shader_create_from_sources(const char* prefix_vertex_source, const char* prefix_fragment_source, const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p) {
     size_t name_length = strlen(name);
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
@@ -163,8 +165,8 @@ void shader_create_from_sources(const char* vertex_source, const char* fragment_
     if( strcmp( name, "default_shader") && strcmp( name, "font_shader") ) {
         log_info(__FILE__, __LINE__, "creating shader \"%s\" from sources\n", name);
     }
-    p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, vertex_source);
-    p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source);
+    p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, prefix_vertex_source, vertex_source);
+    p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, prefix_fragment_source, fragment_source);
 
     log_assert( p->vertex_shader > 0 );
     log_assert( p->fragment_shader > 0 );
