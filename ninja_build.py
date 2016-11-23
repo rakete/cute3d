@@ -170,7 +170,6 @@ ninja_cute3d.glsl_validate(w)
 
 shaders = []
 shaders += ninja_cute3d.build_shaders(w, build_platform, source_directory, build_directory, script_directory, "shader")
-shaders += ninja_cute3d.build_shaders(w, build_platform, source_directory, build_directory, script_directory, "foo/shader")
 
 # - all dlls found in source_directory are copied to build_directory when building, but only
 # when platform is windows and the build_directory and source_directory are not the same directory
@@ -183,7 +182,6 @@ if build_platform == "windows" and os.path.relpath(build_directory, script_direc
     for d in dlls:
        w.build(d, "copy", os.path.join(source_directory, d))
     w.newline()
-
 
 # - the rest should be pretty straightforward, here we create compile and link rules depending on which toolset
 # is selected and use the cflags and ldflags that we configured above

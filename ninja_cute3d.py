@@ -51,9 +51,6 @@ def mkdir(w, build_platform):
         w.rule(name="mkdir", command="mkdir -p $out")
         w.newline()
 
-    w.build("shader", "mkdir")
-    w.newline()
-
 def glsl_validate(w):
     # - when the glsl-validate.py script is found in path, create validate_glsl rule
     # - we use prefix shaders for glsl version compatibilty, and need to prepend those when validating, this only
@@ -76,7 +73,8 @@ def xxd(w, source_directory):
         w.newline()
 
 def build_shaders(w, build_platform, source_directory, build_directory, script_directory, shader_subdir):
-    glsl_validate = command_exists("glsl-validate.py")
+    w.build(shader_subdir, "mkdir")
+    w.newline()
 
     # - for every shader in the source+shader directory, we need to create several build statements:
     # 1. when the build is out of source, we need to copy the shader
@@ -128,7 +126,7 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
 
             # - only create a copy build command if this is an out of source build
             if os.path.relpath(build_directory, script_directory) != ".":
-                w.build(dest_vert_shader, "copy", source_vert_shader, order_only=["shader"])
+                w.build(dest_vert_shader, "copy", source_vert_shader, order_only=[shader_subdir])
 
             # - if glsl_validate exists, create validate command and make phony rule depend on full_vert_shader so that
             # the validation gets triggered if something depends on the vert_shader name
@@ -138,30 +136,29 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
             # get copied and validated when I build test-solid.exe for example, append is in both if branches and not
             # outside so that nothing gets append if this is _not_ an out of source build and glsl_validate.py does _not_
             # exist
-            if glsl_validate and shader_filename != "prefix":
+            if shader_filename != "prefix":
                 w.build(full_vert_shader, "validate_glsl", source_vert_shader, order_only=prefix_deps)
-                #w.build(vert_shader, "phony", full_vert_shader, dest_vert_shader)
+                w.variable("prefix", prefix_deps, 1)
+                w.variable("destination", shader_subdir, 1)
                 shaders.append(dest_vert_shader)
             elif os.path.relpath(build_directory, script_directory) != ".":
-                #w.build(vert_shader, "phony", dest_vert_shader)
                 shaders.append(dest_vert_shader)
-                w.newline()
+            w.newline()
 
         # - same thing as above but for .frag extension instead of .vert
         if os.path.isfile(source_frag_shader):
             dest_frag_shader = os.path.join(shader_subdir, frag_shader)
 
             if os.path.relpath(build_directory, script_directory) != ".":
-                w.build(dest_frag_shader, "copy", source_frag_shader, order_only=["shader"])
+                w.build(dest_frag_shader, "copy", source_frag_shader, order_only=[shader_subdir])
 
-            if glsl_validate and shader_filename != "prefix":
+            if shader_filename != "prefix":
                 w.build(full_frag_shader, "validate_glsl", source_frag_shader, order_only=prefix_deps)
-                #w.build(frag_shader, "phony", full_frag_shader, dest_frag_shader)
+                w.variable("prefix", prefix_deps, 1)
+                w.variable("destination", shader_subdir, 1)
                 shaders.append(dest_frag_shader)
             else:
-                #w.build(frag_shader, "phony", dest_frag_shader)
                 shaders.append(dest_frag_shader)
-                w.newline()
-                w.newline()
+            w.newline()
 
     return shaders
