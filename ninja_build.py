@@ -162,6 +162,8 @@ print "ldflags: " + ldflags
 build_file_handle = open("build.ninja", "w+")
 w = ninja_syntax.Writer(build_file_handle, 127)
 
+ninja_cute3d.xxd(w, source_directory)
+
 ninja_cute3d.copy(w, build_platform)
 ninja_cute3d.mkdir(w, build_platform)
 ninja_cute3d.glsl_validate(w)

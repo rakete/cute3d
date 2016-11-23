@@ -55,20 +55,25 @@ def mkdir(w, build_platform):
     w.newline()
 
 def glsl_validate(w):
-        # - when the glsl-validate.py script is found in path, create validate_glsl rule
+    # - when the glsl-validate.py script is found in path, create validate_glsl rule
     # - we use prefix shaders for glsl version compatibilty, and need to prepend those when validating, this only
     # works with my own glsl-validator.py fork for now
     # - the --write parameter is important, it outputs the full shader as flat.full.vert (for example), so that we
     # can rely on those files as dependencies in ninja, they serve us no other function
-    prefix_shader = []
-    glsl_validate = command_exists("glsl-validate.py")
-    if glsl_validate:
-        prefix_shader = [os.path.join("shader", "prefix.vert"), os.path.join("shader", "prefix.frag")]
-        prefix_shader_string = " ".join(prefix_shader)
+    module_directory = os.path.dirname(os.path.realpath(__file__))
+    glsl_validate_path = os.path.join(module_directory, "scripts", "glsl_validate.py")
 
-        w.rule(name="validate_glsl", command="python " + glsl_validate + " --no-color " + prefix_shader_string + " $in --write shader")
+    if os.path.exists(glsl_validate_path):
+        w.rule(name="validate_glsl", command="python " + glsl_validate_path + " --no-color $prefix $in --write $destination")
         w.newline()
 
+def xxd(w, source_directory):
+    module_directory = os.path.dirname(os.path.realpath(__file__))
+    xxd_path = os.path.join(module_directory, "scripts", "xxd.py")
+
+    if os.path.exists(xxd_path):
+        w.rule(name="xxd", command="python " + xxd_path + " $in $out")
+        w.newline()
 
 def build_shaders(w, build_platform, source_directory, build_directory, script_directory, shader_subdir):
     glsl_validate = command_exists("glsl-validate.py")
