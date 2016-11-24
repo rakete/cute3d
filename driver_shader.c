@@ -113,6 +113,39 @@ void shader_create(struct Shader* p) {
     p->verified = false;
 }
 
+void shader_create_default(const char* name, struct Shader* p) {
+    size_t name_length = strlen(name);
+    log_assert( name_length > 0 );
+    log_assert( name_length < 256 );
+
+    p->name[0] = '\0';
+    strncat(p->name, name, name_length);
+
+    #include "shader/prefix_vert.h"
+    #include "shader/no_shading_vert.h"
+    p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, (char*)shader_prefix_vert, (char*)shader_no_shading_vert);
+    log_assert( p->vertex_shader > 0 );
+
+    #include "shader/prefix_frag.h"
+    #include "shader/no_shading_frag.h"
+    p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, (char*)shader_prefix_frag, (char*)shader_no_shading_frag);
+    log_assert( p->fragment_shader > 0 );
+
+    p->program = glsl_create_program(p->vertex_shader, p->fragment_shader);
+    log_assert( p->program > 0 );
+
+    for( uint32_t attribute_i = 0; attribute_i < MAX_SHADER_ATTRIBUTES; attribute_i++ ) {
+        glBindAttribLocation(p->program, attribute_i, global_shader_attribute_names[attribute_i]);
+    }
+
+    p->program = glsl_link_program(p->program);
+    log_assert( p->program > 0 );
+
+    p->verified = false;
+
+    shader_setup_locations(p);
+}
+
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p) {
     size_t name_length = strlen(name);
     log_assert( name_length > 0 );
@@ -129,8 +162,11 @@ void shader_create_from_files(const char* vertex_file, const char* fragment_file
 
     if( p->vertex_shader == 0 || p->fragment_shader == 0 ) {
         log_warn(__FILE__, __LINE__, "shader files \"%s\" or \"%s\" failed to compile, using default shader\n", vertex_file, fragment_file);
-        p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, "shader/default.vert");
-        p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, "shader/default.frag");
+
+        struct Shader default_shader;
+        shader_create_default(name, &default_shader);
+        p->vertex_shader = default_shader.vertex_shader;
+        p->fragment_shader = default_shader.fragment_shader;
     }
 
     log_assert( p->vertex_shader > 0 );

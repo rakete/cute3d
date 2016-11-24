@@ -140,6 +140,7 @@ struct Shader {
 WARN_UNUSED_RESULT int32_t init_shader();
 
 void shader_create(struct Shader* p);
+void shader_create_default(const char* name, struct Shader* p);
 void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p);
 void shader_create_from_sources(const char* prefix_vertex_source, const char* prefix_fragment_source, const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p);
 
