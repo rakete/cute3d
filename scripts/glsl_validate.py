@@ -28,6 +28,7 @@ import os
 import platform
 import re
 import subprocess
+import shutil
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -194,7 +195,9 @@ def standalone():
     parser.add_argument('--raw', dest='raw', action='store_true',
                         help='Do not prepend standard THREE.js prefix block')
     parser.add_argument('--write', dest='write', action='store', nargs='?', default=False,
-                        help='Write out to file.full.ext')
+                        help='Write out validated shader source.')
+    parser.add_argument('--copy', dest='copy', action='store', nargs='+', default=False,
+                        help='Takes directory or file names and copies shader files.')
     parser.add_argument('--compile', dest='compile', action='store_true',
                         help='Print number of instructions according to cgc')
     parser.add_argument('--assembly', dest='assembly', action='store_true',
@@ -232,6 +235,17 @@ def standalone():
             with open(dest_name, 'w') as out:
                 (shader, lines) = load_shader(f)
                 out.write(shader)
+
+    if args.copy and len(args.copy) > 0:
+        if len(shader_files) == 0:
+            shader_files = prefix_files
+
+        copy_dests = args.copy
+        if len(copy_dests) == 1 and os.path.isdir(copy_dests[0]):
+            copy_dests = copy_dests * len(shader_files)
+
+        for f,c in zip(shader_files, copy_dests):
+            shutil.copy(f,c)
 
 if __name__ == "__main__":
     standalone()
