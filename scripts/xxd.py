@@ -2,9 +2,11 @@
 import os.path
 import string
 import sys
+import re
 
 def xxd(file_path, null_terminate):
-    array_name = file_path.replace('/','_').replace('.','_')
+    array_name = file_path.replace('/', '_').replace('.', '_')
+    array_name = re.sub('^_*', '', array_name)
     output = "unsigned char %s[] = {" % array_name
     with open(file_path, 'r') as f:
         length = 0
@@ -23,7 +25,8 @@ def xxd(file_path, null_terminate):
                 output += "0x%02x, " % ord(i)
                 length += 1
         output += "\n};\n"
-        output += "unsigned int %s_len = %d;" % (array_name, length)
+        output += "__attribute__ ((unused)) unsigned int %s_len = %d;\n" % (array_name, length)
+
     return output
 
 if __name__ == '__main__':

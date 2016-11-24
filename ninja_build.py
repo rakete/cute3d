@@ -168,8 +168,7 @@ ninja_cute3d.copy(w, build_platform)
 ninja_cute3d.mkdir(w, build_platform)
 ninja_cute3d.glsl_validate(w)
 
-shaders = []
-shaders += ninja_cute3d.build_shaders(w, build_platform, source_directory, build_directory, script_directory, "shader")
+(shaders, shader_headers) = ninja_cute3d.build_shaders(w, build_platform, source_directory, build_directory, script_directory, "shader")
 
 # - all dlls found in source_directory are copied to build_directory when building, but only
 # when platform is windows and the build_directory and source_directory are not the same directory
@@ -211,7 +210,7 @@ for c in sources:
         o = c.replace(".c", ".obj")
     else:
         o = c.replace(".c", ".o")
-    w.build(o, "compile", os.path.join(source_directory, c))
+    w.build(o, "compile", os.path.join(source_directory, c), order_only=shader_headers)
     objects.append(o)
 w.newline()
 

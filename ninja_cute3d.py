@@ -61,7 +61,7 @@ def glsl_validate(w):
     glsl_validate_path = os.path.join(module_directory, "scripts", "glsl_validate.py")
 
     if os.path.exists(glsl_validate_path):
-        w.rule(name="validate_glsl", command="python " + glsl_validate_path + " --no-color $prefix $in --write $destination")
+        w.rule(name="validate_glsl", command="python " + glsl_validate_path + " --no-color $prefix $in $write $copy")
         w.newline()
 
 def xxd(w, source_directory):
@@ -85,30 +85,41 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
     # I won't create build rules with multiple commands, but only build rules which only run one command
     source_shader_directory = os.path.relpath(os.path.join(source_directory, shader_subdir), build_directory)
     shaders = []
+    shader_headers = []
 
     # - first things first, I just list all potential shader files here, but without extensions, thats why I am using
     # these scary looking list comprehensions instead of just a simple glob
     current_directory = os.getcwd()
     os.chdir(source_shader_directory)
-    shader_filenames = []
-    [shader_filenames.append(os.path.splitext(sf)[0]) for sf in glob.glob("*.vert")]
-    [shader_filenames.append(os.path.splitext(sf)[0]) for sf in glob.glob("*.frag") if os.path.splitext(sf)[0] not in shader_filenames]
+    shader_filenames_with_extensions = []
+    [shader_filenames_with_extensions.append(sf) for sf in glob.glob("*.vert")]
     os.chdir(current_directory)
 
     # - iterate unique filenames without extension, then vert_shader is the name (like flat.vert, frag_shader for .frag),
     # source_vert_shader is the source path (like ../shader/flat.vert), full_vert_shader is the full file that glsl_validate.py
     # writes if given the --write parameter (like shader/flat.full.vert)
     # - notice that the full_vert_shader path is relative to the current build directory
-    for shader_filename in shader_filenames:
-        if re.search("\.full$", shader_filename):
+    for shader_filename_with_extension in shader_filenames_with_extensions:
+        if re.search("_with_prefix$", shader_filename_with_extension):
             continue
+
+        shader_filename = os.path.splitext(shader_filename_with_extension)[0]
 
         vert_shader = shader_filename + ".vert"
         frag_shader = shader_filename + ".frag"
         source_vert_shader = os.path.join(source_shader_directory, vert_shader)
         source_frag_shader = os.path.join(source_shader_directory, frag_shader)
-        full_vert_shader = os.path.join(shader_subdir, shader_filename + ".full.vert")
-        full_frag_shader = os.path.join(shader_subdir, shader_filename + ".full.frag")
+        full_vert_shader = os.path.join(shader_subdir, shader_filename + ".vert_with_prefix")
+        full_frag_shader = os.path.join(shader_subdir, shader_filename + ".frag_with_prefix")
+        dest_vert_shader = os.path.join(shader_subdir, vert_shader)
+        dest_frag_shader = os.path.join(shader_subdir, frag_shader)
+        vert_shader_header = os.path.join(source_shader_directory, vert_shader.replace('.','_') + ".h")
+        frag_shader_header = os.path.join(source_shader_directory, frag_shader.replace('.','_') + ".h")
+
+        w.build(vert_shader_header, "xxd", source_vert_shader)
+        w.build(frag_shader_header, "xxd", source_frag_shader)
+        shader_headers.append(vert_shader_header)
+        shader_headers.append(frag_shader_header)
 
         # - prefix_deps we create validate and copy rules for the prefix shaders just like for all the other shaders,
         # but all the other shaders will then have the prefix shaders as order_only deps, so that the prefix shaders get
@@ -117,16 +128,15 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
         if shader_filename != "prefix":
             prefix_deps = [os.path.join(shader_subdir, "prefix.vert"), os.path.join(shader_subdir, "prefix.frag")]
 
+        out_of_source = False
+        if os.path.relpath(build_directory, script_directory) != ".":
+            out_of_source = True
+
         # - these following two if statements create all the build commands, check if the source actually exist because
         # it may be possible that there is a vert shader without frag equivalent for example
         # - dest_vert_shader is just the destination path for the shader (like shader/flat.vert), just like full_vert_shader
         # it is a path relative to the current build directory
         if os.path.isfile(source_vert_shader):
-            dest_vert_shader = os.path.join(shader_subdir, vert_shader)
-
-            # - only create a copy build command if this is an out of source build
-            if os.path.relpath(build_directory, script_directory) != ".":
-                w.build(dest_vert_shader, "copy", source_vert_shader, order_only=[shader_subdir])
 
             # - if glsl_validate exists, create validate command and make phony rule depend on full_vert_shader so that
             # the validation gets triggered if something depends on the vert_shader name
@@ -139,26 +149,29 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
             if shader_filename != "prefix":
                 w.build(full_vert_shader, "validate_glsl", source_vert_shader, order_only=prefix_deps)
                 w.variable("prefix", prefix_deps, 1)
-                w.variable("destination", shader_subdir, 1)
+                w.variable("write", "--write " + shader_subdir, 1)
+                if out_of_source:
+                    w.build(dest_vert_shader, "copy", source_vert_shader, order_only=full_vert_shader)
+                else:
+                    w.build(dest_vert_shader, "phony", full_vert_shader)
                 shaders.append(dest_vert_shader)
-            elif os.path.relpath(build_directory, script_directory) != ".":
-                shaders.append(dest_vert_shader)
-            w.newline()
+            elif out_of_source:
+                w.build(dest_vert_shader, "copy", source_vert_shader)
 
         # - same thing as above but for .frag extension instead of .vert
         if os.path.isfile(source_frag_shader):
-            dest_frag_shader = os.path.join(shader_subdir, frag_shader)
-
-            if os.path.relpath(build_directory, script_directory) != ".":
-                w.build(dest_frag_shader, "copy", source_frag_shader, order_only=[shader_subdir])
 
             if shader_filename != "prefix":
                 w.build(full_frag_shader, "validate_glsl", source_frag_shader, order_only=prefix_deps)
                 w.variable("prefix", prefix_deps, 1)
-                w.variable("destination", shader_subdir, 1)
+                w.variable("write", "--write " + shader_subdir, 1)
+                if out_of_source:
+                    w.build(dest_frag_shader, "copy", source_frag_shader, order_only=full_frag_shader)
+                else:
+                    w.build(dest_frag_shader, "phony", full_frag_shader)
                 shaders.append(dest_frag_shader)
-            else:
-                shaders.append(dest_frag_shader)
-            w.newline()
+            elif out_of_source:
+                w.build(dest_frag_shader, "copy", source_frag_shader)
 
-    return shaders
+        w.newline()
+    return (shaders, shader_headers)

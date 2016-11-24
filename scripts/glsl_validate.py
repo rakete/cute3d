@@ -225,15 +225,23 @@ def standalone():
         map(lambda f: shader_info(f, prefix_files), shader_files)
 
     if args.write or args.write is None:
-        for f in files:
-            dest_name = f.split('.')
-            dest_name.insert(-1, 'full')
-            dest_name = ".".join(dest_name)
+        for shader_file in shader_files:
+            (dest_dir, dest_filename) = os.path.split(shader_file)
+            (dest_filename, dest_ext) = os.path.splitext(dest_filename)
+            dest_filename = dest_filename + dest_ext + "_with_prefix"
+
+            dest_name = os.path.join(dest_dir, dest_filename)
             if args.write and os.path.isdir(args.write):
-                (dest_dir, dest_filename) = os.path.split(dest_name)
                 dest_name = os.path.join(args.write, dest_filename)
+
             with open(dest_name, 'w') as out:
-                (shader, lines) = load_shader(f)
+                if len(prefix_files) > 0:
+                    extension = os.path.splitext(shader_file)[1]
+                    prefix_shader_file = next((pf for pf in prefix_files if re.search("prefix%s" % extension, pf, re.IGNORECASE)), None)
+                    (prefix_shader, lines) = load_shader(prefix_shader_file)
+                    out.write(prefix_shader)
+
+                (shader, lines) = load_shader(shader_file)
                 out.write(shader)
 
     if args.copy and len(args.copy) > 0:
