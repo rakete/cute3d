@@ -16,10 +16,6 @@ from __future__ import print_function
 import sys, os, subprocess, traceback
 from select import select
 
-path, compiler = os.path.split(sys.argv[0])
-if compiler[-5:] == 'color':
-	compiler = compiler[:-6]
-
 filter = True
 if 'NOCOLOR' in os.environ:
 	# don't filter if the variable is set but empty
@@ -35,7 +31,7 @@ if 'NOCOLOR' in os.environ:
 		filter = False
 
 p = subprocess.Popen(
-		args=[compiler] + sys.argv[1:],
+		args=sys.argv[1:],
 		stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
 		cwd=os.getcwd(), env=os.environ,
 		shell=False

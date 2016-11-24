@@ -186,7 +186,8 @@ if build_platform == "windows" and os.path.relpath(build_directory, script_direc
 # is selected and use the cflags and ldflags that we configured above
 if build_toolset == "mingw" or build_toolset == "gcc":
     # -c and /c in gcc and cl.exe mean: compile without linking
-    w.rule(name="compile", command="gcc -MMD -MF $out.d -c $in -o $out " + cflags, deps="gcc", depfile="$out.d")
+    gcc_compiler_color_path = os.path.join(script_directory, "scripts", "gcc_compiler_color.py")
+    w.rule(name="compile", command="python " + gcc_compiler_color_path + " gcc -MMD -MF $out.d -c $in -o $out " + cflags, deps="gcc", depfile="$out.d")
     w.newline()
     w.rule(name="link", command="gcc $in -o $out " + ldflags)
     w.newline()
