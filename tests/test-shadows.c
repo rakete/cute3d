@@ -75,10 +75,6 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_shader() ) {
-        return 1;
-    }
-
     /* Vbo */
     struct Vbo vbo = {0};
     vbo_create(&vbo);
