@@ -4,9 +4,9 @@ import string
 import sys
 import re
 
-def xxd(file_path, null_terminate):
-    array_name = file_path.replace('/', '_').replace('.', '_')
-    array_name = re.sub('^_*', '', array_name)
+def xxd(file_path, name_prefix, null_terminate):
+    array_name = os.path.split(file_path.replace('.', '_'))[1]
+    array_name = name_prefix + array_name
     output = "unsigned char %s[] = {" % array_name
     with open(file_path, 'r') as f:
         length = 0
@@ -33,8 +33,12 @@ if __name__ == '__main__':
     if not os.path.exists(sys.argv[1]):
         print >> (sys.stderr, "The input file doesn't exist.")
         sys.exit(1)
-    if len(sys.argv) > 2:
+
+    if len(sys.argv) == 3:
         with open(sys.argv[2], 'w+') as f:
-            f.write(xxd(sys.argv[1], True))
+            f.write(xxd(sys.argv[1], "", True))
+    elif len(sys.argv) == 4:
+        with open(sys.argv[2], 'w+') as f:
+            f.write(xxd(sys.argv[1], sys.argv[3], True))
     else:
-        print xxd(sys.argv[1], True)
+        print xxd(sys.argv[1], "", True)

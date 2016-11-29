@@ -38,10 +38,6 @@ def copy(w, build_platform):
         w.newline()
 
 def mkdir(w, build_platform):
-    # - most complex part of this script deals with validating and copying the glsl shaders
-    # - first we make a generic mkdir rule so that we can create the shader directory, since shaders
-    # are like an asset the gets loaded at runtime, we just recreate the same shader_directory in the
-    # build_directory so that any hardcoded relative paths still work
     if build_platform == "windows":
         if command_exists("mkdir.exe"):
             w.rule(name="mkdir", command="mkdir -p $out")
@@ -52,16 +48,15 @@ def mkdir(w, build_platform):
         w.newline()
 
 def glsl_validate(w):
-    # - when the glsl-validate.py script is found in path, create validate_glsl rule
-    # - we use prefix shaders for glsl version compatibilty, and need to prepend those when validating, this only
-    # works with my own glsl-validator.py fork for now
+    # - we use prefix shaders for glsl version compatibilty, and need to prepend those when validating, that is done
+    # via the $prefix variable, we can't hardcode the prefix shaders here because their path may be variable
     # - the --write parameter is important, it outputs the full shader as flat.full.vert (for example), so that we
     # can rely on those files as dependencies in ninja, they serve us no other function
     module_directory = os.path.dirname(os.path.realpath(__file__))
     glsl_validate_path = os.path.join(module_directory, "scripts", "glsl_validate.py")
 
     if os.path.exists(glsl_validate_path):
-        w.rule(name="validate_glsl", command="python " + glsl_validate_path + " --no-color $prefix $in $write $copy")
+        w.rule(name="validate_glsl", command="python " + glsl_validate_path + " --no-color $prefix $in $write")
         w.newline()
 
 def xxd(w, source_directory):
@@ -69,17 +64,21 @@ def xxd(w, source_directory):
     xxd_path = os.path.join(module_directory, "scripts", "xxd.py")
 
     if os.path.exists(xxd_path):
-        w.rule(name="xxd", command="python " + xxd_path + " $in $out")
+        w.rule(name="xxd", command="python " + xxd_path + " $in $out $name_prefix")
         w.newline()
 
-def build_shaders(w, build_platform, source_directory, build_directory, script_directory, shader_subdir):
+def build_shaders(w, build_platform, source_directory, build_directory, script_directory, shader_subdir, name_prefix):
+    # - most complex part of this script deals with validating and copying the glsl shaders
+    # - first we create the shader directory, since shaders are like an asset the gets loaded
+    # at runtime, we just recreate the same shader_directory in the build_directory so that
+    # any hardcoded relative paths still work
     w.build(shader_subdir, "mkdir")
     w.newline()
 
     # - for every shader in the source+shader directory, we need to create several build statements:
-    # 1. when the build is out of source, we need to copy the shader
-    # 2. when there is a glsl-validate.py command, we want to use it to validate the shader
-    # 3. we create an additional phony build statement so that we can depend on something simple like flat.vert
+    # 1. when the build is out of source, we need to copy the shader, if it is not we create a phony rule instead
+    # 2. we want to validate the shader with glsl_validate.py
+    # 3. we need to generate a .h file with xxd.py from the shader file so that it can be included as string literal
     # - making things difficult is that ninja does not use a shell but creates a process for every build command,
     # and the workaround for that on windows, using cmd /c, does not really work that well for my emacs setup, so
     # I won't create build rules with multiple commands, but only build rules which only run one command
@@ -89,17 +88,23 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
 
     # - first things first, I just list all potential shader files here, but without extensions, thats why I am using
     # these scary looking list comprehensions instead of just a simple glob
+    # - I only list .vert files because these must come in .vert/.frag pairs anyways or they would not work
     current_directory = os.getcwd()
     os.chdir(source_shader_directory)
     shader_filenames_with_extensions = []
     [shader_filenames_with_extensions.append(sf) for sf in glob.glob("*.vert")]
     os.chdir(current_directory)
 
-    # - iterate unique filenames without extension, then vert_shader is the name (like flat.vert, frag_shader for .frag),
-    # source_vert_shader is the source path (like ../shader/flat.vert), full_vert_shader is the full file that glsl_validate.py
-    # writes if given the --write parameter (like shader/flat.full.vert)
-    # - notice that the full_vert_shader path is relative to the current build directory
+    # - iterate unique filenames without extension,
+    # - then vert_shader is the name (like flat.vert, frag_shader for .frag),
+    # - source_vert_shader is the source path (like ../shader/flat.vert),
+    # - full_vert_shader is the full file that glsl_validate.py writes if given the --write parameter (like shader/flat.full.vert),
+    # - dest_vert_shader is just the destination path for the shader (like shader/flat.vert), just like full_vert_shader
+    # it is a path relative to the current build directory
+    # - vert_shader_header is the header file we will generate from the .vert file
     for shader_filename_with_extension in shader_filenames_with_extensions:
+        # - when the filename looks like this: flat.vert_with_prefix, then it is one of the files that has
+        # been output by the glsl_validate.py script when it validates a shader, and we can ignore it
         if re.search("_with_prefix$", shader_filename_with_extension):
             continue
 
@@ -116,14 +121,15 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
         vert_shader_header = os.path.join(source_shader_directory, vert_shader.replace('.','_') + ".h")
         frag_shader_header = os.path.join(source_shader_directory, frag_shader.replace('.','_') + ".h")
 
+        # - create build rules for creating the shader headers with xxd.py, easy peasy, append them to
+        # shader_headers which gets returned later so that we can depend on the headers in other rules
         w.build(vert_shader_header, "xxd", source_vert_shader)
+        w.variable("name_prefix", name_prefix, 1)
         w.build(frag_shader_header, "xxd", source_frag_shader)
+        w.variable("name_prefix", name_prefix, 1)
         shader_headers.append(vert_shader_header)
         shader_headers.append(frag_shader_header)
 
-        # - prefix_deps we create validate and copy rules for the prefix shaders just like for all the other shaders,
-        # but all the other shaders will then have the prefix shaders as order_only deps, so that the prefix shaders get
-        # copied first, and can then be used in the validate commands for the other shaders
         prefix_deps = []
         if shader_filename != "prefix":
             prefix_deps = [os.path.join(shader_subdir, "prefix.vert"), os.path.join(shader_subdir, "prefix.frag")]
@@ -132,35 +138,30 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
         if os.path.relpath(build_directory, script_directory) != ".":
             out_of_source = True
 
-        # - these following two if statements create all the build commands, check if the source actually exist because
-        # it may be possible that there is a vert shader without frag equivalent for example
-        # - dest_vert_shader is just the destination path for the shader (like shader/flat.vert), just like full_vert_shader
-        # it is a path relative to the current build directory
+        # - these following two if statements create all the build commands
         if os.path.isfile(source_vert_shader):
-
-            # - if glsl_validate exists, create validate command and make phony rule depend on full_vert_shader so that
-            # the validation gets triggered if something depends on the vert_shader name
-            # - else just create the phony rule depend on dest_vert_shader, so that only the copy gets triggered, again
-            # only if this is an out of source build, if not then nothing gets created
-            # - append filename to shaders list, which are later used as dependencies for executables, so that shaders
-            # get copied and validated when I build test-solid.exe for example, append is in both if branches and not
-            # outside so that nothing gets append if this is _not_ an out of source build and glsl_validate.py does _not_
-            # exist
             if shader_filename != "prefix":
+                # - if we are NOT looking at a prefix shader create a build rule that validates the shader, with two
+                # variables that specifiy the prefix shaders and the shader_subdir that glsl_validate.py should write to
+                # - make the validate_glsl rule depend on the prefix_deps, so that those get copied first before running
+                # any validation
                 w.build(full_vert_shader, "validate_glsl", source_vert_shader, order_only=prefix_deps)
                 w.variable("prefix", prefix_deps, 1)
                 w.variable("write", "--write " + shader_subdir, 1)
+                # - if the current build is out of source, we need to copy the shader into build directory, if not then we
+                # just create a phony rule, in both cases we need to depend on the full_vert_shader so that the validation
+                # above gets triggered
                 if out_of_source:
                     w.build(dest_vert_shader, "copy", source_vert_shader, order_only=full_vert_shader)
                 else:
                     w.build(dest_vert_shader, "phony", full_vert_shader)
+                # - append dest_vert_shader to shaders, we'll return those later so that other rules can depend on them
                 shaders.append(dest_vert_shader)
             elif out_of_source:
                 w.build(dest_vert_shader, "copy", source_vert_shader)
 
         # - same thing as above but for .frag extension instead of .vert
         if os.path.isfile(source_frag_shader):
-
             if shader_filename != "prefix":
                 w.build(full_frag_shader, "validate_glsl", source_frag_shader, order_only=prefix_deps)
                 w.variable("prefix", prefix_deps, 1)

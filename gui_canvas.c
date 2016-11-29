@@ -225,6 +225,21 @@ int32_t canvas_add_shader_files(struct Canvas* canvas, const char* shader_name, 
     return shader_index;
 }
 
+int32_t canvas_add_shader_sources(struct Canvas* canvas, const char* shader_name, const char* prefix_vertex_source, const char* prefix_fragment_source, const char* vertex_source, const char* fragment_source) {
+    int32_t shader_index = canvas_find_shader(canvas, shader_name);
+    if( shader_index == MAX_CANVAS_SHADER ) {
+        struct Shader shader = {0};
+        shader_create_from_sources(prefix_vertex_source, prefix_fragment_source, vertex_source, fragment_source, shader_name, &shader);
+
+        shader_index = canvas_add_shader(canvas, shader_name, &shader);
+        if( shader_index == MAX_CANVAS_SHADER ) {
+            log_warn(__FILE__, __LINE__, "could not insert \"%s\" to canvas because there is no space left for it\n", shader_name);
+        }
+    }
+
+    return shader_index;
+}
+
 int32_t canvas_find_shader(const struct Canvas* canvas, const char* shader_name) {
     size_t name_length = strlen(shader_name);
     log_assert( name_length > 0 );

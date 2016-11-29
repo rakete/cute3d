@@ -162,13 +162,15 @@ print "ldflags: " + ldflags
 build_file_handle = open("build.ninja", "w+")
 w = ninja_syntax.Writer(build_file_handle, 127)
 
-ninja_cute3d.xxd(w, source_directory)
-
+# - generic rules for tools that I've put into ninja_cute3d to make them reusable elsewhere
 ninja_cute3d.copy(w, build_platform)
 ninja_cute3d.mkdir(w, build_platform)
 ninja_cute3d.glsl_validate(w)
+ninja_cute3d.xxd(w, source_directory)
 
-(shaders, shader_headers) = ninja_cute3d.build_shaders(w, build_platform, source_directory, build_directory, script_directory, "shader")
+# - I want to be able to use build_shaders in other projects to validate shaders and copy them where they belong
+# - there is a lot of complexity hidden behind this one function call
+(shaders, shader_headers) = ninja_cute3d.build_shaders(w, build_platform, source_directory, build_directory, script_directory, "shader", "cute3d_shader_")
 
 # - all dlls found in source_directory are copied to build_directory when building, but only
 # when platform is windows and the build_directory and source_directory are not the same directory
@@ -185,8 +187,9 @@ if build_platform == "windows" and os.path.relpath(build_directory, script_direc
 # - the rest should be pretty straightforward, here we create compile and link rules depending on which toolset
 # is selected and use the cflags and ldflags that we configured above
 if build_toolset == "mingw" or build_toolset == "gcc":
-    # -c and /c in gcc and cl.exe mean: compile without linking
+    # - use gcc_compiler_color
     gcc_compiler_color_path = os.path.join(script_directory, "scripts", "gcc_compiler_color.py")
+    # -c and /c in gcc and cl.exe mean: compile without linking
     w.rule(name="compile", command="python " + gcc_compiler_color_path + " gcc -MMD -MF $out.d -c $in -o $out " + cflags, deps="gcc", depfile="$out.d")
     w.newline()
     w.rule(name="link", command="gcc $in -o $out " + ldflags)

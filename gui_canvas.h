@@ -174,7 +174,8 @@ void canvas_add_attribute(struct Canvas* canvas, int32_t attribute, uint32_t siz
 
 WARN_UNUSED_RESULT int32_t canvas_add_shader(struct Canvas* canvas, const char* shader_name, const struct Shader* shader);
 WARN_UNUSED_RESULT int32_t canvas_add_shader_files(struct Canvas* canvas, const char* shader_name, const char* vertex_file, const char* fragment_file);
-#define canvas_add_shader_symbol(canvas, name, symbol) canvas_add_shader_files(canvas, name, "shader/" #symbol ".vert", "shader/" #symbol ".frag");
+WARN_UNUSED_RESULT int32_t canvas_add_shader_sources(struct Canvas* canvas, const char* shader_name, const char* prefix_vertex_source, const char* prefix_fragment_source, const char* vertex_source, const char* fragment_source);
+
 WARN_UNUSED_RESULT int32_t canvas_find_shader(const struct Canvas* canvas, const char* shader_name);
 
 WARN_UNUSED_RESULT int32_t canvas_add_font(struct Canvas* canvas, const char* font_name, const struct Font* font);

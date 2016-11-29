@@ -42,7 +42,15 @@ void draw_line(struct Canvas* canvas,
                const Vec3f p,
                const Vec3f q)
 {
-    int32_t shader_index = canvas_add_shader_symbol(canvas, "volumetric_lines_shader", volumetric_lines);
+    #include "shader/prefix_vert.h"
+    #include "shader/prefix_frag.h"
+    #include "shader/volumetric_lines_vert.h"
+    #include "shader/volumetric_lines_frag.h"
+    int32_t shader_index = canvas_add_shader_sources(canvas, "volumetric_lines_shader",
+                                                     (char*)cute3d_shader_prefix_vert,
+                                                     (char*)cute3d_shader_prefix_frag,
+                                                     (char*)cute3d_shader_volumetric_lines_vert,
+                                                     (char*)cute3d_shader_volumetric_lines_frag);
     log_assert( shader_index < MAX_CANVAS_SHADER );
 
     // - the colors and thickness arrays are filled here, but there is one caveat:

@@ -123,12 +123,12 @@ void shader_create_default(const char* name, struct Shader* p) {
 
     #include "shader/prefix_vert.h"
     #include "shader/no_shading_vert.h"
-    p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, (char*)shader_prefix_vert, (char*)shader_no_shading_vert);
+    p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, (char*)cute3d_shader_prefix_vert, (char*)cute3d_shader_no_shading_vert);
     log_assert( p->vertex_shader > 0 );
 
     #include "shader/prefix_frag.h"
     #include "shader/no_shading_frag.h"
-    p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, (char*)shader_prefix_frag, (char*)shader_no_shading_frag);
+    p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, (char*)cute3d_shader_prefix_frag, (char*)cute3d_shader_no_shading_frag);
     log_assert( p->fragment_shader > 0 );
 
     p->program = glsl_create_program(p->vertex_shader, p->fragment_shader);
