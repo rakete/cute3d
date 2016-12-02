@@ -10,7 +10,8 @@ void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float z_near, f
     // arcball_event is the y axis, and two parallel axis have no cross product and things become 0 and everything
     // gets messy, so just add FLOAT_EPSILON to the z coord and be done with it
     if( eye[0] == target[0] && eye[2] == target[2] ) {
-        log_assert( eye[1] != target[1] );
+        bool assert_test = eye[1] != target[1];
+        log_assert( assert_test == true );
 
         eye[2] += CUTE_EPSILON;
     }
@@ -23,7 +24,7 @@ void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float z_near, f
         z_near = 0.01f;
     }
 
-    camera_create(width, height, &arcball->camera);
+    camera_create(width, height, CAMERA_PERSPECTIVE, &arcball->camera);
     float top = (z_near/width) * height/2.0f;
     float bottom = -top;
     camera_set_frustum(&arcball->camera, -z_near/2.0f, z_near/2.0f, bottom, top, z_near, z_far);
@@ -32,7 +33,7 @@ void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float z_near, f
     arcball->flipped = pivot_lookat(&arcball->camera.pivot, target);
     arcball->rotate_button = INPUT_MOUSE_ARCBALL_ROTATE;
     arcball->translate_button = INPUT_MOUSE_ARCBALL_TRANSLATE;
-    arcball->translation_factor = 500.0f;
+    arcball->translate_factor = 500.0f;
     arcball->zoom_factor = 10.0f;
 
     vec_copy4f(target, arcball->target);
@@ -74,7 +75,7 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
             //   scaled by how far we are away from what we are looking at (farer means faster, nearer
             //   means slower), the translation_factor is just a value that felt good when this was implemented
             Vec4f x_translation = {0};
-            vec_mul1f(right_axis, (float)mouse.xrel/arcball->translation_factor*eye_distance, x_translation);
+            vec_mul1f(right_axis, (float)mouse.xrel/arcball->translate_factor*eye_distance, x_translation);
 
             // - finally just add the x_translation to the target and position so that the whole arcball moves
             vec_add(arcball->target, x_translation, arcball->target);
@@ -93,7 +94,7 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
 
             // - same as above
             Vec4f z_translation;
-            vec_mul1f(forward_axis, (float)mouse.yrel/arcball->translation_factor*eye_distance, z_translation);
+            vec_mul1f(forward_axis, (float)mouse.yrel/arcball->translate_factor*eye_distance, z_translation);
 
             // - dito
             vec_add(arcball->target, z_translation, arcball->target);

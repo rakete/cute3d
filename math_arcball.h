@@ -15,7 +15,7 @@ struct Arcball {
     int32_t rotate_button;
     int32_t translate_button;
 
-    float translation_factor;
+    float translate_factor;
     float zoom_factor;
 };
 
