@@ -60,7 +60,7 @@ struct CameraVertices {
     Vec3f left_bottom_far;
 };
 
-void camera_create(int32_t width, int32_t height, struct Camera* camera);
+void camera_create(int32_t width, int32_t height, enum CameraProjection projection_type, struct Camera* camera);
 
 void camera_set_frustum(struct Camera* camera, float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
 

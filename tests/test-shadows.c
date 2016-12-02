@@ -117,8 +117,7 @@ int32_t main(int32_t argc, char *argv[]) {
     arcball_create(window, (Vec4f){0.0,8.0,16.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 1000.0, &arcball);
 
     struct Camera shadow_camera = {0};
-    camera_create(512, 512, &shadow_camera);
-    shadow_camera.projection = CAMERA_ORTHOGRAPHIC_ZOOM;
+    camera_create(512, 512, CAMERA_ORTHOGRAPHIC_ZOOM, &shadow_camera);
     vec_sub(shadow_camera.pivot.position, (Vec3f){light_direction[0], light_direction[1], light_direction[2]}, shadow_camera.pivot.position);
     pivot_lookat(&shadow_camera.pivot, (Vec4f){0.0, 0.0, 0.0});
 
@@ -158,7 +157,6 @@ int32_t main(int32_t argc, char *argv[]) {
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
 
         double t1 = sdl2_time();
-
         gametime_advance(&time, sdl2_time_delta());
 
         vbo_mesh_render(&ground.vbo_mesh, &flat_shader, &arcball.camera, (Mat)IDENTITY_MAT);

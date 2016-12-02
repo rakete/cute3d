@@ -1,6 +1,6 @@
 #include "math_camera.h"
 
-void camera_create(int32_t width, int32_t height, struct Camera* camera) {
+void camera_create(int32_t width, int32_t height, enum CameraProjection projection_type, struct Camera* camera) {
     pivot_create(NULL, NULL, &camera->pivot);
 
     camera->screen.width = width;
@@ -8,12 +8,12 @@ void camera_create(int32_t width, int32_t height, struct Camera* camera) {
 
     camera->frustum.x_left = -0.5f;
     camera->frustum.x_right = 0.5f;
-    camera->frustum.y_top = -0.375f;
-    camera->frustum.y_bottom = 0.375f;
-    camera->frustum.z_near = 0.9f;
+    camera->frustum.y_bottom = -0.5*(9.0f/16.0f);
+    camera->frustum.y_top = 0.5*(9.0f/16.0f);
+    camera->frustum.z_near = 1.0f;
     camera->frustum.z_far = 100.0f;
 
-    camera->projection = CAMERA_PERSPECTIVE;
+    camera->projection = projection_type;
     camera->zoom = 1.0;
 }
 
