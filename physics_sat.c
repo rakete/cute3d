@@ -1,6 +1,6 @@
 #include "physics_sat.h"
 
-// helper to transform vertices from pivot1 into the coordinate system of pivot2
+// - helper to transform vertices from pivot1 into the coordinate system of pivot2
 void sat_halfedgemesh_transform_vertices(const struct HalfEdgeMesh* mesh,
                                          const Mat transform,
                                          size_t size,
@@ -17,7 +17,7 @@ void sat_halfedgemesh_transform_vertices(const struct HalfEdgeMesh* mesh,
 void sat_halfedgemesh_rotate_face_normals(const struct HalfEdgeMesh* mesh,
                                           const Mat transform,
                                           size_t size,
-                                          float* transformed_normals) //[size])
+                                          float* transformed_normals)
 {
     log_assert( size % 3 == 0 );
 
@@ -71,7 +71,7 @@ void sat_halfedgemesh_rotate_face_normals(const struct HalfEdgeMesh* mesh,
 }
 
 
-// helper that does the face normal projection part of the sat collision test, this
+// - helper that does the face normal projection part of the sat collision test, this
 // is supposed to be called twice, one time with pivot1 and pivot2 flipped
 struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
                                         const struct HalfEdgeMesh* mesh1,
@@ -106,12 +106,12 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
 
     sat_halfedgemesh_transform_vertices(mesh2, mesh2_to_mesh1_transform, transformed_size, transformed_vertices);
 
-    // the algorithm is quite simple:
+    // - the algorithm is quite simple:
     // for each face normal of mesh1:
-    // - find a support vertex in mesh2, which means finding the vertex of mesh2 which has the biggest
+    // * find a support vertex in mesh2, which means finding the vertex of mesh2 which has the biggest
     // projection on the current face_normal of mesh1
-    // - then compute distance of support vertex to face
-    // - keep track of largest distance found
+    // * then compute distance of support vertex to face
+    // * keep track of largest distance found
     struct HalfEdgeFace* mesh1_faces = mesh1->faces.array;
     struct HalfEdge* mesh1_edges = mesh1->edges.array;
     struct HalfEdgeVertex* mesh1_vertices = mesh1->vertices.array;
@@ -120,12 +120,12 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
         Vec3f face_normal = {0};
         vec_copy3f(mesh1_faces[face_i].normal, face_normal);
 
-        // make plane normal opposite direction of face normal so that we'll find a support
+        // - make plane normal opposite direction of face normal so that we'll find a support
         // point that is 'most inside' from our perspective
         Vec3f plane_normal = {0};
         vec_mul1f(face_normal, -1.0f, plane_normal);
 
-        // projecting every vertex of mesh2 onto plane_normal and then using the one with the
+        // - projecting every vertex of mesh2 onto plane_normal and then using the one with the
         // largest projection as support
         Vec3f support = {0};
         int32_t support_j = 0;
@@ -143,7 +143,7 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
             }
         }
 
-        // just the dot product is not enough, the face and therefore the plane we like to compute the
+        // - just the dot product is not enough, the face and therefore the plane we like to compute the
         // distance to is orientated in 3d space so that it does not go through the origin (most likely),
         // so we just use one of the face vertices as point on plane and then project the difference of
         // support - point on the plane normal to compute the distance
@@ -152,7 +152,7 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
         vec_sub(support, mesh1_vertices[vertex_i].position, support);
         float distance = vdot(support, face_normal);
 
-        // keep track of largest distance/penetration, the result should be the vertex face distance
+        // - keep track of largest distance/penetration, the result should be the vertex face distance
         // of the pair where the largest penetration into our mesh occurs
         if( distance > result.distance ) {
             result.found_result = true;
@@ -166,7 +166,7 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
     return result;
 }
 
-// helper for the edge edge collisions, this thing is _slow_, I implemented the most
+// - helper for the edge edge collisions, this thing is _slow_, I implemented the most
 // optimized version that I could find, namely the one outlined in these slides:
 // http://twvideo01.ubm-us.net/o1/vault/gdc2013/slides/822403Gregorius_Dirk_TheSeparatingAxisTest.pdf
 // but still, it is fine for small objects, but becomes unuseable pretty quickly once the number
@@ -203,13 +203,12 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
 #endif
     sat_halfedgemesh_rotate_face_normals(mesh2, mesh2_to_mesh1_transform, transformed_normals_size, transformed_normals);
 
-    // every face normal of the minowski sum of mesh1 and mesh2 is a potential sat,
+    // - every face normal of the minkowski sum of mesh1 and mesh2 is a potential sat,
     // checking all these would be equivalent to check all cross products between all
     // possible combinations of edges from mesh1 and mesh2, this is far too expensive
-    //
-    // so instead we use a gauss map as outlined in the slides I mention above to prune edge
-    // tests by deciding which edge combinations actually form a face on the minowski sum and which
-    // don't,
+    // - so instead we use a gauss map as outlined in the slides I mention above to prune edge
+    // tests by deciding which edge combinations actually form a face on the minkowski sum and
+    // which don't,
     log_assert( mesh1->edges.occupied < INT32_MAX );
     log_assert( mesh2->edges.occupied < INT32_MAX );
     for( int32_t i = 0; i < (int32_t)mesh1->edges.occupied; i += 2 ) {
@@ -226,7 +225,7 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
         vec_sub(mesh1->vertices.array[other1->vertex].position, edge1_head, edge1_direction);
         vec_normalize(edge1_direction, edge1_direction);
 
-        // instead of cross product I should be able to just use the edges between a b and d c
+        // - instead of cross product I should be able to just use the edges between a b and d c
         const VecP* bxa = edge1_direction;
 
         for( int32_t j = 0; j < (int32_t)mesh2->edges.occupied; j += 2 ) {
@@ -257,7 +256,7 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
             float adc = vdot(a, dxc);
             float bdc = vdot(b, dxc);
 
-            // the magic test from the slides that decides if edge1 and edge2 form a minowski face,
+            // - the magic test from the slides that decides if edge1 and edge2 form a minowski face,
             // if this is true, then we can do the actual computation of the distance between two edges
             if( cba * dba < 0.0f && adc * bdc < 0.0f && cba * bdc > 0.0f ) {
                 Vec3f plane_normal = {0};

@@ -29,6 +29,8 @@ bool sideview_event(struct Sideview* sideview, SDL_Event event) {
         mouse_down = 0;
     }
 
+    // - we need mouse_last_x/y when zooming in, cause we can't get the mouse pointer position from a wheel event,
+    // but we want to zoom in towards where the pointer is pointing
     static int32_t mouse_last_x = -1;
     static int32_t mouse_last_y = -1;
     if( mouse_last_x < 0 || mouse_last_y < 0 ) {
@@ -36,6 +38,8 @@ bool sideview_event(struct Sideview* sideview, SDL_Event event) {
         mouse_last_y = sideview->camera.screen.height/2;
     }
 
+    // - mouse motion event is handled here by moving the camera along the fixed right(x) and up(y) axis, by an amount
+    // that is computed by normalizing the mouse relative motion with the translation_factor and the camera zoom
     if( event.type == SDL_MOUSEMOTION ) {
         SDL_MouseMotionEvent mouse = event.motion;
         mouse_last_x = mouse.x;
@@ -45,7 +49,11 @@ bool sideview_event(struct Sideview* sideview, SDL_Event event) {
             Vec4f right_axis = RIGHT_AXIS;
             if( mouse.xrel != 0 ) {
                 Vec4f x_translation = {0};
-                vec_mul1f(right_axis, (float)mouse.xrel/sideview->translate_factor*sideview->camera.zoom, x_translation);
+
+                // - the higher translate factor is, the slower the camera moves
+                // - further zoomed in means camera moves less
+                float x_amount = (float)mouse.xrel/sideview->translate_factor*sideview->camera.zoom;
+                vec_mul1f(right_axis, x_amount, x_translation);
 
                 vec_sub(sideview->camera.pivot.position, x_translation, sideview->camera.pivot.position);
             }
@@ -53,7 +61,9 @@ bool sideview_event(struct Sideview* sideview, SDL_Event event) {
             Vec4f up_axis = UP_AXIS;
             if( mouse.yrel != 0 ) {
                 Vec4f y_translation;
-                vec_mul1f(up_axis, (float)mouse.yrel/sideview->translate_factor*sideview->camera.zoom, y_translation);
+
+                float y_amount = (float)mouse.yrel/sideview->translate_factor*sideview->camera.zoom;
+                vec_mul1f(up_axis, y_amount, y_translation);
 
                 vec_add(sideview->camera.pivot.position, y_translation, sideview->camera.pivot.position);
             }
@@ -61,9 +71,21 @@ bool sideview_event(struct Sideview* sideview, SDL_Event event) {
     }
 
     if( event.type == SDL_MOUSEWHEEL ) {
+        // - zoom by only modifying the zoom as done below would always zoom towards the center of the screen,
+        // which can 'feel wrong', better is zooming toward where the mouse pointer points
+        // - to do that simply take the world coordinates of the point where the pointer points before zooming by
+        // unprojecting (before_point), then after zooming take the world coordinates by unprojecting again
+        // (after_point), compute the difference (camera_correction) and add that to the camera position
+        // - this works because when zooming in the pointer stays at the same place, but the world points all move,
+        // so to make sure that we zoom towards the point under the mouse pointer, all we have to do is make sure that
+        // the point under the mouse pointer AFTER zooming will be the same point as BEFORE zooming, and this can be
+        // achieved by moving the camera after zooming so that the mouse pointer again points to the same point it
+        // was pointing at before zooming
         Vec4f before_point = {0};
         camera_unproject(&sideview->camera, sideview->camera.projection, mouse_last_x, mouse_last_y, before_point);
 
+        // - handling wheel events to zoom in/out is simply done by dividing/multiplying the camera zoom, bigger
+        // zoom means more zoom, smaller means less zoom
         SDL_MouseWheelEvent wheel = event.wheel;
         if( wheel.y < 0 ) {
             sideview->camera.zoom *= 1.0f + sideview->zoom_factor;

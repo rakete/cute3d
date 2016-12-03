@@ -45,9 +45,9 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
     static int32_t next_flipped = 0;
 
     // - arcball rotation is performed by dragging the mouse, so I just keep track of when
-    //   a mouse button is pressed and released between calls to this function by setting a
-    //   static variable mouse_down to the button number when a button is pressed and back
-    //   to 0 when that button is released
+    // a mouse button is pressed and released between calls to this function by setting a
+    // static variable mouse_down to the button number when a button is pressed and back
+    // to 0 when that button is released
     if( event.type == SDL_MOUSEBUTTONDOWN && mouse_down == 0 ) {
         mouse_down = event.button.button;
     } else if( event.type == SDL_MOUSEBUTTONUP && mouse_down == event.button.button ) {
@@ -60,20 +60,20 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
         float eye_distance = arcball->camera.pivot.eye_distance;
 
         // - when an mouse motion event occurs, and mouse_down to the translation_button so we compute
-        //   a camera translation
+        // a camera translation
         // - the camera should pan around on the x-z-plane, keeping its height and orientation
         Quat inverted_orientation = {0};
         quat_invert(arcball->camera.pivot.orientation, inverted_orientation);
 
         // - the sideways translation is computed by taking the right_axis and orienting it with
-        //   the cameras orientation, the way I set up the lookat implementation this should always
-        //   result in a vector parallel to the x-z-plane
+        // the cameras orientation, the way I set up the lookat implementation this should always
+        // result in a vector parallel to the x-z-plane
         Vec4f right_axis = RIGHT_AXIS;
         vec_rotate4f(right_axis, inverted_orientation, right_axis);
         if( mouse.xrel != 0 ) {
             // - then we'll just multiply the resulting axis with the mouse x relative movement, inversely
-            //   scaled by how far we are away from what we are looking at (farer means faster, nearer
-            //   means slower), the translation_factor is just a value that felt good when this was implemented
+            // scaled by how far we are away from what we are looking at (farer means faster, nearer
+            // means slower), the translation_factor is just a value that felt good when this was implemented
             Vec4f x_translation = {0};
             vec_mul1f(right_axis, (float)mouse.xrel/arcball->translate_factor*eye_distance, x_translation);
 
@@ -83,12 +83,12 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
         }
 
         // - the z translation can't be done along the orientated forward axis because that would include
-        //   the camera pitch, here, same as above, we need an axis that is parallel to the x-z-plane
+        // the camera pitch, here, same as above, we need an axis that is parallel to the x-z-plane
         Vec4f up_axis = UP_AXIS;
         if( mouse.yrel != 0 ) {
             // - luckily such an axis is easily computed from the crossproduct of the orientated right_axis and
-            //   the default up_axis, the result is an axis pointing in the direction of the cameras forward axis,
-            //   while still being parallel to the x-z-plane
+            // the default up_axis, the result is an axis pointing in the direction of the cameras forward axis,
+            // while still being parallel to the x-z-plane
             Vec4f forward_axis;
             vec_cross(right_axis, up_axis, forward_axis);
 
@@ -104,22 +104,22 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
         SDL_MouseMotionEvent mouse = event.motion;
 
         // - above case was translation, this is an rotation occuring: mouse_down is equal to the
-        //   rotation_button and the event is a mouse motion
+        // rotation_button and the event is a mouse motion
         // - the camera needs to rotate around the target while keeping its height, orientation and
-        //   without _any_ rolling
+        // without _any_ rolling
 
         // - we want only yaw and pitch movement
         // - yaw is easy, just use the fixed up_axis and create a rotation the rotates around it
-        //   by the mouse x relative movement (converted to radians)
+        // by the mouse x relative movement (converted to radians)
         // - the flipped value indicates if the camera is flipped over, so we'll just use that to
-        //   change the sign of the yaw to make the mouse movement on the screen always correctly
-        //   relates to the movement of the rotation
+        // change the sign of the yaw to make the mouse movement on the screen always correctly
+        // relates to the movement of the rotation
         Vec4f up_axis = UP_AXIS;
         Quat yaw_rotation = {0};
         quat_from_axis_angle(up_axis, arcball->flipped * PI/180 * mouse.xrel * rotation_slowness_factor, yaw_rotation);
 
         // - pitch is a little more involved, I need to compute the orientated right axis and use
-        //   that to compute the pitch_rotation
+        // that to compute the pitch_rotation
         Quat inverted_orientation = {0};
         quat_invert(arcball->camera.pivot.orientation, inverted_orientation);
 
@@ -142,7 +142,7 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
         vec_add(arcball->target, orbit, arcball->camera.pivot.position);
 
         // - after updating the position we just call lookat to compute the new
-        //   orientation, and also set the flipped state
+        // orientation, and also set the flipped state
         next_flipped = pivot_lookat(&arcball->camera.pivot, arcball->target);
     }
 
@@ -155,8 +155,8 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
             (*eye_distance < arcball->camera.frustum.z_far || wheel.y > 0))
         {
             // - just going back and forth along the oriented forward axis, using wheel
-            //   y motion inversly scaled by the eye_distance, similar to what is done
-            //   for the translation above (farer == faster zoom, nearer == slower zoom)
+            // y motion inversly scaled by the eye_distance, similar to what is done
+            // for the translation above (farer == faster zoom, nearer == slower zoom)
             Quat inverted_orientation = {0};
             quat_invert(arcball->camera.pivot.orientation, inverted_orientation);
 
