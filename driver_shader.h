@@ -15,6 +15,10 @@
 #define MAX_CUSTOM_ATTRIBUTES 10
 #define MAX_SHADER_ATTRIBUTES MAX_CUSTOM_ATTRIBUTES+MAX_OGL_ATTRIBUTES
 
+#ifndef MAX_SHADER_OBJECTS
+#define MAX_SHADER_OBJECTS 32
+#endif
+
 // attribute ids for arrays
 #define SHADER_ATTRIBUTE_VERTEX OGL_VERTEX
 #define SHADER_ATTRIBUTE_VERTEX_TEXCOORD OGL_TEXCOORD
@@ -88,7 +92,10 @@ extern const char* global_shader_sampler_names[MAX_SHADER_SAMPLER];
 
 struct Shader {
     char name[256];
-    GLuint vertex_shader, fragment_shader, program;
+    GLuint program;
+
+    GLuint objects[MAX_SHADER_OBJECTS];
+    size_t num_objects;
 
     // - instead of using glGetAttribLocation in shader_add_attribute calls it may be better
     // to use fixed locations for the attributes and then use glBindAttribLocation and always
@@ -140,10 +147,11 @@ struct Shader {
 WARN_UNUSED_RESULT int32_t init_shader();
 
 void shader_create(struct Shader* p);
-void shader_create_default(const char* name, struct Shader* p);
-void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p);
-void shader_create_from_sources(const char* prefix_vertex_source, const char* prefix_fragment_source, const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p);
 
+void shader_attach_files(struct Shader* p, GLenum type, const char* prefix_file, size_t n, ...);
+void shader_attach_sources(struct Shader* p, GLenum type, const char* prefix_source, size_t n, ...);
+
+void shader_make_program(struct Shader* p, const char* name);
 void shader_use_program(const struct Shader* p);
 
 void shader_setup_locations(struct Shader* p);

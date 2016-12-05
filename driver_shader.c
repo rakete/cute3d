@@ -86,8 +86,10 @@ int32_t init_shader() {
 void shader_create(struct Shader* p) {
     p->name[0] = '\0';
     p->program = 0;
-    p->vertex_shader = 0;
-    p->fragment_shader = 0;
+    for( int32_t i = 0; i < MAX_SHADER_OBJECTS; i++ ) {
+        p->objects[i] = 0;
+    }
+    p->num_objects = 0;
 
     for( int32_t j = 0; j < MAX_SHADER_ATTRIBUTES; j++ ) {
         p->attribute[j].location = -1;
@@ -113,81 +115,49 @@ void shader_create(struct Shader* p) {
     p->verified = false;
 }
 
-void shader_create_default(const char* name, struct Shader* p) {
-    size_t name_length = strlen(name);
-    log_assert( name_length > 0 );
-    log_assert( name_length < 256 );
+void shader_attach_files(struct Shader* p, GLenum type, const char* prefix_file, size_t n, ...) {
+    log_assert( p->num_objects + n < MAX_SHADER_OBJECTS );
 
-    p->name[0] = '\0';
-    strncat(p->name, name, name_length);
+    va_list file_list;
+    va_start(file_list, n);
 
-    #include "shader/prefix_vert.h"
-    #include "shader/no_shading_vert.h"
-    p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, (char*)cute3d_shader_prefix_vert, (char*)cute3d_shader_no_shading_vert);
-    log_assert( p->vertex_shader > 0 );
+    size_t start_i = p->num_objects;
+    size_t end_i = start_i + n;
+    for( size_t i = start_i; i < end_i; i++ ) {
+        const char* shader_file = va_arg(file_list, const char*);
+        if( shader_file != NULL && strlen(shader_file) > 0 ) {
+            p->objects[i] = glsl_compile_file(type, prefix_file, shader_file);
+            p->num_objects += 1;
 
-    #include "shader/prefix_frag.h"
-    #include "shader/no_shading_frag.h"
-    p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, (char*)cute3d_shader_prefix_frag, (char*)cute3d_shader_no_shading_frag);
-    log_assert( p->fragment_shader > 0 );
-
-    p->program = glsl_create_program(p->vertex_shader, p->fragment_shader);
-    log_assert( p->program > 0 );
-
-    for( uint32_t attribute_i = 0; attribute_i < MAX_SHADER_ATTRIBUTES; attribute_i++ ) {
-        glBindAttribLocation(p->program, attribute_i, global_shader_attribute_names[attribute_i]);
+            log_assert( p->objects[i] > 0 );
+        }
     }
 
-    p->program = glsl_link_program(p->program);
-    log_assert( p->program > 0 );
-
-    p->verified = false;
-
-    shader_setup_locations(p);
+    va_end(file_list);
 }
 
-void shader_create_from_files(const char* vertex_file, const char* fragment_file, const char* name, struct Shader* p) {
-    size_t name_length = strlen(name);
-    log_assert( name_length > 0 );
-    log_assert( name_length < 256 );
+void shader_attach_sources(struct Shader* p, GLenum type, const char* prefix_source, size_t n, ...) {
+    log_assert( p->num_objects + n < MAX_SHADER_OBJECTS );
 
-    p->name[0] = '\0';
-    strncat(p->name, name, name_length);
+    va_list source_list;
+    va_start(source_list, n);
 
-    if( vertex_file && fragment_file ) {
-        log_info(__FILE__, __LINE__, "creating shader \"%s\" from files: \"%s\", \"%s\"\n", name, vertex_file, fragment_file);
-        p->vertex_shader = glsl_compile_file(GL_VERTEX_SHADER, vertex_file);
-        p->fragment_shader = glsl_compile_file(GL_FRAGMENT_SHADER, fragment_file);
+    size_t start_i = p->num_objects;
+    size_t end_i = start_i + n;
+    for( size_t i = start_i; i < end_i; i++ ) {
+        const char* shader_source = va_arg(source_list, const char*);
+        if( shader_source != NULL && strlen(shader_source) > 0 ) {
+            p->objects[i] = glsl_compile_source(type, prefix_source, shader_source);
+            p->num_objects += 1;
+
+            log_assert( p->objects[i] > 0 );
+        }
     }
 
-    if( p->vertex_shader == 0 || p->fragment_shader == 0 ) {
-        log_warn(__FILE__, __LINE__, "shader files \"%s\" or \"%s\" failed to compile, using default shader\n", vertex_file, fragment_file);
-
-        struct Shader default_shader;
-        shader_create_default(name, &default_shader);
-        p->vertex_shader = default_shader.vertex_shader;
-        p->fragment_shader = default_shader.fragment_shader;
-    }
-
-    log_assert( p->vertex_shader > 0 );
-    log_assert( p->fragment_shader > 0 );
-
-    p->program = glsl_create_program(p->vertex_shader, p->fragment_shader);
-    log_assert( p->program > 0 );
-
-    for( uint32_t attribute_i = 0; attribute_i < MAX_SHADER_ATTRIBUTES; attribute_i++ ) {
-        glBindAttribLocation(p->program, attribute_i, global_shader_attribute_names[attribute_i]);
-    }
-
-    p->program = glsl_link_program(p->program);
-    log_assert( p->program > 0 );
-
-    p->verified = false;
-
-    shader_setup_locations(p);
+    va_end(source_list);
 }
 
-void shader_create_from_sources(const char* prefix_vertex_source, const char* prefix_fragment_source, const char* vertex_source, const char* fragment_source, const char* name, struct Shader* p) {
+void shader_make_program(struct Shader* p, const char* name) {
     size_t name_length = strlen(name);
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
@@ -195,20 +165,24 @@ void shader_create_from_sources(const char* prefix_vertex_source, const char* pr
     p->name[0] = '\0';
     strncat(p->name, name, name_length);
 
-    log_assert( vertex_source );
-    log_assert( fragment_source );
+    if( p->num_objects == 0 ) {
+        log_warn(__FILE__, __LINE__, "no objects for linking in \"%s\", using defaults\n", name);
 
-    if( strcmp( name, "default_shader") && strcmp( name, "font_shader") ) {
-        log_info(__FILE__, __LINE__, "creating shader \"%s\" from sources\n", name);
+        #include "shader/prefix_vert.h"
+        #include "shader/prefix_frag.h"
+        #include "shader/no_shading_vert.h"
+        #include "shader/no_shading_frag.h"
+
+        p->objects[0] = glsl_compile_source(GL_VERTEX_SHADER, (char*)cute3d_shader_prefix_vert, (char*)cute3d_shader_no_shading_vert);
+        p->objects[1] = glsl_compile_source(GL_FRAGMENT_SHADER, (char*)cute3d_shader_prefix_frag, (char*)cute3d_shader_no_shading_frag);
+
+        log_assert( p->objects[0] > 0 );
+        log_assert( p->objects[1] > 0 );
+
+        p->num_objects += 2;
     }
-    p->vertex_shader = glsl_compile_source(GL_VERTEX_SHADER, prefix_vertex_source, vertex_source);
-    p->fragment_shader = glsl_compile_source(GL_FRAGMENT_SHADER, prefix_fragment_source, fragment_source);
 
-    log_assert( p->vertex_shader > 0 );
-    log_assert( p->fragment_shader > 0 );
-
-    p->program = glsl_create_program(p->vertex_shader, p->fragment_shader);
-    log_assert( p->program > 0 );
+    p->program = glsl_create_program(p->num_objects, p->objects);
 
     for( uint32_t attribute_i = 0; attribute_i < MAX_SHADER_ATTRIBUTES; attribute_i++ ) {
         glBindAttribLocation(p->program, attribute_i, global_shader_attribute_names[attribute_i]);
@@ -517,8 +491,8 @@ GLint shader_add_sampler(struct Shader* shader, int32_t sampler_index, const cha
 }
 
 void shader_print(FILE* f, const struct Shader* shader) {
-    fprintf(f, "shader->vertex_shader: %d\n", shader->vertex_shader);
-    fprintf(f, "shader->fragment_shader: %d\n", shader->fragment_shader);
+    fprintf(f, "shader->objects[0]: %d\n", shader->objects[0]);
+    fprintf(f, "shader->objects[1]: %d\n", shader->objects[1]);
     fprintf(f, "shader->program: %d\n", shader->program);
 
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {

@@ -42,16 +42,23 @@ void draw_line(struct Canvas* canvas,
                const Vec3f p,
                const Vec3f q)
 {
-    #include "shader/prefix_vert.h"
-    #include "shader/prefix_frag.h"
-    #include "shader/volumetric_lines_vert.h"
-    #include "shader/volumetric_lines_frag.h"
-    int32_t shader_index = canvas_add_shader_sources(canvas, "volumetric_lines_shader",
-                                                     (char*)cute3d_shader_prefix_vert,
-                                                     (char*)cute3d_shader_prefix_frag,
-                                                     (char*)cute3d_shader_volumetric_lines_vert,
-                                                     (char*)cute3d_shader_volumetric_lines_frag);
-    log_assert( shader_index < MAX_CANVAS_SHADER );
+    int32_t found_index = canvas_find_shader(canvas, "volumetric_lines_shader");
+    if( found_index == MAX_CANVAS_SHADER ) {
+        #include "shader/prefix_vert.h"
+        #include "shader/prefix_frag.h"
+        #include "shader/volumetric_lines_vert.h"
+        #include "shader/volumetric_lines_frag.h"
+
+        struct Shader volumetric_lines_shader;
+        shader_create(&volumetric_lines_shader);
+        shader_attach_sources(&volumetric_lines_shader, GL_VERTEX_SHADER, (char*)cute3d_shader_prefix_vert, 1, (char*)cute3d_shader_volumetric_lines_vert);
+        shader_attach_sources(&volumetric_lines_shader, GL_FRAGMENT_SHADER, (char*)cute3d_shader_prefix_frag, 1, (char*)cute3d_shader_volumetric_lines_frag);
+        shader_make_program(&volumetric_lines_shader, "volumetric_lines_shader");
+
+        int32_t added_index = canvas_add_shader(canvas, "volumetric_lines_shader", &volumetric_lines_shader);
+        log_assert( added_index < MAX_CANVAS_SHADER );
+    }
+
 
     // - the colors and thickness arrays are filled here, but there is one caveat:
     // I encode into the thickness which endpoint I am rendering, by using a differently signed thickness,

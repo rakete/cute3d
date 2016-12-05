@@ -31,10 +31,10 @@ void glsl_debug_info_log(GLuint object);
     "//CUTE@" __FILE__ ":" log_tostring(__LINE__) "\n"  \
     #source "\0"
 
+GLuint glsl_compile_file(GLenum type, const char* prefix_file, const char* shader_file);
 GLuint glsl_compile_source(GLenum type, const char* prefix_source, const char* shader_source);
-GLuint glsl_compile_file(GLenum type, const char* filename);
 
-GLuint glsl_create_program(GLuint vertex_shader, GLuint fragment_shader);
+GLuint glsl_create_program(size_t n, GLuint* shader);
 GLuint glsl_link_program(GLuint program);
 
 #endif

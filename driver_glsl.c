@@ -84,43 +84,28 @@ finish:
     return shader;
 }
 
-GLuint glsl_compile_file(GLenum type, const char* filename) {
-    FILE* file = fopen(filename, "rb");
+GLuint glsl_compile_file(GLenum type, const char* prefix_file, const char* shader_file) {
+    FILE* shader_handle = fopen(shader_file, "rb");
 
-    if( ! file ) {
-        log_fail(__FILE__, __LINE__, "could not open file %s\n", filename);
+    if( ! shader_handle ) {
+        log_fail(__FILE__, __LINE__, "could not open file %s\n", shader_file);
         return 0;
     }
 
     long filepos;
-    fseek(file, 0, SEEK_END);
-    filepos = ftell(file);
-    fseek(file, 0, SEEK_SET);
+    fseek(shader_handle, 0, SEEK_END);
+    filepos = ftell(shader_handle);
+    fseek(shader_handle, 0, SEEK_SET);
 
     log_assert( filepos > 0 );
 
     GLchar* shader_source = malloc((size_t)filepos+1);
     GLuint id = 0;
     if( shader_source == NULL ) {
-        fclose(file);
         goto finish_shader;
     } else {
-        fread(shader_source, (size_t)filepos, 1, file);
-        fclose(file);
+        fread(shader_source, (size_t)filepos, 1, shader_handle);
         shader_source[filepos] = '\0';
-    }
-
-    size_t prefix_filename_length = strlen(filename) + 12;
-    char* prefix_dirname = malloc(prefix_filename_length);
-    for( size_t i = 0; i < prefix_filename_length; i++ ) {
-        prefix_dirname[i] = '\0';
-    }
-
-    const char* last_slash_in_filename = strrchr(filename, '/');
-    if( last_slash_in_filename != NULL ) {
-        memcpy(prefix_dirname, filename, strlen(filename) - strlen(last_slash_in_filename));
-    } else {
-        prefix_dirname[0] = '\0';
     }
 
     // I need this compatibilty crap if I want to be able to deploy stuff on webgl/android
@@ -143,69 +128,48 @@ GLuint glsl_compile_file(GLenum type, const char* filename) {
     //
     // - compat stuff used to be in defines GLSL_COMPAT_VERT and GLSL_COMPAT_FRAG, but now its loaded
     // from files shader/prefix.vert and shader/prefix.frag
-    FILE* prefix_file = NULL;
-    if( type == GL_VERTEX_SHADER ) {
-        char prefix_vert_filename[prefix_filename_length];
-        snprintf(prefix_vert_filename, prefix_filename_length, "%s/%s", prefix_dirname, "prefix.vert");
-
-        prefix_file = fopen(prefix_vert_filename, "rb");
-
-        if( ! prefix_file ) {
-            log_fail(__FILE__, __LINE__, "could not open file %s\n", prefix_vert_filename);
-            goto finish_dirname;
-        }
-    } else if( type == GL_FRAGMENT_SHADER ) {
-        char prefix_frag_filename[prefix_filename_length];
-        snprintf(prefix_frag_filename, prefix_filename_length, "%s/%s", prefix_dirname, "prefix.frag");
-
-        prefix_file = fopen(prefix_frag_filename, "rb");
-
-        if( ! prefix_file ) {
-            log_fail(__FILE__, __LINE__, "could not open file %s\n", prefix_frag_filename);
-            goto finish_dirname;
-        }
+    FILE* prefix_handle = fopen(prefix_file, "rb");
+    if( ! prefix_handle ) {
+        log_fail(__FILE__, __LINE__, "could not open file %s\n", prefix_file);
+        goto finish_shader;
     }
-    log_assert( prefix_file != NULL );
 
     long prefix_length;
-    fseek(prefix_file, 0, SEEK_END);
-    prefix_length = ftell(prefix_file);
-    fseek(prefix_file, 0, SEEK_SET);
+    fseek(prefix_handle, 0, SEEK_END);
+    prefix_length = ftell(prefix_handle);
+    fseek(prefix_handle, 0, SEEK_SET);
 
     log_assert( prefix_length > 0 );
     log_assert( prefix_length < INT_MAX );
 
     GLchar* prefix_source = malloc((size_t)prefix_length+1);
     if( prefix_source == NULL ) {
-        fclose(prefix_file);
         goto finish_prefix;
     } else {
-        fread(prefix_source, (size_t)prefix_length, 1, prefix_file);
-        fclose(prefix_file);
+        fread(prefix_source, (size_t)prefix_length, 1, prefix_handle);
         prefix_source[prefix_length] = '\0';
     }
 
     id = glsl_compile_source(type, prefix_source, shader_source);
     if( ! id ) {
-        log_fail(__FILE__, __LINE__, "compilation failed in: prefix + %s\n", filename);
+        log_fail(__FILE__, __LINE__, "compilation failed in: %s + %s\n", prefix_file, shader_file);
     }
 
 finish_prefix:
+    fclose(prefix_handle);
     free(prefix_source);
-finish_dirname:
-    free(prefix_dirname);
 finish_shader:
+    fclose(shader_handle);
     free(shader_source);
     return id;
 }
 
-GLuint glsl_create_program(GLuint vertex_shader, GLuint fragment_shader) {
-    log_assert( vertex_shader > 0 );
-    log_assert( fragment_shader > 0 );
-
+GLuint glsl_create_program(size_t n, GLuint* shader) {
     GLuint program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
+    for( size_t i = 0; i < n; i++ ) {
+        log_assert( shader[i] > 0 );
+        glAttachShader(program, shader[i]);
+    }
 
     return program;
 }
@@ -225,10 +189,3 @@ GLuint glsl_link_program(GLuint program) {
 
     return program;
 }
-
-/* GLuint glsl_make_program(const char *vertex_source, const char* fragment_source) { */
-/*     GLuint vertex = glsl_compile_source(GL_VERTEX_SHADER, vertex_source); */
-/*     GLuint fragment = glsl_compile_source(GL_FRAGMENT_SHADER, fragment_source); */
-
-/*     return glsl_link_program(vertex, fragment); */
-/* } */
