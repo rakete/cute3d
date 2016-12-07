@@ -4,11 +4,18 @@
 #include "stdio.h"
 
 #include "math_matrix.h"
+
+#include "io_path.h"
+
 #include "driver_log.h"
 #include "driver_ogl.h"
 #include "driver_sdl2.h"
 #include "driver_glsl.h"
 #include "driver_shader.h"
+
+#ifndef CUTE_SHADER_SEARCH_PATH
+#define CUTE_SHADER_SEARCH_PATH "shader/:cute3d/shader/"
+#endif
 
 // sooner or later I am going to need to supply custom attributes to shaders,
 // defining them here like this seems to be the most sane way
@@ -148,8 +155,7 @@ WARN_UNUSED_RESULT int32_t init_shader();
 
 void shader_create(struct Shader* p);
 
-void shader_attach_files(struct Shader* p, GLenum type, const char* prefix_file, size_t n, ...);
-void shader_attach_sources(struct Shader* p, GLenum type, const char* prefix_source, size_t n, ...);
+void shader_attach(struct Shader* p, GLenum type, const char* prefix_file, size_t n, ...);
 
 void shader_make_program(struct Shader* p, const char* name);
 void shader_use_program(const struct Shader* p);

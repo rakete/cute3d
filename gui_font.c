@@ -251,13 +251,9 @@ void font_create_from_characters(const wchar_t* unicode_alphabet,
 
         free(texture);
 
-        #include "shader/prefix_vert.h"
-        #include "shader/prefix_frag.h"
-        #include "shader/font_shading_vert.h"
-        #include "shader/font_shading_frag.h"
         shader_create(&font->shader);
-        shader_attach_sources(&font->shader, GL_VERTEX_SHADER, (char*)cute3d_shader_prefix_vert, 1, (char*)cute3d_shader_font_shading_vert);
-        shader_attach_sources(&font->shader, GL_FRAGMENT_SHADER, (char*)cute3d_shader_prefix_frag, 1, (char*)cute3d_shader_font_shading_frag);
+        shader_attach(&font->shader, GL_VERTEX_SHADER, "prefix.vert", 1, "font_shading.vert");
+        shader_attach(&font->shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "font_shading.frag");
         shader_make_program(&font->shader, "font_shader");
     }
 }

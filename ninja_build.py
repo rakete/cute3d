@@ -96,8 +96,9 @@ if build_platform == "linux" or build_toolset == "gcc":
     # - asan should come first
     libraries = "-lasan -lm -lGL " + sdl2_libs
     includes = "-I" + source_directory
+    defines = "-DCUTE_SHADER_SEARCH_PATH=\\\"shader/:cute3d/shader/\\\""
 
-    cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
+    cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes + " " + defines
     ldflags = linking + " " + libraries
 elif build_toolset == "mingw":
     if ninja_cute3d.command_exists("sdl2-config") and ninja_cute3d.command_exists("bash"):
@@ -117,8 +118,9 @@ elif build_toolset == "mingw":
     linking = "-fPIC"
     libraries = "-lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32 " + sdl2_libs
     includes = "-I" + source_directory
+    defines = "-DCUTE_SHADER_SEARCH_PATH=\\\"shader/:cute3d/shader/\\\""
 
-    cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
+    cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes + " " + defines
     ldflags = linking + " " + libraries
 elif build_toolset == "msvc":
     sdl2_cflags = "/Ic:\\VC\\SDL2-2.0.4\\include"
@@ -140,9 +142,10 @@ elif build_toolset == "msvc":
     # - /ENTRY:main made exe hang on exit
     libraries = "msvcrt.lib opengl32.lib chkstk.obj " + sdl2_libs
     includes = "/I" + source_directory
+    defines = "/DCUTE_SHADER_SEARCH_PATH=\\\"shader/:cute3d/shader/\\\""
 
     # - /STACK seems to be a linker option only
-    cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes
+    cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes + " " + defines
     ldflags = "/SUBSYSTEM:CONSOLE /STACK:8388608 " + linking + " " + libraries
 else:
     print "building with " + build_toolset + " on " + build_platform + " is not supported yet."
@@ -170,7 +173,7 @@ ninja_cute3d.xxd(w, source_directory)
 
 # - I want to be able to use build_shaders in other projects to validate shaders and copy them where they belong
 # - there is a lot of complexity hidden behind this one function call
-(shaders, shader_headers) = ninja_cute3d.build_shaders(w, build_platform, source_directory, build_directory, script_directory, "shader", "cute3d_shader_")
+shaders = ninja_cute3d.build_shaders(w, build_platform, source_directory, build_directory, script_directory, "shader")
 
 # - all dlls found in source_directory are copied to build_directory when building, but only
 # when platform is windows and the build_directory and source_directory are not the same directory
@@ -214,7 +217,7 @@ for c in sources:
         o = c.replace(".c", ".obj")
     else:
         o = c.replace(".c", ".o")
-    w.build(o, "compile", os.path.join(source_directory, c), order_only=shader_headers)
+    w.build(o, "compile", os.path.join(source_directory, c))
     objects.append(o)
 w.newline()
 

@@ -67,7 +67,7 @@ def xxd(w, source_directory):
         w.rule(name="xxd", command="python " + xxd_path + " $in $out $name_prefix")
         w.newline()
 
-def build_shaders(w, build_platform, source_directory, build_directory, script_directory, shader_subdir, name_prefix):
+def build_shaders(w, build_platform, source_directory, build_directory, script_directory, shader_subdir):
     # - most complex part of this script deals with validating and copying the glsl shaders
     # - first we create the shader directory, since shaders are like an asset the gets loaded
     # at runtime, we just recreate the same shader_directory in the build_directory so that
@@ -84,7 +84,6 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
     # I won't create build rules with multiple commands, but only build rules which only run one command
     source_shader_directory = os.path.relpath(os.path.join(source_directory, shader_subdir), build_directory)
     shaders = []
-    shader_headers = []
 
     # - first things first, I just list all potential shader files here, but without extensions, thats why I am using
     # these scary looking list comprehensions instead of just a simple glob
@@ -101,7 +100,6 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
     # - full_vert_shader is the full file that glsl_validate.py writes if given the --write parameter (like shader/flat.full.vert),
     # - dest_vert_shader is just the destination path for the shader (like shader/flat.vert), just like full_vert_shader
     # it is a path relative to the current build directory
-    # - vert_shader_header is the header file we will generate from the .vert file
     for shader_filename_with_extension in shader_filenames_with_extensions:
         # - when the filename looks like this: flat.vert_with_prefix, then it is one of the files that has
         # been output by the glsl_validate.py script when it validates a shader, and we can ignore it
@@ -118,17 +116,6 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
         full_frag_shader = os.path.join(shader_subdir, shader_filename + ".frag_with_prefix")
         dest_vert_shader = os.path.join(shader_subdir, vert_shader)
         dest_frag_shader = os.path.join(shader_subdir, frag_shader)
-        vert_shader_header = os.path.join(source_shader_directory, vert_shader.replace('.','_') + ".h")
-        frag_shader_header = os.path.join(source_shader_directory, frag_shader.replace('.','_') + ".h")
-
-        # - create build rules for creating the shader headers with xxd.py, easy peasy, append them to
-        # shader_headers which gets returned later so that we can depend on the headers in other rules
-        w.build(vert_shader_header, "xxd", source_vert_shader)
-        w.variable("name_prefix", name_prefix, 1)
-        w.build(frag_shader_header, "xxd", source_frag_shader)
-        w.variable("name_prefix", name_prefix, 1)
-        shader_headers.append(vert_shader_header)
-        shader_headers.append(frag_shader_header)
 
         prefix_deps = []
         if shader_filename != "prefix":
@@ -175,4 +162,4 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
                 w.build(dest_frag_shader, "copy", source_frag_shader)
 
         w.newline()
-    return (shaders, shader_headers)
+    return shaders

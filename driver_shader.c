@@ -115,7 +115,7 @@ void shader_create(struct Shader* p) {
     p->verified = false;
 }
 
-void shader_attach_files(struct Shader* p, GLenum type, const char* prefix_file, size_t n, ...) {
+void shader_attach(struct Shader* p, GLenum type, const char* prefix_file, size_t n, ...) {
     log_assert( p->num_objects + n < MAX_SHADER_OBJECTS );
 
     va_list file_list;
@@ -126,35 +126,39 @@ void shader_attach_files(struct Shader* p, GLenum type, const char* prefix_file,
     for( size_t i = start_i; i < end_i; i++ ) {
         const char* shader_file = va_arg(file_list, const char*);
         if( shader_file != NULL && strlen(shader_file) > 0 ) {
-            p->objects[i] = glsl_compile_file(type, prefix_file, shader_file);
-            p->num_objects += 1;
+            log_info(__FILE__, __LINE__, "attaching: %s %s\n", prefix_file, shader_file);
 
-            log_assert( p->objects[i] > 0 );
+            size_t path_str_alloc = strlen(CUTE_SHADER_SEARCH_PATH) + strlen(prefix_file) + strlen(shader_file);
+
+            char* path_prefix_file = malloc(path_str_alloc);
+            bool found_prefix_file = path_search_path(CUTE_SHADER_SEARCH_PATH, prefix_file, path_str_alloc, path_prefix_file);
+
+            char* path_shader_file = malloc(path_str_alloc);
+            bool found_shader_file = path_search_path(CUTE_SHADER_SEARCH_PATH, shader_file, path_str_alloc, path_shader_file);
+
+            if( found_shader_file && found_prefix_file ) {
+                p->objects[i] = glsl_compile_file(type, path_prefix_file, path_shader_file);
+                p->num_objects += 1;
+                log_assert( p->objects[i] > 0 );
+            } else {
+                log_fail(__FILE__, __LINE__, "file not found:");
+                if( ! found_prefix_file) {
+                    log_continue(" %s", prefix_file);
+                }
+
+                if( ! found_shader_file ) {
+                    log_continue(" %s", shader_file);
+                }
+
+                log_continue("\n");
+            }
+
+            free(path_prefix_file);
+            free(path_shader_file);
         }
     }
 
     va_end(file_list);
-}
-
-void shader_attach_sources(struct Shader* p, GLenum type, const char* prefix_source, size_t n, ...) {
-    log_assert( p->num_objects + n < MAX_SHADER_OBJECTS );
-
-    va_list source_list;
-    va_start(source_list, n);
-
-    size_t start_i = p->num_objects;
-    size_t end_i = start_i + n;
-    for( size_t i = start_i; i < end_i; i++ ) {
-        const char* shader_source = va_arg(source_list, const char*);
-        if( shader_source != NULL && strlen(shader_source) > 0 ) {
-            p->objects[i] = glsl_compile_source(type, prefix_source, shader_source);
-            p->num_objects += 1;
-
-            log_assert( p->objects[i] > 0 );
-        }
-    }
-
-    va_end(source_list);
 }
 
 void shader_make_program(struct Shader* p, const char* name) {
@@ -168,18 +172,10 @@ void shader_make_program(struct Shader* p, const char* name) {
     if( p->num_objects == 0 ) {
         log_warn(__FILE__, __LINE__, "no objects for linking in \"%s\", using defaults\n", name);
 
-        #include "shader/prefix_vert.h"
-        #include "shader/prefix_frag.h"
-        #include "shader/no_shading_vert.h"
-        #include "shader/no_shading_frag.h"
+        shader_attach(p, GL_VERTEX_SHADER, "prefix.vert", 1, "no_shading.vert");
+        shader_attach(p, GL_FRAGMENT_SHADER, "prefix.frag", 1, "no_shading.frag");
 
-        p->objects[0] = glsl_compile_source(GL_VERTEX_SHADER, (char*)cute3d_shader_prefix_vert, (char*)cute3d_shader_no_shading_vert);
-        p->objects[1] = glsl_compile_source(GL_FRAGMENT_SHADER, (char*)cute3d_shader_prefix_frag, (char*)cute3d_shader_no_shading_frag);
-
-        log_assert( p->objects[0] > 0 );
-        log_assert( p->objects[1] > 0 );
-
-        p->num_objects += 2;
+        log_assert( p->num_objects > 0 );
     }
 
     p->program = glsl_create_program(p->num_objects, p->objects);
