@@ -19,11 +19,26 @@
 #define log_stringify(a) #a
 #define log_tostring(x) log_stringify(x)
 
-bool log_info(const char* filename, int32_t linenumber, const char* format, ...);
-bool log_warn(const char* filename, int32_t linenumber, const char* format, ...);
-bool log_fail(const char* filename, int32_t linenumber, const char* format, ...);
+#ifndef LOG_INDENT_CHAR
+#define LOG_INDENT_CHAR ' '
+#endif
 
-bool log_continue(const char* format, ...);
+#ifndef LOG_INDENT_TABWIDTH
+#define LOG_INDENT_TABWIDTH 2
+#endif
+
+#define MAX_LOG_INDENT 80
+
+extern int32_t global_log_indent_level;
+void log_indent(int32_t level);
+
+void log_printf(const char* message, va_list args);
+void log_message(const char* color, const char* tag, const char* filename, int32_t linenumber, const char* format, size_t n, char* message);
+
+void log_info(const char* filename, int32_t linenumber, const char* format, ...);
+void log_warn(const char* filename, int32_t linenumber, const char* format, ...);
+void log_fail(const char* filename, int32_t linenumber, const char* format, ...);
+void log_continue(const char* format, ...);
 
 #ifdef CUTE_BUILD_MSVC
 // http://stackoverflow.com/questions/9183993/msvc-variadic-macro-expansion

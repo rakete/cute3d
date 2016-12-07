@@ -88,7 +88,7 @@ GLuint glsl_compile_file(GLenum type, const char* prefix_file, const char* shade
     FILE* shader_handle = fopen(shader_file, "rb");
 
     if( ! shader_handle ) {
-        log_fail(__FILE__, __LINE__, "could not open file %s\n", shader_file);
+        log_fail(__FILE__, __LINE__, "could not open file: %s\n", shader_file);
         return 0;
     }
 
@@ -102,6 +102,7 @@ GLuint glsl_compile_file(GLenum type, const char* prefix_file, const char* shade
     GLchar* shader_source = malloc((size_t)filepos+1);
     GLuint id = 0;
     if( shader_source == NULL ) {
+        log_fail(__FILE__, __LINE__, "malloc error when allocating space for: %s\n", shader_file);
         goto finish_shader;
     } else {
         fread(shader_source, (size_t)filepos, 1, shader_handle);
@@ -130,7 +131,7 @@ GLuint glsl_compile_file(GLenum type, const char* prefix_file, const char* shade
     // from files shader/prefix.vert and shader/prefix.frag
     FILE* prefix_handle = fopen(prefix_file, "rb");
     if( ! prefix_handle ) {
-        log_fail(__FILE__, __LINE__, "could not open file %s\n", prefix_file);
+        log_fail(__FILE__, __LINE__, "could not open file: %s\n", prefix_file);
         goto finish_shader;
     }
 
@@ -144,6 +145,7 @@ GLuint glsl_compile_file(GLenum type, const char* prefix_file, const char* shade
 
     GLchar* prefix_source = malloc((size_t)prefix_length+1);
     if( prefix_source == NULL ) {
+        log_fail(__FILE__, __LINE__, "malloc error when allocating space for: %s\n", prefix_file);
         goto finish_prefix;
     } else {
         fread(prefix_source, (size_t)prefix_length, 1, prefix_handle);
@@ -152,7 +154,7 @@ GLuint glsl_compile_file(GLenum type, const char* prefix_file, const char* shade
 
     id = glsl_compile_source(type, prefix_source, shader_source);
     if( ! id ) {
-        log_fail(__FILE__, __LINE__, "compilation failed in: %s + %s\n", prefix_file, shader_file);
+        log_fail(__FILE__, __LINE__, "compilation failed in: %s %s\n", prefix_file, shader_file);
     }
 
 finish_prefix:
