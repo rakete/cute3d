@@ -487,9 +487,9 @@ GLint shader_add_sampler(struct Shader* shader, int32_t sampler_index, const cha
 }
 
 void shader_print(FILE* f, const struct Shader* shader) {
-    fprintf(f, "shader->objects[0]: %d\n", shader->objects[0]);
-    fprintf(f, "shader->objects[1]: %d\n", shader->objects[1]);
-    fprintf(f, "shader->program: %d\n", shader->program);
+    fprintf(f, "shader->objects[0]: %u\n", shader->objects[0]);
+    fprintf(f, "shader->objects[1]: %u\n", shader->objects[1]);
+    fprintf(f, "shader->program: %u\n", shader->program);
 
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         if( strlen(shader->attribute[i].name) > 0 ) {
