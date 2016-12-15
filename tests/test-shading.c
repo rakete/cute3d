@@ -106,14 +106,20 @@ int32_t main(int32_t argc, char *argv[]) {
 
     // flat
     struct Shader flat_shader = {0};
-    shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", "flat_shader", &flat_shader);
+    shader_create(&flat_shader);
+    shader_attach(&flat_shader, GL_VERTEX_SHADER, "prefix.vert", 1, "flat_shading.vert");
+    shader_attach(&flat_shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "flat_shading.frag");
+    shader_make_program(&flat_shader, "flat_shader");
 
     shader_set_uniform_3f(&flat_shader, flat_shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
     shader_set_uniform_4f(&flat_shader, flat_shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
 
     // gouraud
     struct Shader gouraud_shader = {0};
-    shader_create_from_files("shader/gouraud_shading.vert", "shader/gouraud_shading.frag", "gouraud_shader", &gouraud_shader);
+    shader_create(&gouraud_shader);
+    shader_attach(&gouraud_shader, GL_VERTEX_SHADER, "prefix.vert", 1, "gouraud_shading.vert");
+    shader_attach(&gouraud_shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "gouraud_shading.frag");
+    shader_make_program(&gouraud_shader, "gouraud_shader");
 
     shader_set_uniform_3f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_LIGHT_POSITION, 3, GL_FLOAT, light_position);
     shader_set_uniform_4f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
