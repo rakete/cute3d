@@ -3,6 +3,11 @@
 void camera_create(int32_t width, int32_t height, enum CameraProjection projection_type, struct Camera* camera) {
     pivot_create(NULL, NULL, &camera->pivot);
 
+    camera->pivot.position[0] = 0.0f;
+    camera->pivot.position[1] = 0.0f;
+    camera->pivot.position[2] = 1.0f;
+    camera->pivot.position[3] = 1.0f;
+
     camera->screen.width = width;
     camera->screen.height = height;
 

@@ -27,7 +27,7 @@ void pivot_create(Vec3f position, Quat orientation, struct Pivot* pivot) {
     } else {
         pivot->position[0] = 0.0;
         pivot->position[1] = 0.0;
-        pivot->position[2] = 1.0;
+        pivot->position[2] = 0.0;
         pivot->position[3] = 1.0;
     }
 
