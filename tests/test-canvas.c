@@ -1,6 +1,5 @@
 #include "driver_shader.h"
 #include "driver_sdl2.h"
-#include "driver_vbo.h"
 
 #include "math_gametime.h"
 #include "math_arcball.h"
@@ -14,7 +13,6 @@
 #include "geometry_halfedgemesh.h"
 
 #include "render_canvas.h"
-#include "render_vbo.h"
 
 int32_t event_filter(void* p, SDL_Event* event) {
     switch(event->type) {
@@ -40,8 +38,11 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
+    uint32_t width = 1280;
+    uint32_t height = 720;
+
     SDL_Window* window;
-    sdl2_window("test-canvas", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, &window);
+    sdl2_window("test-canvas", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(3, 2, window, (Color){0, 0, 0, 255}, &context);
@@ -50,33 +51,15 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_vbo() ) {
+    if( init_canvas(width, height) ) {
         return 1;
     }
-
-    if( init_canvas() ) {
-        return 1;
-    }
-    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
-    canvas_create("global_static_canvas", &global_static_canvas);
 
     printf("sizeof(struct Canvas): %zu\n", sizeof(struct Canvas));
     printf("MAX_OGL_PRIMITIVES: %d\n", MAX_OGL_PRIMITIVES);
 
-    struct Vbo vbo = {0};
-    vbo_create(&vbo);
-
-    /* struct Shader shader; */
-    /* shader_flat(&shader); */
-
-    /* Vec4f light_direction = { 0.2, -0.5, -1.0 }; */
-    /* shader_uniform(&shader, SHADER_LIGHT_DIRECTION, "light_direction", "3f", light_direction); */
-
-    /* Color ambiance = { 0.25, 0.1, 0.2, 1.0 }; */
-    /* shader_uniform(&shader, SHADER_UNIFORM_AMBIENT_LIGHT, "ambiance", "4f", ambiance); */
-
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.01, 1000.0, &arcball);
+    arcball_create(window, (Vec4f){1.0,2.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.01, 1000.0, &arcball);
 
     Quat grid_rotation1;
     quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation1);
@@ -94,16 +77,19 @@ int32_t main(int32_t argc, char *argv[]) {
     default_font_create(symbols);
 
     struct Shader shader = {0};
-    shader_create_from_files("shader/volumetric_lines.vert", "shader/volumetric_lines.frag", "lines_shader", &shader);
+    shader_create(&shader);
+    shader_attach(&shader, GL_VERTEX_SHADER, "prefix.vert", 1, "volumetric_lines.vert");
+    shader_attach(&shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "volumetric_lines.frag");
+    shader_make_program(&shader, "lines_shader");
 
     struct Font font = {0};
-    font_create_from_alphabet(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", 256, symbols, 9, 3, global_default_font_palette, &font);
+    font_create_from_characters(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", 256, symbols, 9, 3, global_default_font_palette, &font);
 
     struct Canvas text_canvas = {0};
-    canvas_create("text_canvas", &text_canvas);
-    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT);
-    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_DIFFUSE_COLORS, 4, GL_UNSIGNED_BYTE);
-    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORDS, 2, GL_FLOAT);
+    canvas_create("text_canvas", width, height, &text_canvas);
+    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT);
+    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE);
+    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, 2, GL_FLOAT);
     log_assert( canvas_add_shader(&text_canvas, shader.name, &shader) < MAX_CANVAS_SHADER );
     log_assert( canvas_add_font(&text_canvas, "other_font", &font) < MAX_CANVAS_FONTS );
 

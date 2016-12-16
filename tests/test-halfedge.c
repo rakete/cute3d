@@ -31,17 +31,18 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_canvas() ) {
+    if( init_canvas(1280, 720) ) {
         return 1;
     }
-    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
-    canvas_create("global_static_canvas", &global_static_canvas);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+
+    struct Ibo ibo = {0};
+    ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);
 
     struct SolidTetrahedron tetrahedron = {0};
     struct SolidBox box = {0};
@@ -91,14 +92,17 @@ int32_t main(int32_t argc, char *argv[]) {
     halfedgemesh_verify(&sphere32_hemesh);
 
     struct VboMesh tetrahedron_mesh,box_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
-    vbo_mesh_create_from_halfedgemesh(&tetrahedron_hemesh, &vbo, &tetrahedron_mesh);
-    vbo_mesh_create_from_halfedgemesh(&box_hemesh, &vbo, &box_mesh);
-    vbo_mesh_create_from_halfedgemesh(&cube_hemesh, &vbo, &cube_mesh);
-    vbo_mesh_create_from_halfedgemesh(&sphere16_hemesh, &vbo, &sphere16_mesh);
-    vbo_mesh_create_from_halfedgemesh(&sphere32_hemesh, &vbo, &sphere32_mesh);
+    vbo_mesh_create_from_halfedgemesh(&tetrahedron_hemesh, &vbo, &ibo, &tetrahedron_mesh);
+    vbo_mesh_create_from_halfedgemesh(&box_hemesh, &vbo, &ibo, &box_mesh);
+    vbo_mesh_create_from_halfedgemesh(&cube_hemesh, &vbo, &ibo, &cube_mesh);
+    vbo_mesh_create_from_halfedgemesh(&sphere16_hemesh, &vbo, &ibo, &sphere16_mesh);
+    vbo_mesh_create_from_halfedgemesh(&sphere32_hemesh, &vbo, &ibo, &sphere32_mesh);
 
     struct Shader shader = {0};
-    shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", "flat_shader", &shader);
+    shader_create(&shader);
+    shader_attach(&shader, GL_VERTEX_SHADER, "prefix.vert", 1, "flat_shading.vert");
+    shader_attach(&shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "flat_shading.frag");
+    shader_make_program(&shader, "flat_shader");
 
     Vec4f light_direction = { 0.2, -0.5, -1.0 };
     shader_set_uniform_3f(&shader, shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);

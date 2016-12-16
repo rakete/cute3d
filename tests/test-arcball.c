@@ -20,8 +20,11 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
+    uint32_t width = 1280;
+    uint32_t height = 720;
+
     SDL_Window* window;
-    sdl2_window("test-arcball", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, &window);
+    sdl2_window("test-arcball", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(3, 2, window, (Color){0.0f, 0.0f, 0.0f, 1.0f}, &context);
@@ -35,26 +38,31 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_canvas() ) {
+    if( init_canvas(width, height) ) {
         return 1;
     }
-    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
+    canvas_create("global_dynamic_canvas", width, height, &global_dynamic_canvas);
 
     struct SolidBox solid_in = {0};
     solid_cube_create(1.0, (Color){255, 0, 255, 255}, &solid_in);
-    solid_compute_normals((struct Solid*)&solid_in);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+
+    struct Ibo ibo = {0};
+    ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);
 
     struct VboMesh vbo_mesh = {0};
-    vbo_mesh_create_from_solid((struct Solid*)&solid_in, &vbo, &vbo_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&solid_in, &vbo, &ibo, &vbo_mesh);
 
     struct Shader shader = {0};
-    shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", "flat_shader", &shader);
+    shader_create(&shader);
+    shader_attach(&shader, GL_VERTEX_SHADER, "prefix.vert", 1, "flat_shading.vert");
+    shader_attach(&shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "flat_shading.frag");
+    shader_make_program(&shader, "flat_shader");
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001f, 100.0, &arcball);

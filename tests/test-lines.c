@@ -35,13 +35,12 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_canvas() ) {
+    if( init_canvas(1280, 720) ) {
         return 1;
     }
 
-    struct Box solid_cube = {0};
+    struct SolidBox solid_cube = {0};
     solid_cube_create(1.0, (Color){255, 0, 255, 255}, &solid_cube);
-    solid_compute_normals((struct Solid*)&solid_cube);
 
     struct HalfEdgeMesh hemesh_cube = {0};
     halfedgemesh_create(&hemesh_cube);
@@ -49,15 +48,21 @@ int32_t main(int32_t argc, char *argv[]) {
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, OGL_VERTICES, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_NORMALS, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, OGL_COLORS, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+
+    struct Ibo ibo = {0};
+    ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);
 
     struct VboMesh vbo_mesh = {0};
-    vbo_mesh_create_from_solid((struct Solid*)&solid_cube, &vbo, &vbo_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&solid_cube, &vbo, &ibo, &vbo_mesh);
 
     struct Shader shader = {0};
-    shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", "flat_shader", &shader);
+    shader_create(&shader);
+    shader_attach(&shader, GL_VERTEX_SHADER, "prefix.vert", 1, "flat_shading.vert");
+    shader_attach(&shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "flat_shading.frag");
+    shader_make_program(&shader, "flat_shader");
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1f, 1000.0, &arcball);
@@ -71,10 +76,10 @@ int32_t main(int32_t argc, char *argv[]) {
     gametime_create(1.0f / 60.0f, &time);
 
     Vec4f light_direction = { 0.2, -0.5, -1.0 };
-    shader_set_uniform_3f(&shader, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
+    shader_set_uniform_3f(&shader, shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
 
     Color ambiance = {50, 25, 150, 255};
-    shader_set_uniform_4f(&shader, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
+    shader_set_uniform_4f(&shader, shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
 
     while (true) {
         SDL_Event event;

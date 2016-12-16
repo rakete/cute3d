@@ -70,7 +70,10 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_mesh_create_from_solid((struct Solid*)&sphere32, &vbo, &ibo, &sphere32_mesh);
 
     struct Shader shader = {0};
-    shader_create_from_files("shader/flat_shading.vert", "shader/flat_shading.frag", "flat_shader", &shader);
+    shader_create(&shader);
+    shader_attach(&shader, GL_VERTEX_SHADER, "prefix.vert", 1, "flat_shading.vert");
+    shader_attach(&shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "flat_shading.frag");
+    shader_make_program(&shader, "flat_shader");
 
     Vec4f light_direction = { 0.2, -0.5, -1.0 };
     shader_set_uniform_3f(&shader, shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
