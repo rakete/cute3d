@@ -1,5 +1,8 @@
-#include "grid.h"
-#include "sdl2.h"
+#include "driver_vbo.h"
+#include "driver_sdl2.h"
+
+#include "geometry_solid.h"
+#include "geometry_grid.h"
 
 int32_t main(int32_t argc, char *argv[]) {
 
@@ -8,10 +11,10 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     SDL_Window* window;
-    sdl2_window("test-world", 0, 0, 800, 600, &window);
+    sdl2_window("test-world", 100, 60, 1280, 720, &window);
 
     SDL_GLContext* context;
-    sdl2_glcontext(window, &context);
+    sdl2_glcontext(3, 2, window, (Color){0, 0, 0, 255}, &context);
 
     if( init_vbo() ) {
         return 1;
@@ -19,18 +22,21 @@ int32_t main(int32_t argc, char *argv[]) {
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
-    vbo_add_buffer(&vbo, VERTEX_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, NORMAL_ARRAY, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, COLOR_ARRAY, 4, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
-    struct Mesh world_mesh = {0};
-    mesh_create(&vbo, GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &world_mesh);
+    struct Ibo ibo = {0};
+    ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);
+
+    struct VboMesh world_mesh = {0};
+    vbo_mesh_create(&vbo, &ibo, &world_mesh);
 
     struct Grid grid = {0};
-    grid_create(1,1,1,&grid);
+    grid_create(1, 1, 1, &grid);
 
     struct GridPages pages = {0};
-    grid_pages(&grid,1,1,1,&pages);
+    grid_pages(&grid, 1, 1, 1, &pages);
 
     uint64_t pages_num = pages.num.x * pages.num.y * pages.num.z;
     printf("%lu\n", pages_num);
@@ -38,15 +44,14 @@ int32_t main(int32_t argc, char *argv[]) {
         grid_alloc(&pages, i, 0);
     }
 
-    struct Cube cube = {0};
-    solid_cube(1.0, &cube);
-    solid_normals((struct Solid*)&cube);
+    /* struct SolidBox cube = {0}; */
+    /* solid_cube_create(1.0, (Color){255, 0, 0, 255}, &cube); */
 
-    world_grid_create(&grid, &pages, 0, 1.0, 1.0, 1.0, &cube, &world_mesh);
+    /* world_grid_create(&pages, 0, 1.0, 1.0, 1.0, &cube, &world_mesh); */
 
-    pages.array[0][0][0] = 1;
+    /* pages.array[0][0][0] = 1; */
 
-    world_grid_update(&grid, &pages, 0, 0, &cube, &world_mesh);
+    /* world_grid_update(&grid, &pages, 0, 0, &cube, &world_mesh); */
 
     return 0;
 }

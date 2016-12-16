@@ -6,6 +6,8 @@
 
 #include "driver_vbo.h"
 
+#include "geometry_solid.h"
+
 #ifndef Cell
 #define Cell uint64_t
 #endif
@@ -111,18 +113,19 @@ void grid_shift(struct Grid* grid, struct GridPages* pages, struct GridBox* box,
 void grid_pagein(struct Grid* grid, struct GridPages* pages, uint64_t page, uint32_t level, char** in);
 void grid_pageout(struct Grid* grid, struct GridPages* pages, uint64_t page, uint32_t level, char** out);
 
-/* void world_grid_create(struct GridPages* pages, */
-/*                        uint32_t level, */
-/*                        float width, */
-/*                        float height, */
-/*                        float depth, */
-/*                        const struct SolidBox* cube, */
-/*                        struct VboMesh* mesh); */
-/* void world_grid_update(struct Grid* grid, */
-/*                        struct GridPages* pages, */
-/*                        uint32_t level, */
-/*                        uint64_t page, */
-/*                        const struct SolidBox* cube, */
-/*                        struct VboMesh* mesh); */
+void world_grid_create(struct GridPages* pages,
+                       uint32_t level,
+                       float width,
+                       float height,
+                       float depth,
+                       const struct SolidBox* cube,
+                       struct VboMesh* mesh);
+
+void world_grid_update(struct Grid* grid,
+                       struct GridPages* pages,
+                       uint32_t level,
+                       uint64_t page,
+                       const struct SolidBox* cube,
+                       struct VboMesh* mesh);
 
 #endif

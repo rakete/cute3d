@@ -247,7 +247,9 @@ void grid_dump(struct Grid grid, struct GridPages pages) {
 void grid_alloc(struct GridPages* pages, uint64_t page, uint32_t level) {
     struct GridSize size = {0};
     if( pages && pages->array ) {
-        pages->array[page][level] = (Cell*)calloc(grid_pagesize(pages, level, &size)->array, sizeof(Cell));
+        grid_pagesize(pages, level, &size);
+        printf("%lu %lu %lu %lu\n", page, level, size.array, sizeof(Cell));
+        pages->array[page][level] = (Cell*)calloc(size.array, sizeof(Cell));
     }
 }
 
@@ -447,115 +449,115 @@ void grid_pageout(struct Grid* grid, struct GridPages* pages, uint64_t page, uin
 //    0,2   |   1,2   |   2,2
 // 0,5   1,5|2,5   3,5|4,5   5,5
 
-/* void world_grid_create(struct GridPages* pages, */
-/*                        uint32_t level, */
-/*                        float width, */
-/*                        float height, */
-/*                        float depth, */
-/*                        const struct SolidBox* cube, */
-/*                        struct VboMesh* mesh) */
-/* { */
-/*     struct GridSize size = {0}; */
-/*     grid_pagesize(pages, level, &size); */
+void world_grid_create(struct GridPages* pages,
+                       uint32_t level,
+                       float width,
+                       float height,
+                       float depth,
+                       const struct SolidBox* cube,
+                       struct VboMesh* mesh)
+{
+    struct GridSize size = {0};
+    grid_pagesize(pages, level, &size);
 
-/*     uint64_t n = 12 * 3 * size.x * size.y * size.z; */
-/*     float* vertices = malloc(sizeof(float) * 3 * n); */
-/*     float* normals = malloc(sizeof(float) * 3 * n); */
-/*     uint8_t* colors = malloc(sizeof(uint8_t) * 4 * n); */
+    uint64_t n = 12 * 3 * size.x * size.y * size.z;
+    float* vertices = malloc(sizeof(float) * 3 * n);
+    float* normals = malloc(sizeof(float) * 3 * n);
+    uint8_t* colors = malloc(sizeof(uint8_t) * 4 * n);
 
-/*     for( uint64_t zi = 0; zi < size.z; zi++ ) { */
-/*         for( uint64_t yi = 0; yi < size.y; yi++ ) { */
-/*             for( uint64_t xi = 0; xi < size.x; xi++ ) { */
-/*                 float x = xi * width; */
-/*                 float y = yi * height; */
-/*                 float z = zi * depth; */
+    for( uint64_t zi = 0; zi < size.z; zi++ ) {
+        for( uint64_t yi = 0; yi < size.y; yi++ ) {
+            for( uint64_t xi = 0; xi < size.x; xi++ ) {
+                float x = xi * width;
+                float y = yi * height;
+                float z = zi * depth;
 
-/*                 uint64_t offset = 12 * 3 * (zi * size.x * size.y + yi * size.x + xi); */
-/*                 printf("%" PRIu64 " %" PRIu64 " %" PRIu64 " %f %f %f %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n", xi, yi, zi, x, y, z, offset, cube->solid.size*3, n, pages->size.x); */
-/*                 for( uint64_t i = 0; i < cube->solid.size; i++ ) { */
-/*                     vertices[(offset+i)*3+0] = x + cube->vertices[i*3+0]*width; */
-/*                     vertices[(offset+i)*3+1] = y + cube->vertices[i*3+1]*height; */
-/*                     vertices[(offset+i)*3+2] = z + cube->vertices[i*3+2]*depth; */
+                uint64_t offset = 12 * 3 * (zi * size.x * size.y + yi * size.x + xi);
+                printf("%" PRIu64 " %" PRIu64 " %" PRIu64 " %f %f %f %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n", xi, yi, zi, x, y, z, offset, cube->solid.size*3, n, pages->size.x);
+                for( uint64_t i = 0; i < cube->solid.size; i++ ) {
+                    vertices[(offset+i)*3+0] = x + cube->vertices[i*3+0]*width;
+                    vertices[(offset+i)*3+1] = y + cube->vertices[i*3+1]*height;
+                    vertices[(offset+i)*3+2] = z + cube->vertices[i*3+2]*depth;
 
-/*                     normals[(offset+i)*3+0] = cube->normals[i*3+0]; */
-/*                     normals[(offset+i)*3+1] = cube->normals[i*3+1]; */
-/*                     normals[(offset+i)*3+2] = cube->normals[i*3+2]; */
+                    normals[(offset+i)*3+0] = cube->normals[i*3+0];
+                    normals[(offset+i)*3+1] = cube->normals[i*3+1];
+                    normals[(offset+i)*3+2] = cube->normals[i*3+2];
 
-/*                     colors[(offset+i)*4+0] = cube->colors[i*4+0]; */
-/*                     colors[(offset+i)*4+1] = cube->colors[i*4+1]; */
-/*                     colors[(offset+i)*4+2] = cube->colors[i*4+2]; */
-/*                     colors[(offset+i)*4+3] = cube->colors[i*4+3]; */
-/*                 } */
-/*             } */
-/*         } */
-/*     } */
+                    colors[(offset+i)*4+0] = cube->colors[i*4+0];
+                    colors[(offset+i)*4+1] = cube->colors[i*4+1];
+                    colors[(offset+i)*4+2] = cube->colors[i*4+2];
+                    colors[(offset+i)*4+3] = cube->colors[i*4+3];
+                }
+            }
+        }
+    }
 
 
-/*     size_t vertices_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTICES, 3, GL_FLOAT, n, vertices); */
-/*     size_t normals_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, n, normals); */
-/*     size_t colors_n = vbomesh_append_attributes(mesh, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, n, colors); */
-/*     log_assert( vertices_n == n ); */
-/*     log_assert( normals_n == n ); */
-/*     log_assert( colors_n == n ); */
+    size_t vertices_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, n, vertices);
+    size_t normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, n, normals);
+    size_t colors_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, n, colors);
+    log_assert( vertices_n == n );
+    log_assert( normals_n == n );
+    log_assert( colors_n == n );
 
-/*     free(vertices); */
-/*     free(normals); */
-/*     free(colors); */
-/* } */
+    free(vertices);
+    free(normals);
+    free(colors);
+}
 
-/* void world_grid_update(struct Grid* grid, */
-/*                        struct GridPages* pages, */
-/*                        uint32_t level, */
-/*                        uint64_t page, */
-/*                        const struct SolidBox* cube, */
-/*                        struct VboMesh* mesh) */
-/* { */
+void world_grid_update(struct Grid* grid,
+                       struct GridPages* pages,
+                       uint32_t level,
+                       uint64_t page,
+                       const struct SolidBox* cube,
+                       struct VboMesh* mesh)
+{
 
-/*     // first create _all_ vertices and normals in mesh needed for the grid, then just */
-/*     // generate the mesh by modifying the indices buffer */
+    // first create _all_ vertices and normals in mesh needed for the grid, then just
+    // generate the mesh by modifying the indices buffer
 
-/*     // two ways to approach this: */
-/*     // 1. create a box for every cell of the grid */
-/*     //    + more straightforward to implement */
-/*     // 2. try to create only those faces that are neccessary */
-/*     //    + needs less bandwidth */
+    // two ways to approach this:
+    // 1. create a box for every cell of the grid
+    //    + more straightforward to implement
+    // 2. try to create only those faces that are neccessary
+    //    + needs less bandwidth
 
-/*     // I need to somehow make it possible to use the buffers that contain */
-/*     // the vertices and normals in multiple meshes if I want to be able */
-/*     // to use grid pages */
-/*     // 1. the best way to do this is to give this function the authority to */
-/*     //    create the meshes, given an vbo as input, an offset and a size as */
-/*     //    well as a page, this function then creates a mesh clone for that */
-/*     //    specific page */
-/*     // 2. could expect the user to supply meshes created with mesh_clone instead, */
-/*     //    maybe add some kind of field to mesh to 'lock' a mesh to make clones */
-/*     //    non-modifyable */
-/*     vbomesh_clear_indices(mesh); */
+    // I need to somehow make it possible to use the buffers that contain
+    // the vertices and normals in multiple meshes if I want to be able
+    // to use grid pages
+    // 1. the best way to do this is to give this function the authority to
+    //    create the meshes, given an vbo as input, an offset and a size as
+    //    well as a page, this function then creates a mesh clone for that
+    //    specific page
+    // 2. could expect the user to supply meshes created with mesh_clone instead,
+    //    maybe add some kind of field to mesh to 'lock' a mesh to make clones
+    //    non-modifyable
+    vbo_mesh_clear_indices(mesh);
 
-/*     struct GridBox box = {0}; */
-/*     grid_pagebox(grid, pages, page, level, &box); */
+    struct GridBox box = {0};
+    grid_pagebox(grid, pages, page, level, &box);
 
-/*     struct GridIndex index = {0}; */
-/*     uint64_t n = 6 * 2 * box.size.x * box.size.y * box.size.z; */
-/*     uint64_t* triangles = malloc(sizeof(uint64_t) * 3 * n); */
-/*     for( uint64_t xi = 0; xi < box.size.x; xi++ ) { */
-/*         for( uint64_t yi = 0; yi < box.size.y; yi++ ) { */
-/*             for( uint64_t zi = 0; zi < box.size.z; zi++ ) { */
-/*                 grid_index_xyz(grid, pages, &box, xi, yi, zi, &index); */
+    struct GridIndex index = {0};
+    uint64_t n = 6 * 2 * box.size.x * box.size.y * box.size.z;
+    uint64_t* triangles = malloc(sizeof(uint64_t) * 3 * n);
+    for( uint64_t xi = 0; xi < box.size.x; xi++ ) {
+        for( uint64_t yi = 0; yi < box.size.y; yi++ ) {
+            for( uint64_t zi = 0; zi < box.size.z; zi++ ) {
+                grid_index_xyz(grid, pages, &box, xi, yi, zi, &index);
 
-/*                 if( pages->array[index.page][index.level][index.cell] > 0 ) { */
-/*                     uint64_t v_offset = 3 * 12 * 3 * (zi * box.size.x * box.size.y + yi * box.size.x + xi); */
-/*                     uint64_t t_offset = 3 * 6 * 2 * (zi * box.size.x * box.size.y + yi * box.size.x + xi); */
-/*                     for( uint64_t i = 0; i < 36; i++ ) { */
-/*                         triangles[t_offset+i] = v_offset + cube->triangles[i]; */
-/*                     } */
-/*                 } */
-/*             } */
-/*         } */
-/*     } */
+                if( pages->array[index.page][index.level][index.cell] > 0 ) {
+                    uint64_t v_offset = 3 * 12 * 3 * (zi * box.size.x * box.size.y + yi * box.size.x + xi);
+                    uint64_t t_offset = 3 * 6 * 2 * (zi * box.size.x * box.size.y + yi * box.size.x + xi);
+                    for( uint64_t i = 0; i < 36; i++ ) {
+                        triangles[t_offset+i] = v_offset + cube->triangles[i];
+                    }
+                }
+            }
+        }
+    }
 
-/*     size_t triangles_n = vbomesh_append_indices(mesh, n, triangles); */
-/*     log_assert( triangles_n == n ); */
+    size_t triangles_n = vbo_mesh_append_indices(mesh, n, triangles);
+    log_assert( triangles_n == n );
 
-/*     free(triangles); */
-/* } */
+    free(triangles);
+}
