@@ -109,14 +109,14 @@ elif build_toolset == "mingw":
         print "sdl2_cflags = \"-Ic:/MinGW/include/SDL2 -Dmain=SDL_main\""
         print "sdl2_libs = \"-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows\""
         sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
-        sdl2_libs = "-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows"
+        sdl2_libs = "-Lc:/MinGW/lib -lSDL2main -lSDL2"
 
-    features = "-posix -std=c11 -g -DDEBUG -fsanitize=address -fno-omit-frame-pointer"
+    features = "-posix -std=c11 -g -DDEBUG "
     optimization = "-O0" # "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -Wno-unknown-pragmas -pedantic"
     errors = "-Werror=implicit-function-declaration"
     linking = "-fPIC"
-    libraries = "-lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32 " + sdl2_libs
+    libraries = sdl2_libs + " -lmingw32 -mwindows -mwindows -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lshell32 -luuid -lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32"
     includes = "-I" + source_directory
     defines = "-DCUTE_SHADER_SEARCH_PATH=\\\"shader/:cute3d/shader/\\\""
 
