@@ -89,13 +89,12 @@ int32_t main(int32_t argc, char *argv[]) {
     entity_create("red", (Color){ 255, 0, 0, 255 }, &vbo, &ibo, &entity_a);
     /* quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)UP_AXIS, PI/4, entity_a.pivot.orientation); */
     /* quat_mul_axis_angle(entity_a.pivot.orientation, (Vec4f)RIGHT_AXIS, PI/2 + 0.2, entity_a.pivot.orientation); */
-    vec_add(entity_a.pivot.position, (Vec4f){3.0, 0.15, 0.0, 1.0}, entity_a.pivot.position);
+    vec_add(entity_a.pivot.position, (Vec4f){0.2, 0.15, 0.8, 1.0}, entity_a.pivot.position);
 
     struct CollisionEntity entity_b = {0};
     entity_create("green", (Color){ 0, 255, 0, 255 }, &vbo, &ibo, &entity_b);
     quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)RIGHT_AXIS, PI/4 - 0.2, entity_b.pivot.orientation);
     quat_mul_axis_angle(entity_b.pivot.orientation, (Vec4f)UP_AXIS, PI/2 + 0.0, entity_b.pivot.orientation);
-    //vec_add(entity_b.pivot.position, (Vec4f){-3.0, 0.0, 0.0, 1.0}, entity_b.pivot.position);
 
     struct Shader flat_shader = {0};
     shader_create(&flat_shader);
@@ -110,7 +109,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_set_uniform_4f(&flat_shader, flat_shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){0.0, 5.0, 10.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0, 1000.0, &arcball);
+    arcball_create(window, (Vec4f){5.0, 3.0, 5.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0, 1000.0, &arcball);
 
     Quat grid_rotation = {0};
     quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);

@@ -96,7 +96,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_mesh_create_from_solid((struct Solid*)&smooth_sphere32, &vbo, &ibo, &smooth_sphere32_mesh);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){0.0,8.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
+    arcball_create(window, (Vec4f){2.5,17.0,17.0,1.0}, (Vec4f){2.5,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
 
     Vec3f light_direction = { 0.2, -0.5, -1.0 };
     Vec3f light_position = { -6.0, 6.0, 10.0 };
