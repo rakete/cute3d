@@ -138,24 +138,6 @@ QuatP* qmul_axis_angle(const Vec3f axis, const float angle, Quat q) {
     return q;
 }
 
-void quat_mul_vec_pair(const Quat q, const Vec3f a, const Vec3f b, Quat r) {
-    if( (fabs(a[0]) < CUTE_EPSILON && fabs(a[1]) < CUTE_EPSILON && fabs(a[2]) < CUTE_EPSILON) ||
-        (fabs(b[0]) < CUTE_EPSILON && fabs(b[1]) < CUTE_EPSILON && fabs(b[2]) < CUTE_EPSILON) ||
-        (fabs(a[0]- b[0]) < CUTE_EPSILON && fabs(a[1] - b[1]) < CUTE_EPSILON && fabs(a[2] - b[2]) < CUTE_EPSILON) )
-    {
-        quat_copy(q, r);
-    }
-
-    Quat rotation;
-    quat_from_vec_pair(a, b, rotation);
-    quat_mul(q, rotation, r);
-}
-
-QuatP* qmul_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
-    quat_mul_vec_pair(q, a, b, q);
-    return q;
-}
-
 void quat_mul(const Quat qa, const Quat qb, Quat r) {
     double x1,y1,z1,w1,x2,y2,z2,w2;
     x1 = qa[0];  y1 = qa[1];  z1 = qa[2];  w1 = qa[3];
