@@ -21,9 +21,9 @@
 #include "limits.h"
 #include "stdint.h"
 
-#define PI 3.14159265358979323846264338327f
-#define PI_OVER_180 0.017453292519943295769236907684886f
-#define PI_OVER_360 0.0087266462599716478846184538424431f
+#define PI 3.14159265358979f
+#define PI_OVER_180 0.01745329251994f
+#define PI_OVER_360 0.00872664625997f
 
 // - changed these to not hide the pointer type, so that I can do:
 // const VecP* v = &vertices[i];
