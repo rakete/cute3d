@@ -14,7 +14,9 @@
 
 from __future__ import print_function
 import sys, os, subprocess, traceback
+import socket
 from select import select
+import platform
 
 filter = True
 if 'NOCOLOR' in os.environ:
@@ -48,9 +50,10 @@ reset         = "\033[0m"
 
 while True:
 	p.poll()
-	r,w,x = select([p.stdout], [], [], 1.0)
-	if len(r) == 0:
-		continue
+        if platform.system().lower() != "windows":
+	    r,w,x = select([p.stdout], [], [], 1.0)
+            if len(r) == 0:
+	    	continue
 
 	line = p.stdout.readline()
 	if len(line) == 0: # EOF
