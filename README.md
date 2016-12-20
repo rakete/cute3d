@@ -1,6 +1,8 @@
 #Cute3D
 
-This is a framework for developing interactive realtime simulations in 3D, also known as videogames. It is a private project currently in development and useable, but very far away from being complete. My goal is to create a library of functionality that makes it easy to quickly prototype and implement interactive 3D applications. That means ultimately I want this framework to offer implementations touching various topics of game development, starting from simple rendering, ranging over acceleration structures, collision detection and occlusion culling, all the way to physics simulation, animation and procedural generation.
+This is a framework for developing interactive realtime simulations in 3D. It should be useful for game devolepment, but may be also have purpose in robotics and artificial intelligence research.
+
+It is a private project currently in development and useable, but very far away from being complete. My goal is to create a library of functionality that makes it easy to quickly prototype and implement interactive 3D applications. That means ultimately I want this framework to offer implementations touching various topics of game development, starting from simple rendering, ranging over acceleration structures, collision detection and occlusion culling, all the way to physics simulation, animation and procedural generation.
 
 <p align="center">
 <img src="screenshots/test-cute_2016-12-16.png" width="250"/> <img src="screenshots/test-shading_2016-12-16.png" width="250"/> <img src="screenshots/test-collisions_2016-12-16.png" width="250"/>
@@ -39,20 +41,3 @@ Or to build Cute3D together with a few tests you can execute:
 Which should produce executables in the current directory, named with the suffix .bin on Linux and .exe on Windows.
 
 Run any of them to see Cute3D in action. Most tests have some basic camera controls. Holding left mouse button while moving the mouse rotates the camera, holding right mouse button while moving the mouse pans the camera and using the mouse wheel zooms the camera in and out.
-
-## Future Plans
-
-where is this whole project going?
-
-### Geometry
-* bsp
-* cs
-* approximate convex decomposition
-http://masc.cs.gmu.edu/wiki/ACD
-* skeletal animation
-http://cs.gmu.edu/~jmlien/research/app-cd/skeletonization/index.html
-* collision response
-
-### Rendering
-* shadows
-* phong shading
