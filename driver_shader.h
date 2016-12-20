@@ -11,7 +11,6 @@
 #include "driver_ogl.h"
 #include "driver_sdl2.h"
 #include "driver_glsl.h"
-#include "driver_shader.h"
 
 #ifndef CUTE_SHADER_SEARCH_PATH
 #define CUTE_SHADER_SEARCH_PATH "shader/:cute3d/shader/"
