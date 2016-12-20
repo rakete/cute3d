@@ -4,9 +4,9 @@
 #include "stdint.h"
 #include "stdlib.h"
 
-#include "driver_vbo.h"
-
 #include "geometry_solid.h"
+
+#include "render_vbo.h"
 
 #ifndef Cell
 #define Cell uint64_t

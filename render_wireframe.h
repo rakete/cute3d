@@ -19,13 +19,14 @@
 
 #include "driver_ogl.h"
 #include "driver_log.h"
-#include "driver_vbo.h"
 
 #include "math_camera.h"
 #include "math_pivot.h"
 
 #include "geometry_solid.h"
 #include "geometry_halfedgemesh.h"
+
+#include "render_vbo.h"
 
 void wireframe_create_from_solid(const struct Solid* solid, struct Vbo* const vbo, struct VboMesh* mesh);
 

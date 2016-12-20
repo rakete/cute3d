@@ -1,4 +1,4 @@
-#include "material_shadow.h"
+#include "render_shadow.h"
 
 void shadow_frustum_matrices(const struct Camera* camera, Vec3f light_position, Vec3f light_direction, float frustum_near, float frustum_far, Mat projection_mat, Mat view_mat) {
     Mat camera_to_light_transform = {0};

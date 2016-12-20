@@ -4,10 +4,10 @@
 #include "gui_draw.h"
 #include "gui_text.h"
 
-#include "driver_vbo.h"
 #include "geometry_solid.h"
 #include "geometry_draw.h"
 
+#include "render_shader.h"
 #include "render_vbo.h"
 #include "render_canvas.h"
 

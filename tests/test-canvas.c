@@ -1,4 +1,3 @@
-#include "driver_shader.h"
 #include "driver_sdl2.h"
 
 #include "math_gametime.h"
@@ -12,6 +11,8 @@
 
 #include "geometry_halfedgemesh.h"
 
+#include "render_shader.h"
+#include "render_vbo.h"
 #include "render_canvas.h"
 
 int32_t event_filter(void* p, SDL_Event* event) {

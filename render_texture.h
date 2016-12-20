@@ -1,8 +1,9 @@
-#ifndef DRIVER_TEXTURE_H
-#define DRIVER_TEXTURE_H
+#ifndef RENDER_TEXTURE_H
+#define RENDER_TEXTURE_H
 
 #include "driver_ogl.h"
-#include "driver_shader.h"
+
+#include "render_shader.h"
 
 // - look at glTexParameter/glTexImage2D for OpenGL es2, there is much less stuff to worry about:
 // http://docs.gl/es2/glTexParameter and http://docs.gl/es2/glTexImage2D

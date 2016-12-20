@@ -1,5 +1,5 @@
-#ifndef DRIVER_SHADER_H
-#define DRIVER_SHADER_H
+#ifndef RENDER_SHADER_H
+#define RENDER_SHADER_H
 
 #include "stdio.h"
 

@@ -1,16 +1,15 @@
 #include "driver_sdl2.h"
-#include "driver_shader.h"
 
 #include "math_gametime.h"
 #include "math_arcball.h"
 
-#include "driver_vbo.h"
 #include "geometry_halfedgemesh.h"
 #include "geometry_draw.h"
 
 #include "gui_draw.h"
 #include "gui_text.h"
 
+#include "render_shader.h"
 #include "render_canvas.h"
 #include "render_vbo.h"
 

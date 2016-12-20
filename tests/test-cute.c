@@ -31,6 +31,7 @@
 
 #include "driver_sdl2.h"
 
+#include "render_shader.h"
 #include "render_vbo.h"
 #include "render_canvas.h"
 

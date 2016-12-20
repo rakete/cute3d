@@ -5,12 +5,13 @@
 
 #include "driver_ogl.h"
 #include "driver_log.h"
-#include "driver_texture.h"
 
 #include "math_matrix.h"
 
 #include "gui_font.h"
 #include "gui_default_font.h"
+
+#include "render_texture.h"
 
 #ifndef DEFAULT_CANVAS_ALLOC
 #define DEFAULT_CANVAS_ALLOC 512

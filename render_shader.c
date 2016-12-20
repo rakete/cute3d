@@ -14,7 +14,7 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "driver_shader.h"
+#include "render_shader.h"
 
 const char* global_shader_attribute_names[MAX_SHADER_ATTRIBUTES] = {0};
 const char* global_shader_uniform_names[MAX_SHADER_UNIFORMS] = {0};

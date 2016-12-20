@@ -1,4 +1,4 @@
-#include "driver_texture.h"
+#include "render_texture.h"
 
 void texture_create(struct Texture* texture) {
     texture->id = 0;

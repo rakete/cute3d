@@ -17,9 +17,11 @@
 #ifndef RENDER_CANVAS_H
 #define RENDER_CANVAS_H
 
-#include "driver_texture.h"
-#include "gui_canvas.h"
 #include "math_camera.h"
+
+#include "gui_canvas.h"
+
+#include "render_texture.h"
 
 void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t layer_end, const struct Camera* camera, const Mat model_matrix);
 
