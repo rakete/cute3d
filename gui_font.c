@@ -254,6 +254,6 @@ void font_create_from_characters(const wchar_t* unicode_alphabet,
         shader_create(&font->shader);
         shader_attach(&font->shader, GL_VERTEX_SHADER, "prefix.vert", 1, "font_shading.vert");
         shader_attach(&font->shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "font_shading.frag");
-        shader_make_program(&font->shader, "font_shader");
+        shader_make_program(&font->shader, SHADER_DEFAULT_NAMES, "font_shader");
     }
 }

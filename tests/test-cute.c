@@ -64,7 +64,7 @@ int32_t main(int32_t argc, char** argv) {
     struct Vbo vbo = {0};
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, GL_STATIC_DRAW);
 
     struct Ibo ibo = {0};
@@ -81,7 +81,7 @@ int32_t main(int32_t argc, char** argv) {
                              255, 0, 0, 255 };
 
     vbo_mesh_append_attributes(&triangle_mesh, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, 3, vertices1);
-    vbo_mesh_append_attributes(&triangle_mesh, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, 3, colors1);
+    vbo_mesh_append_attributes(&triangle_mesh, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE, 3, colors1);
     vbo_mesh_append_indices(&triangle_mesh, 3, (uint32_t[3]){0, 1, 2});
 
     vbo_mesh_print(&triangle_mesh);
@@ -91,10 +91,10 @@ int32_t main(int32_t argc, char** argv) {
     shader_create(&default_shader);
     shader_attach(&default_shader, GL_VERTEX_SHADER, "prefix.vert", 1, "flat_shading.vert");
     shader_attach(&default_shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "flat_shading.frag");
-    shader_make_program(&default_shader, "flat_shader");
+    shader_make_program(&default_shader, SHADER_DEFAULT_NAMES, "flat_shader");
 
     shader_add_attribute(&default_shader, SHADER_ATTRIBUTE_VERTEX, "vertex");
-    shader_add_attribute(&default_shader, SHADER_ATTRIBUTE_DIFFUSE_COLOR, "diffuse_color");
+    shader_add_attribute(&default_shader, SHADER_ATTRIBUTE_VERTEX_COLOR, "diffuse_color");
     shader_add_attribute(&default_shader, SHADER_ATTRIBUTE_VERTEX_NORMAL, "vertex_normal");
 
     /* shader_set_uniform(&default_shader, SHADER_UNIFORM_MVP_MATRIX, "mvp_matrix", NULL, NULL); */
@@ -111,7 +111,7 @@ int32_t main(int32_t argc, char** argv) {
     struct VboMesh cube_mesh = {0};
     vbo_mesh_create(&vbo, &ibo, &cube_mesh);
     vbo_mesh_append_attributes(&cube_mesh, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, cube.solid.size, cube.vertices);
-    vbo_mesh_append_attributes(&cube_mesh, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, cube.solid.size, cube.colors);
+    vbo_mesh_append_attributes(&cube_mesh, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE, cube.solid.size, cube.colors);
     vbo_mesh_append_attributes(&cube_mesh, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, cube.solid.size, cube.normals);
     vbo_mesh_append_indices(&cube_mesh, cube.solid.size, cube.indices);
 

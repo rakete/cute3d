@@ -81,7 +81,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX, VERTEX_SIZE, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, NORMAL_SIZE, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLOR, COLOR_SIZE, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_COLOR, COLOR_SIZE, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
 
     struct Ibo ibo = {0};
     ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);

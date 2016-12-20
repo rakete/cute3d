@@ -493,9 +493,9 @@ void world_grid_create(struct GridPages* pages,
     }
 
 
-    size_t vertices_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, n, vertices);
-    size_t normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, n, normals);
-    size_t colors_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, n, colors);
+    size_t vertices_n = vbo_mesh_append_attributes(mesh, GEOMETRY_ATTRIBUTE_VERTEX, 3, GL_FLOAT, n, vertices);
+    size_t normals_n = vbo_mesh_append_attributes(mesh, GEOMETRY_ATTRIBUTE_NORMAL, 3, GL_FLOAT, n, normals);
+    size_t colors_n = vbo_mesh_append_attributes(mesh, GEOMETRY_ATTRIBUTE_COLOR, 4, GL_UNSIGNED_BYTE, n, colors);
     log_assert( vertices_n == n );
     log_assert( normals_n == n );
     log_assert( colors_n == n );

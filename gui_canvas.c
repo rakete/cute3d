@@ -23,7 +23,7 @@ void canvas_create(const char* name, int32_t width, int32_t height, struct Canva
 
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         canvas->components[i].size = 0;
-        if( i == SHADER_ATTRIBUTE_DIFFUSE_COLOR ) {
+        if( i == SHADER_ATTRIBUTE_VERTEX_COLOR ) {
             canvas->components[i].type = GL_UNSIGNED_BYTE;
         } else {
             canvas->components[i].type = GL_FLOAT;
@@ -93,19 +93,18 @@ void canvas_create(const char* name, int32_t width, int32_t height, struct Canva
     // canvas_create
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT);
-    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE);
+    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, 2, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_NEXT_VERTEX, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_PREV_VERTEX, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_LINE_THICKNESS, 1, GL_FLOAT);
-    canvas_add_attribute(canvas, SHADER_ATTRIBUTE_BARYCENTRIC_COORDINATE, 3, GL_FLOAT);
 
     log_info(__FILE__, __LINE__, "creating shaders for canvas: %s\n", name);
     log_indent(1);
 
     struct Shader shader = {0};
     shader_create(&shader);
-    shader_make_program(&shader, "default_shader");
+    shader_make_program(&shader, SHADER_CANVAS_NAMES, "default_shader");
     log_assert( canvas_add_shader(canvas, "default_shader", &shader) < MAX_CANVAS_SHADER );
 
     struct Character symbols[256] = {0};
@@ -640,7 +639,7 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t tex
                 }
                 size_t dst_offset = attribute_occupied * attribute_size * attribute_bytes;
                 size_t set_length = (vertices_occupied - attribute_occupied) * attribute_size * attribute_bytes;
-                if( i == SHADER_ATTRIBUTE_DIFFUSE_COLOR ) {
+                if( i == SHADER_ATTRIBUTE_VERTEX_COLOR ) {
                     memset((char*)canvas->attributes[i].array + dst_offset, 255, set_length);
                 } else {
                     memset((char*)canvas->attributes[i].array + dst_offset, 0, set_length);

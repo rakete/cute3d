@@ -89,7 +89,7 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Canvas text_canvas = {0};
     canvas_create("text_canvas", width, height, &text_canvas);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT);
-    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE);
+    canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, 2, GL_FLOAT);
     log_assert( canvas_add_shader(&text_canvas, shader.name, &shader) < MAX_CANVAS_SHADER );
     log_assert( canvas_add_font(&text_canvas, "other_font", &font) < MAX_CANVAS_FONTS );

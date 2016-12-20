@@ -20,29 +20,27 @@
 
 // sooner or later I am going to need to supply custom attributes to shaders,
 // defining them here like this seems to be the most sane way
-#define MAX_CUSTOM_ATTRIBUTES 10
-#define MAX_SHADER_ATTRIBUTES MAX_CUSTOM_ATTRIBUTES+MAX_GEOMETRY_ATTRIBUTES
+#define MAX_SHADER_CUSTOM_ATTRIBUTES 4
+#define MAX_SHADER_ATTRIBUTES MAX_SHADER_CUSTOM_ATTRIBUTES+MAX_GEOMETRY_ATTRIBUTES
 
 #ifndef MAX_SHADER_OBJECTS
 #define MAX_SHADER_OBJECTS 32
 #endif
 
+#define MAX_SHADER_ATTRIBUTE_NAMES 2
+
 // attribute ids for arrays
+#define SHADER_DEFAULT_NAMES 0
 #define SHADER_ATTRIBUTE_VERTEX GEOMETRY_ATTRIBUTE_VERTEX
 #define SHADER_ATTRIBUTE_VERTEX_TEXCOORD GEOMETRY_ATTRIBUTE_TEXCOORD
 #define SHADER_ATTRIBUTE_VERTEX_NORMAL GEOMETRY_ATTRIBUTE_NORMAL
 #define SHADER_ATTRIBUTE_VERTEX_COLOR GEOMETRY_ATTRIBUTE_COLOR
 
-#define SHADER_ATTRIBUTE_DIFFUSE_COLOR MAX_GEOMETRY_ATTRIBUTES+0
-#define SHADER_ATTRIBUTE_SPECULAR_COLOR MAX_GEOMETRY_ATTRIBUTES+1
-#define SHADER_ATTRIBUTE_AMBIENT_COLOR MAX_GEOMETRY_ATTRIBUTES+2
-#define SHADER_ATTRIBUTE_HARD_NORMAL MAX_GEOMETRY_ATTRIBUTES+3
-#define SHADER_ATTRIBUTE_SMOOTH_NORMAL MAX_GEOMETRY_ATTRIBUTES+4
-#define SHADER_ATTRIBUTE_INSTANCE_ID MAX_GEOMETRY_ATTRIBUTES+5
-#define SHADER_ATTRIBUTE_PREV_VERTEX MAX_GEOMETRY_ATTRIBUTES+6
-#define SHADER_ATTRIBUTE_NEXT_VERTEX MAX_GEOMETRY_ATTRIBUTES+7
-#define SHADER_ATTRIBUTE_LINE_THICKNESS MAX_GEOMETRY_ATTRIBUTES+8
-#define SHADER_ATTRIBUTE_BARYCENTRIC_COORDINATE MAX_GEOMETRY_ATTRIBUTES+9
+#define SHADER_CANVAS_NAMES 1
+#define SHADER_ATTRIBUTE_INSTANCE_ID MAX_GEOMETRY_ATTRIBUTES+0
+#define SHADER_ATTRIBUTE_PREV_VERTEX MAX_GEOMETRY_ATTRIBUTES+1
+#define SHADER_ATTRIBUTE_NEXT_VERTEX MAX_GEOMETRY_ATTRIBUTES+2
+#define SHADER_ATTRIBUTE_LINE_THICKNESS MAX_GEOMETRY_ATTRIBUTES+3
 
 // uniform ids for arrays (and maybe locations)
 #define MAX_SHADER_UNIFORMS 17
@@ -65,7 +63,6 @@
 #define SHADER_UNIFORM_ASPECT_RATIO 14
 #define SHADER_UNIFORM_LINE_Z_SCALING 15
 #define SHADER_UNIFORM_ENABLE_TEXTURE 16
-
 
 // - samplers are just uniforms, but they behave different so I treat them different
 // - essentially a sampler  just contains a number, which is the active texture unit that is sampled
@@ -94,7 +91,7 @@
 #define SHADER_SAMPLER_DIFFUSE_ATLAS 8
 
 // names for locations
-extern const char* global_shader_attribute_names[MAX_SHADER_ATTRIBUTES];
+extern const char* global_shader_attribute_names[MAX_SHADER_ATTRIBUTE_NAMES][MAX_SHADER_ATTRIBUTES];
 extern const char* global_shader_uniform_names[MAX_SHADER_UNIFORMS];
 extern const char* global_shader_sampler_names[MAX_SHADER_SAMPLER];
 
@@ -105,6 +102,7 @@ struct Shader {
     GLuint objects[MAX_SHADER_OBJECTS];
     size_t num_objects;
 
+    uint32_t attribute_set;
     // - instead of using glGetAttribLocation in shader_add_attribute calls it may be better
     // to use fixed locations for the attributes and then use glBindAttribLocation and always
     // bind to the same location
@@ -158,7 +156,7 @@ void shader_create(struct Shader* p);
 
 void shader_attach(struct Shader* p, GLenum type, const char* prefix_file, size_t n, ...);
 
-void shader_make_program(struct Shader* p, const char* name);
+void shader_make_program(struct Shader* p, uint32_t set_i, const char* name);
 void shader_use_program(const struct Shader* p);
 
 void shader_setup_locations(struct Shader* p);

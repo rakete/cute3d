@@ -10,6 +10,8 @@
 #define GEOMETRY_ATTRIBUTE_NORMAL 2
 #define GEOMETRY_ATTRIBUTE_COLOR 3
 
+#define GEOMETRY_ATTRIBUTE_PAYLOAD 4
+
 #define LINE_SIZE 2
 #define TRIANGLE_SIZE 3
 #define QUAD_SIZE 4
@@ -18,6 +20,13 @@
 #define NORMAL_SIZE 3
 #define COLOR_SIZE 4
 #define TEXCOORD_SIZE 2
+#define PAYLOAD_SIZE 4
+
+#define VERTEX_TYPE float
+#define TEXCOORD_TYPE float
+#define NORMAL_TYPE float
+#define COLOR_TYPE uint8_t
+#define PAYLOAD_TYPE float
 
 typedef float Vertex[VERTEX_SIZE];
 typedef float VertexP;

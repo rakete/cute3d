@@ -16,7 +16,7 @@
 
 #include "render_shader.h"
 
-const char* global_shader_attribute_names[MAX_SHADER_ATTRIBUTES] = {0};
+const char* global_shader_attribute_names[MAX_SHADER_ATTRIBUTE_NAMES][MAX_SHADER_ATTRIBUTES] = {0};
 const char* global_shader_uniform_names[MAX_SHADER_UNIFORMS] = {0};
 const char* global_shader_sampler_names[MAX_SHADER_SAMPLER] = {0};
 
@@ -30,8 +30,23 @@ int32_t init_shader() {
         ret = 1;
     }
 
-    for( size_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
-        global_shader_attribute_names[i] = "invalid_attribute";
+    GLint max_vertex_attribs = 0;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_vertex_attribs);
+    log_info(__FILE__, __LINE__, "gl maximum vertex attribs: %d\n", max_vertex_attribs);
+    log_assert( MAX_SHADER_ATTRIBUTES < max_vertex_attribs );
+
+    GLint max_fragment_texture_image_units = 0;
+    GLint max_vertex_texture_image_units = 0;
+    GLint max_combined_texture_image_units = 0;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_fragment_texture_image_units);
+    glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &max_vertex_texture_image_units);
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
+    log_info(__FILE__, __LINE__, "gl maximum texture image units frag/vert/combined: %d/%d/%d\n", max_fragment_texture_image_units, max_vertex_texture_image_units, max_combined_texture_image_units);
+
+    for( size_t i = 0; i < MAX_SHADER_ATTRIBUTE_NAMES; i++ ) {
+        for( size_t j = 0; j < MAX_SHADER_ATTRIBUTES; j++ ) {
+            global_shader_attribute_names[i][j] = "invalid_attribute";
+        }
     }
 
     for( size_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
@@ -42,21 +57,17 @@ int32_t init_shader() {
         global_shader_sampler_names[i] = "invalid_sampler";
     }
 
-    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX] = "vertex";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX_TEXCOORD] = "vertex_texcoord";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX_NORMAL] = "vertex_normal";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_VERTEX_COLOR] = "vertex_color";
+    for( size_t i = 0; i < MAX_SHADER_ATTRIBUTE_NAMES; i++ ) {
+        global_shader_attribute_names[i][SHADER_ATTRIBUTE_VERTEX] = "vertex";
+        global_shader_attribute_names[i][SHADER_ATTRIBUTE_VERTEX_TEXCOORD] = "vertex_texcoord";
+        global_shader_attribute_names[i][SHADER_ATTRIBUTE_VERTEX_NORMAL] = "vertex_normal";
+        global_shader_attribute_names[i][SHADER_ATTRIBUTE_VERTEX_COLOR] = "vertex_color";
+    }
 
-    global_shader_attribute_names[SHADER_ATTRIBUTE_DIFFUSE_COLOR] = "diffuse_color";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_AMBIENT_COLOR] = "ambient_color";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_SPECULAR_COLOR] = "specular_color";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_INSTANCE_ID] = "instance_id";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_PREV_VERTEX] = "prev_vertex";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_NEXT_VERTEX] = "next_vertex";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_LINE_THICKNESS] = "line_thickness";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_BARYCENTRIC_COORDINATE] = "barycentric_coordinate";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_HARD_NORMAL] = "hard_normal";
-    global_shader_attribute_names[SHADER_ATTRIBUTE_SMOOTH_NORMAL] = "smooth_normal";
+    global_shader_attribute_names[SHADER_CANVAS_NAMES][SHADER_ATTRIBUTE_INSTANCE_ID] = "instance_id";
+    global_shader_attribute_names[SHADER_CANVAS_NAMES][SHADER_ATTRIBUTE_PREV_VERTEX] = "prev_vertex";
+    global_shader_attribute_names[SHADER_CANVAS_NAMES][SHADER_ATTRIBUTE_NEXT_VERTEX] = "next_vertex";
+    global_shader_attribute_names[SHADER_CANVAS_NAMES][SHADER_ATTRIBUTE_LINE_THICKNESS] = "line_thickness";
 
     global_shader_uniform_names[SHADER_UNIFORM_MVP_MATRIX] = "mvp_matrix";
     global_shader_uniform_names[SHADER_UNIFORM_MODEL_MATRIX] = "model_matrix";
@@ -161,7 +172,7 @@ void shader_attach(struct Shader* p, GLenum type, const char* prefix_file, size_
     va_end(file_list);
 }
 
-void shader_make_program(struct Shader* p, const char* name) {
+void shader_make_program(struct Shader* p, uint32_t set_i, const char* name) {
     size_t name_length = strlen(name);
     log_assert( name_length > 0 );
     log_assert( name_length < 256 );
@@ -180,8 +191,9 @@ void shader_make_program(struct Shader* p, const char* name) {
 
     p->program = glsl_create_program(p->num_objects, p->objects);
 
+    p->attribute_set = set_i;
     for( uint32_t attribute_i = 0; attribute_i < MAX_SHADER_ATTRIBUTES; attribute_i++ ) {
-        glBindAttribLocation(p->program, attribute_i, global_shader_attribute_names[attribute_i]);
+        glBindAttribLocation(p->program, attribute_i, global_shader_attribute_names[set_i][attribute_i]);
     }
 
     p->program = glsl_link_program(p->program);
@@ -207,19 +219,20 @@ void shader_setup_locations(struct Shader* p) {
     GLint num_active_attributes = 0;
     glGetProgramiv(p->program, GL_ACTIVE_ATTRIBUTES, &num_active_attributes);
     int32_t num_cached_attributes = 0;
-    for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
-        const char* attribute_name = global_shader_attribute_names[i];
-        GLint location = glGetAttribLocation(p->program, global_shader_attribute_names[i]);
+    uint32_t set_i = p->attribute_set;
+    for( int32_t attribute_i = 0; attribute_i < MAX_SHADER_ATTRIBUTES; attribute_i++ ) {
+        const char* attribute_name = global_shader_attribute_names[set_i][attribute_i];
+        GLint location = glGetAttribLocation(p->program, global_shader_attribute_names[set_i][attribute_i]);
 
-        p->attribute[i].name[0] = '\0';
-        p->attribute[i].location = -1;
-        p->attribute[i].unset = true;
-        p->attribute[i].warn_once = true;
+        p->attribute[attribute_i].name[0] = '\0';
+        p->attribute[attribute_i].location = -1;
+        p->attribute[attribute_i].unset = true;
+        p->attribute[attribute_i].warn_once = true;
 
         if( location > -1 ) {
             log_assert( strlen(attribute_name) < 256 );
-            strncat(p->attribute[i].name, attribute_name, strlen(attribute_name));
-            p->attribute[i].location = location;
+            strncat(p->attribute[attribute_i].name, attribute_name, strlen(attribute_name));
+            p->attribute[attribute_i].location = location;
             num_cached_attributes += 1;
         }
     }
@@ -232,25 +245,25 @@ void shader_setup_locations(struct Shader* p) {
     GLint num_active_uniforms = 0;
     glGetProgramiv(p->program, GL_ACTIVE_UNIFORMS, &num_active_uniforms);
     int32_t num_cached_uniforms = 0;
-    for( int32_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
-        p->uniform[i].name[0] = '\0';
-        p->uniform[i].location = -1;
-        p->uniform[i].unset = true;
-        p->uniform[i].warn_once = true;
+    for( int32_t uniform_i = 0; uniform_i < MAX_SHADER_UNIFORMS; uniform_i++ ) {
+        p->uniform[uniform_i].name[0] = '\0';
+        p->uniform[uniform_i].location = -1;
+        p->uniform[uniform_i].unset = true;
+        p->uniform[uniform_i].warn_once = true;
 
-        const char* uniform_name = global_shader_uniform_names[i];
-        GLint location = glGetUniformLocation(p->program, global_shader_uniform_names[i]);
+        const char* uniform_name = global_shader_uniform_names[uniform_i];
+        GLint location = glGetUniformLocation(p->program, global_shader_uniform_names[uniform_i]);
 
         if( location > -1 ) {
-            p->uniform[i].name[0] = '\0';
+            p->uniform[uniform_i].name[0] = '\0';
             log_assert( strlen(uniform_name) < 256 );
-            strncat(p->uniform[i].name, uniform_name, strlen(uniform_name));
-            p->uniform[i].location = location;
+            strncat(p->uniform[uniform_i].name, uniform_name, strlen(uniform_name));
+            p->uniform[uniform_i].location = location;
             num_cached_uniforms += 1;
 
             // - set defaults for all uniforms
             // - this might cause problems when an glUniform call and type in the shader don't match
-            switch(i) {
+            switch(uniform_i) {
                 case SHADER_UNIFORM_MVP_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
                 case SHADER_UNIFORM_MODEL_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
                 case SHADER_UNIFORM_VIEW_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
@@ -277,25 +290,25 @@ void shader_setup_locations(struct Shader* p) {
 
     // - difference to the uniforms and attributes is that samplers get set here, with the glUniform
     // call below a fixed texture unit is set that is always going to be the same
-    for( int32_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
-        p->sampler[i].name[0] = '\0';
-        p->sampler[i].location = -1;
-        p->sampler[i].unset = true;
-        p->sampler[i].warn_once = true;
+    for( int32_t sampler_i = 0; sampler_i < MAX_SHADER_SAMPLER; sampler_i++ ) {
+        p->sampler[sampler_i].name[0] = '\0';
+        p->sampler[sampler_i].location = -1;
+        p->sampler[sampler_i].unset = true;
+        p->sampler[sampler_i].warn_once = true;
 
-        const char* sampler_name = global_shader_sampler_names[i];
-        GLint location = glGetUniformLocation(p->program, global_shader_sampler_names[i]);
+        const char* sampler_name = global_shader_sampler_names[sampler_i];
+        GLint location = glGetUniformLocation(p->program, global_shader_sampler_names[sampler_i]);
 
         if( location > -1 ) {
-            p->sampler[i].name[0] = '\0';
+            p->sampler[sampler_i].name[0] = '\0';
             log_assert( strlen(sampler_name) < 256 );
-            strncat(p->sampler[i].name, sampler_name, strlen(sampler_name));
-            p->sampler[i].location = location;
+            strncat(p->sampler[sampler_i].name, sampler_name, strlen(sampler_name));
+            p->sampler[sampler_i].location = location;
             num_cached_uniforms += 1;
 
-            GLuint texture_unit = i % 8;
+            GLuint texture_unit = sampler_i % 8;
             glUniform1i(location, texture_unit);
-            p->sampler[i].unset = false;
+            p->sampler[sampler_i].unset = false;
         }
     }
 

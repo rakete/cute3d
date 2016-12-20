@@ -51,8 +51,7 @@ void draw_line(struct Canvas* canvas,
         shader_create(&volumetric_lines_shader);
         shader_attach(&volumetric_lines_shader, GL_VERTEX_SHADER, "prefix.vert", 1, "volumetric_lines.vert");
         shader_attach(&volumetric_lines_shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "volumetric_lines.frag");
-        shader_make_program(&volumetric_lines_shader, "volumetric_lines_shader");
-
+        shader_make_program(&volumetric_lines_shader, SHADER_CANVAS_NAMES, "volumetric_lines_shader");
 
         int32_t added_index = canvas_add_shader(canvas, "volumetric_lines_shader", &volumetric_lines_shader);
         log_assert( added_index < MAX_CANVAS_SHADER );
@@ -202,7 +201,7 @@ void draw_line(struct Canvas* canvas,
     // makes the stack allocations much more predictable, since the arrays here are fixed size
     uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].occupied;
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, 14, vertices);
-    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, 14, colors);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE, 14, colors);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, 2, GL_FLOAT, 14, texcoords);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_NEXT_VERTEX, 3, GL_FLOAT, 14, next_vertices);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_LINE_THICKNESS, 1, GL_FLOAT, 14, thickness_array);

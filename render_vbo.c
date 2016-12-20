@@ -702,34 +702,9 @@ void vbo_mesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo
 
     // - I kept both the vertex color and diffuse color attribute, I prefer the diffuse color attribute
     // but the colors can go into either of those two
-    if( vbo->buffer[SHADER_ATTRIBUTE_DIFFUSE_COLOR].id ) {
-        size_t colors_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_DIFFUSE_COLOR, COLOR_SIZE, GL_UNSIGNED_BYTE, solid->size, solid->colors);
-        log_assert( colors_n == solid->size );
-    } else if( vbo->buffer[SHADER_ATTRIBUTE_VERTEX_COLOR].id ) {
+    if( vbo->buffer[SHADER_ATTRIBUTE_VERTEX_COLOR].id ) {
         size_t colors_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_COLOR, COLOR_SIZE, GL_UNSIGNED_BYTE, solid->size, solid->colors);
         log_assert( colors_n == solid->size );
-    }
-
-    // - hard normals and smooth normals are attributes, but the struct solid datastructure has only
-    // one field for normals, so I generate hard and smooth normals here on the fly if needed
-    if( vbo->buffer[SHADER_ATTRIBUTE_HARD_NORMAL].id ) {
-        float* hard_normals = (float*)malloc(solid->size * NORMAL_SIZE * sizeof(float));
-        solid_hard_normals(solid, hard_normals);
-
-        size_t hard_normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_SMOOTH_NORMAL, NORMAL_SIZE, GL_FLOAT, solid->size, hard_normals);
-        log_assert( hard_normals_n == solid->size );
-
-        free(hard_normals);
-    }
-
-    if( vbo->buffer[SHADER_ATTRIBUTE_SMOOTH_NORMAL].id ) {
-        float* smooth_normals = (float*)malloc(solid->size * NORMAL_SIZE * sizeof(float));
-        solid_smooth_normals(solid, solid->normals, smooth_normals);
-
-        size_t smooth_normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_SMOOTH_NORMAL, NORMAL_SIZE, GL_FLOAT, solid->size, smooth_normals);
-        log_assert( smooth_normals_n == solid->size );
-
-        free(smooth_normals);
     }
 
     // - if solid->size is smaller then solid->indices_size, the solid has been optimized or compressed and needs

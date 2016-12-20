@@ -36,8 +36,8 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_create(&vbo);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_STATIC_DRAW);
     vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_DIFFUSE_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
-    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_SMOOTH_NORMAL, NORMAL_SIZE, GL_FLOAT, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE, GL_STATIC_DRAW);
+    vbo_add_buffer(&vbo, SHADER_ATTRIBUTE_VERTEX_NORMAL, NORMAL_SIZE, GL_FLOAT, GL_STATIC_DRAW);
 
     struct Ibo ibo = {0};
     ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);
@@ -109,7 +109,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_create(&flat_shader);
     shader_attach(&flat_shader, GL_VERTEX_SHADER, "prefix.vert", 1, "flat_shading.vert");
     shader_attach(&flat_shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "flat_shading.frag");
-    shader_make_program(&flat_shader, "flat_shader");
+    shader_make_program(&flat_shader, SHADER_DEFAULT_NAMES, "flat_shader");
 
     shader_set_uniform_3f(&flat_shader, flat_shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
     shader_set_uniform_4f(&flat_shader, flat_shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
@@ -119,7 +119,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_create(&gouraud_shader);
     shader_attach(&gouraud_shader, GL_VERTEX_SHADER, "prefix.vert", 1, "gouraud_shading.vert");
     shader_attach(&gouraud_shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "gouraud_shading.frag");
-    shader_make_program(&gouraud_shader, "gouraud_shader");
+    shader_make_program(&gouraud_shader, SHADER_DEFAULT_NAMES, "gouraud_shader");
 
     shader_set_uniform_3f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_LIGHT_POSITION, 3, GL_FLOAT, light_position);
     shader_set_uniform_4f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
