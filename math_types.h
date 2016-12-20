@@ -53,27 +53,4 @@ typedef float Quat[4];
 
 #define CUTE_EPSILON FLT_EPSILON // 0.00001f
 
-// geometry_types.h
-#define LINE_SIZE 2
-#define TRIANGLE_SIZE 3
-#define QUAD_SIZE 4
-
-#define VERTEX_SIZE 3
-#define NORMAL_SIZE 3
-#define COLOR_SIZE 4
-#define TEXCOORD_SIZE 2
-
-typedef float Vertex[VERTEX_SIZE];
-typedef float VertexP;
-
-typedef float Normal[NORMAL_SIZE];
-typedef float NormalP;
-
-typedef uint8_t Color[COLOR_SIZE];
-typedef uint8_t ColorP;
-
-typedef float Texcoord[TEXCOORD_SIZE];
-typedef float TexcoordP;
-
-
 #endif

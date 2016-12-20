@@ -793,8 +793,8 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
                 int32_t old_vertex_i = iter_vertex;
                 int32_t new_vertex_i = iter_vertex - gap_vertices;
 
-                // - go through vertex neighborhood and update all 'other' edges that point32_t to old_vertex_i
-                // so that they point32_t to new_vertex_i
+                // - go through vertex neighborhood and update all 'other' edges that point to old_vertex_i
+                // so that they point to new_vertex_i
                 struct HalfEdge* edge;
                 int32_t edge_i = -1;
                 int32_t i = 0;
@@ -856,7 +856,7 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
                 // resulting in weird problems
                 this->this = new_edge_i;
 
-                // - I need to change the edges that point32_t to this index, that means I have
+                // - I need to change the edges that point to this index, that means I have
                 // to change this prevs edges next index, this next edges prev index and the other
                 // edges other index
                 mesh->edges.array[this->prev].next = new_edge_i;

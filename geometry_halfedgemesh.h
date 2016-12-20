@@ -5,6 +5,7 @@
 
 #include "math_types.h"
 
+#include "geometry_types.h"
 #include "geometry_solid.h"
 
 struct HalfEdge;
