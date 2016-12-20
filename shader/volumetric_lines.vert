@@ -2,7 +2,7 @@
 uniform mat4 mvp_matrix;
 
 shader_in vec3 vertex;
-shader_in vec4 diffuse_color;
+shader_in vec4 vertex_color;
 shader_in vec2 vertex_texcoord;
 shader_in vec3 next_vertex;
 shader_in float line_thickness;
@@ -21,7 +21,7 @@ void main()
     }
 
     frag_texcoord = vertex_texcoord;
-    frag_color = diffuse_color;
+    frag_color = vertex_color;
 
     //compute vertices position in clip space
     vec4 current_projected = mvp_matrix * vec4(vertex, 1.0);
