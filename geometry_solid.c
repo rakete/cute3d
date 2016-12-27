@@ -20,11 +20,10 @@ void solid_hard_normals(const struct Solid* solid, float* normals) {
     log_assert(normals != NULL);
 
     if( solid->vertices && solid->indices ) {
-        size_t size = solid->size/3;
-        for( size_t i = 0; i < size; i++ ) {
-            size_t a = solid->indices[i*3+0];
-            size_t b = solid->indices[i*3+1];
-            size_t c = solid->indices[i*3+2];
+        for( size_t i = 0; i < solid->indices_size; i+=3 ) {
+            size_t a = solid->indices[i+0];
+            size_t b = solid->indices[i+1];
+            size_t c = solid->indices[i+2];
 
             Vec4f u;
             u[0] = solid->vertices[a*3+0] - solid->vertices[b*3+0];
