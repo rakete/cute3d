@@ -471,6 +471,11 @@ void solid_cube_create(float size, const uint8_t color[4], struct SolidBox* cube
 }
 
 void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSphere16* sphere) {
+    uint32_t horizontal_steps = 16;
+    uint32_t vertical_steps = 8;
+    log_assert( horizontal_steps <= 16 );
+    log_assert( vertical_steps <= 8 );
+
     *sphere = (struct SolidSphere16){ .triangles = { 0 },
                                       .optimal = { 0 },
                                       .indices = { 0 },
@@ -478,8 +483,8 @@ void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSph
                                       .normals = { 0 },
                                       .colors = { 0 },
                                       .texcoords = { 0 },
-                                      .solid.indices_size = (16*6*2+16*2)*3,
-                                      .solid.size = (16*6*2+16*2)*3,
+                                      .solid.indices_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
+                                      .solid.attributes_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
                                       .solid.triangles = sphere->triangles,
                                       .solid.optimal = sphere->optimal,
                                       .solid.indices = sphere->indices,
@@ -489,25 +494,26 @@ void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSph
                                       .solid.texcoords = sphere->texcoords
     };
 
-    float points[16*7*3+2*3];
-    for(uint32_t j = 0; j < 7; j++ ) {
-        float v = (float)(j+1) * (PI/8.0f);
-        for( uint32_t i = 0; i < 16; i++ ) {
-            float u = (float)i * (2.0f*PI/16.0f);
-            points[(i+j*16)*3+0] = radius*sinf(u)*sinf(v);
-            points[(i+j*16)*3+1] = radius*cosf(u)*sinf(v);
-            points[(i+j*16)*3+2] = radius*cosf(v);
+    float points[horizontal_steps*(vertical_steps-1)*3+2*3];
+    for(uint32_t j = 0; j < (vertical_steps-1); j++ ) {
+        float v = (float)(j+1) * (PI/(float)vertical_steps);
+        for( uint32_t i = 0; i < horizontal_steps; i++ ) {
+            float u = (float)i * (2.0f*PI/(float)horizontal_steps);
+            points[(i+j*horizontal_steps)*3+0] = radius*sinf(u)*sinf(v);
+            points[(i+j*horizontal_steps)*3+1] = radius*cosf(u)*sinf(v);
+            points[(i+j*horizontal_steps)*3+2] = radius*cosf(v);
         }
     }
-    points[(15+6*16)*3+3+0] = 0.0f;
-    points[(15+6*16)*3+3+1] = 0.0f;
-    points[(15+6*16)*3+3+2] = radius;
 
-    points[(15+6*16)*3+3+3] = 0.0f;
-    points[(15+6*16)*3+3+4] = 0.0f;
-    points[(15+6*16)*3+3+5] = -radius;
+    points[((horizontal_steps-1)+(vertical_steps-2)*horizontal_steps)*3+3+0] = 0.0f;
+    points[((horizontal_steps-1)+(vertical_steps-2)*horizontal_steps)*3+3+1] = 0.0f;
+    points[((horizontal_steps-1)+(vertical_steps-2)*horizontal_steps)*3+3+2] = radius;
 
-    //                               112
+    points[((horizontal_steps-1)+(vertical_steps-2)*horizontal_steps)*3+3+3] = 0.0f;
+    points[((horizontal_steps-1)+(vertical_steps-2)*horizontal_steps)*3+3+4] = 0.0f;
+    points[((horizontal_steps-1)+(vertical_steps-2)*horizontal_steps)*3+3+5] = -radius;
+
+    //                    16*(8-1) = 112
     // 0:  0  1  2  3   4   5   6   7   8   9  10  11  12  13  14  15  0
     // 1: 16 17 18 19  20  21  22  23  24  25  26  27  28  29  30  31 16
     // 2: 32 33 34 35  36  37  38  39  40  41  42  43  44  45  46  47 32
@@ -568,37 +574,38 @@ void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSph
     /*                                             112, 15, 14, 113, 110, 111, */
     /*                                             112, 0, 15, 113, 111, 96 }; */
 
-    for( uint32_t j = 0; j < 6; j++ ) {
-        for( uint32_t i = 0; i < 16; i++ ) {
+    for( uint32_t j = 0; j < (vertical_steps-2); j++ ) {
+        for( uint32_t i = 0; i < horizontal_steps; i++ ) {
             uint32_t linebreak = 0;
-            if( i == 15 ) {
-                linebreak = 16;
+            if( i == (horizontal_steps-1) ) {
+                linebreak = horizontal_steps;
             }
 
-            sphere->triangles[(i+j*16)*6+0] = i + j*16;
-            sphere->triangles[(i+j*16)*6+1] = i + j*16 + 1 - linebreak;
-            sphere->triangles[(i+j*16)*6+2] = i + j*16 + 16;
-            sphere->triangles[(i+j*16)*6+3] = i + j*16 + 16 + 1 - linebreak;
-            sphere->triangles[(i+j*16)*6+4] = i + j*16 + 16;
-            sphere->triangles[(i+j*16)*6+5] = i + j*16 + 1 - linebreak;
+            sphere->triangles[(i+j*horizontal_steps)*6+0] = i + j*horizontal_steps;
+            sphere->triangles[(i+j*horizontal_steps)*6+1] = i + j*horizontal_steps + 1 - linebreak;
+            sphere->triangles[(i+j*horizontal_steps)*6+2] = i + j*horizontal_steps + horizontal_steps;
+            sphere->triangles[(i+j*horizontal_steps)*6+3] = i + j*horizontal_steps + horizontal_steps + 1 - linebreak;
+            sphere->triangles[(i+j*horizontal_steps)*6+4] = i + j*horizontal_steps + horizontal_steps;
+            sphere->triangles[(i+j*horizontal_steps)*6+5] = i + j*horizontal_steps + 1 - linebreak;
         }
     }
-    uint32_t offset = (15+5*16)*6+5+1;
-    for( uint32_t i = 0; i < 16; i++ ) {
+
+    uint32_t offset = ((horizontal_steps-1)+5*horizontal_steps)*(vertical_steps-2)+(vertical_steps-3)+1;
+    for( uint32_t i = 0; i < horizontal_steps; i++ ) {
         uint32_t linebreak = 0;
-        if( i == 15 ) {
-            linebreak = 16;
+        if( i == (horizontal_steps-1) ) {
+            linebreak = horizontal_steps;
         }
 
-        sphere->triangles[offset+i*6+0] = 112;
+        sphere->triangles[offset+i*6+0] = horizontal_steps*(vertical_steps-1);
         sphere->triangles[offset+i*6+1] = i + 1 - linebreak;
         sphere->triangles[offset+i*6+2] = i;
-        sphere->triangles[offset+i*6+3] = 113;
-        sphere->triangles[offset+i*6+4] = 6*16 + i;
-        sphere->triangles[offset+i*6+5] = 6*16 + i + 1 - linebreak;
+        sphere->triangles[offset+i*6+3] = horizontal_steps*(vertical_steps-1)+1;
+        sphere->triangles[offset+i*6+4] = (vertical_steps-2)*horizontal_steps + i;
+        sphere->triangles[offset+i*6+5] = (vertical_steps-2)*horizontal_steps + i + 1 - linebreak;
     }
 
-    for( uint32_t i = 0; i < 16*6*2+16*2; i++ ) {
+    for( uint32_t i = 0; i < horizontal_steps*6*2+horizontal_steps*2; i++ ) {
         uint32_t a = sphere->triangles[i*3+0];
         uint32_t b = sphere->triangles[i*3+1];
         uint32_t c = sphere->triangles[i*3+2];
