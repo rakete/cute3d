@@ -41,7 +41,9 @@ int32_t init_shader() {
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_fragment_texture_image_units);
     glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &max_vertex_texture_image_units);
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
-    log_info(__FILE__, __LINE__, "gl maximum texture image units frag/vert/combined: %d/%d/%d\n", max_fragment_texture_image_units, max_vertex_texture_image_units, max_combined_texture_image_units);
+    log_info(__FILE__, __LINE__, "gl maximum fragment texture image units: %d\n", max_fragment_texture_image_units);
+    log_info(__FILE__, __LINE__, "gl maximum vertex texture image units: %d\n", max_vertex_texture_image_units);
+    log_info(__FILE__, __LINE__, "gl maximum combined texture image units: %d\n", max_combined_texture_image_units);
 
     for( size_t i = 0; i < MAX_SHADER_ATTRIBUTE_NAMES; i++ ) {
         for( size_t j = 0; j < MAX_SHADER_ATTRIBUTES; j++ ) {
@@ -57,6 +59,8 @@ int32_t init_shader() {
         global_shader_sampler_names[i] = "invalid_sampler";
     }
 
+    // - initialize the first four attribute names of every set to be the names of the default geometry
+    // attributes
     for( size_t i = 0; i < MAX_SHADER_ATTRIBUTE_NAMES; i++ ) {
         global_shader_attribute_names[i][SHADER_ATTRIBUTE_VERTEX] = "vertex";
         global_shader_attribute_names[i][SHADER_ATTRIBUTE_VERTEX_TEXCOORD] = "vertex_texcoord";
@@ -64,6 +68,7 @@ int32_t init_shader() {
         global_shader_attribute_names[i][SHADER_ATTRIBUTE_VERTEX_COLOR] = "vertex_color";
     }
 
+    // - we can set custom attribute name sets like so
     global_shader_attribute_names[SHADER_CANVAS_NAMES][SHADER_ATTRIBUTE_INSTANCE_ID] = "instance_id";
     global_shader_attribute_names[SHADER_CANVAS_NAMES][SHADER_ATTRIBUTE_PREV_VERTEX] = "prev_vertex";
     global_shader_attribute_names[SHADER_CANVAS_NAMES][SHADER_ATTRIBUTE_NEXT_VERTEX] = "next_vertex";
