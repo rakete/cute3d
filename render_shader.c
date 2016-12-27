@@ -86,8 +86,8 @@ int32_t init_shader() {
     global_shader_uniform_names[SHADER_UNIFORM_EYE_POSITION] = "eye_position";
 
     global_shader_uniform_names[SHADER_UNIFORM_ASPECT_RATIO] = "aspect_ratio";
-    global_shader_uniform_names[SHADER_UNIFORM_LINE_Z_SCALING] = "line_z_scaling";
     global_shader_uniform_names[SHADER_UNIFORM_ENABLE_TEXTURE] = "enable_texture";
+    global_shader_uniform_names[SHADER_UNIFORM_LINE_ATTENUATION] = "line_attenuation";
 
     global_shader_sampler_names[SHADER_SAMPLER_DIFFUSE_TEXTURE] = "diffuse_texture";
 
@@ -215,9 +215,13 @@ void shader_use_program(const struct Shader* p) {
 void shader_setup_locations(struct Shader* p) {
     ogl_debug( glUseProgram(p->program); );
 
-    // - go through all attributes and get their locations
     GLint num_active_attributes = 0;
     glGetProgramiv(p->program, GL_ACTIVE_ATTRIBUTES, &num_active_attributes);
+    if( num_active_attributes == 0 ) {
+        log_fail(__FILE__, __LINE__, "shader  \"%s\" has no active attributes\n", p->name, num_active_attributes);
+    }
+
+    // - go through all attributes and get their locations
     int32_t num_cached_attributes = 0;
     uint32_t set_i = p->attribute_set;
     for( int32_t attribute_i = 0; attribute_i < MAX_SHADER_ATTRIBUTES; attribute_i++ ) {
@@ -281,8 +285,8 @@ void shader_setup_locations(struct Shader* p) {
                 case SHADER_UNIFORM_EYE_POSITION: ogl_debug(glUniform3f(location, 0.0f, 0.0f, -1.0f)); break;
 
                 case SHADER_UNIFORM_ASPECT_RATIO: ogl_debug(glUniform1f(location, (float)1920/1080)); break;
-                case SHADER_UNIFORM_LINE_Z_SCALING: ogl_debug(glUniform1f(location, 0.0f)); break;
                 case SHADER_UNIFORM_ENABLE_TEXTURE: ogl_debug(glUniform1i(location, 0)); break;
+                case SHADER_UNIFORM_LINE_ATTENUATION: ogl_debug(glUniform1f(location, 1.0f));
                 default: break;
             };
         }

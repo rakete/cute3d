@@ -148,8 +148,6 @@ struct Canvas {
 #ifndef CUTE_BUILD_ES2
     GLuint vao;
 #endif
-
-    float line_z_scaling;
 };
 
 extern struct Canvas global_dynamic_canvas;

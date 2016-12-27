@@ -29,13 +29,14 @@
 
 #define MAX_SHADER_ATTRIBUTE_NAMES 2
 
-// attribute ids for arrays
+// attribute ids for default attributes
 #define SHADER_DEFAULT_NAMES 0
 #define SHADER_ATTRIBUTE_VERTEX GEOMETRY_ATTRIBUTE_VERTEX
 #define SHADER_ATTRIBUTE_VERTEX_TEXCOORD GEOMETRY_ATTRIBUTE_TEXCOORD
 #define SHADER_ATTRIBUTE_VERTEX_NORMAL GEOMETRY_ATTRIBUTE_NORMAL
 #define SHADER_ATTRIBUTE_VERTEX_COLOR GEOMETRY_ATTRIBUTE_COLOR
 
+// attribute ids for canvas shader attributes
 #define SHADER_CANVAS_NAMES 1
 #define SHADER_ATTRIBUTE_INSTANCE_ID MAX_GEOMETRY_ATTRIBUTES+0
 #define SHADER_ATTRIBUTE_PREV_VERTEX MAX_GEOMETRY_ATTRIBUTES+1
@@ -61,8 +62,8 @@
 #define SHADER_UNIFORM_EYE_POSITION 13
 
 #define SHADER_UNIFORM_ASPECT_RATIO 14
-#define SHADER_UNIFORM_LINE_Z_SCALING 15
-#define SHADER_UNIFORM_ENABLE_TEXTURE 16
+#define SHADER_UNIFORM_ENABLE_TEXTURE 15
+#define SHADER_UNIFORM_LINE_ATTENUATION 16
 
 // - samplers are just uniforms, but they behave different so I treat them different
 // - essentially a sampler  just contains a number, which is the active texture unit that is sampled

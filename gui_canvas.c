@@ -88,8 +88,6 @@ void canvas_create(const char* name, int32_t width, int32_t height, struct Canva
     canvas->vao = 0;
 #endif
 
-    canvas->line_z_scaling = 1.0f;
-
     // canvas_create
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT);
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT);

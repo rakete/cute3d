@@ -159,10 +159,6 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                 }
             }
 
-            if( shader->uniform[SHADER_UNIFORM_LINE_Z_SCALING].location > -1 ) {
-                shader_set_uniform_1f(shader, 0, SHADER_UNIFORM_LINE_Z_SCALING, 1, GL_FLOAT, &canvas->line_z_scaling);
-            }
-
             if( shader->uniform[SHADER_UNIFORM_ASPECT_RATIO].location > -1 ) {
                 float aspect_ratio = (float)camera->screen.width/(float)camera->screen.height;
                 shader_set_uniform_1f(shader, 0, SHADER_UNIFORM_ASPECT_RATIO, 1, GL_FLOAT, &aspect_ratio);
