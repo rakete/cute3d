@@ -2,6 +2,7 @@
 
 #include "math_gametime.h"
 #include "math_arcball.h"
+#include "math_draw.h"
 
 #include "gui_draw.h"
 #include "gui_canvas.h"
@@ -81,7 +82,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_create(&shader);
     shader_attach(&shader, GL_VERTEX_SHADER, "prefix.vert", 1, "volumetric_lines.vert");
     shader_attach(&shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "volumetric_lines.frag");
-    shader_make_program(&shader, "lines_shader");
+    shader_make_program(&shader, SHADER_DEFAULT_NAMES, "lines_shader");
 
     struct Font font = {0};
     font_create_from_characters(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", 256, symbols, 9, 3, global_default_font_palette, &font);

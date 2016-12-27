@@ -1,15 +1,14 @@
 #include "driver_sdl2.h"
-#include "driver_shader.h"
 
 #include "math_gametime.h"
 #include "math_arcball.h"
 
-#include "driver_vbo.h"
 #include "geometry_halfedgemesh.h"
 
 #include "gui_draw.h"
 #include "gui_text.h"
 
+#include "render_shader.h"
 #include "render_canvas.h"
 #include "render_vbo.h"
 
@@ -62,7 +61,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_create(&shader);
     shader_attach(&shader, GL_VERTEX_SHADER, "prefix.vert", 1, "flat_shading.vert");
     shader_attach(&shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "flat_shading.frag");
-    shader_make_program(&shader, "flat_shader");
+    shader_make_program(&shader, SHADER_DEFAULT_NAMES, "flat_shader");
 
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001f, 100.0, &arcball);
