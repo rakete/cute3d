@@ -25,6 +25,14 @@ void draw_solid_normals(struct Canvas* canvas,
                         const struct Solid* solid,
                         float scale);
 
+void draw_solid_triangle(struct Canvas* canvas,
+                         int32_t layer,
+                         const Mat model_matrix,
+                         const Color color,
+                         float line_thickness,
+                         const struct Solid* solid,
+                         float* triangle);
+
 void draw_halfedgemesh_wire(struct Canvas* canvas,
                             int32_t layer,
                             const Mat model_matrix,

@@ -25,6 +25,23 @@ void draw_solid_normals(struct Canvas* canvas,
     }
 }
 
+void draw_solid_triangle(struct Canvas* canvas,
+                         int32_t layer,
+                         const Mat model_matrix,
+                         const Color color,
+                         float line_thickness,
+                         const struct Solid* solid,
+                         float* triangle)
+{
+    const VecP* a = &triangle[0*VERTEX_SIZE];
+    const VecP* b = &triangle[1*VERTEX_SIZE];
+    const VecP* c = &triangle[2*VERTEX_SIZE];
+
+    draw_line(canvas, layer, model_matrix, color, line_thickness, a, b);
+    draw_line(canvas, layer, model_matrix, color, line_thickness, b, c);
+    draw_line(canvas, layer, model_matrix, color, line_thickness, c, a);
+}
+
 void draw_halfedgemesh_wire(struct Canvas* canvas,
                             int32_t layer,
                             const Mat model_matrix,
