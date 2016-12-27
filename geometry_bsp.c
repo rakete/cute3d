@@ -16,36 +16,110 @@
 
 #include "geometry_bsp.h"
 
-// oh god, I hate myself, this is going to be ugly...
-// 1. select a primitive (triangle) not yet part of the tree
-// 2. go through all other triangles seperating them in two
-//    branches of triangles in front, and triangles behind the
-//    selected one
-// 3. seperation is done by testing every vertex of a triangle
-//    against the selected triangles normal (project on normal,
-//    decide by sign of dot product)
-//
-// 3.1 if a triangles vertices are on both side of the selected
-//     triangle, this triangle is seperated by the selected triangle
-//     into two new triangles, and needs to be cut
-// 3.2 cutting a triangle means finding two new vertices along those
-//     edges that are defined by vertices on opposite sides of the
-//     selected triangle
-// 3.3 additionally, after finding the two new vertices, new normals
-//     and new texcoords need to be computed as well
-// 3.4 eventually we run out of space for new vertices etc, so we have
-//     to reserve memory locally and cache the new stuff until we can
-//     push it to the gpu later
-//
-// 4. triangles have to be sorted into two leafes seperating them into
-//    in-front-of-root and behind-of-root, then the whole process has
-//    to be repeated for each of the triangles in the two leafes, seperating
-//    them even further and creating the tree, until every leaf of
-//    the tree contains exactly one triangle
-//
-//
-// so I am going to have to make a few assumptions here:
-// - I get triangles as input, in form of indices
-// - the seperation test needs face normals, I can compute
-//   those by taking the crossproduct of two edges of a
-//   triangle
+void polygon_normal(size_t polygon_size, size_t point_size, float* polygon, Vec3f result_normal) {
+    log_assert( polygon_size >= 3 );
+
+    const VecP* a = &polygon[0*point_size];
+    const VecP* b = &polygon[1*point_size];
+    const VecP* c = &polygon[2*point_size];
+
+    Vec3f edge_ba = {0};
+    vec_sub(a, b, edge_ba);
+
+    Vec3f edge_bc = {0};
+    vec_sub(c, b, edge_bc);
+
+    vec_cross(edge_bc, edge_ba, result_normal);
+    vec_normalize(result_normal, result_normal);
+}
+
+// - returns -1 when first vertex on backside, returns 1 when first vertex on frontside
+// - first on backside means first cut goes from back to front
+// - result will be filled with -1, when results contain int >0 then means cuts
+// at those indices in polygon
+// - returns 0 when coplanar
+int32_t polygon_cut(size_t polygon_size, size_t point_size, float* polygon,
+                    Vec3f plane_normal, Vec3f plane_point,
+                    size_t result_size, int32_t* result_cut_starts, float* result_cut_offsets)
+{
+    log_assert( polygon_size >= 3 );
+
+    int32_t poly_coplanar = 0;
+    int32_t poly_front = 1;
+    int32_t poly_back = 2;
+    int32_t poly_spanning = 3;
+
+    int32_t ret_code = 0;
+
+    float w = 0.0f;
+    vec_dot(plane_normal, plane_point, &w);
+
+    const VecP* a = &polygon[(polygon_size-1)*point_size];
+    float a_distance = 0.0f;
+    vec_dot(plane_normal, a, &a_distance);
+    a_distance -= w;
+
+    int32_t poly_type = poly_coplanar;
+    if( a_distance < CUTE_EPSILON ) {
+        poly_type = poly_back;
+    } else if( a_distance > CUTE_EPSILON ) {
+        poly_type = poly_front;
+    }
+
+    const VecP* b = &polygon[0];
+    float b_distance = 0.0f;
+    for( size_t i = 0; i < polygon_size; i++ ) {
+        b = &polygon[i*point_size];
+        b_distance = 0.0f;
+        vec_dot(plane_normal, b, &b_distance);
+        b_distance -= w;
+
+        if( (a_distance < CUTE_EPSILON && b_distance > CUTE_EPSILON) ||
+            (a_distance > CUTE_EPSILON && b_distance < CUTE_EPSILON) )
+        {
+            printf("%f %f\n", a_distance, b_distance);
+        }
+
+        a = b;
+        a_distance = b_distance;
+    }
+
+    return 0;
+}
+
+
+void bsp_tree_build(struct BspTree* tree, struct Solid* solid) {
+    tree->attributes.vertices = malloc(solid->indices_size * VERTEX_SIZE * sizeof(VERTEX_TYPE));
+    tree->attributes.capacity = solid->indices_size;
+    tree->attributes.occupied = 0;
+
+    size_t num_polygons = 0;
+    for( size_t indices_i = 0; indices_i < solid->indices_size; indices_i++ ) {
+        uint32_t index_i = solid->indices[indices_i];
+        tree->attributes.vertices[indices_i*VERTEX_SIZE+0] = solid->vertices[index_i*VERTEX_SIZE+0];
+        tree->attributes.vertices[indices_i*VERTEX_SIZE+1] = solid->vertices[index_i*VERTEX_SIZE+1];
+        tree->attributes.vertices[indices_i*VERTEX_SIZE+2] = solid->vertices[index_i*VERTEX_SIZE+2];
+        num_polygons += 1;
+    }
+    num_polygons /= 3;
+
+    struct BspPoly divider = {0};
+    divider.polygon = tree->attributes.vertices;
+    divider.size = 3;
+
+    polygon_normal(divider.size, VERTEX_SIZE, divider.polygon, divider.normal);
+    vec_print("divider.normal: ", divider.normal);
+
+    //draw_solid_triangle(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.005f, solid, divider.polygon);
+    //draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.005f, divider.normal, &divider.polygon[3], 1.0f, 0.1f);
+
+    for( size_t polygon_i = 1; polygon_i < num_polygons; polygon_i++ ) {
+        int32_t cut_starts[2] = {0};
+        float cut_offsets[2] = {0};
+        polygon_cut(3, VERTEX_SIZE, &tree->attributes.vertices[polygon_i*3*VERTEX_SIZE],
+                    divider.normal, divider.polygon,
+                    3, cut_starts, cut_offsets);
+    }
+
+    log_fail(__FILE__, __LINE__, "BUILT BSP TREE... OR NOT?\n");
+}
