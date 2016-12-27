@@ -248,7 +248,7 @@ void grid_alloc(struct GridPages* pages, uint64_t page, uint32_t level) {
     struct GridSize size = {0};
     if( pages && pages->array ) {
         grid_pagesize(pages, level, &size);
-        printf("%lu %lu %lu %lu\n", page, level, size.array, sizeof(Cell));
+        printf("%lu %u %lu %lu\n", page, level, size.array, sizeof(Cell));
         pages->array[page][level] = (Cell*)calloc(size.array, sizeof(Cell));
     }
 }
@@ -473,8 +473,8 @@ void world_grid_create(struct GridPages* pages,
                 float z = zi * depth;
 
                 uint64_t offset = 12 * 3 * (zi * size.x * size.y + yi * size.x + xi);
-                printf("%" PRIu64 " %" PRIu64 " %" PRIu64 " %f %f %f %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n", xi, yi, zi, x, y, z, offset, cube->solid.size*3, n, pages->size.x);
-                for( uint64_t i = 0; i < cube->solid.size; i++ ) {
+                printf("%" PRIu64 " %" PRIu64 " %" PRIu64 " %f %f %f %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n", xi, yi, zi, x, y, z, offset, cube->solid.attributes_size*3, n, pages->size.x);
+                for( uint64_t i = 0; i < cube->solid.attributes_size; i++ ) {
                     vertices[(offset+i)*3+0] = x + cube->vertices[i*3+0]*width;
                     vertices[(offset+i)*3+1] = y + cube->vertices[i*3+1]*height;
                     vertices[(offset+i)*3+2] = z + cube->vertices[i*3+2]*depth;

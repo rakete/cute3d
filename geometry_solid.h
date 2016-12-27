@@ -60,10 +60,10 @@ struct Solid {
     // merging attributes, the amount of indices neccessary to render stays the same, but we have
     // less attributes
     // - so indices_size will always be the 'whole' size, indicating how many indices are to be
-    // rendered independent of the number of attributes, whereas the size may be a value less than
-    // indices_size, indicating that this is an optimized or compressed solid
+    // rendered independent of the number of attributes, whereas the attributes_size may be a value
+    // less than indices_size, indicating that this is an optimized or compressed solid
     size_t indices_size;
-    size_t size;
+    size_t attributes_size;
 
     float* vertices;
     float* normals;

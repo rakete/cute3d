@@ -687,29 +687,29 @@ void vbo_mesh_create_from_solid(const struct Solid* solid, struct Vbo* const vbo
 
     vbo_mesh_create(vbo, ibo, mesh);
 
-    size_t vertices_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX, VERTEX_SIZE, GL_FLOAT, solid->size, solid->vertices);
-    log_assert( vertices_n == solid->size, "%zu == %zu\n", vertices_n, solid->size );
+    size_t vertices_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX, VERTEX_SIZE, GL_FLOAT, solid->attributes_size, solid->vertices);
+    log_assert( vertices_n == solid->attributes_size, "%zu == %zu\n", vertices_n, solid->attributes_size );
 
     if( vbo->buffer[SHADER_ATTRIBUTE_VERTEX_TEXCOORD].id ) {
-        size_t texcoords_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, TEXCOORD_SIZE, GL_FLOAT, solid->size, solid->texcoords);
-        log_assert( texcoords_n == solid->size );
+        size_t texcoords_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, TEXCOORD_SIZE, GL_FLOAT, solid->attributes_size, solid->texcoords);
+        log_assert( texcoords_n == solid->attributes_size );
     }
 
     if( vbo->buffer[SHADER_ATTRIBUTE_VERTEX_NORMAL].id ) {
-        size_t normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_NORMAL, NORMAL_SIZE, GL_FLOAT, solid->size, solid->normals);
-        log_assert( normals_n == solid->size );
+        size_t normals_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_NORMAL, NORMAL_SIZE, GL_FLOAT, solid->attributes_size, solid->normals);
+        log_assert( normals_n == solid->attributes_size );
     }
 
     // - I kept both the vertex color and diffuse color attribute, I prefer the diffuse color attribute
     // but the colors can go into either of those two
     if( vbo->buffer[SHADER_ATTRIBUTE_VERTEX_COLOR].id ) {
-        size_t colors_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_COLOR, COLOR_SIZE, GL_UNSIGNED_BYTE, solid->size, solid->colors);
-        log_assert( colors_n == solid->size );
+        size_t colors_n = vbo_mesh_append_attributes(mesh, SHADER_ATTRIBUTE_VERTEX_COLOR, COLOR_SIZE, GL_UNSIGNED_BYTE, solid->attributes_size, solid->colors);
+        log_assert( colors_n == solid->attributes_size );
     }
 
-    // - if solid->size is smaller then solid->indices_size, the solid has been optimized or compressed and needs
+    // - if solid->attributes_size is smaller then solid->indices_size, the solid has been optimized or compressed and needs
     // to have indices uploaded to render correctly
-    if( solid->size < solid->indices_size ) {
+    if( solid->attributes_size < solid->indices_size ) {
         size_t indices_n = vbo_mesh_append_indices(mesh, solid->indices_size, solid->indices);
         log_assert( indices_n == solid->indices_size );
     }
@@ -757,7 +757,7 @@ void vbo_mesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, 
     // - I use a solid internally because this code originally filled a solid, since it is only used locally
     // and as input for vbo_mesh_create_from_solid below, this is not a problem
     struct Solid solid = {
-        .size = (uint32_t)halfedgemesh->size,
+        .attributes_size = (uint32_t)halfedgemesh->size,
         .indices_size = (uint32_t)halfedgemesh->size,
 
         .triangles = triangles,

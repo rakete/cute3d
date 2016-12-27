@@ -65,7 +65,7 @@ size_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, size_t n) {
 }
 
 void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
-    log_assert( solid->indices_size == solid->size, "don't append an optimized or compressed solid to a halfedgemesh\n" );
+    log_assert( solid->indices_size == solid->attributes_size, "don't append an optimized or compressed solid to a halfedgemesh\n" );
 
     log_assert( solid->indices_size > 0 );
     log_assert( solid->indices_size < INT_MAX/3 );
