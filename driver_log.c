@@ -27,7 +27,7 @@ void log_message(const char* color, const char* tag, const char* filename, int32
             indentation[i] = LOG_INDENT_CHAR;
         }
         indentation[global_log_indent_level] = '\0';
-        snprintf(message, n, "%s%s" LOG_ANSI_COLOR_RESET "%s" "%s%s-> " LOG_ANSI_COLOR_RESET "%s:%d:\n", color, tag, format, indentation, color, filename, linenumber);
+        snprintf(message, n, "%s%s" LOG_ANSI_COLOR_RESET "%s" "%s%s" LOG_ANSI_COLOR_RESET "%s:%d:\n", color, tag, format, indentation, color, filename, linenumber);
 #else
         snprintf(message, n, "%s%s" LOG_ANSI_COLOR_RESET "%s", color, tag, format);
 #endif
