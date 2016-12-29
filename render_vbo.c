@@ -344,7 +344,7 @@ void vbo_mesh_create(struct Vbo* vbo, struct Ibo* ibo, struct VboMesh* mesh) {
     // with a near value smaller or around the same size as this offset, things go awfully pear
     // shaped, what happens is that you get seemingly random depth errors where stuff is drawn in
     // front of other stuff when it shouldn't
-    mesh->z_offset = (float)(((double)rand()/(double)(RAND_MAX/0.0002)) - 0.0001);
+    mesh->z_offset = (float)(((double)rand()/(double)(RAND_MAX/0.00002)) - 0.00001);
 
 #ifndef CUTE_BUILD_ES2
     mesh->vao = 0;
