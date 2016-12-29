@@ -37,14 +37,14 @@ void draw_vec(struct Canvas* canvas,
               float arrow,
               float scale);
 
-void draw_quat(struct Canvas* canvas,
-               int32_t layer,
-               const Mat model_matrix,
-               const Color color1,
-               const Color color2,
-               float line_thickness,
-               const Quat q,
-               float scale);
+void draw_quaternion(struct Canvas* canvas,
+                     int32_t layer,
+                     const Mat model_matrix,
+                     const Color color1,
+                     const Color color2,
+                     float line_thickness,
+                     const Quat q,
+                     float scale);
 
 void draw_circle(struct Canvas* canvas,
                  int32_t layer,

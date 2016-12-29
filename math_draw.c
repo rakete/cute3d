@@ -130,14 +130,14 @@ void draw_vec(struct Canvas* canvas,
     }
 }
 
-void draw_quat(struct Canvas* canvas,
-               int32_t layer_i,
-               const Mat model_matrix,
-               const Color color1,
-               const Color color2,
-               float line_thickness,
-               const Quat q,
-               float scale)
+void draw_quaternion(struct Canvas* canvas,
+                     int32_t layer_i,
+                     const Mat model_matrix,
+                     const Color color1,
+                     const Color color2,
+                     float line_thickness,
+                     const Quat q,
+                     float scale)
 {
 
     // visualizing quaternions is nasty, I am just drawing an axis-angle representation, that kind of sort of
