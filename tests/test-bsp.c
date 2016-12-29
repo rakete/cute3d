@@ -40,11 +40,11 @@ double power(double f,double p) {
 }
 
 void solid_torus_create(const uint8_t color[4], struct SolidTorus24* torus) {
-    int32_t horizontal_steps = 12;
-    int32_t vertical_steps = 12;
+    int32_t horizontal_steps = 8;
+    int32_t vertical_steps = 8;
 
     float du = 360.0f/(float)horizontal_steps, dv = 360.0f/(float)vertical_steps;
-    double r0 = 1.0, r1 = 0.2;
+    double r0 = 1.0, r1 = 0.5;
     double n1 = 1.0, n2 = 1.0;
     double theta, phi;
     const double dtor = 0.01745329252;
@@ -215,7 +215,6 @@ int32_t main(int32_t argc, char *argv[]) {
     SDL_GLContext* context;
     sdl2_glcontext(3, 2, window, (Color){0.0f, 0.0f, 0.0f, 1.0f}, &context);
 
-
     if( init_shader() ) {
         return 1;
     }
@@ -270,7 +269,7 @@ int32_t main(int32_t argc, char *argv[]) {
     struct SolidTorus24 torus;
     solid_torus_create((Color){127, 255, 127, 255}, &torus);
     //solid_optimize(&torus);
-    solid_smooth_normals(&torus, &torus.normals, &torus.normals);
+    //solid_smooth_normals(&torus, &torus.normals, &torus.normals);
     //solid_compress(&torus);
 
     printf("%lu\n", sizeof(struct SolidTorus24));
@@ -313,9 +312,9 @@ int32_t main(int32_t argc, char *argv[]) {
         //vbo_mesh_render(&vbo_mesh, &shader, &arcball.camera, identity);
         vbo_mesh_render(&torus_mesh, &shader, &arcball.camera, identity);
 
-        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){20, 180, 240, 255}, 0.02f, 12.0f, 12.0f, 12);
+        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){120, 120, 120, 255}, 0.01f, 12.0f, 12.0f, 12);
 
-        //draw_solid_normals(&global_dynamic_canvas, 0, identity, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&torus, 0.05f);
+        //draw_solid_normals(&global_dynamic_canvas, MAX_CANVAS_LAYERS-1, identity, (Color){255, 255, 0, 127}, 0.01f, (struct Solid*)&torus, 0.05f);
 
         Vec4f screen_cursor = {0,0,0,1};
         text_show_fps(&global_dynamic_canvas, 0, screen_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0f, "default_font", time.frame);
