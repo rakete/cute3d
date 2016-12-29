@@ -58,7 +58,9 @@ void solid_hard_normals(const struct Solid* solid, float* normals) {
 
 void solid_smooth_normals(const struct Solid* solid, const float* hard_normals, float* smooth_normals) {
     float* average_normals = (float*)malloc(solid->attributes_size * 3 * sizeof(float));
+    log_assert( average_normals != NULL );
     uint32_t* average_counters = (uint32_t*)malloc(solid->attributes_size * sizeof(uint32_t));
+    log_assert( average_counters != NULL );
 
     for( size_t i = 0; i < solid->attributes_size; i++ ) {
         average_normals[i*3+0] = 0.0f;
@@ -124,21 +126,27 @@ size_t solid_optimize(struct Solid* solid) {
         // not overwrite anything that I then need later, so I copy everything into
         // local arrays first
         float* old_vertices = malloc(sizeof(float) * solid->attributes_size*3);
+        log_assert( old_vertices != NULL );
         memcpy(old_vertices, solid->vertices, sizeof(float) * solid->attributes_size * 3);
 
         float* old_normals = malloc(sizeof(float) * solid->attributes_size*3);
+        log_assert( old_normals != NULL );
         memcpy(old_normals, solid->normals, sizeof(float) * solid->attributes_size * 3);
 
         uint8_t* old_colors = malloc(sizeof(uint8_t) * solid->attributes_size*4);
+        log_assert( old_colors != NULL );
         memcpy(old_colors, solid->colors, sizeof(uint8_t) * solid->attributes_size * 4);
 
         float* old_texcoords = malloc(sizeof(float) * solid->attributes_size*2);
+        log_assert( old_texcoords != NULL );
         memcpy(old_texcoords, solid->texcoords, sizeof(float) * solid->attributes_size * 2);
 
         uint32_t* old_indices = malloc(sizeof(uint32_t) * solid->attributes_size);
+        log_assert( old_indices != NULL );
         memcpy(old_indices, solid->indices, sizeof(uint32_t) * solid->attributes_size);
 
         bool* processed_map = malloc(sizeof(bool) * solid->attributes_size);
+        log_assert( processed_map != NULL );
         memset(processed_map, false, sizeof(bool) * solid->attributes_size);
 
         // - there really is not much too, iterate through the attributes and merge them together
@@ -204,21 +212,27 @@ size_t solid_compress(struct Solid* solid) {
 
     if( solid->attributes_size == solid->indices_size ) {
         float* old_vertices = malloc(sizeof(float) * solid->attributes_size*3);
+        log_assert( old_vertices != NULL );
         memcpy(old_vertices, solid->vertices, sizeof(float) * solid->attributes_size * 3);
 
         float* old_normals = malloc(sizeof(float) * solid->attributes_size * 3);
+        log_assert( old_normals != NULL );
         memcpy(old_normals, solid->normals, sizeof(float) * solid->attributes_size * 3);
 
         uint8_t* old_colors = malloc(sizeof(uint8_t) * solid->attributes_size*4);
+        log_assert( old_colors != NULL );
         memcpy(old_colors, solid->colors, sizeof(uint8_t) * solid->attributes_size * 4);
 
         float* old_texcoords = malloc(sizeof(float) * solid->attributes_size*2);
+        log_assert( old_texcoords != NULL );
         memcpy(old_texcoords, solid->texcoords, sizeof(float) * solid->attributes_size * 2);
 
         uint32_t* old_indices = malloc(sizeof(uint32_t) * solid->attributes_size);
+        log_assert( old_indices != NULL );
         memcpy(old_indices, solid->indices, sizeof(uint32_t) * solid->attributes_size);
 
         bool* processed_map = malloc(sizeof(bool) * solid->attributes_size);
+        log_assert( processed_map != NULL );
         memset(processed_map, false, sizeof(bool) * solid->attributes_size);
 
         size_t new_size = 0;

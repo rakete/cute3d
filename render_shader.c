@@ -147,9 +147,11 @@ void shader_attach(struct Shader* p, GLenum type, const char* prefix_file, size_
             size_t path_str_alloc = strlen(CUTE_SHADER_SEARCH_PATH) + strlen(prefix_file) + strlen(shader_file) + 2;
 
             char* path_prefix_file = malloc(path_str_alloc);
+            log_assert( path_prefix_file != NULL );
             bool found_prefix_file = path_search_path(CUTE_SHADER_SEARCH_PATH, prefix_file, path_str_alloc, path_prefix_file);
 
             char* path_shader_file = malloc(path_str_alloc);
+            log_assert( path_shader_file != NULL );
             bool found_shader_file = path_search_path(CUTE_SHADER_SEARCH_PATH, shader_file, path_str_alloc, path_shader_file);
 
             if( found_shader_file && found_prefix_file ) {

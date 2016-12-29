@@ -24,6 +24,8 @@ void glsl_debug_info_log(GLuint object) {
 
     log_assert( log_length > 0 );
     log = malloc((size_t)log_length);
+    log_assert( log != NULL );
+
     glGetShaderInfoLog(object, log_length, NULL, log);
     fprintf(stdout, "%s", log);
     free(log);

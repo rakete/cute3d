@@ -23,6 +23,8 @@
 #include "stdint.h"
 #include "limits.h"
 
+#include "driver_log.h"
+
 size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char flag, unsigned char** output);
 
 #endif

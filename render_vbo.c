@@ -745,12 +745,19 @@ void vbo_mesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, 
     log_assert( halfedgemesh->size >= 0 );
 
     uint32_t* triangles = malloc(sizeof(uint32_t) * (size_t)halfedgemesh->size);
+    log_assert( triangles != NULL );
     uint32_t* optimal = malloc(sizeof(uint32_t) * (size_t)halfedgemesh->size);
+    log_assert( optimal != NULL );
     uint32_t* indices = malloc(sizeof(uint32_t) * (size_t)halfedgemesh->size);
+    log_assert( indices != NULL );
     float* vertices = malloc(sizeof(float) * (size_t)halfedgemesh->size*3);
+    log_assert( vertices != NULL );
     float* normals = malloc(sizeof(float) * (size_t)halfedgemesh->size*3);
+    log_assert( normals != NULL );
     uint8_t* colors = malloc(sizeof(uint8_t) * (size_t)halfedgemesh->size*4);
+    log_assert( colors != NULL );
     float* texcoords = malloc(sizeof(float) * (size_t)halfedgemesh->size*2);
+    log_assert( texcoords != NULL );
 
     log_assert( halfedgemesh->size > 0 );
 
@@ -796,10 +803,15 @@ void vbo_mesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, 
         // goes out of scope, not the loop, so alloca would repeatedly allocate stuff on the stack
         // without releasing it
         float* face_vertices = malloc(sizeof(float) * (size_t)face->size*3);
+        log_assert( face_vertices != NULL );
         float* edge_normals = malloc(sizeof(float) * (size_t)face->size*3);
+        log_assert( edge_normals != NULL );
         uint8_t* edge_colors = malloc(sizeof(uint8_t) * (size_t)face->size*4);
+        log_assert( edge_colors != NULL );
         float* edge_texcoords = malloc(sizeof(float) * (size_t)face->size*2);
+        log_assert( edge_texcoords != NULL );
         uint32_t* face_triangles = malloc(sizeof(uint32_t) * (size_t)face->size);
+        log_assert( face_triangles != NULL );
 #else
         float face_vertices[face->size*3];
         float edge_normals[face->size*3];
@@ -835,6 +847,7 @@ void vbo_mesh_create_from_halfedgemesh(const struct HalfEdgeMesh* halfedgemesh, 
         int32_t tesselation_size = 3 * (face->size - 2);
 #ifdef CUTE_BUILD_MSVC
         int32_t* face_tesselation = malloc(sizeof(int32_t) * (size_t)tesselation_size);
+        log_assert( face_tesselation != NULL );
 #else
         int32_t face_tesselation[tesselation_size];
 #endif

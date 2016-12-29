@@ -462,8 +462,11 @@ void world_grid_create(struct GridPages* pages,
 
     uint64_t n = 12 * 3 * size.x * size.y * size.z;
     float* vertices = malloc(sizeof(float) * 3 * n);
+    log_assert( vertices != NULL );
     float* normals = malloc(sizeof(float) * 3 * n);
+    log_assert( normals != NULL );
     uint8_t* colors = malloc(sizeof(uint8_t) * 4 * n);
+    log_assert( colors != NULL );
 
     for( uint64_t zi = 0; zi < size.z; zi++ ) {
         for( uint64_t yi = 0; yi < size.y; yi++ ) {

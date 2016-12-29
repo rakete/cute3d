@@ -38,6 +38,7 @@ bool path_search_path(char* shader_search_path, const char* filename, size_t fou
     // memory for every token + a potential filename + a directory seperator + \0
     size_t token_buf_alloc = shader_search_path_size + strlen(filename) + 2;
     char* token_buf = malloc(token_buf_alloc);
+    log_assert( token_buf != NULL );
 
     // - before the fun ride starts we need some state, first three flags which indicate that:
     // - we searched every directory from shader_search_path for filename and are now finished, this does not

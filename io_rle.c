@@ -83,7 +83,9 @@ size_t rle_encode(unsigned char* input, size_t size, size_t bytes, unsigned char
     }
 
     unsigned char* last = malloc(sizeof(unsigned char) * bytes);
+    log_assert( last != NULL );
     unsigned char* current = malloc(sizeof(unsigned char) * bytes);
+    log_assert( current != NULL );
 
     size_t literal_run = 0;
     size_t encoded_run = 0;

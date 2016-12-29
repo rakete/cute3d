@@ -97,6 +97,8 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
     // each unique vertex should be represented by one unique index, the largest index + 1
     // should be the number of unique vertices
     int32_t* unique_vertex_map = malloc(sizeof(int32_t) * solid->indices_size);
+    log_assert( unique_vertex_map != NULL );
+
     uint32_t num_unique_vertices = 0;
     for( uint32_t i = 0; i < solid->indices_size; i++ ) {
         unique_vertex_map[i] = -1;
@@ -114,6 +116,7 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
 
     //int32_t edges_map[num_unique_vertices][num_unique_vertices];
     int32_t* edges_map = malloc(sizeof(int32_t) * num_unique_vertices*num_unique_vertices);
+    log_assert( edges_map != NULL );
 
     for( uint32_t i = 0; i < num_triangles; i++ ) {
         uint32_t a = solid->triangles[i*3+0];
@@ -559,6 +562,8 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
     // after checking all edges, remove those edges marked for removal,
     // remove all faces marked for removal
     int32_t* edge_check = malloc(sizeof(int32_t) * mesh->edges.occupied);
+    log_assert( edge_check != NULL );
+
     for( int32_t i = 0; i < (int32_t)mesh->edges.occupied; i++ ) {
         edge_check[i] = 1;
     }
@@ -566,7 +571,11 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
     log_assert(mesh->size >= 0);
     log_assert(mesh->size % 3 == 0);
     int32_t* face_has_normal = malloc(sizeof(int32_t) * (size_t)(mesh->size/3));
+    log_assert( face_has_normal != NULL );
+
     float* face_normals = malloc(sizeof(float) * (size_t)mesh->size);
+    log_assert( face_normals != NULL );
+
     for( int32_t i = 0; i < mesh->size; i++ ) {
         if( i < mesh->size/3 ) {
             face_has_normal[i] = 0;
@@ -575,15 +584,20 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
     }
 
     int32_t* removed_faces = malloc(sizeof(int32_t) * mesh->faces.occupied);
+    log_assert( removed_faces != NULL );
     int32_t num_removed_faces = 0;
 
     int32_t* removed_edges = malloc(sizeof(int32_t) * mesh->edges.occupied);
+    log_assert( removed_edges != NULL );
     int32_t num_removed_edges = 0;
 
     int32_t* removed_vertices = malloc(sizeof(int32_t) * mesh->vertices.occupied);
+    log_assert( removed_vertices != NULL );
     int32_t num_removed_vertices = 0;
 
     int32_t* attached_edges = malloc(sizeof(int32_t) * mesh->vertices.occupied);
+    log_assert( attached_edges != NULL );
+
     for( int32_t i = 0; i < (int32_t)mesh->vertices.occupied; i++ ) {
         attached_edges[i] = 0;
     }
