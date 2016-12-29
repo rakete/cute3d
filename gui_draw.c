@@ -59,7 +59,6 @@ void draw_line(struct Canvas* canvas,
         log_indent(-1);
     }
 
-
     // - the colors and thickness arrays are filled here, but there is one caveat:
     // I encode into the thickness which endpoint I am rendering, by using a differently signed thickness,
     // I do this so that the offsets in the shader always point in predictable directions, so that triangles

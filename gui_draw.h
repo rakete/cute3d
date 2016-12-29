@@ -39,7 +39,6 @@ void draw_transform_vertices(size_t vertex_size,
                              const Mat transform,
                              const float* vertices_out);
 
-
 void draw_line(struct Canvas* canvas,
                int32_t layer_i,
                const Mat model_matrix,
