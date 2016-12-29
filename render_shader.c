@@ -281,10 +281,10 @@ void shader_setup_locations(struct Shader* p) {
                 case SHADER_UNIFORM_PROJECTION_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
                 case SHADER_UNIFORM_NORMAL_MATRIX: ogl_debug(glUniformMatrix4fv(location, 1, GL_FALSE, (Mat)IDENTITY_MAT)); break;
 
-                case SHADER_UNIFORM_AMBIENT_LIGHT: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
+                case SHADER_UNIFORM_AMBIENT_LIGHT: ogl_debug(glUniform4f(location, 0.5f, 0.5f, 0.5f, 1.0f)); break;
                 case SHADER_UNIFORM_DIFFUSE_LIGHT: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
                 case SHADER_UNIFORM_SPECULAR_LIGHT: ogl_debug(glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f)); break;
-                case SHADER_UNIFORM_LIGHT_DIRECTION: ogl_debug(glUniform3f(location, 0.0f, 0.0f, 1.0f)); break;
+                case SHADER_UNIFORM_LIGHT_DIRECTION: ogl_debug(glUniform3f(location, 0.0f, 0.0f, -1.0f)); break;
                 case SHADER_UNIFORM_LIGHT_POSITION: ogl_debug(glUniform3f(location, 0.0f, 1.0f, 0.0f)); break;
                 case SHADER_UNIFORM_LIGHT_ATTENUATION: ogl_debug(glUniform1f(location, 1.0f)); break;
                 case SHADER_UNIFORM_MATERIAL_SHININESS: ogl_debug(glUniform1f(location, 1.0f)); break;
