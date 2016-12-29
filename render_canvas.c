@@ -211,11 +211,19 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                             ogl_debug( glDisable(GL_DEPTH_TEST) );
                         }
 
+                        if( layer_i == MAX_CANVAS_LAYERS-1 ) {
+                            glDepthMask(GL_FALSE);
+                        }
+
                         ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
                                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW);
 
                                    glDrawElements(primitive_type, indices_occupied, indices_type, 0);
                                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
+
+                        if( layer_i == MAX_CANVAS_LAYERS-1 ) {
+                            glDepthMask(GL_TRUE);
+                        }
 
                         if( projection_i == CANVAS_PROJECT_SCREEN ) {
                             ogl_debug( glEnable(GL_DEPTH_TEST) );
