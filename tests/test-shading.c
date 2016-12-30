@@ -1,4 +1,5 @@
 #include "math_arcball.h"
+#include "math_gametime.h"
 
 #include "gui_canvas.h"
 #include "gui_draw.h"
@@ -98,11 +99,22 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){2.5,17.0,17.0,1.0}, (Vec4f){2.5,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
 
-    Vec3f light_direction = { 0.2, -0.5, -1.0 };
-    Vec3f light_position = { -6.0, 6.0, 10.0 };
+    float circular_motion_angle = 0.0f;
+    float circular_motion_speed = (2.0f*PI)/30;
+    float circular_motion_radius = 12.0f;
+
+    Vec3f light_position = { circular_motion_radius, 10.0, circular_motion_radius };
+    Vec3f light_direction = {0};
+    vec_sub((Vec3f){0.0f, 0.0f, 0.0f}, light_position, light_direction);
+    vec_normalize(light_direction, light_direction);
+
+    Vec3f eye_position = {0};
+    vec_copy3f(arcball.camera.pivot.position, eye_position);
+
     Color ambiance = {50, 25, 150, 255};
+    Color specular = {255, 255, 255, 255};
     float material_shininess = 1.0;
-    Vec3f material_coefficients = { 0.8, 0.1, 0.1 };
+    Vec4f material_coefficients = { 0.8, 0.2, 0.0, 0.0 };
 
     // flat
     struct Shader flat_shader = {0};
@@ -122,9 +134,11 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_make_program(&gouraud_shader, SHADER_DEFAULT_NAMES, "gouraud_shader");
 
     shader_set_uniform_3f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_LIGHT_POSITION, 3, GL_FLOAT, light_position);
+    shader_set_uniform_3f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_EYE_POSITION, 3, GL_FLOAT, eye_position);
     shader_set_uniform_4f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
+    shader_set_uniform_4f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_SPECULAR_LIGHT, 4, GL_UNSIGNED_BYTE, specular);
     shader_set_uniform_1f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_MATERIAL_SHININESS, 1, GL_FLOAT, &material_shininess);
-    shader_set_uniform_3f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_MATERIAL_COEFFICIENTS, 3, GL_FLOAT, material_coefficients);
+    shader_set_uniform_4f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_MATERIAL_COEFFICIENTS, 4, GL_FLOAT, material_coefficients);
     shader_set_uniform_3f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_EYE_POSITION, 3, GL_FLOAT, &arcball.camera.pivot.position);
 
     Mat identity = {0};
@@ -142,6 +156,9 @@ int32_t main(int32_t argc, char *argv[]) {
     text_put_world(&global_static_canvas, 0, NULL, shading_label_transform, (Color){255, 255, 255, 255}, 1.0f, "default_font", L"FLAT");
     mat_translate(shading_label_transform, (float[4]){ 0.0, 0.0, 4.0, 1.0 }, shading_label_transform);
     text_put_world(&global_static_canvas, 0, NULL, shading_label_transform, (Color){255, 255, 255, 255}, 1.0f, "default_font", L"GOURAUD");
+
+    struct GameTime time = {0};
+    gametime_create(1.0f / 60.0f, &time);
 
     while (true) {
         SDL_Event event;
@@ -166,6 +183,24 @@ int32_t main(int32_t argc, char *argv[]) {
         ogl_debug( glClearDepth(1.0f);
                    glClearColor(.0f, .0f, .0f, 1.0f);
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
+
+        gametime_advance(&time, sdl2_time_delta());
+        gametime_integrate(&time);
+
+        circular_motion_angle += circular_motion_speed * time.dt;
+        float circular_motion_x = cosf(circular_motion_angle) * circular_motion_radius;
+        float circular_motion_z = sinf(circular_motion_angle) * circular_motion_radius;
+
+        light_position[0] = circular_motion_x;
+        light_position[2] = circular_motion_z;
+        vec_sub((Vec3f){0.0f, 0.0f, 0.0f}, light_position, light_direction);
+        vec_normalize(light_direction, light_direction);
+
+        shader_set_uniform_3f(&flat_shader, flat_shader.program, SHADER_UNIFORM_LIGHT_DIRECTION, 3, GL_FLOAT, light_direction);
+        shader_set_uniform_3f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_LIGHT_POSITION, 3, GL_FLOAT, light_position);
+
+        vec_copy3f(arcball.camera.pivot.position, eye_position);
+        shader_set_uniform_3f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_EYE_POSITION, 3, GL_FLOAT, eye_position);
 
         Mat transform = {0};
         // flat
@@ -199,7 +234,11 @@ int32_t main(int32_t argc, char *argv[]) {
         vbo_mesh_render(&hard_tetrahedron_mesh, &gouraud_shader, &arcball.camera, transform);
         mat_translate(transform, (float[4]){ 2.0, 0.0, 0.0, 1.0 }, transform);
         vbo_mesh_render(&smooth_tetrahedron_mesh, &gouraud_shader, &arcball.camera, transform);
+
         // canvas
+        Vec4f screen_cursor = {0,0,0,1};
+        text_show_fps(&global_dynamic_canvas, 0, screen_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0f, "default_font", time.frame);
+
         canvas_render_layers(&global_dynamic_canvas, 0, 0, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);
 

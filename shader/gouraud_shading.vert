@@ -3,15 +3,12 @@ uniform mat4 model_matrix;
 uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
 
-uniform vec4 specular_light;
-uniform vec4 ambient_light;
-
 uniform vec3 light_position;
 uniform float light_attenuation;
 uniform vec3 eye_position;
 
 uniform float material_shininess;
-uniform vec3 material_coefficients;
+uniform vec4 material_coefficients;
 
 shader_in vec3 vertex;
 shader_in vec3 vertex_normal;
@@ -41,6 +38,7 @@ void main() {
 
     float material_ks = material_coefficients[1];
     float specular = 0.0;
+    float ambient = 0.0;
     if( lambert_term > 0.0 ) {
         //can use built-in max or saturate function
         vec3 reflection = -normalize(reflect(light_direction, world_normal));
@@ -48,12 +46,14 @@ void main() {
     }
 
     //pass light to fragment shader
-    intensity = diffuse + specular;
+    //intensity = diffuse + specular;
 
-    //float material_ka = material_coefficients[2];
+    float material_ke = material_coefficients[3];
+    float material_ka = material_coefficients[2];
+    //float ambient = 0.5 - dot(vec4(normalize(light_direction), 0.0), normal_matrix * vec4(normalize(vertex_normal),0.0))/2.0;
     //How about with ambinetal and emissive?
     //Final light(with white(1,1,1)) would be:
-    //light = ke + material_ka + diffuse + specular;
+    intensity = material_ke + material_ka + diffuse + specular;
 
     //final vertex position
     gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex, 1);
