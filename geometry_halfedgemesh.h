@@ -8,6 +8,8 @@
 #include "geometry_types.h"
 #include "geometry_solid.h"
 
+#include "driver_platform.h"
+
 struct HalfEdge;
 
 // halfedge meshes are more efficient when I need to do operations that involve neighborhoods
@@ -85,9 +87,9 @@ void halfedgemesh_create(struct HalfEdgeMesh* mesh);
 void halfedgemesh_destroy(struct HalfEdgeMesh* mesh);
 
 // allocation functions, return allocated bytes or zero
-size_t halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, size_t n);
-size_t halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, size_t n);
-size_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, size_t n);
+WARN_UNUSED_RESULT size_t halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, size_t n);
+WARN_UNUSED_RESULT size_t halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, size_t n);
+WARN_UNUSED_RESULT size_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, size_t n);
 
 // appending a complete solid at once, that encodes the assumption that the input data is
 // in a certain format, so I choose to use only this instead of a more generic function

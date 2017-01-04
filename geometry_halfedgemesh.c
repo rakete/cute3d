@@ -31,7 +31,7 @@ size_t halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, size_t n) {
     if( new_array ) {
         mesh->vertices.array = new_array;
         mesh->vertices.capacity = new_capacity;
-        return n * sizeof(struct HalfEdgeVertex);
+        return n; // * sizeof(struct HalfEdgeVertex);
     }
 
     return 0;
@@ -44,7 +44,7 @@ size_t halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, size_t n) {
     if( new_array ) {
         mesh->faces.array = new_array;
         mesh->faces.capacity = new_capacity;
-        return n * sizeof(struct HalfEdgeFace);
+        return n; // * sizeof(struct HalfEdgeFace);
     }
 
     return 0;
@@ -58,7 +58,7 @@ size_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, size_t n) {
     if( new_array ) {
         mesh->edges.array = new_array;
         mesh->edges.capacity = new_capacity;
-        return n * sizeof(struct HalfEdge);
+        return n; // * sizeof(struct HalfEdge);
     }
 
     return 0;
@@ -138,17 +138,23 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
     // - this is lacking error handling
     size_t free_vertices_capacity = mesh->vertices.capacity - mesh->vertices.occupied;
     if( free_vertices_capacity < num_unique_vertices ) {
-        halfedgemesh_alloc_vertices(mesh, num_unique_vertices - free_vertices_capacity);
+        size_t alloc_vertices_n = num_unique_vertices - free_vertices_capacity;
+        size_t alloc_vertices_result = halfedgemesh_alloc_vertices(mesh, alloc_vertices_n);
+        log_assert( alloc_vertices_result >= alloc_vertices_n );
     }
 
     size_t free_faces_capacity = mesh->faces.capacity - mesh->faces.occupied;
     if( free_faces_capacity < num_triangles ) {
-        halfedgemesh_alloc_faces(mesh, num_triangles - free_faces_capacity);
+        size_t alloc_faces_n = num_triangles - free_faces_capacity;
+        size_t alloc_faces_result = halfedgemesh_alloc_faces(mesh, alloc_faces_n);
+        log_assert( alloc_faces_result >= alloc_faces_n );
     }
 
     size_t free_edges_capacity = mesh->edges.capacity - mesh->edges.occupied;
     if( free_edges_capacity < num_triangles*3 ) {
-        halfedgemesh_alloc_edges(mesh, num_triangles*3 - free_edges_capacity);
+        size_t alloc_edges_n = num_triangles*3 - free_edges_capacity;
+        size_t alloc_edges_result = halfedgemesh_alloc_edges(mesh, alloc_edges_n);
+        log_assert( alloc_edges_result >= alloc_edges_n );
     }
 
     int32_t vertex_i = mesh->vertices.occupied;
