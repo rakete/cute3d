@@ -414,6 +414,12 @@ void vec_print(const char* title, const Vec3f v) {
     printf("%s(%f %f %f)\n", title, v[0], v[1], v[2]);
 }
 
+void vec_lerp(const Vec3f a, const Vec3f b, float t, Vec3f r) {
+    r[0] = a[0]*t + (1.0f-t)*b[0];
+    r[1] = a[1]*t + (1.0f-t)*b[1];
+    r[2] = a[2]*t + (1.0f-t)*b[2];
+}
+
 void mat_copy4f(const Mat m, Mat r) {
     r[0] = m[0];  r[4] = m[4];  r[8] = m[8];   r[12] = m[12];
     r[1] = m[1];  r[5] = m[5];  r[9] = m[9];   r[13] = m[13];

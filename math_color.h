@@ -22,10 +22,14 @@
 #include "math.h"
 
 #include "math_types.h"
+#include "math_matrix.h"
+
 #include "geometry_types.h"
 
 #define RED (Color){255, 0, 0, 255}
 
 void color_copy(const Color c, Color r);
+void color_round(const Vec4f a, Color r);
+void color_lerp(const Color a, const Color b, float t, Color r);
 
 #endif

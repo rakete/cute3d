@@ -23,7 +23,6 @@
 
 #include "math_types.h"
 #include "math_quaternion.h"
-#include "math_ease.h"
 
 // - I don't like this code anymore
 // - some refactoring should be done:
@@ -112,7 +111,7 @@ void vec_basis(const Vec3f x, Vec3f y, Vec3f z);
 
 void vec_print(const char* title, const Vec3f v);
 
-void vec_interpolate(Vec3f a, Vec3f b, float t, ease_func f, Vec3f r);
+void vec_lerp(const Vec3f a, const Vec3f b, float t, Vec3f r);
 
 // matrix creation
 void mat_copy4f(const Mat m, Mat r);
