@@ -297,7 +297,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_mesh_create_from_solid((struct Solid*)&torus, &vbo, &ibo, &torus_mesh);
 
     struct BspTree bsptree;
-    bsp_tree_build(&bsptree, (struct Solid*)&torus);
+    bsp_tree_create_from_solid(&bsptree, (struct Solid*)&torus);
 
     while (true) {
         SDL_Event event;

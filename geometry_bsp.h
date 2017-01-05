@@ -29,49 +29,57 @@
 #include "geometry_solid.h"
 #include "geometry_types.h"
 #include "geometry_draw.h"
+#include "geometry_polygon.h"
 
-#ifndef BSP_DEFAULT_ALLOC
-#define BSP_DEFAULT_ALLOC 4096
+#ifndef BSP_ATTRIBUTES_ALLOC
+#define BSP_ATTRIBUTES_ALLOC 2048
 #endif
 
-void polygon_triangulate(size_t polygon_size, size_t point_size, float* polygon, size_t result_size, size_t* result);
+#ifndef BSP_POLYGONS_ALLOC
+#define BSP_POLYGONS_ALLOC 512
+#endif
 
-void polygon_normal(size_t polygon_size, size_t point_size, float* polygon, Vec3f result_normal);
-
-// a bsp tree is not a geometrical structure itself, it is more
-// like a description of a mesh that can be used to, for example,
-// render or modify it efficiently
-
-// triangles get put into binary branches by whether side of a leaf triangle they are of
-// so we need to construct all triangles from a vertex_buffer and element_buffer
-struct BspTree;
+#ifndef BSP_NODES_ALLOC
+#define BSP_NODES_ALLOC 512
+#endif
 
 struct BspPoly {
-    float* polygon;
+    size_t start;
     size_t size;
     Vec3f normal;
+
+    /* struct { */
+    /*     int32_t parent; */
+    /*     int32_t sibling; */
+    /* } cut; */
 };
 
+// a bsp tree is not a geometrical structure itself, it is more
+// like a description of a mesh
 struct BspNode {
-    struct BspPoly divider;
+    int32_t divider;
 
     struct {
-        struct BspNode* nodes;
-        size_t capacity;
-        size_t occupied;
-    } front;
+        float half_width;
+        float half_height;
+        float half_depth;
+        Vec3f center;
+    } bounds;
 
     struct {
-        struct BspNode* nodes;
-        size_t capacity;
-        size_t occupied;
-    } back;
+        int32_t parent;
+        int32_t front;
+        int32_t back;
+    } tree;
+
+    struct {
+        bool empty;
+        bool solid;
+        bool disabled;
+    } state;
 };
 
 void bsp_node_create(struct BspNode* node);
-void bsp_node_destroy(struct BspNode* node);
-
-void bsp_node_build(struct BspNode* node, const struct BspTree* tree, size_t triangles_size, int32_t triangles);
 
 struct BspTree {
     struct {
@@ -79,11 +87,27 @@ struct BspTree {
         size_t capacity;
         size_t occupied;
     } attributes;
+
+    struct {
+        struct BspPoly* array;
+        size_t capacity;
+        size_t occupied;
+    } polygons;
+
+    struct {
+        struct BspNode* array;
+        size_t capacity;
+        size_t occupied;
+    } nodes;
 };
 
 void bsp_tree_create(struct BspTree* tree);
 
-void bsp_tree_build(struct BspTree* tree, struct Solid* solid);
+WARN_UNUSED_RESULT size_t bsp_tree_alloc_attributes(struct BspTree* tree, size_t n);
+WARN_UNUSED_RESULT size_t bsp_tree_alloc_polygons(struct BspTree* tree, size_t n);
+WARN_UNUSED_RESULT size_t bsp_tree_alloc_nodes(struct BspTree* tree, size_t n);
+
+void bsp_tree_create_from_solid(struct BspTree* tree, struct Solid* solid);
 
 // 1. select a primitive (triangle) not yet part of the tree
 // 2. go through all other triangles seperating them in two

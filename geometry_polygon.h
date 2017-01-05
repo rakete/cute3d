@@ -25,8 +25,31 @@
 #include "math_matrix.h"
 #include "math_types.h"
 
-void polygon_corner_area(size_t polygon_size, size_t point_size, float* polygon, size_t corner_i, float* result);
+void polygon_corner_area(size_t polygon_size, size_t point_size, const float* polygon, size_t corner_i, float* result);
 
-size_t polygon_corner_remove(size_t polygon_size, size_t point_size, size_t type_size, void* polygon, size_t corner_i, void* result);
+size_t polygon_corner_remove(size_t polygon_size, size_t point_size, size_t type_size, const void* polygon, size_t corner_i, void* result);
+
+void polygon_normal(size_t polygon_size, size_t point_size, const float* polygon, Vec3f result_normal);
+
+enum PolygonCutType {
+    POLYGON_COPLANNAR = 0, // when poly lies on cutting plane
+    POLYGON_FRONT, // when poly is entirely on front
+    POLYGON_BACK, // when poly is entirely on back
+    POLYGON_SPANNING // when polygon is cut
+};
+
+struct PolygonCutPoints {
+    float distance;
+    enum PolygonCutType type;
+    int32_t interpolation_index;
+    float interpolation_value;
+    int32_t num_cuts;
+};
+
+enum PolygonCutType polygon_cut(size_t polygon_size, size_t point_size, const float* polygon,
+                                const Vec3f plane_normal, const Vec3f plane_point,
+                                size_t result_size, struct PolygonCutPoints* result_points);
+
+void polygon_triangulate(size_t polygon_size, size_t point_size, const float* polygon, size_t result_size, size_t* result);
 
 #endif
