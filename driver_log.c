@@ -108,5 +108,5 @@ bool _log_assert(const char* condition, const char* format, ...) {
     }
 
     va_end(args);
-    return true;
+    return false;
 }
