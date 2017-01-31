@@ -38,7 +38,7 @@ enum PolygonCutType {
     POLYGON_SPANNING // when polygon is cut
 };
 
-struct PolygonCutPoints {
+struct PolygonCutPoint {
     float distance;
     enum PolygonCutType type;
     int32_t interpolation_index;
@@ -48,7 +48,7 @@ struct PolygonCutPoints {
 
 enum PolygonCutType polygon_cut(size_t polygon_size, size_t point_size, const float* polygon,
                                 const Vec3f plane_normal, const Vec3f plane_point,
-                                size_t result_size, struct PolygonCutPoints* result_points);
+                                size_t result_size, struct PolygonCutPoint* result_points);
 
 void polygon_triangulate(size_t polygon_size, size_t point_size, const float* polygon, size_t result_size, size_t* result);
 

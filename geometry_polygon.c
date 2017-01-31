@@ -80,7 +80,7 @@ void polygon_compute_normal(size_t polygon_size, size_t point_size, const float*
 
 enum PolygonCutType polygon_cut(size_t polygon_size, size_t point_size, const float* polygon,
                                 const Vec3f plane_normal, const Vec3f plane_point,
-                                size_t result_size, struct PolygonCutPoints* result_points)
+                                size_t result_size, struct PolygonCutPoint* result_points)
 {
     log_assert( polygon_size >= 3 );
     log_assert( result_size >= polygon_size );
