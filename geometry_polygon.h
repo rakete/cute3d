@@ -29,7 +29,7 @@ void polygon_corner_area(size_t polygon_size, size_t point_size, const float* po
 
 size_t polygon_corner_remove(size_t polygon_size, size_t point_size, size_t type_size, const void* polygon, size_t corner_i, void* result);
 
-void polygon_normal(size_t polygon_size, size_t point_size, const float* polygon, Vec3f result_normal);
+void polygon_compute_normal(size_t polygon_size, size_t point_size, const float* polygon, Vec3f result_normal);
 
 enum PolygonCutType {
     POLYGON_COPLANNAR = 0, // when poly lies on cutting plane

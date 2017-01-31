@@ -61,7 +61,7 @@ size_t polygon_corner_remove(size_t polygon_size, size_t point_size, size_t type
     return result_size;
 }
 
-void polygon_normal(size_t polygon_size, size_t point_size, const float* polygon, Vec3f result_normal) {
+void polygon_compute_normal(size_t polygon_size, size_t point_size, const float* polygon, Vec3f result_normal) {
     log_assert( polygon_size >= 3 );
 
     const VecP* a = &polygon[0*point_size];
