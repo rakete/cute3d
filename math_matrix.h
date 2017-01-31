@@ -116,6 +116,8 @@ void vec_print(const char* title, const Vec3f v);
 
 void vec_lerp(const Vec3f a, const Vec3f b, float t, Vec3f r);
 
+void vec_minmax(const Vec3f v, Vec3f min, Vec3f max);
+
 // matrix creation
 void mat_copy4f(const Mat m, Mat r);
 void mat_copy3f(const Mat m, Mat r);

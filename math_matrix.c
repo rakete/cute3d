@@ -423,6 +423,28 @@ void vec_lerp(const Vec3f a, const Vec3f b, float t, Vec3f r) {
     r[2] = a[2]*t + (1.0f-t)*b[2];
 }
 
+void vec_minmax(const Vec3f v, Vec3f min, Vec3f max) {
+    if( v[0] < min[0] ) {
+        min[0] = v[0];
+    }
+    if( v[1] < min[1] ) {
+        min[1] = v[1];
+    }
+    if( v[2] < min[2] ) {
+        min[2] = v[2];
+    }
+
+    if( v[0] > max[0] ) {
+        max[0] = v[0];
+    }
+    if( v[1] > max[1] ) {
+        max[1] = v[1];
+    }
+    if( v[2] > max[2] ) {
+        max[2] = v[2];
+    }
+}
+
 void mat_copy4f(const Mat m, Mat r) {
     r[0] = m[0];  r[4] = m[4];  r[8] = m[8];   r[12] = m[12];
     r[1] = m[1];  r[5] = m[5];  r[9] = m[9];   r[13] = m[13];
