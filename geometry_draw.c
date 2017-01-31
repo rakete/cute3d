@@ -84,7 +84,7 @@ void draw_plane(struct Canvas* canvas,
                 Vec3f plane_point,
                 float size)
 {
-    int32_t found_index = canvas_find_shader(canvas, "flat_shader");
+    int32_t found_index = canvas_find_shader(canvas, "no_shading");
     if( found_index == MAX_CANVAS_SHADER ) {
         log_info(__FILE__, __LINE__, "creating shader for no shading on canvas: %s\n", canvas->name);
         log_indent(1);
