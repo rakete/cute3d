@@ -29,6 +29,18 @@
 
 #include "driver_platform.h"
 
+#ifndef HALFEDGEMESH_VERTICES_ALLOC
+#define HALFEDGEMESH_VERTICES_ALLOC 512
+#endif
+
+#ifndef HALFEDGEMESH_FACES_ALLOC
+#define HALFEDGEMESH_FACES_ALLOC 512
+#endif
+
+#ifndef HALFEDGEMESH_EDGES_ALLOC
+#define HALFEDGEMESH_EDGES_ALLOC 512
+#endif
+
 struct HalfEdge;
 
 // halfedge meshes are more efficient when I need to do operations that involve neighborhoods

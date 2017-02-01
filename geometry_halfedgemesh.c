@@ -44,26 +44,44 @@ void halfedgemesh_destroy(struct HalfEdgeMesh* mesh) {
 }
 
 size_t halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh, size_t n) {
-    size_t new_capacity = mesh->vertices.capacity + n;
+    if( n == 0 ) {
+        return 0;
+    }
+
+    size_t vertices_alloc = HALFEDGEMESH_VERTICES_ALLOC;
+    while( vertices_alloc < n ) {
+        vertices_alloc += HALFEDGEMESH_VERTICES_ALLOC;
+    }
+
+    size_t new_capacity = mesh->vertices.capacity + vertices_alloc;
     struct HalfEdgeVertex* new_array = realloc(mesh->vertices.array, new_capacity * sizeof(struct HalfEdgeVertex));
 
     if( new_array ) {
         mesh->vertices.array = new_array;
         mesh->vertices.capacity = new_capacity;
-        return n; // * sizeof(struct HalfEdgeVertex);
+        return vertices_alloc;
     }
 
     return 0;
 }
 
 size_t halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, size_t n) {
-    size_t new_capacity = mesh->faces.capacity + n;
+    if( n == 0 ) {
+        return 0;
+    }
+
+    size_t faces_alloc = HALFEDGEMESH_FACES_ALLOC;
+    while( faces_alloc < n ) {
+        faces_alloc += HALFEDGEMESH_FACES_ALLOC;
+    }
+
+    size_t new_capacity = mesh->faces.capacity + faces_alloc;
     struct HalfEdgeFace* new_array = realloc(mesh->faces.array, new_capacity * sizeof(struct HalfEdgeFace));
 
     if( new_array ) {
         mesh->faces.array = new_array;
         mesh->faces.capacity = new_capacity;
-        return n; // * sizeof(struct HalfEdgeFace);
+        return faces_alloc;
     }
 
     return 0;
@@ -71,13 +89,22 @@ size_t halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, size_t n) {
 
 
 size_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, size_t n) {
-    size_t new_capacity = mesh->edges.capacity + n;
+    if( n == 0 ) {
+        return 0;
+    }
+
+    size_t edges_alloc = HALFEDGEMESH_EDGES_ALLOC;
+    while( edges_alloc < n ) {
+        edges_alloc += HALFEDGEMESH_EDGES_ALLOC;
+    }
+
+    size_t new_capacity = mesh->edges.capacity + edges_alloc;
     struct HalfEdge* new_array = realloc(mesh->edges.array, new_capacity * sizeof(struct HalfEdge));
 
     if( new_array ) {
         mesh->edges.array = new_array;
         mesh->edges.capacity = new_capacity;
-        return n; // * sizeof(struct HalfEdge);
+        return edges_alloc;
     }
 
     return 0;
