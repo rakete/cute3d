@@ -17,8 +17,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with Cute3D.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef MATH_COLOR_H
-#define MATH_COLOR_H
+#ifndef MATH_GEOMETRY_H
+#define MATH_GEOMETRY_H
 
 #include "stdlib.h"
 #include "stdio.h"
@@ -29,10 +29,17 @@
 
 #include "geometry_types.h"
 
-#define RED (Color){255, 0, 0, 255}
-
 void color_copy(const Color c, Color r);
 void color_round(const Vec4f a, Color r);
 void color_lerp(const Color a, const Color b, float t, Color r);
+
+void vertex_copy(const Vertex v, Vertex r);
+void vertex_lerp(const Vertex a, const Vertex b, float t, Vertex r);
+
+void normal_copy(const Normal n, Normal r);
+void normal_lerp(const Normal a, const Normal b, float t, Normal r);
+
+void texcoord_copy(const Texcoord t, Texcoord r);
+void texcoord_lerp(const Texcoord a, const Texcoord b, float t, Texcoord r);
 
 #endif

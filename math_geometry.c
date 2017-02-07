@@ -17,7 +17,7 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with Cute3D.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "math_color.h"
+#include "math_geometry.h"
 
 void color_copy(const Color c, Color r) {
     r[0] = c[0];
@@ -52,4 +52,38 @@ void color_lerp(const Color a, const Color b, float t, Color r) {
     fr[3] = fa[3]*t + (1.0f-t)*fb[3];
 
     color_round(fr, r);
+}
+
+void vertex_copy(const Vertex v, Vertex r) {
+    r[0] = v[0];
+    r[1] = v[1];
+    r[2] = v[2];
+}
+
+void vertex_lerp(const Vertex a, const Vertex b, float t, Vertex r) {
+    r[0] = a[0]*t + (1.0f-t)*b[0];
+    r[1] = a[1]*t + (1.0f-t)*b[1];
+    r[2] = a[2]*t + (1.0f-t)*b[2];
+}
+
+void normal_copy(const Normal n, Normal r) {
+    r[0] = n[0];
+    r[1] = n[1];
+    r[2] = n[2];
+}
+
+void normal_lerp(const Normal a, const Normal b, float t, Normal r) {
+    r[0] = a[0]*t + (1.0f-t)*b[0];
+    r[1] = a[1]*t + (1.0f-t)*b[1];
+    r[2] = a[2]*t + (1.0f-t)*b[2];
+}
+
+void texcoord_copy(const Texcoord t, Texcoord r) {
+    r[0] = t[0];
+    r[1] = t[1];
+}
+
+void texcoord_lerp(const Texcoord a, const Texcoord b, float t, Texcoord r) {
+    r[0] = a[0]*t + (1.0f-t)*b[0];
+    r[1] = a[1]*t + (1.0f-t)*b[1];
 }

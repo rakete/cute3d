@@ -28,7 +28,7 @@
 #include "math_matrix.h"
 #include "math_quaternion.h"
 #include "math_camera.h"
-#include "math_color.h"
+#include "math_geometry.h"
 
 #include "driver_ogl.h"
 #include "driver_glsl.h"

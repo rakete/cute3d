@@ -25,6 +25,7 @@
 
 #include "math_matrix.h"
 #include "math_draw.h"
+#include "math_geometry.h"
 
 #include "geometry_solid.h"
 #include "geometry_types.h"
