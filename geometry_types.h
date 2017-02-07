@@ -59,4 +59,11 @@ typedef uint8_t ColorP;
 typedef float Texcoord[TEXCOORD_SIZE];
 typedef float TexcoordP;
 
+#define COLOR_RED (Color){255, 0, 0, 255}
+#define COLOR_BLUE (Color){0, 0, 255, 255}
+#define COLOR_GREEN (Color){0, 255, 0, 255}
+#define COLOR_YELLOW (Color){255, 255, 0, 255}
+#define COLOR_CYAN (Color){0, 255, 255, 255}
+#define COLOR_MAGENTA (Color){255, 0, 255, 255}
+
 #endif
