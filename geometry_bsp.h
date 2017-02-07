@@ -31,6 +31,7 @@
 #include "geometry_types.h"
 #include "geometry_draw.h"
 #include "geometry_polygon.h"
+#include "geometry_parameter.h"
 
 #ifndef BSP_ATTRIBUTES_ALLOC
 #define BSP_ATTRIBUTES_ALLOC 2048
@@ -63,7 +64,7 @@ struct BspPolygon {
 
 void bsp_polygon_create(struct BspPolygon* poly);
 
-struct BspNodeBounds {
+struct BspBounds {
     float half_width;
     float half_height;
     float half_depth;
@@ -71,12 +72,12 @@ struct BspNodeBounds {
     size_t num_polygons;
 };
 
-void bsp_node_bounds_create(Vec3f min, Vec3f max, size_t num_polygons, struct BspNodeBounds* bounds);
+void bsp_node_bounds_create(Vec3f min, Vec3f max, size_t num_polygons, struct BspBounds* bounds);
 
 struct BspNode {
     int32_t divider;
 
-    struct BspNodeBounds bounds;
+    struct BspBounds bounds;
 
     struct {
         int32_t parent;
@@ -93,7 +94,7 @@ struct BspNode {
     } state;
 };
 
-void bsp_node_create(struct BspNodeBounds bounds, struct BspNode* node);
+void bsp_node_create(struct BspBounds bounds, struct BspNode* node);
 
 struct BspTree {
     struct {
@@ -119,16 +120,14 @@ struct BspTree {
 };
 
 void bsp_tree_create(struct BspTree* tree);
+void bsp_tree_destroy(struct BspTree* tree);
 
 WARN_UNUSED_RESULT size_t bsp_tree_alloc_attributes(struct BspTree* tree, size_t n);
 WARN_UNUSED_RESULT size_t bsp_tree_alloc_polygons(struct BspTree* tree, size_t n);
 WARN_UNUSED_RESULT size_t bsp_tree_alloc_nodes(struct BspTree* tree, size_t n);
 
-int32_t bsp_tree_add_node(struct BspTree* tree, struct BspNodeBounds bounds, struct BspNode** node);
-//void bsp_tree_connect_node(struct BspTree* tree, struct BspNode* node, struct BspNode* front, struct BspNode* back);
-
-int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Vec3f polygon_normal, VERTEX_TYPE* polygon_vertices, struct BspPolygon** polygon);
-//void bsp_tree_set_polygon_vertices(struct BspTree* tree, const struct BspPolygon* polygon, size_t vertices_size, float* vertices);
+int32_t bsp_tree_add_node(struct BspTree* tree, struct BspBounds bounds, struct BspNode** node);
+int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Vec3f polygon_normal, struct ParameterAttributes polygon_attributes, struct BspPolygon** polygon);
 
 void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree);
 
@@ -144,9 +143,12 @@ struct BspBuildArrays {
 };
 
 void bsp_build_arrays_create(struct BspBuildArrays* arrays);
+void bsp_build_arrays_destroy(struct BspBuildArrays* arrays);
+
 WARN_UNUSED_RESULT size_t bsp_build_arrays_alloc(struct BspBuildArrays* arrays, size_t front_n, size_t back_n);
 
-void bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspNodeBounds bounds, size_t num_polygons, const int32_t* polygon_indices, size_t max_steps, int32_t* selected_divider);
+void bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBounds bounds, size_t num_polygons, const int32_t* polygon_indices, size_t max_steps, int32_t* selected_divider);
+
 void bsp_build_recur(struct BspTree* tree, struct BspNode* node, struct BspBuildArrays* arrays, size_t start, size_t end, struct BspBuildPartition* partition);
 
 // 1. select a primitive (triangle) not yet part of the tree

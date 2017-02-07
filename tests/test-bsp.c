@@ -105,13 +105,18 @@ int32_t main(int32_t argc, char *argv[]) {
     //solid_smooth_normals(&torus, &torus.normals, &torus.normals);
     //solid_compress(&torus);
 
-    printf("%lu\n", sizeof(struct SolidTorus24));
+    //struct SolidBox cube;
+    //solid_cube_create(1.0f, (Color){255, 127, 255, 255}, &cube);
+    //solid_optimize(&torus);
+    //solid_smooth_normals(&torus, &torus.normals, &torus.normals);
+    //solid_compress(&torus);
 
     struct VboMesh torus_mesh = {0};
     vbo_mesh_create_from_solid((struct Solid*)&torus, &vbo, &ibo, &torus_mesh);
 
-    struct BspTree bsptree;
-    bsp_tree_create_from_solid((struct Solid*)&torus, &bsptree);
+    struct BspTree torus_bsptree;
+    bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree);
+    bsp_tree_destroy(&torus_bsptree);
 
     while (true) {
         SDL_Event event;
