@@ -19,6 +19,19 @@
 
 #include "geometry_solid.h"
 
+double solid_power(double f,double p) {
+    int sign;
+    double absf;
+
+    sign = (f < 0 ? -1 : 1);
+    absf = (f < 0 ? -f : f);
+
+    if (absf < 0.00001)
+        return(0.0);
+    else
+        return(sign * pow(absf,p));
+}
+
 void solid_hard_normals(const struct Solid* solid, float* normals) {
     log_assert(normals != NULL);
 
@@ -748,4 +761,173 @@ void solid_sphere32_create(float radius, const uint8_t color[4], struct SolidSph
 
     solid_hard_normals((struct Solid*)sphere, sphere->normals);
     solid_set_color((struct Solid*)sphere, color);
+}
+
+void solid_torus24_create(uint32_t horizontal_steps, uint32_t vertical_steps, double radius0, double radius1, const uint8_t color[4], struct SolidTorus24* torus) {
+    double n1 = 1.0, n2 = 1.0;
+
+    solid_supertoroid24_create(n1, n2, horizontal_steps, vertical_steps, radius0, radius1, color, torus);
+}
+
+void solid_supertoroid24_create(double n1, double n2, uint32_t horizontal_steps, uint32_t vertical_steps, double radius0, double radius1, const uint8_t color[4], struct SolidTorus24* torus) {
+    if( horizontal_steps > 24 ) {
+        horizontal_steps = 24;
+    }
+
+    if( vertical_steps > 24 ) {
+        vertical_steps = 24;
+    }
+
+    float du = 360.0f/(float)horizontal_steps, dv = 360.0f/(float)vertical_steps;
+    double theta, phi;
+    const double dtor = 0.01745329252;
+
+    *torus = (struct SolidTorus24){ .vertices = { 0 },
+                                    .triangles = { 0 },
+                                    .optimal = { 0 },
+                                    .indices = { 0 },
+                                    .colors = { 0 },
+                                    .normals = { 0 },
+                                    .texcoords = { 0 },
+                                    .solid.indices_size = horizontal_steps*vertical_steps*6,
+                                    .solid.attributes_size = horizontal_steps*vertical_steps*6,
+                                    .solid.triangles = torus->triangles,
+                                    .solid.optimal = torus->optimal,
+                                    .solid.indices = torus->indices,
+                                    .solid.vertices = torus->vertices,
+                                    .solid.colors = torus->colors,
+                                    .solid.normals = torus->normals,
+                                    .solid.texcoords = torus->texcoords };
+
+    size_t attributes_offset = 0;
+    size_t optimal_offset = 0;
+    size_t indices_offset = 0;
+    for( uint32_t u = 0; u < horizontal_steps; u++ ) {
+        for( uint32_t v = 0; v < vertical_steps; v++ ) {
+            theta = (u) * du * dtor;
+            phi = (v) * dv * dtor;
+            torus->vertices[attributes_offset*3+0] = solid_power(cos(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+1] = solid_power(sin(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+2] = radius1 * solid_power(sin(phi), n2);
+
+            theta = (u+1) * du * dtor;
+            phi = (v) * dv * dtor;
+            torus->vertices[attributes_offset*3+3] = solid_power(cos(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+4] = solid_power(sin(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+5] = radius1 * solid_power(sin(phi), n2);
+
+            theta = (u) * du * dtor;
+            phi = (v+1) * dv * dtor;
+            torus->vertices[attributes_offset*3+6] = solid_power(cos(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+7] = solid_power(sin(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+8] = radius1 * solid_power(sin(phi), n2);
+
+            theta = (u+1) * du * dtor;
+            phi = (v) * dv * dtor;
+            torus->vertices[attributes_offset*3+9] = solid_power(cos(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+10] = solid_power(sin(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+11] = radius1 * solid_power(sin(phi), n2);
+
+            theta = (u+1) * du * dtor;
+            phi = (v+1) * dv * dtor;
+            torus->vertices[attributes_offset*3+12] = solid_power(cos(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+13] = solid_power(sin(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+14] = radius1 * solid_power(sin(phi), n2);
+
+            theta = (u) * du * dtor;
+            phi = (v+1) * dv * dtor;
+            torus->vertices[attributes_offset*3+15] = solid_power(cos(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+16] = solid_power(sin(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
+            torus->vertices[attributes_offset*3+17] = radius1 * solid_power(sin(phi), n2);
+
+            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+0]); */
+            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+4]); */
+            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+8]); */
+            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+12]); */
+            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+16]); */
+            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+20]); */
+
+            attributes_offset += 6;
+
+            //          0---3---2---1---0
+            //          |  /|  /|  /|  /|
+            //          | / | / | / | / |
+            //          |/  |/  |/  |/  |
+            //          8---11--10--9---8
+            //          |  /|  /|  /|  /|
+            //          | / | / | / | / |
+            //          |/  |/  |/  |/  |
+            // 4---3 1  4---7---6---5---4
+            // |  / /|  |  /|  /|  /|  /|
+            // | / / |  | / | / | / | / |
+            // |/ /  |  |/  |/  |/  |/  |
+            // 5 2---0  0---3---2---1---0
+            // u==0 v==0: 0,4,1,4,5,1
+            // u==0 v==1: 1,5,2,5,6,2
+            // u==0 v==2: 2,6,3,6,7,3
+            // u==0 v==4: 3,7,0,7,4,0
+            torus->triangles[indices_offset+0] = u*vertical_steps + v + 0;
+            torus->triangles[indices_offset+1] = (u+1)*vertical_steps + v + 0;
+            torus->triangles[indices_offset+2] = u*vertical_steps + v + 1;
+            torus->triangles[indices_offset+3] = (u+1)*vertical_steps + v + 0;
+            torus->triangles[indices_offset+4] = (u+1)*vertical_steps + v + 1;
+            torus->triangles[indices_offset+5] = u*vertical_steps + v + 1;
+
+            if( v == vertical_steps-1 ) {
+                torus->triangles[indices_offset+2] = u*vertical_steps + 0;
+                torus->triangles[indices_offset+4] = (u+1)*vertical_steps + 0;
+                torus->triangles[indices_offset+5] = u*vertical_steps + 0;
+            }
+
+            if( u == horizontal_steps-1 ) {
+                torus->triangles[indices_offset+1] = v + 0;
+                torus->triangles[indices_offset+3] = v + 0;
+                if( v == vertical_steps-1 ) {
+                    torus->triangles[indices_offset+4] = 0;
+                } else {
+                    torus->triangles[indices_offset+4] = v + 1;
+                }
+            }
+
+            /* torus->triangles[indices_offset+0] = u*vertical_steps*4 + v*2 + 0; */
+            /* torus->triangles[indices_offset+1] = u*vertical_steps*4 + v*2 + 1; */
+            /* torus->triangles[indices_offset+2] = u*vertical_steps*4 + v*2 + 2; */
+            /* torus->triangles[indices_offset+3] = u*vertical_steps*4 + v*2 + 1; */
+            /* torus->triangles[indices_offset+4] = u*vertical_steps*4 + v*2 + 3; */
+            /* torus->triangles[indices_offset+5] = u*vertical_steps*4 + v*2 + 2; */
+            /* if( v == vertical_steps-1 ) { */
+            /*     torus->triangles[indices_offset+2] = u*vertical_steps*4 + 0; */
+            /*     torus->triangles[indices_offset+4] = u*vertical_steps*4 + 1; */
+            /*     torus->triangles[indices_offset+5] = u*vertical_steps*4 + 0; */
+            /* } */
+
+            // 4---3 1  1---7---5---3---1
+            // |  / /|  |  /|  /|  /|  /|
+            // | / / |  | / | / | / | / |
+            // |/ /  |  |/  |/  |/  |/  |
+            // 5 2---0  0---6---4---2---0
+            // u==0 v==0: 0,1,2,1,3,2
+            // u==0 v==1: 2,3,4,3,5,4
+            // u==0 v==2: 4,5,6,5,7,6
+            // u==0 v==4: 6,7,0,7,1,0
+            torus->optimal[indices_offset+0] = optimal_offset+0;
+            torus->optimal[indices_offset+1] = optimal_offset+1;
+            torus->optimal[indices_offset+2] = optimal_offset+2;
+            torus->optimal[indices_offset+3] = optimal_offset+1;
+            torus->optimal[indices_offset+4] = optimal_offset+3;
+            torus->optimal[indices_offset+5] = optimal_offset+2;
+            optimal_offset += 4;
+
+            torus->indices[indices_offset+0] = indices_offset+0;
+            torus->indices[indices_offset+1] = indices_offset+1;
+            torus->indices[indices_offset+2] = indices_offset+2;
+            torus->indices[indices_offset+3] = indices_offset+3;
+            torus->indices[indices_offset+4] = indices_offset+4;
+            torus->indices[indices_offset+5] = indices_offset+5;
+            indices_offset += 6;
+        }
+    }
+
+    solid_hard_normals((struct Solid*)torus, torus->normals);
+    solid_set_color((struct Solid*)torus, color);
 }

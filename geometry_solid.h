@@ -159,4 +159,20 @@ struct SolidSphere32 {
 
 void solid_sphere32_create(float radius, const uint8_t color[4], struct SolidSphere32* sphere);
 
+struct SolidTorus24 {
+    struct Solid solid;
+
+    uint32_t indices[24*24*6];
+    uint32_t optimal[24*24*6];
+    uint32_t triangles[24*24*6];
+
+    float vertices[24*24*6*3];
+    float normals[24*24*6*3];
+    uint8_t colors[24*24*6*4];
+    float texcoords[24*24*6*2];
+};
+
+void solid_torus24_create(uint32_t horizontal_steps, uint32_t vertical_steps, double radius0, double radius1, const uint8_t color[4], struct SolidTorus24* torus);
+void solid_supertoroid24_create(double n1, double n2, uint32_t horizontal_steps, uint32_t vertical_steps, double radius0, double radius1, const uint8_t color[4], struct SolidTorus24* torus);
+
 #endif
