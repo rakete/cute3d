@@ -31,6 +31,9 @@
 
 bool path_file_exists(const char* path);
 
+// - this function takes a shader_search_path like "directory1/:directory2/" and searches through them for
+// filename, if filename is found in one of the directories the full path like "directory2/filename" is
+// copied into found_path, which is allocated externally with size found_path_size
 bool path_search_path(char* search_path, const char* filename, size_t found_path_size, char* found_path);
 
 #endif

@@ -30,9 +30,6 @@ bool path_file_exists(const char* path) {
 }
 
 bool path_search_path(char* shader_search_path, const char* filename, size_t found_path_size, char* found_path) {
-    // - this function takes a shader_search_path like "directory1/:directory2/" and searches through them for
-    // filename, if filename is found in one of the directories the full path like "directory2/filename" is
-    // copied into found_path, which is allocated externally with size found_path_size
     log_assert( shader_search_path != NULL );
     log_assert( filename != NULL );
     log_assert( found_path != NULL );
@@ -53,7 +50,7 @@ bool path_search_path(char* shader_search_path, const char* filename, size_t fou
     // - time to allocate some memory for our tokens, a token is one directory string between colons from the
     // shader_search_path, so in "dir1:dir2:dir3:" the dir1, dir2, dir3 strings are tokens
     // - by using shader_search_path_size + strlen(filename) + 2 as size for the allocation we use vastly too much
-    // memory, but properly still a miniscule amount so I am fine with it because it guarantees that we have
+    // memory, but probably still a miniscule amount so I am fine with it because it guarantees that we have
     // memory for every token + a potential filename + a directory seperator + \0
     size_t token_buf_alloc = shader_search_path_size + strlen(filename) + 2;
     char* token_buf = malloc(token_buf_alloc);
@@ -108,7 +105,7 @@ bool path_search_path(char* shader_search_path, const char* filename, size_t fou
             search_finished = true;
         }
 
-        // - token_length is just the lengtt of a token in characters, which I assert to be > 0 because I
+        // - token_length is just the length of a token in characters, which I assert to be > 0 because I
         // skip over multiple successive : when setting token_begin, so token_length should be impossible
         // to be 0 here
         intptr_t token_length = token_end - token_begin;
@@ -138,7 +135,6 @@ bool path_search_path(char* shader_search_path, const char* filename, size_t fou
         if( search_singular == true ) {
             break;
         }
-
 
         // - move token_begin to the beginning of the next token by increasing token_end, and skipping over any multiple
         // occurences of colons should there be any
