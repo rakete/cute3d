@@ -499,29 +499,14 @@ void solid_cube_create(float size, const uint8_t color[4], struct SolidBox* cube
     solid_box_create((Vec3f){size, size, size}, color, cube);
 }
 
-void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSphere16* sphere) {
-    uint32_t horizontal_steps = 16;
-    uint32_t vertical_steps = 8;
-    log_assert( horizontal_steps <= 16 );
-    log_assert( vertical_steps <= 8 );
+void solid_sphereN_create(uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct Solid* sphere) {
+    if( horizontal_steps > 32 ) {
+        horizontal_steps = 32;
+    }
 
-    *sphere = (struct SolidSphere16){ .triangles = { 0 },
-                                      .optimal = { 0 },
-                                      .indices = { 0 },
-                                      .vertices = { 0 },
-                                      .normals = { 0 },
-                                      .colors = { 0 },
-                                      .texcoords = { 0 },
-                                      .solid.indices_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
-                                      .solid.attributes_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
-                                      .solid.triangles = sphere->triangles,
-                                      .solid.optimal = sphere->optimal,
-                                      .solid.indices = sphere->indices,
-                                      .solid.vertices = sphere->vertices,
-                                      .solid.colors = sphere->colors,
-                                      .solid.normals = sphere->normals,
-                                      .solid.texcoords = sphere->texcoords
-    };
+    if( vertical_steps > 16 ) {
+        vertical_steps = 16;
+    }
 
     float points[horizontal_steps*(vertical_steps-1)*3+2*3];
     for(uint32_t j = 0; j < (vertical_steps-1); j++ ) {
@@ -634,7 +619,7 @@ void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSph
         sphere->triangles[offset+i*6+5] = (vertical_steps-2)*horizontal_steps + i + 1 - linebreak;
     }
 
-    for( uint32_t i = 0; i < horizontal_steps*6*2+horizontal_steps*2; i++ ) {
+    for( uint32_t i = 0; i < horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2; i++ ) {
         uint32_t a = sphere->triangles[i*3+0];
         uint32_t b = sphere->triangles[i*3+1];
         uint32_t c = sphere->triangles[i*3+2];
@@ -661,106 +646,70 @@ void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSph
         sphere->optimal[i*3+2] = i*3+2;
     }
 
-    solid_hard_normals((struct Solid*)sphere, sphere->normals);
-    solid_set_color((struct Solid*)sphere, color);
+    solid_hard_normals(sphere, sphere->normals);
+    solid_set_color(sphere, color);
 }
 
-void solid_sphere32_create(float radius, const uint8_t color[4], struct SolidSphere32* sphere) {
-    *sphere = (struct SolidSphere32){ .triangles = { 0 },
-                                      .optimal = { 0 },
-                                      .indices = { 0 },
-                                      .vertices = { 0 },
-                                      .normals = { 0 },
-                                      .colors = { 0 },
-                                      .texcoords = { 0 },
-                                      .solid.indices_size = (32*14*2+32*2)*3,
-                                      .solid.attributes_size = (32*14*2+32*2)*3,
-                                      .solid.triangles = sphere->triangles,
-                                      .solid.optimal = sphere->optimal,
-                                      .solid.indices = sphere->indices,
-                                      .solid.vertices = sphere->vertices,
-                                      .solid.colors = sphere->colors,
-                                      .solid.normals = sphere->normals,
-                                      .solid.texcoords = sphere->texcoords
+void solid_sphere16_create(uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct SolidSphere16* sphere) {
+    if( horizontal_steps > 16 ) {
+        horizontal_steps = 16;
+    }
+
+    if( vertical_steps > 8 ) {
+        vertical_steps = 8;
+    }
+
+    *sphere = (struct SolidSphere16) {
+        .triangles = { 0 },
+        .optimal = { 0 },
+        .indices = { 0 },
+        .vertices = { 0 },
+        .normals = { 0 },
+        .colors = { 0 },
+        .texcoords = { 0 },
+        .solid.indices_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
+        .solid.attributes_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
+        .solid.triangles = sphere->triangles,
+        .solid.optimal = sphere->optimal,
+        .solid.indices = sphere->indices,
+        .solid.vertices = sphere->vertices,
+        .solid.colors = sphere->colors,
+        .solid.normals = sphere->normals,
+        .solid.texcoords = sphere->texcoords
     };
 
-    float points[32*15*3+2*3];
-    for(uint32_t j = 0; j < 15; j++ ) {
-        float v = (float)(j+1) * (PI/16.0f);
-        for( uint32_t i = 0; i < 32; i++ ) {
-            float u = (float)i * (2.0f*PI/32.0f);
-            points[(i+j*32)*3+0] = radius*sinf(u)*sinf(v);
-            points[(i+j*32)*3+1] = radius*cosf(u)*sinf(v);
-            points[(i+j*32)*3+2] = radius*cosf(v);
-        }
-    }
-    points[(31+14*32)*3+3+0] = 0.0;
-    points[(31+14*32)*3+3+1] = 0.0;
-    points[(31+14*32)*3+3+2] = radius;
+    solid_sphereN_create(horizontal_steps, vertical_steps, radius, color, (struct Solid*)sphere);
+}
 
-    points[(31+14*32)*3+3+3] = 0.0;
-    points[(31+14*32)*3+3+4] = 0.0;
-    points[(31+14*32)*3+3+5] = -radius;
-
-    for( uint32_t j = 0; j < 14; j++ ) {
-        for( uint32_t i = 0; i < 32; i++ ) {
-            uint32_t linebreak = 0;
-            if( i == 31 ) {
-                linebreak = 32;
-            }
-
-            sphere->triangles[(i+j*32)*6+0] = i + j*32;
-            sphere->triangles[(i+j*32)*6+1] = i + j*32 + 1 - linebreak;
-            sphere->triangles[(i+j*32)*6+2] = i + j*32 + 32;
-            sphere->triangles[(i+j*32)*6+3] = i + j*32 + 32 + 1 - linebreak;
-            sphere->triangles[(i+j*32)*6+4] = i + j*32 + 32;
-            sphere->triangles[(i+j*32)*6+5] = i + j*32 + 1 - linebreak;
-        }
-    }
-    uint32_t offset = (31+13*32)*6+5+1;
-    for( uint32_t i = 0; i < 32; i++ ) {
-        uint32_t linebreak = 0;
-        if( i == 31 ) {
-            linebreak = 32;
-        }
-
-        sphere->triangles[offset+i*6+0] = 480;
-        sphere->triangles[offset+i*6+1] = i + 1 - linebreak;
-        sphere->triangles[offset+i*6+2] = i;
-        sphere->triangles[offset+i*6+3] = 481;
-        sphere->triangles[offset+i*6+4] = 14*32 + i;
-        sphere->triangles[offset+i*6+5] = 14*32 + i + 1 - linebreak;
+void solid_sphere32_create(uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct SolidSphere32* sphere) {
+    if( horizontal_steps > 32 ) {
+        horizontal_steps = 32;
     }
 
-    for( uint32_t i = 0; i < 32*14*2+32*2; i++ ) {
-        uint32_t a = sphere->triangles[i*3+0];
-        uint32_t b = sphere->triangles[i*3+1];
-        uint32_t c = sphere->triangles[i*3+2];
-
-        sphere->vertices[i*9+0] = points[a*3+0];
-        sphere->vertices[i*9+1] = points[a*3+1];
-        sphere->vertices[i*9+2] = points[a*3+2];
-
-        sphere->indices[i*3+0] = i*3+0;
-        sphere->optimal[i*3+0] = i*3+0;
-
-        sphere->vertices[i*9+3] = points[b*3+0];
-        sphere->vertices[i*9+4] = points[b*3+1];
-        sphere->vertices[i*9+5] = points[b*3+2];
-
-        sphere->indices[i*3+1] = i*3+1;
-        sphere->optimal[i*3+1] = i*3+1;
-
-        sphere->vertices[i*9+6] = points[c*3+0];
-        sphere->vertices[i*9+7] = points[c*3+1];
-        sphere->vertices[i*9+8] = points[c*3+2];
-
-        sphere->indices[i*3+2] = i*3+2;
-        sphere->optimal[i*3+2] = i*3+2;
+    if( vertical_steps > 16 ) {
+        vertical_steps = 16;
     }
 
-    solid_hard_normals((struct Solid*)sphere, sphere->normals);
-    solid_set_color((struct Solid*)sphere, color);
+    *sphere = (struct SolidSphere32) {
+        .triangles = { 0 },
+        .optimal = { 0 },
+        .indices = { 0 },
+        .vertices = { 0 },
+        .normals = { 0 },
+        .colors = { 0 },
+        .texcoords = { 0 },
+        .solid.indices_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
+        .solid.attributes_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
+        .solid.triangles = sphere->triangles,
+        .solid.optimal = sphere->optimal,
+        .solid.indices = sphere->indices,
+        .solid.vertices = sphere->vertices,
+        .solid.colors = sphere->colors,
+        .solid.normals = sphere->normals,
+        .solid.texcoords = sphere->texcoords
+    };
+
+    solid_sphereN_create(horizontal_steps, vertical_steps, radius, color, (struct Solid*)sphere);
 }
 
 void solid_torus24_create(uint32_t horizontal_steps, uint32_t vertical_steps, double radius0, double radius1, const uint8_t color[4], struct SolidTorus24* torus) {
@@ -782,22 +731,24 @@ void solid_supertoroid24_create(double n1, double n2, uint32_t horizontal_steps,
     double theta, phi;
     const double dtor = 0.01745329252;
 
-    *torus = (struct SolidTorus24){ .vertices = { 0 },
-                                    .triangles = { 0 },
-                                    .optimal = { 0 },
-                                    .indices = { 0 },
-                                    .colors = { 0 },
-                                    .normals = { 0 },
-                                    .texcoords = { 0 },
-                                    .solid.indices_size = horizontal_steps*vertical_steps*6,
-                                    .solid.attributes_size = horizontal_steps*vertical_steps*6,
-                                    .solid.triangles = torus->triangles,
-                                    .solid.optimal = torus->optimal,
-                                    .solid.indices = torus->indices,
-                                    .solid.vertices = torus->vertices,
-                                    .solid.colors = torus->colors,
-                                    .solid.normals = torus->normals,
-                                    .solid.texcoords = torus->texcoords };
+    *torus = (struct SolidTorus24){
+        .vertices = { 0 },
+        .triangles = { 0 },
+        .optimal = { 0 },
+        .indices = { 0 },
+        .colors = { 0 },
+        .normals = { 0 },
+        .texcoords = { 0 },
+        .solid.indices_size = horizontal_steps*vertical_steps*6,
+        .solid.attributes_size = horizontal_steps*vertical_steps*6,
+        .solid.triangles = torus->triangles,
+        .solid.optimal = torus->optimal,
+        .solid.indices = torus->indices,
+        .solid.vertices = torus->vertices,
+        .solid.colors = torus->colors,
+        .solid.normals = torus->normals,
+        .solid.texcoords = torus->texcoords
+    };
 
     size_t attributes_offset = 0;
     size_t optimal_offset = 0;

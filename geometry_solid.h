@@ -23,6 +23,8 @@
 #include "stdlib.h"
 #include "stdint.h"
 
+#include "geometry_types.h"
+
 #include "math_types.h"
 #include "math_matrix.h"
 
@@ -43,6 +45,15 @@
 // to cleanup the allocated memory and keeping track of how much is allocated and so on and so forth
 // - I don't want that to happen, this data structure is supposed to hold only static triangle mesh data!
 struct Solid {
+    // - we need two sizes to describe a solid because when we optimize or compress a solid by
+    // merging attributes, the amount of indices neccessary to render stays the same, but we have
+    // less attributes
+    // - so indices_size will always be the 'whole' size, indicating how many indices are to be
+    // rendered independent of the number of attributes, whereas the attributes_size may be a value
+    // less than indices_size, indicating that this is an optimized or compressed solid
+    size_t indices_size;
+    size_t attributes_size;
+
     // - the triangles, are the indices that I would use when I wanted to render with shared
     // vertices instead, these give the minimal set of neccessary attribute triangles that are
     // enough to describe the solid, so that every vertex is at most once in the attributes,
@@ -59,21 +70,14 @@ struct Solid {
     uint32_t* optimal;
     uint32_t* indices;
 
-    // - we need two sizes to describe a solid because when we optimize or compress a solid by
-    // merging attributes, the amount of indices neccessary to render stays the same, but we have
-    // less attributes
-    // - so indices_size will always be the 'whole' size, indicating how many indices are to be
-    // rendered independent of the number of attributes, whereas the attributes_size may be a value
-    // less than indices_size, indicating that this is an optimized or compressed solid
-    size_t indices_size;
-    size_t attributes_size;
-
     float* vertices;
     float* normals;
     uint8_t* colors;
     float* texcoords;
 };
 
+// - there is no solid_create function here because struct Solid is 'abstract', it is only supposed to be
+// created by using a concrete implementation like a cube or a sphere below
 void solid_hard_normals(const struct Solid* solid, float* normals);
 void solid_smooth_normals(const struct Solid* solid, const float* hard_normals, float* smooth_normals);
 void solid_set_color(struct Solid* solid, const uint8_t color[4]);
@@ -132,7 +136,7 @@ struct SolidSphere16 {
     float texcoords[(16*6*2+16*2)*2*3];
 };
 
-void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSphere16* sphere);
+void solid_sphere16_create(uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct SolidSphere16* sphere);
 
 // - at some point I want to have this and other solids to be able to be created with a parameter
 // specifying the subdivision level or something like that, so for these sphere I not only want 16
@@ -140,6 +144,9 @@ void solid_sphere16_create(float radius, const uint8_t color[4], struct SolidSph
 // - this conflicts with my requirement that everything in here should be static allocatable, but I
 // can work around by having these structs have enough space for say a sphere32, and then I put in
 // a sphere24 only, that should work out ok although it will waste some stack space
+// - I did the above and made it so that you can specify the horizontal and vertical steps when
+// creating spheres, if you specify too many steps so that the sphere would not fit into the data
+// structure, I hard cap the steps to their maximum value
 struct SolidSphere32 {
     struct Solid solid;
 
@@ -157,8 +164,11 @@ struct SolidSphere32 {
     float texcoords[(32*14*2+32*2)*2*3];
 };
 
-void solid_sphere32_create(float radius, const uint8_t color[4], struct SolidSphere32* sphere);
+void solid_sphere32_create(uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct SolidSphere32* sphere);
 
+// - I implemented this for testing bsp tree creation, I used this as reference: http://paulbourke.net/geometry/torus/
+// - since the above link describes not only torus but also supertoroids, which are a very easy to implement extension
+// of the described torus method, I implemented supertoroids and use those to generate a simple torus as well
 struct SolidTorus24 {
     struct Solid solid;
 
@@ -173,6 +183,8 @@ struct SolidTorus24 {
 };
 
 void solid_torus24_create(uint32_t horizontal_steps, uint32_t vertical_steps, double radius0, double radius1, const uint8_t color[4], struct SolidTorus24* torus);
+// - the values n1 and n2 of the solid_supertoroid24_create function control the shape of the supertoroid, refer to the
+// table of the above link for a preview, if n1 and n2 are both 1.0, solid_supertoroid24_create will create a simple torus
 void solid_supertoroid24_create(double n1, double n2, uint32_t horizontal_steps, uint32_t vertical_steps, double radius0, double radius1, const uint8_t color[4], struct SolidTorus24* torus);
 
 #endif
