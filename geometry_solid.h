@@ -137,6 +137,7 @@ struct SolidSphere16 {
 };
 
 void solid_sphere16_create(uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct SolidSphere16* sphere);
+void solid_superellipsoid16_create(double n1, double n2, uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct SolidSphere16* sphere);
 
 // - at some point I want to have this and other solids to be able to be created with a parameter
 // specifying the subdivision level or something like that, so for these sphere I not only want 16
@@ -165,6 +166,7 @@ struct SolidSphere32 {
 };
 
 void solid_sphere32_create(uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct SolidSphere32* sphere);
+void solid_superellipsoid32_create(double n1, double n2, uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct SolidSphere32* sphere);
 
 // - I implemented this for testing bsp tree creation, I used this as reference: http://paulbourke.net/geometry/torus/
 // - since the above link describes not only torus but also supertoroids, which are a very easy to implement extension

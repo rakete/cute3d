@@ -499,7 +499,7 @@ void solid_cube_create(float size, const uint8_t color[4], struct SolidBox* cube
     solid_box_create((Vec3f){size, size, size}, color, cube);
 }
 
-void solid_sphereN_create(uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct Solid* sphere) {
+void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct Solid* sphere) {
     if( horizontal_steps > 32 ) {
         horizontal_steps = 32;
     }
@@ -511,11 +511,45 @@ void solid_sphereN_create(uint32_t horizontal_steps, uint32_t vertical_steps, fl
     float points[horizontal_steps*(vertical_steps-1)*3+2*3];
     for(uint32_t j = 0; j < (vertical_steps-1); j++ ) {
         float v = (float)(j+1) * (PI/(float)vertical_steps);
+
+        float sv = sinf(v);
+        float cv = cosf(v);
+
+        float sign_sv = sv < 0.0f ? -1.0f : 1.0f;
+        float sign_cv = cv < 0.0f ? -1.0f : 1.0f;
+
         for( uint32_t i = 0; i < horizontal_steps; i++ ) {
             float u = (float)i * (2.0f*PI/(float)horizontal_steps);
-            points[(i+j*horizontal_steps)*3+0] = radius*sinf(u)*sinf(v);
-            points[(i+j*horizontal_steps)*3+1] = radius*cosf(u)*sinf(v);
-            points[(i+j*horizontal_steps)*3+2] = radius*cosf(v);
+
+            float su = sinf(u);
+            float cu = cosf(u);
+
+            float sign_su = su < 0.0f ? -1.0f : 1.0f;
+            float sign_cu = cu < 0.0f ? -1.0f : 1.0f;
+
+            points[(i+j*horizontal_steps)*3+0] = radius * sign_su * pow(fabs(su), n2) * sign_sv * pow(fabs(sv), n1);
+            points[(i+j*horizontal_steps)*3+1] = radius * sign_cu * pow(fabs(cu), n2) * sign_sv * pow(fabs(sv), n1);
+            points[(i+j*horizontal_steps)*3+2] = radius * sign_cv * pow(fabs(cv), n1);
+
+            /* float alpha = -PI/2.0f + (float)(j+1) * (PI/(float)(vertical_steps)); */
+
+            /* float sa = sinf(alpha); */
+            /* float ca = cosf(alpha); */
+
+            /* float sign_sa = sa < 0.0f ? -1.0f : 1.0f; */
+            /* float sign_ca = ca < 0.0f ? -1.0f : 1.0f; */
+
+            /* float beta = (i+1) * (2.0f*PI) / (float)horizontal_steps; */
+
+            /* float sb = sinf(beta); */
+            /* float cb = cosf(beta); */
+
+            /* float sign_sb = sb < 0.0f ? -1.0f : 1.0f; */
+            /* float sign_cb = cb < 0.0f ? -1.0f : 1.0f; */
+
+            /* points[(i+j*horizontal_steps)*3+0] = radius * sign_ca * pow(fabs(ca), n1) * sign_sb * pow(fabs(sb), n2); */
+            /* points[(i+j*horizontal_steps)*3+1] = radius * sign_ca * pow(fabs(ca), n1) * sign_cb * pow(fabs(cb), n2); */
+            /* points[(i+j*horizontal_steps)*3+2] = radius * -sign_sa * pow(fabs(sa), n1); */
         }
     }
 
@@ -678,8 +712,40 @@ void solid_sphere16_create(uint32_t horizontal_steps, uint32_t vertical_steps, f
         .solid.texcoords = sphere->texcoords
     };
 
-    solid_sphereN_create(horizontal_steps, vertical_steps, radius, color, (struct Solid*)sphere);
+    solid_superellipsoidN_create(1.0f, 1.0f, horizontal_steps, vertical_steps, radius, color, (struct Solid*)sphere);
 }
+
+void solid_superellipsoid16_create(double n1, double n2, uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct SolidSphere16* sphere) {
+    if( horizontal_steps > 16 ) {
+        horizontal_steps = 16;
+    }
+
+    if( vertical_steps > 8 ) {
+        vertical_steps = 8;
+    }
+
+    *sphere = (struct SolidSphere16) {
+        .triangles = { 0 },
+        .optimal = { 0 },
+        .indices = { 0 },
+        .vertices = { 0 },
+        .normals = { 0 },
+        .colors = { 0 },
+        .texcoords = { 0 },
+        .solid.indices_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
+        .solid.attributes_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
+        .solid.triangles = sphere->triangles,
+        .solid.optimal = sphere->optimal,
+        .solid.indices = sphere->indices,
+        .solid.vertices = sphere->vertices,
+        .solid.colors = sphere->colors,
+        .solid.normals = sphere->normals,
+        .solid.texcoords = sphere->texcoords
+    };
+
+    solid_superellipsoidN_create(n1, n2, horizontal_steps, vertical_steps, radius, color, (struct Solid*)sphere);
+}
+
 
 void solid_sphere32_create(uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct SolidSphere32* sphere) {
     if( horizontal_steps > 32 ) {
@@ -709,7 +775,38 @@ void solid_sphere32_create(uint32_t horizontal_steps, uint32_t vertical_steps, f
         .solid.texcoords = sphere->texcoords
     };
 
-    solid_sphereN_create(horizontal_steps, vertical_steps, radius, color, (struct Solid*)sphere);
+    solid_superellipsoidN_create(1.0f, 1.0f, horizontal_steps, vertical_steps, radius, color, (struct Solid*)sphere);
+}
+
+void solid_superellipsoid32_create(double n1, double n2, uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct SolidSphere32* sphere) {
+    if( horizontal_steps > 32 ) {
+        horizontal_steps = 32;
+    }
+
+    if( vertical_steps > 16 ) {
+        vertical_steps = 16;
+    }
+
+    *sphere = (struct SolidSphere32) {
+        .triangles = { 0 },
+        .optimal = { 0 },
+        .indices = { 0 },
+        .vertices = { 0 },
+        .normals = { 0 },
+        .colors = { 0 },
+        .texcoords = { 0 },
+        .solid.indices_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
+        .solid.attributes_size = (horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2)*3,
+        .solid.triangles = sphere->triangles,
+        .solid.optimal = sphere->optimal,
+        .solid.indices = sphere->indices,
+        .solid.vertices = sphere->vertices,
+        .solid.colors = sphere->colors,
+        .solid.normals = sphere->normals,
+        .solid.texcoords = sphere->texcoords
+    };
+
+    solid_superellipsoidN_create(n1, n2, horizontal_steps, vertical_steps, radius, color, (struct Solid*)sphere);
 }
 
 void solid_torus24_create(uint32_t horizontal_steps, uint32_t vertical_steps, double radius0, double radius1, const uint8_t color[4], struct SolidTorus24* torus) {
