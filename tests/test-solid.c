@@ -64,29 +64,54 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Ibo ibo = {0};
     ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);
 
-    struct SolidTetrahedron tetrahedron = {0};
     struct SolidBox box = {0};
     struct SolidBox cube = {0};
-    struct SolidSphere16 sphere16 = {0};
+
+    struct SolidTetrahedron tetrahedron = {0};
+    struct SolidOctahedron octahedron = {0};
+    struct SolidIcosahedron icosahedron = {0};
+    struct SolidDodecahedron dodecahedron = {0};
+
     struct SolidSphere32 sphere32 = {0};
-    solid_tetrahedron_create(1.0, (Color){255, 0, 0, 255}, &tetrahedron);
+    struct SolidSphere32 superellipsoid32 = {0};
+    struct SolidTorus24 torus24 = {0};
+    struct SolidTorus24 supertoroid24 = {0};
     solid_box_create((Vec3f){1.5, 0.25, 1.75}, (Color){0, 255, 0, 255}, &box);
     solid_cube_create(1.0, (Color){255, 0, 255, 255}, &cube);
-    solid_sphere16_create(16, 8, 1.0, (Color){0, 255, 255, 255}, &sphere16);
-    solid_sphere32_create(32, 16, 1.0, (Color){255, 255, 0, 255}, &sphere32);
 
-    solid_optimize((struct Solid*)&tetrahedron);
+    solid_tetrahedron_create(1.0f, (Color){255, 0, 0, 255}, &tetrahedron);
+    solid_octahedron_create(1.0f, (Color){255, 0, 0, 255}, &octahedron);
+    solid_icosahedron_create(0.75f, (Color){255, 0, 0, 255}, &icosahedron);
+    solid_dodecahedron_create(0.75f, (Color){255, 0, 0, 255}, &dodecahedron);
+
+    solid_sphere32_create(32, 16, 1.0f, (Color){255, 255, 0, 255}, &sphere32);
+    solid_superellipsoid32_create(2.5f, 2.5f, 32, 16, 0.75f, (Color){255, 255, 0, 255}, &superellipsoid32);
+
+    solid_torus24_create(24, 24, 0.75f, 0.3f, (Color){0, 255, 255, 255}, &torus24);
+    solid_supertoroid24_create(2.5f, 2.5f, 24, 24, 0.75f, 0.3f, (Color){0, 255, 255, 255}, &supertoroid24);
+
     solid_optimize((struct Solid*)&box);
     solid_optimize((struct Solid*)&cube);
-    solid_optimize((struct Solid*)&sphere16);
+    solid_optimize((struct Solid*)&tetrahedron);
+    solid_optimize((struct Solid*)&octahedron);
+    solid_optimize((struct Solid*)&icosahedron);
+    solid_optimize((struct Solid*)&dodecahedron);
     solid_optimize((struct Solid*)&sphere32);
+    solid_optimize((struct Solid*)&superellipsoid32);
+    solid_optimize((struct Solid*)&torus24);
+    solid_optimize((struct Solid*)&supertoroid24);
 
-    struct VboMesh tetrahedron_mesh,box_mesh,cube_mesh,sphere16_mesh,sphere32_mesh;
-    vbo_mesh_create_from_solid((struct Solid*)&tetrahedron, &vbo, &ibo, &tetrahedron_mesh);
+    struct VboMesh box_mesh, cube_mesh, tetrahedron_mesh, octahedron_mesh, icosahedron_mesh, dodecahedron_mesh, sphere32_mesh, superellipsoid32_mesh, torus24_mesh, supertoroid24_mesh;
     vbo_mesh_create_from_solid((struct Solid*)&box, &vbo, &ibo, &box_mesh);
     vbo_mesh_create_from_solid((struct Solid*)&cube, &vbo, &ibo, &cube_mesh);
-    vbo_mesh_create_from_solid((struct Solid*)&sphere16, &vbo, &ibo, &sphere16_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&tetrahedron, &vbo, &ibo, &tetrahedron_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&octahedron, &vbo, &ibo, &octahedron_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&icosahedron, &vbo, &ibo, &icosahedron_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&dodecahedron, &vbo, &ibo, &dodecahedron_mesh);
     vbo_mesh_create_from_solid((struct Solid*)&sphere32, &vbo, &ibo, &sphere32_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&superellipsoid32, &vbo, &ibo, &superellipsoid32_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&torus24, &vbo, &ibo, &torus24_mesh);
+    vbo_mesh_create_from_solid((struct Solid*)&supertoroid24, &vbo, &ibo, &supertoroid24_mesh);
 
     struct Shader shader = {0};
     shader_create(&shader);
@@ -133,18 +158,28 @@ int32_t main(int32_t argc, char *argv[]) {
         Mat identity;
         mat_identity(identity);
 
-        Mat tetrahedron_transform, box_transform, cube_transform, sphere16_transform, sphere32_transform;
-        mat_translate(identity, (float[4]){ 0.0, 0.0, 2.0, 1.0 }, tetrahedron_transform);
-        mat_translate(identity, (float[4]){ -3.0, 0.0, 2.0, 1.0 }, box_transform);
-        mat_translate(identity, (float[4]){ 3.0, 0.0, 2.0, 1.0 }, cube_transform);
-        mat_translate(identity, (float[4]){ -1.5, 0.0, -2.0, 1.0 }, sphere16_transform);
-        mat_translate(identity, (float[4]){ 1.5, 0.0, -2.0, 1.0 }, sphere32_transform);
+        Mat box_transform, cube_transform, tetrahedron_transform, octahedron_transform, icosahedron_transform, dodecahedron_transform, sphere32_transform, superellipsoid32_transform, torus24_transform, supertoroid24_transform;
+        mat_translate(identity, (float[4]){ -1.5, 0.0, 3.0, 1.0 }, box_transform);
+        mat_translate(identity, (float[4]){ 1.5, 0.0, 3.0, 1.0 }, cube_transform);
+        mat_translate(identity, (float[4]){ -4.5, 0.0, 0.0, 1.0 }, tetrahedron_transform);
+        mat_translate(identity, (float[4]){ -1.5, 0.0, 0.0, 1.0 }, octahedron_transform);
+        mat_translate(identity, (float[4]){ 1.5, 0.0, 0.0, 1.0 }, icosahedron_transform);
+        mat_translate(identity, (float[4]){ 4.5, 0.0, 0.0, 1.0 }, dodecahedron_transform);
+        mat_translate(identity, (float[4]){ 1.5, 0.0, -3.0, 1.0 }, sphere32_transform);
+        mat_translate(identity, (float[4]){ 4.5, 0.0, -3.0, 1.0 }, superellipsoid32_transform);
+        mat_translate(identity, (float[4]){ -1.5, 0.0, -3.0, 1.0 }, torus24_transform);
+        mat_translate(identity, (float[4]){ -4.5, 0.0, -3.0, 1.0 }, supertoroid24_transform);
 
-        vbo_mesh_render(&tetrahedron_mesh, &shader, &arcball.camera, tetrahedron_transform);
         vbo_mesh_render(&box_mesh, &shader, &arcball.camera, box_transform);
         vbo_mesh_render(&cube_mesh, &shader, &arcball.camera, cube_transform);
-        vbo_mesh_render(&sphere16_mesh, &shader, &arcball.camera, sphere16_transform);
+        vbo_mesh_render(&tetrahedron_mesh, &shader, &arcball.camera, tetrahedron_transform);
+        vbo_mesh_render(&octahedron_mesh, &shader, &arcball.camera, octahedron_transform);
+        vbo_mesh_render(&icosahedron_mesh, &shader, &arcball.camera, icosahedron_transform);
+        vbo_mesh_render(&dodecahedron_mesh, &shader, &arcball.camera, dodecahedron_transform);
         vbo_mesh_render(&sphere32_mesh, &shader, &arcball.camera, sphere32_transform);
+        vbo_mesh_render(&superellipsoid32_mesh, &shader, &arcball.camera, superellipsoid32_transform);
+        vbo_mesh_render(&torus24_mesh, &shader, &arcball.camera, torus24_transform);
+        vbo_mesh_render(&supertoroid24_mesh, &shader, &arcball.camera, supertoroid24_transform);
 
         Quat grid_rotation = {0};
         quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
@@ -152,11 +187,16 @@ int32_t main(int32_t argc, char *argv[]) {
         quat_to_mat(grid_rotation, grid_transform);
         draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 0.03f, 12.0f, 12.0f, 12);
 
-        draw_solid_normals(&global_dynamic_canvas, 0, tetrahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&tetrahedron, 0.05f);
         draw_solid_normals(&global_dynamic_canvas, 0, box_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&box, 0.05f);
         draw_solid_normals(&global_dynamic_canvas, 0, cube_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&cube, 0.05f);
-        draw_solid_normals(&global_dynamic_canvas, 0, sphere16_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&sphere16, 0.05f);
+        draw_solid_normals(&global_dynamic_canvas, 0, tetrahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&tetrahedron, 0.05f);
+        draw_solid_normals(&global_dynamic_canvas, 0, octahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&octahedron, 0.05f);
+        draw_solid_normals(&global_dynamic_canvas, 0, icosahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&icosahedron, 0.05f);
+        draw_solid_normals(&global_dynamic_canvas, 0, dodecahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&dodecahedron, 0.05f);
         draw_solid_normals(&global_dynamic_canvas, 0, sphere32_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&sphere32, 0.05f);
+        draw_solid_normals(&global_dynamic_canvas, 0, superellipsoid32_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&superellipsoid32, 0.05f);
+        draw_solid_normals(&global_dynamic_canvas, 0, torus24_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&torus24, 0.05f);
+        draw_solid_normals(&global_dynamic_canvas, 0, supertoroid24_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&supertoroid24, 0.05f);
 
         canvas_render_layers(&global_dynamic_canvas, 0, 0, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);

@@ -107,6 +107,51 @@ struct SolidTetrahedron {
 
 void solid_tetrahedron_create(float radius, const uint8_t color[4], struct SolidTetrahedron* tet);
 
+struct SolidOctahedron {
+    struct Solid solid;
+
+    uint32_t indices[24];
+    uint32_t optimal[24];
+    uint32_t triangles[24];
+
+    float vertices[72];
+    float normals[72];
+    uint8_t colors[96];
+    float texcoords[48];
+};
+
+void solid_octahedron_create(float radius, const uint8_t color[4], struct SolidOctahedron* oct);
+
+struct SolidIcosahedron {
+    struct Solid solid;
+
+    uint32_t indices[60];
+    uint32_t optimal[60];
+    uint32_t triangles[60];
+
+    float vertices[180];
+    float normals[180];
+    uint8_t colors[240];
+    float texcoords[120];
+};
+
+void solid_icosahedron_create(float radius, const uint8_t color[4], struct SolidIcosahedron* ico);
+
+struct SolidDodecahedron {
+    struct Solid solid;
+
+    uint32_t indices[108];
+    uint32_t optimal[108];
+    uint32_t triangles[108];
+
+    float vertices[324];
+    float normals[324];
+    uint8_t colors[432];
+    float texcoords[216];
+};
+
+void solid_dodecahedron_create(float radius, const uint8_t color[4], struct SolidDodecahedron* dod);
+
 struct SolidBox {
     struct Solid solid;
 

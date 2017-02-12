@@ -323,10 +323,7 @@ void solid_tetrahedron_create(float radius, const uint8_t color[4], struct Solid
                                                      0, 2, 3,
                                                      0, 3, 1,
                                                      3, 2, 1 },
-                                      .optimal = { 0, 1, 2,
-                                                   3, 4, 5,
-                                                   6, 7, 8,
-                                                   9, 10, 11 },
+                                      .optimal = { 0 },
                                       .indices = { 0 },
                                       .colors = { 0 },
                                       .normals = { 0 },
@@ -369,22 +366,308 @@ void solid_tetrahedron_create(float radius, const uint8_t color[4], struct Solid
         tet->vertices[i*9+2] = points[a*3+2];
 
         tet->indices[i*3+0] = i*3+0;
+        tet->optimal[i*3+0] = i*3+0;
 
         tet->vertices[i*9+3] = points[b*3+0];
         tet->vertices[i*9+4] = points[b*3+1];
         tet->vertices[i*9+5] = points[b*3+2];
 
         tet->indices[i*3+1] = i*3+1;
+        tet->optimal[i*3+1] = i*3+1;
 
         tet->vertices[i*9+6] = points[c*3+0];
         tet->vertices[i*9+7] = points[c*3+1];
         tet->vertices[i*9+8] = points[c*3+2];
 
         tet->indices[i*3+2] = i*3+2;
+        tet->optimal[i*3+2] = i*3+2;
     }
 
     solid_hard_normals((struct Solid*)tet, tet->normals);
     solid_set_color((struct Solid*)tet, color);
+}
+
+void solid_octahedron_create(float radius, const uint8_t color[4], struct SolidOctahedron* oct) {
+    *oct = (struct SolidOctahedron){ .vertices = { 0 },
+                                     .triangles = { 4, 3, 0,
+                                                    4, 0, 1,
+                                                    4, 1, 2,
+                                                    4, 2, 3,
+                                                    5, 0, 3,
+                                                    5, 1, 0,
+                                                    5, 2, 1,
+                                                    5, 3, 2 },
+                                     .optimal = { 0 },
+                                     .indices = { 0 },
+                                     .colors = { 0 },
+                                     .normals = { 0 },
+                                     .texcoords = { 0 },
+                                     .solid.indices_size = 8*3,
+                                     .solid.attributes_size = 8*3,
+                                     .solid.triangles = oct->triangles,
+                                     .solid.optimal = oct->optimal,
+                                     .solid.indices = oct->indices,
+                                     .solid.vertices = oct->vertices,
+                                     .solid.colors = oct->colors,
+                                     .solid.normals = oct->normals,
+                                     .solid.texcoords = oct->texcoords };
+
+    float a = radius / (sqrt(2.0f));
+    float b = radius;
+
+    float points[18];
+    points[0*3+0] = -a; points[0*3+1] = 0; points[0*3+2] = a;
+    points[1*3+0] = a; points[1*3+1] = 0; points[1*3+2] = a;
+    points[2*3+0] = a; points[2*3+1] = 0; points[2*3+2] = -a;
+    points[3*3+0] = -a; points[3*3+1] = 0; points[3*3+2] = -a;
+    points[4*3+0] = 0; points[4*3+1] = b; points[4*3+2] = 0;
+    points[5*3+0] = 0; points[5*3+1] = -b; points[5*3+2] = 0;
+
+    for( uint32_t i = 0; i < 8; i++ ) {
+        uint32_t a = oct->triangles[i*3+0];
+        uint32_t b = oct->triangles[i*3+1];
+        uint32_t c = oct->triangles[i*3+2];
+
+        oct->vertices[i*9+0] = points[a*3+0];
+        oct->vertices[i*9+1] = points[a*3+1];
+        oct->vertices[i*9+2] = points[a*3+2];
+
+        oct->indices[i*3+0] = i*3+0;
+        oct->optimal[i*3+0] = i*3+0;
+
+        oct->vertices[i*9+3] = points[b*3+0];
+        oct->vertices[i*9+4] = points[b*3+1];
+        oct->vertices[i*9+5] = points[b*3+2];
+
+        oct->indices[i*3+1] = i*3+1;
+        oct->optimal[i*3+1] = i*3+1;
+
+        oct->vertices[i*9+6] = points[c*3+0];
+        oct->vertices[i*9+7] = points[c*3+1];
+        oct->vertices[i*9+8] = points[c*3+2];
+
+        oct->indices[i*3+2] = i*3+2;
+        oct->optimal[i*3+2] = i*3+2;
+    }
+
+    solid_hard_normals((struct Solid*)oct, oct->normals);
+    solid_set_color((struct Solid*)oct, color);
+}
+
+void solid_icosahedron_create(float radius, const uint8_t color[4], struct SolidIcosahedron* ico) {
+    *ico = (struct SolidIcosahedron){ .vertices = { 0 },
+                                      .triangles = { 1, 6, 4,   /*  0  b -a   -b  a  0    b  a  0 */
+                                                     0, 4, 6,   /*  0  b  a    b  a  0   -b  a  0 */
+                                                     0, 9, 2,   /*  0  b  a   -a  0  b    0 -b  a */
+                                                     0, 2, 8,   /*  0  b  a    0 -b  a    a  0  b */
+                                                     1, 10, 3,  /*  0  b -a    a  0 -b    0 -b -a */
+                                                     1, 3, 11,  /*  0  b -a    0 -b -a   -a  0 -b */
+                                                     2, 7, 5,   /*  0 -b  a   -b -a  0    b -a  0 */
+                                                     3, 5, 7,   /*  0 -b -a    b -a  0   -b -a  0 */
+                                                     6, 11, 9,  /* -b  a  0   -a  0 -b   -a  0  b */
+                                                     7, 9, 11,  /* -b -a  0   -a  0  b   -a  0 -b */
+                                                     4, 8, 10,  /*  b  a  0    a  0  b    a  0 -b */
+                                                     5, 10, 8,  /*  b -a  0    a  0 -b    a  0  b */
+                                                     0, 6, 9,   /*  0  b  a   -b  a  0   -a  0  b */
+                                                     0, 8, 4,   /*  0  b  a    a  0  b    b  a  0 */
+                                                     1, 11, 6,  /*  0  b -a   -a  0 -b   -b  a  0 */
+                                                     1, 4, 10,  /*  0  b -a    b  a  0    a  0 -b */
+                                                     3, 7, 11,  /*  0 -b -a   -b -a  0   -a  0 -b */
+                                                     3, 10, 5,  /*  0 -b -a    a  0 -b    b -a  0 */
+                                                     2, 9, 7,   /*  0 -b  a   -a  0  b   -b -a  0 */
+                                                     2, 5, 8 }, /*  0 -b  a    b -a  0    a  0  b */
+                                      .optimal = { 0 },
+                                      .indices = { 0 },
+                                      .colors = { 0 },
+                                      .normals = { 0 },
+                                      .texcoords = { 0 },
+                                      .solid.indices_size = 20*3,
+                                      .solid.attributes_size = 20*3,
+                                      .solid.triangles = ico->triangles,
+                                      .solid.optimal = ico->optimal,
+                                      .solid.indices = ico->indices,
+                                      .solid.vertices = ico->vertices,
+                                      .solid.colors = ico->colors,
+                                      .solid.normals = ico->normals,
+                                      .solid.texcoords = ico->texcoords };
+
+    float phi = (1.0f + sqrtf(5.0f)) / 2.0f;
+    float a = radius;
+    float b = radius / (phi);
+
+    float points[12*3] = {0};
+    points[0*3+0] = 0; points[0*3+1] = b; points[0*3+2] = a; // 0 b a
+    points[1*3+0] = 0; points[1*3+1] = b; points[1*3+2] = -a; // 0 b -a
+    points[2*3+0] = 0; points[2*3+1] = -b; points[2*3+2] = a; // 0 -b a
+    points[3*3+0] = 0; points[3*3+1] = -b; points[3*3+2] = -a; // 0 -b -a
+
+    points[4*3+0] = b; points[4*3+1] = a; points[4*3+2] = 0; // b a 0
+    points[5*3+0] = b; points[5*3+1] = -a; points[5*3+2] = 0; // b -a 0
+    points[6*3+0] = -b; points[6*3+1] = a; points[6*3+2] = 0; // -b a 0
+    points[7*3+0] = -b; points[7*3+1] = -a; points[7*3+2] = 0; // -b -a 0
+
+    points[8*3+0] = a; points[8*3+1] = 0; points[8*3+2] = b; // a 0 b
+    points[9*3+0] = -a; points[9*3+1] = 0; points[9*3+2] = b; // -a 0 b
+    points[10*3+0] = a; points[10*3+1] = 0; points[10*3+2] = -b; // a 0 -b
+    points[11*3+0] = -a; points[11*3+1] = 0; points[11*3+2] = -b; // -a 0 -b
+
+    for( uint32_t i = 0; i < 20; i++ ) {
+        uint32_t a = ico->triangles[i*3+0];
+        uint32_t b = ico->triangles[i*3+1];
+        uint32_t c = ico->triangles[i*3+2];
+
+        ico->vertices[i*9+0] = points[a*3+0];
+        ico->vertices[i*9+1] = points[a*3+1];
+        ico->vertices[i*9+2] = points[a*3+2];
+
+        ico->indices[i*3+0] = i*3+0;
+        ico->optimal[i*3+0] = i*3+0;
+
+        ico->vertices[i*9+3] = points[b*3+0];
+        ico->vertices[i*9+4] = points[b*3+1];
+        ico->vertices[i*9+5] = points[b*3+2];
+
+        ico->indices[i*3+1] = i*3+1;
+        ico->optimal[i*3+1] = i*3+1;
+
+        ico->vertices[i*9+6] = points[c*3+0];
+        ico->vertices[i*9+7] = points[c*3+1];
+        ico->vertices[i*9+8] = points[c*3+2];
+
+        ico->indices[i*3+2] = i*3+2;
+        ico->optimal[i*3+2] = i*3+2;
+    }
+
+    solid_hard_normals((struct Solid*)ico, ico->normals);
+    solid_set_color((struct Solid*)ico, color);
+}
+
+void solid_dodecahedron_create(float radius, const uint8_t color[4], struct SolidDodecahedron* dod) {
+    *dod = (struct SolidDodecahedron){ .vertices = { 0 },
+                                       .triangles = { 12, 0, 13,  /*  b  b  b    0  r  c   -b  b  b  */
+                                                      12, 13, 8,  /*  b  b  b   -b  b  b    c  0  r  */
+                                                      13, 9, 8,   /* -b  b  b   -c  0  r    c  0  r  */
+
+                                                      16, 2, 14,  /* -b -b  b    0 -r  c    b -b  b  */
+                                                      16, 14, 9,  /* -b -b  b    b -b  b   -c  0  r  */
+                                                      14, 8, 9,   /*  b -b  b    c  0  r   -c 0 r  */
+
+                                                      17, 3, 19,  /*  b -b -b    0 -r -c   -b -b -b  */
+                                                      17, 19, 10, /*  b -b -b   -b -b -b    c  0 -r  */
+                                                      19, 11, 10, /* -b -b -b   -c  0 -r    c  0 -r  */
+
+                                                      18, 1, 15,  /* -b  b -b    0  r -c    b  b -b  */
+                                                      18, 15, 11, /* -b  b -b    b  b -b   -c  0 -r  */
+                                                      15, 10, 11, /*  b  b -b    c  0 -r   -c  0 -r */
+
+                                                      1, 0, 12,   /*  0  r -c    0  r  c    b  b  b  */
+                                                      1, 12, 15,  /*  0  r -c    b  b  b    b  b -b  */
+                                                      12, 4, 15,  /*  b  b  b    r  c  0    b  b -b  */
+
+                                                      0, 1, 18,   /*  0  r  c    0  r -c   -b  b -b  */
+                                                      0, 18, 13,  /*  0  r  c   -b  b -b   -b  b  b  */
+                                                      18, 6, 13,  /* -b  b -b   -r  c  0   -b  b  b  */
+
+                                                      3, 2, 16,   /*  0 -r -c    0 -r  c   -b -b  b  */
+                                                      3, 16, 19,  /*  0 -r -c   -b -b  b   -b -b -b  */
+                                                      16, 7, 19,  /* -b -b  b   -r -c  0   -b -b -b  */
+
+                                                      2, 3, 17,   /*  0 -r  c    0 -r -c    b -b -b  */
+                                                      2, 17, 14,  /*  0 -r  c    b -b -b    b -b  b  */
+                                                      17, 5, 14,  /*  b -b -b    r -c  0    b -b  b  */
+
+                                                      12, 8, 14,  /*  b  b  b    c  0  r    b -b  b  */
+                                                      12, 14, 4,  /*  b  b  b    b -b  b    r  c  0  */
+                                                      14, 5, 4,   /*  b -b  b    r -c  0    r  c  0  */
+
+                                                      17, 10, 15, /*  b -b -b    c  0 -r    b  b -b  */
+                                                      17, 15, 5,  /*  b -b -b    b  b -b    r -c  0  */
+                                                      15, 4, 5,   /*  b  b -b    r  c  0    r -c  0  */
+
+                                                      18, 11, 19, /* -b  b -b   -c  0 -r   -b -b -b  */
+                                                      18, 19, 6,  /* -b  b -b   -b -b -b   -r  c  0  */
+                                                      19, 7, 6,   /* -b -b -b   -r -c  0   -r  c  0  */
+
+                                                      16, 9, 13,  /* -b -b  b   -c  0  r   -b  b  b  */
+                                                      16, 13, 7,  /* -b -b  b   -b  b  b   -r -c  0  */
+                                                      13, 6, 7 }, /* -b  b  b   -r  c  0   -r -c  0  */
+                                       .optimal = { 0 },
+                                       .indices = { 0 },
+                                       .colors = { 0 },
+                                       .normals = { 0 },
+                                       .texcoords = { 0 },
+                                       .solid.indices_size = 36*3,
+                                       .solid.attributes_size = 36*3,
+                                       .solid.triangles = dod->triangles,
+                                       .solid.optimal = dod->optimal,
+                                       .solid.indices = dod->indices,
+                                       .solid.vertices = dod->vertices,
+                                       .solid.colors = dod->colors,
+                                       .solid.normals = dod->normals,
+                                       .solid.texcoords = dod->texcoords };
+
+    float phi = (1.0f + sqrtf(5.0f)) / 2.0f;
+    float r = radius;
+    float b = radius / phi;
+    float c = (2.0f - phi) * radius;
+
+    float points[20*3] = {0};
+    points[0*3+0] = 0; points[0*3+1] = r; points[0*3+2] = c; // 0 r c
+    points[1*3+0] = 0; points[1*3+1] = r; points[1*3+2] = -c; // 0 r -c
+    points[2*3+0] = 0; points[2*3+1] = -r; points[2*3+2] = c; // 0 -r c
+    points[3*3+0] = 0; points[3*3+1] = -r; points[3*3+2] = -c; // 0 -r -c
+
+    points[4*3+0] = r; points[4*3+1] = c; points[4*3+2] = 0; // r c 0
+    points[5*3+0] = r; points[5*3+1] = -c; points[5*3+2] = 0; // r -c 0
+    points[6*3+0] = -r; points[6*3+1] = c; points[6*3+2] = 0; // -r c 0
+    points[7*3+0] = -r; points[7*3+1] = -c; points[7*3+2] = 0; // -r -c 0
+
+    points[8*3+0] = c; points[8*3+1] = 0; points[8*3+2] = r; // c 0 r
+    points[9*3+0] = -c; points[9*3+1] = 0; points[9*3+2] = r; // -c 0 r
+    points[10*3+0] = c; points[10*3+1] = 0; points[10*3+2] = -r; // c 0 -r
+    points[11*3+0] = -c; points[11*3+1] = 0; points[11*3+2] = -r; // -c 0 -r
+
+    points[12*3+0] = b; points[12*3+1] = b; points[12*3+2] = b; // b b b
+
+    points[13*3+0] = -b; points[13*3+1] = b; points[13*3+2] = b; // -b b b
+    points[14*3+0] = b; points[14*3+1] = -b; points[14*3+2] = b; // b -b b
+    points[15*3+0] = b; points[15*3+1] = b; points[15*3+2] = -b; // b b -b
+
+    points[16*3+0] = -b; points[16*3+1] = -b; points[16*3+2] = b; // -b -b b
+    points[17*3+0] = b; points[17*3+1] = -b; points[17*3+2] = -b; // b -b -b
+    points[18*3+0] = -b; points[18*3+1] = b; points[18*3+2] = -b; // -b b -b
+
+    points[19*3+0] = -b; points[19*3+1] = -b; points[19*3+2] = -b; // -b -b -b
+
+    for( uint32_t i = 0; i < 36; i++ ) {
+        uint32_t a = dod->triangles[i*3+0];
+        uint32_t b = dod->triangles[i*3+1];
+        uint32_t c = dod->triangles[i*3+2];
+
+        dod->vertices[i*9+0] = points[a*3+0];
+        dod->vertices[i*9+1] = points[a*3+1];
+        dod->vertices[i*9+2] = points[a*3+2];
+
+        dod->indices[i*3+0] = i*3+0;
+        dod->optimal[i*3+0] = i*3+0;
+
+        dod->vertices[i*9+3] = points[b*3+0];
+        dod->vertices[i*9+4] = points[b*3+1];
+        dod->vertices[i*9+5] = points[b*3+2];
+
+        dod->indices[i*3+1] = i*3+1;
+        dod->optimal[i*3+1] = i*3+1;
+
+        dod->vertices[i*9+6] = points[c*3+0];
+        dod->vertices[i*9+7] = points[c*3+1];
+        dod->vertices[i*9+8] = points[c*3+2];
+
+        dod->indices[i*3+2] = i*3+2;
+        dod->optimal[i*3+2] = i*3+2;
+    }
+
+    solid_hard_normals((struct Solid*)dod, dod->normals);
+    solid_set_color((struct Solid*)dod, color);
 }
 
 void solid_box_create(Vec3f size, const uint8_t color[4], struct SolidBox* box) {
