@@ -45,19 +45,11 @@
 #endif
 
 #ifndef VBO_DEFAULT_ALLOC
-#ifdef CUTE_BUILD_ES2
 #define VBO_DEFAULT_ALLOC 32786
-#else
-#define VBO_DEFAULT_ALLOC 32786
-#endif
 #endif
 
 #ifndef IBO_DEFAULT_ALLOC
-#ifdef CUTE_BUILD_ES2
 #define IBO_DEFAULT_ALLOC 32786
-#else
-#define IBO_DEFAULT_ALLOC 32786
-#endif
 #endif
 
 WARN_UNUSED_RESULT int32_t init_vbo();

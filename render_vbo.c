@@ -151,10 +151,15 @@ size_t vbo_alloc(struct Vbo* vbo, size_t n) {
     log_assert( vbo != NULL );
     log_assert( n > 0 );
 
+    size_t alloc_n = VBO_DEFAULT_ALLOC;
+    while( alloc_n < n ) {
+        alloc_n += VBO_DEFAULT_ALLOC;
+    }
+
     size_t resized_bytes = 0;
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         if( vbo->buffer[i].id ) {
-            size_t new_bytes = (vbo->capacity + n) * vbo->components[i].size * vbo->components[i].bytes;
+            size_t new_bytes = (vbo->capacity + alloc_n) * vbo->components[i].size * vbo->components[i].bytes;
             size_t old_bytes = vbo->capacity * vbo->components[i].size * vbo->components[i].bytes;
 
             resized_bytes = ogl_buffer_resize(&vbo->buffer[i].id, old_bytes, new_bytes);
@@ -164,9 +169,15 @@ size_t vbo_alloc(struct Vbo* vbo, size_t n) {
 
     // - only increase capacity if all vbos were resized
     // - resized_bytes is different per buffer, so just return n instead
-    log_assert( resized_bytes > 0 );
-    vbo->capacity += n;
-    return n;
+    if( resized_bytes > 0 ) {
+        vbo->capacity += alloc_n;
+        return alloc_n;
+    } else {
+        log_fail(__FILE__, __LINE__, "failed to allocate vbo space\n");
+        log_assert( resized_bytes == 0 );
+    }
+
+    return 0;
 }
 
 size_t vbo_available_capacity(struct Vbo* vbo) {
@@ -180,8 +191,8 @@ size_t vbo_available_capacity(struct Vbo* vbo) {
 }
 
 void* vbo_map(struct Vbo* vbo, int32_t i, size_t offset, size_t length, GLbitfield access) {
-    log_assert( offset < vbo->capacity );
     log_assert( vbo != NULL );
+    log_assert( offset < vbo->capacity );
     log_assert( i >= 0 );
     log_assert( vbo->buffer[i].id > 0 );
     log_assert( offset + length <= vbo->capacity );
@@ -263,7 +274,11 @@ size_t ibo_alloc(struct Ibo* ibo, size_t n) {
     log_assert( ibo->buffer->id > 0 );
 
     size_t size_bytes = ibo->capacity * ibo->index.bytes;
-    size_t alloc_bytes = n * ibo->index.bytes;
+    size_t alloc_n = IBO_DEFAULT_ALLOC;
+    while( alloc_n < n ) {
+        alloc_n += IBO_DEFAULT_ALLOC;
+    }
+    size_t alloc_bytes = alloc_n * ibo->index.bytes;
 
     log_assert( size_bytes + alloc_bytes < PTRDIFF_MAX );
     size_t resized_bytes = ogl_buffer_resize(&ibo->buffer->id, size_bytes, size_bytes + alloc_bytes);
@@ -271,10 +286,10 @@ size_t ibo_alloc(struct Ibo* ibo, size_t n) {
     // - we could return resized_bytes, but all other alloc functions return the number
     // of elements allocated, so we just do the same here
     if( resized_bytes == alloc_bytes ) {
-        ibo->capacity += n;
-        return n;
+        ibo->capacity += alloc_n;
+        return alloc_n;
     } else {
-        log_fail(__FILE__, __LINE__, "failed to allocate indices\n");
+        log_fail(__FILE__, __LINE__, "failed to allocate ibo space\n");
         log_assert( resized_bytes == 0 );
     }
 
@@ -519,12 +534,8 @@ size_t vbo_mesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
         size_t resized_n = 0;
         size_t available_n = vbo_available_capacity(mesh->vbo);
         if( available_n < n ) {
-            size_t alloc_n = VBO_DEFAULT_ALLOC;
-            while( alloc_n < n ) {
-                alloc_n += VBO_DEFAULT_ALLOC;
-            }
-            resized_n = vbo_alloc(mesh->vbo, alloc_n);
-            log_assert( resized_n == alloc_n );
+            resized_n = vbo_alloc(mesh->vbo, n);
+            log_assert( resized_n >= n );
         }
 
         if( vbo_available_capacity(mesh->vbo) >= n ) {
@@ -562,12 +573,8 @@ size_t vbo_mesh_alloc_indices(struct VboMesh* mesh, size_t n) {
         size_t resized_n = 0;
         size_t available_n = ibo_available_capacity(mesh->ibo);
         if( available_n < n ) {
-            size_t alloc_n = IBO_DEFAULT_ALLOC;
-            while( alloc_n < n ) {
-                alloc_n += IBO_DEFAULT_ALLOC;
-            }
-            resized_n = ibo_alloc(mesh->ibo, alloc_n);
-            log_assert( resized_n == alloc_n );
+            resized_n = ibo_alloc(mesh->ibo, n);
+            log_assert( resized_n >= n );
         }
 
         if( ibo_available_capacity(mesh->ibo) >= n ) {
