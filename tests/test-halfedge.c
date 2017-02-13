@@ -71,8 +71,8 @@ int32_t main(int32_t argc, char *argv[]) {
     solid_tetrahedron_create(1.0, (Color){255, 0, 0, 255}, &tetrahedron);
     solid_box_create((Vec3f){1.0, 1.0, 1.0}, (Color){0, 255, 0, 255}, &box);
     solid_cube_create(1.0, (Color){255, 0, 255, 255}, &cube);
-    solid_sphere16_create(1.0, (Color){0, 255, 255, 255}, &sphere16);
-    solid_sphere32_create(1.0, (Color){255, 255, 0, 255}, &sphere32);
+    solid_sphere16_create(16, 8, 1.0, (Color){0, 255, 255, 255}, &sphere16);
+    solid_sphere32_create(32, 16, 1.0, (Color){255, 255, 0, 255}, &sphere32);
 
     struct HalfEdgeMesh tetrahedron_hemesh = {0};
     struct HalfEdgeMesh box_hemesh = {0};
