@@ -32,8 +32,16 @@
 
 #include "render_texture.h"
 
-#ifndef DEFAULT_CANVAS_ALLOC
-#define DEFAULT_CANVAS_ALLOC 32768
+#ifndef CANVAS_ATTRIBUTES_ALLOC
+#define CANVAS_ATTRIBUTES_ALLOC 32768
+#endif
+
+#ifndef CANVAS_INDICES_ALLOC
+#define CANVAS_INDICES_ALLOC 32768
+#endif
+
+#ifndef CANVAS_TEXT_ALLOC
+#define CANVAS_TEXT_ALLOC 32768
 #endif
 
 #ifndef MAX_CANVAS_LAYERS

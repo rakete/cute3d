@@ -387,9 +387,9 @@ size_t canvas_alloc_attributes(struct Canvas* canvas, uint32_t attribute_i, size
     size_t old_capacity = canvas->attributes[attribute_i].capacity;
 
     log_assert( INT32_MAX - n > old_capacity );
-    size_t alloc_n = DEFAULT_CANVAS_ALLOC;
+    size_t alloc_n = CANVAS_ATTRIBUTES_ALLOC;
     while( alloc_n < n ) {
-        alloc_n += DEFAULT_CANVAS_ALLOC;
+        alloc_n += CANVAS_ATTRIBUTES_ALLOC;
     }
     size_t new_capacity = old_capacity + alloc_n;
 
@@ -399,11 +399,13 @@ size_t canvas_alloc_attributes(struct Canvas* canvas, uint32_t attribute_i, size
     float* old_array_pointer = canvas->attributes[attribute_i].array;
     float* new_array_pointer = (float*)realloc(old_array_pointer, new_capacity * size * sizeof(float));
 
-    log_assert( new_array_pointer != NULL );
-    canvas->attributes[attribute_i].array = new_array_pointer;
-    canvas->attributes[attribute_i].capacity = new_capacity;
+    if( new_array_pointer != NULL ) {
+        canvas->attributes[attribute_i].array = new_array_pointer;
+        canvas->attributes[attribute_i].capacity = new_capacity;
+        return alloc_n;
+    }
 
-    return n;
+    return 0;
 }
 
 size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, GLenum primitive_type, size_t n) {
@@ -433,20 +435,22 @@ size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t text
 
     size_t old_capacity = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].capacity;
     log_assert( INT32_MAX - n > old_capacity );
-    size_t alloc_n = DEFAULT_CANVAS_ALLOC;
+    size_t alloc_n = CANVAS_INDICES_ALLOC;
     while( alloc_n < n ) {
-        alloc_n += DEFAULT_CANVAS_ALLOC;
+        alloc_n += CANVAS_INDICES_ALLOC;
     }
     size_t new_capacity = old_capacity + alloc_n;
 
     GLuint* old_array_pointer = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].array;
     GLuint* new_array_pointer = realloc(old_array_pointer, new_capacity * sizeof(GLuint));
 
-    log_assert( new_array_pointer != NULL );
-    canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].array = new_array_pointer;
-    canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].capacity = new_capacity;
+    if( new_array_pointer != NULL ) {
+        canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].array = new_array_pointer;
+        canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].capacity = new_capacity;
+        return alloc_n;
+    }
 
-    return n;
+    return 0;
 }
 
 size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, const char* font_name, int32_t projection_i, size_t n) {
@@ -464,20 +468,22 @@ size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, const char* fon
 
     size_t old_capacity = canvas->layer[layer_i].text[font_i][projection_i].capacity;
     log_assert( INT32_MAX - n > old_capacity );
-    size_t alloc_n = DEFAULT_CANVAS_ALLOC;
+    size_t alloc_n = CANVAS_TEXT_ALLOC;
     while( alloc_n < n ) {
-        alloc_n += DEFAULT_CANVAS_ALLOC;
+        alloc_n += CANVAS_TEXT_ALLOC;
     }
     size_t new_capacity = old_capacity + alloc_n;
 
     GLuint* old_array_pointer = canvas->layer[layer_i].text[font_i][projection_i].array;
     GLuint* new_array_pointer = realloc(old_array_pointer, new_capacity * sizeof(GLuint));
 
-    log_assert( new_array_pointer != NULL );
-    canvas->layer[layer_i].text[font_i][projection_i].array = new_array_pointer;
-    canvas->layer[layer_i].text[font_i][projection_i].capacity = new_capacity;
+    if( new_array_pointer != NULL ) {
+        canvas->layer[layer_i].text[font_i][projection_i].array = new_array_pointer;
+        canvas->layer[layer_i].text[font_i][projection_i].capacity = new_capacity;
+        return alloc_n;
+    }
 
-    return n;
+    return 0;
 }
 
 void canvas_clear(struct Canvas* canvas) {
