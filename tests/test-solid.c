@@ -87,7 +87,7 @@ int32_t main(int32_t argc, char *argv[]) {
     solid_sphere32_create(32, 16, 1.0f, (Color){255, 255, 0, 255}, &sphere32);
     solid_superellipsoid32_create(2.5f, 2.5f, 32, 16, 0.75f, (Color){255, 255, 0, 255}, &superellipsoid32);
 
-    solid_torus24_create(24, 24, 0.75f, 0.3f, (Color){0, 255, 255, 255}, &torus24);
+    solid_torus24_create(24, 24, 0.5f, 0.5f, (Color){0, 255, 255, 255}, &torus24);
     solid_supertoroid24_create(2.5f, 2.5f, 24, 24, 0.75f, 0.3f, (Color){0, 255, 255, 255}, &supertoroid24);
 
     solid_optimize((struct Solid*)&box);
@@ -129,7 +129,7 @@ int32_t main(int32_t argc, char *argv[]) {
     /* shader_set_uniform(&shader, SHADER_UNIFORM_AMBIENT_LIGHT, "4f", 4, GL_FLOAT, foo); */
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){0.0,8.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
+    arcball_create(window, (Vec4f){0.0,6.0,10.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
 
     while (true) {
         SDL_Event event;

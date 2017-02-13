@@ -639,31 +639,84 @@ void solid_dodecahedron_create(float radius, const uint8_t color[4], struct Soli
 
     points[19*3+0] = -b; points[19*3+1] = -b; points[19*3+2] = -b; // -b -b -b
 
-    for( uint32_t i = 0; i < 36; i++ ) {
-        uint32_t a = dod->triangles[i*3+0];
-        uint32_t b = dod->triangles[i*3+1];
-        uint32_t c = dod->triangles[i*3+2];
+    uint32_t optimal_i = 0;
+    for( uint32_t face_i = 0; face_i < 12; face_i++ ) {
+        uint32_t a = dod->triangles[face_i*9+0];
+        uint32_t b = dod->triangles[face_i*9+1];
+        uint32_t c = dod->triangles[face_i*9+2];
 
-        dod->vertices[i*9+0] = points[a*3+0];
-        dod->vertices[i*9+1] = points[a*3+1];
-        dod->vertices[i*9+2] = points[a*3+2];
+        dod->vertices[face_i*27+0] = points[a*3+0];
+        dod->vertices[face_i*27+1] = points[a*3+1];
+        dod->vertices[face_i*27+2] = points[a*3+2];
 
-        dod->indices[i*3+0] = i*3+0;
-        dod->optimal[i*3+0] = i*3+0;
+        dod->indices[face_i*9+0] = face_i*9+0;
+        dod->optimal[face_i*9+0] = optimal_i+0;
 
-        dod->vertices[i*9+3] = points[b*3+0];
-        dod->vertices[i*9+4] = points[b*3+1];
-        dod->vertices[i*9+5] = points[b*3+2];
+        dod->vertices[face_i*27+3] = points[b*3+0];
+        dod->vertices[face_i*27+4] = points[b*3+1];
+        dod->vertices[face_i*27+5] = points[b*3+2];
 
-        dod->indices[i*3+1] = i*3+1;
-        dod->optimal[i*3+1] = i*3+1;
+        dod->indices[face_i*9+1] = face_i*9+1;
+        dod->optimal[face_i*9+1] = optimal_i+1;
 
-        dod->vertices[i*9+6] = points[c*3+0];
-        dod->vertices[i*9+7] = points[c*3+1];
-        dod->vertices[i*9+8] = points[c*3+2];
+        dod->vertices[face_i*27+6] = points[c*3+0];
+        dod->vertices[face_i*27+7] = points[c*3+1];
+        dod->vertices[face_i*27+8] = points[c*3+2];
 
-        dod->indices[i*3+2] = i*3+2;
-        dod->optimal[i*3+2] = i*3+2;
+        dod->indices[face_i*9+2] = face_i*9+2;
+        dod->optimal[face_i*9+2] = optimal_i+2;
+
+        uint32_t d = dod->triangles[face_i*9+3];
+        uint32_t e = dod->triangles[face_i*9+4];
+        uint32_t f = dod->triangles[face_i*9+5];
+
+        dod->vertices[face_i*27+9] = points[d*3+0];
+        dod->vertices[face_i*27+10] = points[d*3+1];
+        dod->vertices[face_i*27+11] = points[d*3+2];
+
+        dod->indices[face_i*9+3] = face_i*9+3;
+        dod->optimal[face_i*9+3] = optimal_i+0;
+
+        dod->vertices[face_i*27+12] = points[e*3+0];
+        dod->vertices[face_i*27+13] = points[e*3+1];
+        dod->vertices[face_i*27+14] = points[e*3+2];
+
+        dod->indices[face_i*9+4] = face_i*9+4;
+        dod->optimal[face_i*9+4] = optimal_i+2;
+
+        dod->vertices[face_i*27+15] = points[f*3+0];
+        dod->vertices[face_i*27+16] = points[f*3+1];
+        dod->vertices[face_i*27+17] = points[f*3+2];
+
+        dod->indices[face_i*9+5] = face_i*9+5;
+        dod->optimal[face_i*9+5] = optimal_i+3;
+
+        uint32_t g = dod->triangles[face_i*9+6];
+        uint32_t h = dod->triangles[face_i*9+7];
+        uint32_t i = dod->triangles[face_i*9+8];
+
+        dod->vertices[face_i*27+18] = points[g*3+0];
+        dod->vertices[face_i*27+19] = points[g*3+1];
+        dod->vertices[face_i*27+20] = points[g*3+2];
+
+        dod->indices[face_i*9+6] = face_i*9+6;
+        dod->optimal[face_i*9+6] = optimal_i+2;
+
+        dod->vertices[face_i*27+21] = points[h*3+0];
+        dod->vertices[face_i*27+22] = points[h*3+1];
+        dod->vertices[face_i*27+23] = points[h*3+2];
+
+        dod->indices[face_i*9+7] = face_i*9+7;
+        dod->optimal[face_i*9+7] = optimal_i+4;
+
+        dod->vertices[face_i*27+24] = points[i*3+0];
+        dod->vertices[face_i*27+25] = points[i*3+1];
+        dod->vertices[face_i*27+26] = points[i*3+2];
+
+        dod->indices[face_i*9+8] = face_i*9+8;
+        dod->optimal[face_i*9+8] = optimal_i+3;
+
+        optimal_i += 5;
     }
 
     solid_hard_normals((struct Solid*)dod, dod->normals);
@@ -813,26 +866,6 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
             points[(i+j*horizontal_steps)*3+0] = radius * sign_su * pow(fabs(su), n2) * sign_sv * pow(fabs(sv), n1);
             points[(i+j*horizontal_steps)*3+1] = radius * sign_cu * pow(fabs(cu), n2) * sign_sv * pow(fabs(sv), n1);
             points[(i+j*horizontal_steps)*3+2] = radius * sign_cv * pow(fabs(cv), n1);
-
-            /* float alpha = -PI/2.0f + (float)(j+1) * (PI/(float)(vertical_steps)); */
-
-            /* float sa = sinf(alpha); */
-            /* float ca = cosf(alpha); */
-
-            /* float sign_sa = sa < 0.0f ? -1.0f : 1.0f; */
-            /* float sign_ca = ca < 0.0f ? -1.0f : 1.0f; */
-
-            /* float beta = (i+1) * (2.0f*PI) / (float)horizontal_steps; */
-
-            /* float sb = sinf(beta); */
-            /* float cb = cosf(beta); */
-
-            /* float sign_sb = sb < 0.0f ? -1.0f : 1.0f; */
-            /* float sign_cb = cb < 0.0f ? -1.0f : 1.0f; */
-
-            /* points[(i+j*horizontal_steps)*3+0] = radius * sign_ca * pow(fabs(ca), n1) * sign_sb * pow(fabs(sb), n2); */
-            /* points[(i+j*horizontal_steps)*3+1] = radius * sign_ca * pow(fabs(ca), n1) * sign_cb * pow(fabs(cb), n2); */
-            /* points[(i+j*horizontal_steps)*3+2] = radius * -sign_sa * pow(fabs(sa), n1); */
         }
     }
 
@@ -905,6 +938,8 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
     /*                                             112, 15, 14, 113, 110, 111, */
     /*                                             112, 0, 15, 113, 111, 96 }; */
 
+    uint32_t cap_offset_i = 0;
+    uint32_t optimal_i = 0;
     for( uint32_t j = 0; j < (vertical_steps-2); j++ ) {
         for( uint32_t i = 0; i < horizontal_steps; i++ ) {
             uint32_t linebreak = 0;
@@ -912,55 +947,96 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
                 linebreak = horizontal_steps;
             }
 
-            sphere->triangles[(i+j*horizontal_steps)*6+0] = i + j*horizontal_steps;
-            sphere->triangles[(i+j*horizontal_steps)*6+1] = i + j*horizontal_steps + 1 - linebreak;
-            sphere->triangles[(i+j*horizontal_steps)*6+2] = i + j*horizontal_steps + horizontal_steps;
-            sphere->triangles[(i+j*horizontal_steps)*6+3] = i + j*horizontal_steps + horizontal_steps + 1 - linebreak;
-            sphere->triangles[(i+j*horizontal_steps)*6+4] = i + j*horizontal_steps + horizontal_steps;
-            sphere->triangles[(i+j*horizontal_steps)*6+5] = i + j*horizontal_steps + 1 - linebreak;
+            uint32_t face_i = (i+j*horizontal_steps)*6;
+            sphere->triangles[face_i+0] = i + j*horizontal_steps;
+            sphere->triangles[face_i+1] = i + j*horizontal_steps + 1 - linebreak;
+            sphere->triangles[face_i+2] = i + j*horizontal_steps + horizontal_steps;
+            sphere->triangles[face_i+3] = i + j*horizontal_steps + horizontal_steps + 1 - linebreak;
+            sphere->triangles[face_i+4] = i + j*horizontal_steps + horizontal_steps;
+            sphere->triangles[face_i+5] = i + j*horizontal_steps + 1 - linebreak;
+
+            sphere->optimal[face_i+0] = optimal_i+0;
+            sphere->optimal[face_i+1] = optimal_i+2;
+            sphere->optimal[face_i+2] = optimal_i+1;
+            sphere->optimal[face_i+3] = optimal_i+3;
+            sphere->optimal[face_i+4] = optimal_i+1;
+            sphere->optimal[face_i+5] = optimal_i+2;
+
+            cap_offset_i += 6;
+            optimal_i += 4;
         }
     }
 
-    uint32_t offset = ((horizontal_steps-1)+5*horizontal_steps)*(vertical_steps-2)+(vertical_steps-3)+1;
+    uint32_t top_vertex = horizontal_steps*(vertical_steps-1);
+    uint32_t bottom_vertex = top_vertex + 1;
     for( uint32_t i = 0; i < horizontal_steps; i++ ) {
         uint32_t linebreak = 0;
         if( i == (horizontal_steps-1) ) {
             linebreak = horizontal_steps;
         }
 
-        sphere->triangles[offset+i*6+0] = horizontal_steps*(vertical_steps-1);
-        sphere->triangles[offset+i*6+1] = i + 1 - linebreak;
-        sphere->triangles[offset+i*6+2] = i;
-        sphere->triangles[offset+i*6+3] = horizontal_steps*(vertical_steps-1)+1;
-        sphere->triangles[offset+i*6+4] = (vertical_steps-2)*horizontal_steps + i;
-        sphere->triangles[offset+i*6+5] = (vertical_steps-2)*horizontal_steps + i + 1 - linebreak;
+        uint32_t face_i = cap_offset_i+i*6;
+        sphere->triangles[face_i+0] = top_vertex;
+        sphere->triangles[face_i+1] = i + 1 - linebreak;
+        sphere->triangles[face_i+2] = i;
+        sphere->triangles[face_i+3] = bottom_vertex;
+        sphere->triangles[face_i+4] = (vertical_steps-2)*horizontal_steps + i;
+        sphere->triangles[face_i+5] = (vertical_steps-2)*horizontal_steps + i + 1 - linebreak;
+
+        sphere->optimal[face_i+0] = optimal_i+0;
+        sphere->optimal[face_i+1] = optimal_i+1;
+        sphere->optimal[face_i+2] = optimal_i+2;
+        sphere->optimal[face_i+3] = optimal_i+3;
+        sphere->optimal[face_i+4] = optimal_i+4;
+        sphere->optimal[face_i+5] = optimal_i+5;
+
+        optimal_i += 6;
     }
 
-    for( uint32_t i = 0; i < horizontal_steps*(vertical_steps-2)*2+horizontal_steps*2; i++ ) {
-        uint32_t a = sphere->triangles[i*3+0];
-        uint32_t b = sphere->triangles[i*3+1];
-        uint32_t c = sphere->triangles[i*3+2];
+    for( uint32_t i = 0; i < horizontal_steps*(vertical_steps-2)+horizontal_steps; i++ ) {
+        uint32_t a = sphere->triangles[i*6+0];
+        uint32_t b = sphere->triangles[i*6+1];
+        uint32_t c = sphere->triangles[i*6+2];
 
-        sphere->vertices[i*9+0] = points[a*3+0];
-        sphere->vertices[i*9+1] = points[a*3+1];
-        sphere->vertices[i*9+2] = points[a*3+2];
+        sphere->vertices[i*18+0] = points[a*3+0];
+        sphere->vertices[i*18+1] = points[a*3+1];
+        sphere->vertices[i*18+2] = points[a*3+2];
 
-        sphere->indices[i*3+0] = i*3+0;
-        sphere->optimal[i*3+0] = i*3+0;
+        sphere->indices[i*6+0] = i*6+0;
 
-        sphere->vertices[i*9+3] = points[b*3+0];
-        sphere->vertices[i*9+4] = points[b*3+1];
-        sphere->vertices[i*9+5] = points[b*3+2];
+        sphere->vertices[i*18+3] = points[b*3+0];
+        sphere->vertices[i*18+4] = points[b*3+1];
+        sphere->vertices[i*18+5] = points[b*3+2];
 
-        sphere->indices[i*3+1] = i*3+1;
-        sphere->optimal[i*3+1] = i*3+1;
+        sphere->indices[i*6+1] = i*6+1;
 
-        sphere->vertices[i*9+6] = points[c*3+0];
-        sphere->vertices[i*9+7] = points[c*3+1];
-        sphere->vertices[i*9+8] = points[c*3+2];
+        sphere->vertices[i*18+6] = points[c*3+0];
+        sphere->vertices[i*18+7] = points[c*3+1];
+        sphere->vertices[i*18+8] = points[c*3+2];
 
-        sphere->indices[i*3+2] = i*3+2;
-        sphere->optimal[i*3+2] = i*3+2;
+        sphere->indices[i*6+2] = i*6+2;
+
+        uint32_t d = sphere->triangles[i*6+3];
+        uint32_t e = sphere->triangles[i*6+4];
+        uint32_t f = sphere->triangles[i*6+5];
+
+        sphere->vertices[i*18+9] = points[d*3+0];
+        sphere->vertices[i*18+10] = points[d*3+1];
+        sphere->vertices[i*18+11] = points[d*3+2];
+
+        sphere->indices[i*6+3] = i*6+3;
+
+        sphere->vertices[i*18+12] = points[e*3+0];
+        sphere->vertices[i*18+13] = points[e*3+1];
+        sphere->vertices[i*18+14] = points[e*3+2];
+
+        sphere->indices[i*6+4] = i*6+4;
+
+        sphere->vertices[i*18+15] = points[f*3+0];
+        sphere->vertices[i*18+16] = points[f*3+1];
+        sphere->vertices[i*18+17] = points[f*3+2];
+
+        sphere->indices[i*6+5] = i*6+5;
     }
 
     solid_hard_normals(sphere, sphere->normals);
