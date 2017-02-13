@@ -563,7 +563,7 @@ size_t canvas_append_attributes(struct Canvas* canvas, uint32_t attribute_i, uin
 
     if( new_occupied >= canvas->attributes[attribute_i].capacity ) {
         size_t alloc_result = canvas_alloc_attributes(canvas, attribute_i, n);
-        log_assert( alloc_result == n );
+        log_assert( alloc_result >= n );
     }
 
     uint32_t attribute_size = canvas->components[attribute_i].size;
@@ -615,7 +615,7 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t tex
 
     if( new_occupied >= canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].capacity ) {
         size_t alloc_result = canvas_alloc_indices(canvas, layer_i, texture_i, shader_name, projection_i, primitive_type, n);
-        log_assert( alloc_result = n );
+        log_assert( alloc_result >= n );
     }
 
     if( offset > 0 ) {
@@ -706,7 +706,7 @@ size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, const char* fo
 
     if( new_occupied >= canvas->layer[layer_i].text[font_i][projection_i].capacity ) {
         size_t alloc_result = canvas_alloc_text(canvas, layer_i, font_name, projection_i, n);
-        log_assert( alloc_result == n );
+        log_assert( alloc_result >= n );
     }
 
     if( offset > 0 ) {
