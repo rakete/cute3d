@@ -33,7 +33,7 @@
 #include "render_texture.h"
 
 #ifndef DEFAULT_CANVAS_ALLOC
-#define DEFAULT_CANVAS_ALLOC 512
+#define DEFAULT_CANVAS_ALLOC 32768
 #endif
 
 #ifndef MAX_CANVAS_LAYERS
@@ -200,9 +200,9 @@ WARN_UNUSED_RESULT int32_t canvas_add_texture(struct Canvas* canvas, int32_t sam
 WARN_UNUSED_RESULT int32_t canvas_find_texture(const struct Canvas* canvas, const char* texture_name);
 
 // - allocating the heap memory for the arrays
-size_t canvas_alloc_attributes(struct Canvas* canvas, uint32_t attribute_i, size_t n);
-size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, GLenum primitive_type, size_t n);
-size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, const char* font_name, int32_t projection_i, size_t n);
+WARN_UNUSED_RESULT size_t canvas_alloc_attributes(struct Canvas* canvas, uint32_t attribute_i, size_t n);
+WARN_UNUSED_RESULT size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, GLenum primitive_type, size_t n);
+WARN_UNUSED_RESULT size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, const char* font_name, int32_t projection_i, size_t n);
 
 // - clear is supposed to be called every frame and completely resets all occupied counters, but leaves
 // the allocated memory, so that memory once allocated is reused in repeating draw calls, that should
