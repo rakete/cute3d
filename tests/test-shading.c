@@ -70,8 +70,8 @@ int32_t main(int32_t argc, char *argv[]) {
     solid_tetrahedron_create(1.0, (Color){255, 0, 0, 255}, &hard_tetrahedron);
     solid_box_create((Vec3f){1.5, 0.25, 1.75}, (Color){255, 0, 255, 255}, &hard_box);
     solid_cube_create(1.0, (Color){0, 255, 0, 255}, &hard_cube);
-    solid_sphere16_create(0.75, (Color){0, 255, 255, 255}, &hard_sphere16);
-    solid_sphere32_create(0.75, (Color){255, 255, 0, 255}, &hard_sphere32);
+    solid_sphere16_create(16, 8, 0.75, (Color){0, 255, 255, 255}, &hard_sphere16);
+    solid_sphere32_create(32, 16, 0.75, (Color){255, 255, 0, 255}, &hard_sphere32);
 
     solid_optimize((struct Solid*)&hard_tetrahedron);
     solid_optimize((struct Solid*)&hard_box);
@@ -94,8 +94,8 @@ int32_t main(int32_t argc, char *argv[]) {
     solid_tetrahedron_create(1.0, (Color){255, 0, 0, 255}, &smooth_tetrahedron);
     solid_box_create((Vec3f){1.5, 0.25, 1.75}, (Color){255, 0, 255, 255}, &smooth_box);
     solid_cube_create(1.0, (Color){0, 255, 0, 255}, &smooth_cube);
-    solid_sphere16_create(0.75, (Color){0, 255, 255, 255}, &smooth_sphere16);
-    solid_sphere32_create(0.75, (Color){255, 255, 0, 255}, &smooth_sphere32);
+    solid_sphere16_create(16, 8, 0.75, (Color){0, 255, 255, 255}, &smooth_sphere16);
+    solid_sphere32_create(32, 16, 0.75, (Color){255, 255, 0, 255}, &smooth_sphere32);
 
     solid_optimize((struct Solid*)&smooth_tetrahedron);
     solid_optimize((struct Solid*)&smooth_box);
