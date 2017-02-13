@@ -151,9 +151,9 @@ size_t vbo_alloc(struct Vbo* vbo, size_t n) {
     log_assert( vbo != NULL );
     log_assert( n > 0 );
 
-    size_t alloc_n = VBO_DEFAULT_ALLOC;
+    size_t alloc_n = VBO_ALLOC;
     while( alloc_n < n ) {
-        alloc_n += VBO_DEFAULT_ALLOC;
+        alloc_n += VBO_ALLOC;
     }
 
     size_t resized_bytes = 0;
@@ -274,9 +274,9 @@ size_t ibo_alloc(struct Ibo* ibo, size_t n) {
     log_assert( ibo->buffer->id > 0 );
 
     size_t size_bytes = ibo->capacity * ibo->index.bytes;
-    size_t alloc_n = IBO_DEFAULT_ALLOC;
+    size_t alloc_n = IBO_ALLOC;
     while( alloc_n < n ) {
-        alloc_n += IBO_DEFAULT_ALLOC;
+        alloc_n += IBO_ALLOC;
     }
     size_t alloc_bytes = alloc_n * ibo->index.bytes;
 
@@ -528,7 +528,7 @@ size_t vbo_mesh_alloc_attributes(struct VboMesh* mesh, size_t n) {
     if( vbo_mesh_test_last_attributes(mesh) ) {
         // - check available space in vbo, test if it is less then what we would need to
         // expand the mesh
-        // - if we need more space we allocate at least one VBO_DEFAULT_ALLOC block, maybe more
+        // - if we need more space we allocate at least one VBO_ALLOC block, maybe more
         // blocks if we have a really large n, i've implemented this block allocation mainly so
         // that I can avoid resizing buffers in es2 (I could also call vbo_alloc manually)
         size_t resized_n = 0;

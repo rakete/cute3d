@@ -44,12 +44,12 @@
 #define MAX_VBO_PHASES 1
 #endif
 
-#ifndef VBO_DEFAULT_ALLOC
-#define VBO_DEFAULT_ALLOC 32786
+#ifndef VBO_ALLOC
+#define VBO_ALLOC 32786
 #endif
 
-#ifndef IBO_DEFAULT_ALLOC
-#define IBO_DEFAULT_ALLOC 32786
+#ifndef IBO_ALLOC
+#define IBO_ALLOC 32786
 #endif
 
 WARN_UNUSED_RESULT int32_t init_vbo();
