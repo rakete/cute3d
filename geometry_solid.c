@@ -317,8 +317,16 @@ size_t solid_compress(struct Solid* solid) {
     return solid->indices_size - solid->attributes_size;
 }
 
+// - most of these implementations of solids follow a certain pattern: first I set up the triangle
+// indices, then I create a local array of points (which are the unique vertices), and then I use
+// these points and the triangle indices to fill the actual vertices array with the points in the
+// right order
+// - while doing that I also enumerate the default indices, and optionally generate the optimal
+// indices, when it is possible, if it is not possible I just use the indices for optimal as well
 void solid_tetrahedron_create(float radius, const uint8_t color[4], struct SolidTetrahedron* tet) {
     *tet = (struct SolidTetrahedron){ .vertices = { 0 },
+                                      // - here the triangle indices are set up, notice how these imply
+                                      // that there are no duplicate vertices
                                       .triangles = { 0, 1, 2,
                                                      0, 2, 3,
                                                      0, 3, 1,
@@ -349,6 +357,7 @@ void solid_tetrahedron_create(float radius, const uint8_t color[4], struct Solid
     points[1] = 0.0f;
     points[2] = r;
 
+    // - set up all unique points
     for(uint32_t i = 1; i < 4; i++) {
         points[i*3+0] = r * cosf(the) * cosf(phia);
         points[i*3+1] = r * sinf(the) * cosf(phia);
@@ -356,6 +365,12 @@ void solid_tetrahedron_create(float radius, const uint8_t color[4], struct Solid
         the = the + the120;
     }
 
+    // - go through the triangles and copy the points associated with each triangle index into
+    // the actual vertices array, this means I transform from the unique point array to an array
+    // where points are duplicated for every occurence in a triangle
+    // - also notice that indices and optimal are filled with the some numbers, this is because
+    // in this case there are only triangles and therefore no shared vertices that can be used for
+    // optimizing the solid
     for( uint32_t i = 0; i < 4; i++ ) {
         uint32_t a = tet->triangles[i*3+0];
         uint32_t b = tet->triangles[i*3+1];
@@ -383,6 +398,8 @@ void solid_tetrahedron_create(float radius, const uint8_t color[4], struct Solid
         tet->optimal[i*3+2] = i*3+2;
     }
 
+    // - every solid generates hard normals automatically be using the crossproduct-of-two-edges trick,
+    // I hope to do something similar for texcoords in the future
     solid_hard_normals((struct Solid*)tet, tet->normals);
     solid_set_color((struct Solid*)tet, color);
 }
@@ -544,6 +561,9 @@ void solid_icosahedron_create(float radius, const uint8_t color[4], struct Solid
 
 void solid_dodecahedron_create(float radius, const uint8_t color[4], struct SolidDodecahedron* dod) {
     *dod = (struct SolidDodecahedron){ .vertices = { 0 },
+                                       // - the original source had these coordinates only for pentagons, but
+                                       // I split these so that they are made of three triangles each
+                                       // - so every group of 9 indices represents one pentagon face
                                        .triangles = { 12, 0, 13,  /*  b  b  b    0  r  c   -b  b  b  */
                                                       12, 13, 8,  /*  b  b  b   -b  b  b    c  0  r  */
                                                       13, 9, 8,   /* -b  b  b   -c  0  r    c  0  r  */
@@ -639,12 +659,25 @@ void solid_dodecahedron_create(float radius, const uint8_t color[4], struct Soli
 
     points[19*3+0] = -b; points[19*3+1] = -b; points[19*3+2] = -b; // -b -b -b
 
+    // - this solid has pentagons(?) as faces, but these are are constructed from three triangles, so that
+    // means there are shared vertices that can be optimized away
+    // - computing the correct optimal indices is relatively easy, we only need to give to vertices that can
+    // be merged into one the same index
+    // - we do that by keeping track of the unique vertices, which are 5 per face (because the faces are
+    // pentagons), which is why we increase optimal_i by 5 at the end of the loop, and then when assigning
+    // the optimal indices we just use optimal_i and make sure to assign the same index to the shared
+    // vertices,
+    // - so for example in the code below, we assign dod->optimal[face_i*9+x] = optimal_i+2 in three of
+    // these vertex blocks (vertex c and e and g), that means those two vertices are shared and can be replaced
+    // by one unique vertex in the final mesh
     uint32_t optimal_i = 0;
     for( uint32_t face_i = 0; face_i < 12; face_i++ ) {
+        // triangle 1
         uint32_t a = dod->triangles[face_i*9+0];
         uint32_t b = dod->triangles[face_i*9+1];
         uint32_t c = dod->triangles[face_i*9+2];
 
+        // vertex a
         dod->vertices[face_i*27+0] = points[a*3+0];
         dod->vertices[face_i*27+1] = points[a*3+1];
         dod->vertices[face_i*27+2] = points[a*3+2];
@@ -652,6 +685,7 @@ void solid_dodecahedron_create(float radius, const uint8_t color[4], struct Soli
         dod->indices[face_i*9+0] = face_i*9+0;
         dod->optimal[face_i*9+0] = optimal_i+0;
 
+        // vertex b
         dod->vertices[face_i*27+3] = points[b*3+0];
         dod->vertices[face_i*27+4] = points[b*3+1];
         dod->vertices[face_i*27+5] = points[b*3+2];
@@ -659,6 +693,7 @@ void solid_dodecahedron_create(float radius, const uint8_t color[4], struct Soli
         dod->indices[face_i*9+1] = face_i*9+1;
         dod->optimal[face_i*9+1] = optimal_i+1;
 
+        // vertex c
         dod->vertices[face_i*27+6] = points[c*3+0];
         dod->vertices[face_i*27+7] = points[c*3+1];
         dod->vertices[face_i*27+8] = points[c*3+2];
@@ -666,10 +701,12 @@ void solid_dodecahedron_create(float radius, const uint8_t color[4], struct Soli
         dod->indices[face_i*9+2] = face_i*9+2;
         dod->optimal[face_i*9+2] = optimal_i+2;
 
+        // triangle 2
         uint32_t d = dod->triangles[face_i*9+3];
         uint32_t e = dod->triangles[face_i*9+4];
         uint32_t f = dod->triangles[face_i*9+5];
 
+        // vertex d
         dod->vertices[face_i*27+9] = points[d*3+0];
         dod->vertices[face_i*27+10] = points[d*3+1];
         dod->vertices[face_i*27+11] = points[d*3+2];
@@ -677,6 +714,7 @@ void solid_dodecahedron_create(float radius, const uint8_t color[4], struct Soli
         dod->indices[face_i*9+3] = face_i*9+3;
         dod->optimal[face_i*9+3] = optimal_i+0;
 
+        // vertex e
         dod->vertices[face_i*27+12] = points[e*3+0];
         dod->vertices[face_i*27+13] = points[e*3+1];
         dod->vertices[face_i*27+14] = points[e*3+2];
@@ -684,6 +722,7 @@ void solid_dodecahedron_create(float radius, const uint8_t color[4], struct Soli
         dod->indices[face_i*9+4] = face_i*9+4;
         dod->optimal[face_i*9+4] = optimal_i+2;
 
+        // vertex f
         dod->vertices[face_i*27+15] = points[f*3+0];
         dod->vertices[face_i*27+16] = points[f*3+1];
         dod->vertices[face_i*27+17] = points[f*3+2];
@@ -691,10 +730,12 @@ void solid_dodecahedron_create(float radius, const uint8_t color[4], struct Soli
         dod->indices[face_i*9+5] = face_i*9+5;
         dod->optimal[face_i*9+5] = optimal_i+3;
 
+        // triangle 3
         uint32_t g = dod->triangles[face_i*9+6];
         uint32_t h = dod->triangles[face_i*9+7];
         uint32_t i = dod->triangles[face_i*9+8];
 
+        // vertex g
         dod->vertices[face_i*27+18] = points[g*3+0];
         dod->vertices[face_i*27+19] = points[g*3+1];
         dod->vertices[face_i*27+20] = points[g*3+2];
@@ -702,6 +743,7 @@ void solid_dodecahedron_create(float radius, const uint8_t color[4], struct Soli
         dod->indices[face_i*9+6] = face_i*9+6;
         dod->optimal[face_i*9+6] = optimal_i+2;
 
+        // vertex h
         dod->vertices[face_i*27+21] = points[h*3+0];
         dod->vertices[face_i*27+22] = points[h*3+1];
         dod->vertices[face_i*27+23] = points[h*3+2];
@@ -709,6 +751,7 @@ void solid_dodecahedron_create(float radius, const uint8_t color[4], struct Soli
         dod->indices[face_i*9+7] = face_i*9+7;
         dod->optimal[face_i*9+7] = optimal_i+4;
 
+        // vertex i
         dod->vertices[face_i*27+24] = points[i*3+0];
         dod->vertices[face_i*27+25] = points[i*3+1];
         dod->vertices[face_i*27+26] = points[i*3+2];
@@ -781,14 +824,11 @@ void solid_box_create(Vec3f size, const uint8_t color[4], struct SolidBox* box) 
     vec_copy3f((Vec3f){ half_size[0], -half_size[1], -half_size[2]}, &points[21]);
 
     for( uint32_t i = 0; i < 6; i++ ) {
+        // triangle 1
         uint32_t a = box->triangles[i*6+0];
         uint32_t b = box->triangles[i*6+1];
         uint32_t c = box->triangles[i*6+2];
-        uint32_t d = box->triangles[i*6+3];
-        uint32_t e = box->triangles[i*6+4];
-        uint32_t f = box->triangles[i*6+5];
 
-        // triangle 1
         box->vertices[i*18+0] = points[a*3+0];
         box->vertices[i*18+1] = points[a*3+1];
         box->vertices[i*18+2] = points[a*3+2];
@@ -808,6 +848,10 @@ void solid_box_create(Vec3f size, const uint8_t color[4], struct SolidBox* box) 
         box->indices[i*6+2] = i*6+2;
 
         // triangle 2
+        uint32_t d = box->triangles[i*6+3];
+        uint32_t e = box->triangles[i*6+4];
+        uint32_t f = box->triangles[i*6+5];
+
         box->vertices[i*18+9]  = points[d*3+0];
         box->vertices[i*18+10] = points[d*3+1];
         box->vertices[i*18+11] = points[d*3+2];
@@ -836,6 +880,12 @@ void solid_cube_create(float size, const uint8_t color[4], struct SolidBox* cube
 }
 
 void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct Solid* sphere) {
+    log_assert( n1 > 0.0f );
+    log_assert( n2 > 0.0f );
+    log_assert( horizontal_steps > 2 );
+    log_assert( vertical_steps > 1 );
+    log_assert( radius > 0.0f );
+
     if( horizontal_steps > 32 ) {
         horizontal_steps = 32;
     }
@@ -844,6 +894,9 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
         vertical_steps = 16;
     }
 
+    // - this code is the most difficult to understand and worst written code in this file imho, it also differs
+    // from the established pattern quite a bit
+    // - first I generate the unique points of the sphere
     float points[horizontal_steps*(vertical_steps-1)*3+2*3];
     for(uint32_t j = 0; j < (vertical_steps-1); j++ ) {
         float v = (float)(j+1) * (PI/(float)vertical_steps);
@@ -869,6 +922,7 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
         }
     }
 
+    // - I add two extra points for the top and bottom 'caps' of the sphere
     points[((horizontal_steps-1)+(vertical_steps-2)*horizontal_steps)*3+3+0] = 0.0f;
     points[((horizontal_steps-1)+(vertical_steps-2)*horizontal_steps)*3+3+1] = 0.0f;
     points[((horizontal_steps-1)+(vertical_steps-2)*horizontal_steps)*3+3+2] = radius;
@@ -877,6 +931,11 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
     points[((horizontal_steps-1)+(vertical_steps-2)*horizontal_steps)*3+3+4] = 0.0f;
     points[((horizontal_steps-1)+(vertical_steps-2)*horizontal_steps)*3+3+5] = -radius;
 
+    // - this monstrous wall of numbers was originally used when I tried to figure out how to generate the correct triangle
+    // indices for the sphere, it was made for a 16/8 sphere
+    // - the first section shows the layout of the faces (the surface of the sphere), the main body is like a grid, with shared
+    // vertices on the right side, and there is a vertex at the top and one on the bottom for the caps
+    //
     //                    16*(8-1) = 112
     // 0:  0  1  2  3   4   5   6   7   8   9  10  11  12  13  14  15  0
     // 1: 16 17 18 19  20  21  22  23  24  25  26  27  28  29  30  31 16
@@ -887,66 +946,86 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
     // 6: 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 96
     //                               113
     //
+    // - then I also wrote out the actual indices, at least part of them where I tried to figure out the pattern, you can
+    // see how the numbers here make up quad faces (made of two triangles) on the 'surface grid' above
+    // - notice how the indices for the body come first, and then at the end I append the caps
+    //
     /* uint32_t indices[16*6*2*3+16*3*2] = { 0,   1, 16, 17, 16,  1, //0-5 */
-    /*                                             1,   2, 17, 18, 17,  2, //6-11 */
-    /*                                             2,   3, 18, 19, 18,  3, //12-17 */
-    /*                                             3,   4, 19, 20, 19,  4, //18-23 */
-    /*                                             4,   5, 20, 21, 20,  5, //24-29 */
-    /*                                             5,   6, 21, 22, 21,  6, //30-35 */
-    /*                                             6,   7, 22, 23, 22,  7, //36-41 */
-    /*                                             7,   8, 23, 24, 23,  8, //42-47 */
-    /*                                             8,   9, 24, 25, 24,  9, //48-53 */
-    /*                                             9,  10, 25, 26, 25, 10, //54-59 */
-    /*                                             10, 11, 26, 27, 26, 11, //60-65 */
-    /*                                             11, 12, 27, 28, 27, 12, //66-71 */
-    /*                                             12, 13, 28, 29, 28, 13, //72-77 */
-    /*                                             13, 14, 29, 30, 29, 14, //78-83 */
-    /*                                             14, 15, 30, 31, 30, 15, //84-89 */
-    /*                                             15,  0, 31, 16, 31,  0, //90-95 */
-    /*                                             // ... */
-    /*                                             80, 81, 96, 97, 96, 81,    // 480-485 */
-    /*                                             81, 82, 97, 98, 97, 82,    // 486-491 */
-    /*                                             82, 83, 98, 99, 98, 83,    // 492-497 */
-    /*                                             83, 84, 99, 100, 99, 84,   // 498-503 */
-    /*                                             84, 85, 100, 101, 100, 85, // 504-509 */
-    /*                                             85, 86, 101, 102, 101, 86, // 510-515 */
-    /*                                             86, 87, 102, 103, 102, 87, // 516-521 */
-    /*                                             87, 88, 103, 104, 103, 88, // 522-527 */
-    /*                                             88, 89, 104, 105, 104, 89, // 528-533 */
-    /*                                             89, 90, 105, 106, 105, 90, // 534-539 */
-    /*                                             90, 91, 106, 107, 106, 91, // 540-545 */
-    /*                                             91, 92, 107, 108, 107, 92, // 546-551 */
-    /*                                             92, 93, 108, 109, 108, 93, // 552-557 */
-    /*                                             93, 94, 109, 110, 109, 94, // 558-563 */
-    /*                                             94, 95, 110, 111, 110, 95, // 564-569 */
-    /*                                             95, 80, 111,  96, 111, 80, // 570-575 */
-    /*                                             // upper and lower caps */
-    /*                                             112, 1, 0, 113, 96, 97, */
-    /*                                             112, 2, 1, 113, 97, 98, */
-    /*                                             112, 3, 2, 113, 98, 99, */
-    /*                                             112, 4, 3, 113, 99, 100, */
-    /*                                             112, 5, 4, 113, 100, 101, */
-    /*                                             112, 6, 5, 113, 101, 102, */
-    /*                                             112, 7, 6, 113, 102, 103, */
-    /*                                             112, 8, 7, 113, 103, 104, */
-    /*                                             112, 9, 8, 113, 104, 105, */
-    /*                                             112, 10, 9, 113, 105, 106, */
-    /*                                             112, 11, 10, 113, 106, 107, */
-    /*                                             112, 12, 11, 113, 107, 108, */
-    /*                                             112, 13, 12, 113, 108, 109, */
-    /*                                             112, 14, 13, 113, 109, 110, */
-    /*                                             112, 15, 14, 113, 110, 111, */
-    /*                                             112, 0, 15, 113, 111, 96 }; */
+    /*                                       1,   2, 17, 18, 17,  2, //6-11 */
+    /*                                       2,   3, 18, 19, 18,  3, //12-17 */
+    /*                                       3,   4, 19, 20, 19,  4, //18-23 */
+    /*                                       4,   5, 20, 21, 20,  5, //24-29 */
+    /*                                       5,   6, 21, 22, 21,  6, //30-35 */
+    /*                                       6,   7, 22, 23, 22,  7, //36-41 */
+    /*                                       7,   8, 23, 24, 23,  8, //42-47 */
+    /*                                       8,   9, 24, 25, 24,  9, //48-53 */
+    /*                                       9,  10, 25, 26, 25, 10, //54-59 */
+    /*                                       10, 11, 26, 27, 26, 11, //60-65 */
+    /*                                       11, 12, 27, 28, 27, 12, //66-71 */
+    /*                                       12, 13, 28, 29, 28, 13, //72-77 */
+    /*                                       13, 14, 29, 30, 29, 14, //78-83 */
+    /*                                       14, 15, 30, 31, 30, 15, //84-89 */
+    /*                                       15,  0, 31, 16, 31,  0, //90-95 */
+    /*                                       // ... */
+    /*                                       80, 81, 96, 97, 96, 81,    // 480-485 */
+    /*                                       81, 82, 97, 98, 97, 82,    // 486-491 */
+    /*                                       82, 83, 98, 99, 98, 83,    // 492-497 */
+    /*                                       83, 84, 99, 100, 99, 84,   // 498-503 */
+    /*                                       84, 85, 100, 101, 100, 85, // 504-509 */
+    /*                                       85, 86, 101, 102, 101, 86, // 510-515 */
+    /*                                       86, 87, 102, 103, 102, 87, // 516-521 */
+    /*                                       87, 88, 103, 104, 103, 88, // 522-527 */
+    /*                                       88, 89, 104, 105, 104, 89, // 528-533 */
+    /*                                       89, 90, 105, 106, 105, 90, // 534-539 */
+    /*                                       90, 91, 106, 107, 106, 91, // 540-545 */
+    /*                                       91, 92, 107, 108, 107, 92, // 546-551 */
+    /*                                       92, 93, 108, 109, 108, 93, // 552-557 */
+    /*                                       93, 94, 109, 110, 109, 94, // 558-563 */
+    /*                                       94, 95, 110, 111, 110, 95, // 564-569 */
+    /*                                       95, 80, 111,  96, 111, 80, // 570-575 */
+    /*                                       // upper and lower caps */
+    /*                                       112, 1, 0, 113, 96, 97, */
+    /*                                       112, 2, 1, 113, 97, 98, */
+    /*                                       112, 3, 2, 113, 98, 99, */
+    /*                                       112, 4, 3, 113, 99, 100, */
+    /*                                       112, 5, 4, 113, 100, 101, */
+    /*                                       112, 6, 5, 113, 101, 102, */
+    /*                                       112, 7, 6, 113, 102, 103, */
+    /*                                       112, 8, 7, 113, 103, 104, */
+    /*                                       112, 9, 8, 113, 104, 105, */
+    /*                                       112, 10, 9, 113, 105, 106, */
+    /*                                       112, 11, 10, 113, 106, 107, */
+    /*                                       112, 12, 11, 113, 107, 108, */
+    /*                                       112, 13, 12, 113, 108, 109, */
+    /*                                       112, 14, 13, 113, 109, 110, */
+    /*                                       112, 15, 14, 113, 110, 111, */
+    /*                                       112, 0, 15, 113, 111, 96 }; */
 
+    // - the most difficult thing is here: triangle indices generation
+    // - since we generate the indices for the body/ faces first, and then later the cap indices, we keep
+    // track of an cap_offset_i that we'll use below when appending the cap indices
+    // - we also keep track of optimal_i, same method as above in solid_dodecahedron_create to generate the
+    // optimal indices
     uint32_t cap_offset_i = 0;
     uint32_t optimal_i = 0;
     for( uint32_t j = 0; j < (vertical_steps-2); j++ ) {
         for( uint32_t i = 0; i < horizontal_steps; i++ ) {
+            // - we build the surface grid like on a typewriter writing lines, we append quad by quad horizontally,
+            // until horizontal_steps quads are lined up, and then we have a 'linebreak', where we move one down and
+            // to the beginning of the next line and start appending quads again for the next line, we do that
+            // until we have (vertical_steps-2) lines (-2 because of the caps!)
+            // - so this here is for linebreaks, it just means the indices 'wrap around' on the right side, so we reuse
+            // the leftmost vertices on the rightmost edge, we do this subtracting one whole line length from certain
+            // indices, therefore linebreak is =0 most of the time (subtracting nothing), but =horizontal_steps in case
+            // of linebreak (subtracting a line length)
             uint32_t linebreak = 0;
             if( i == (horizontal_steps-1) ) {
                 linebreak = horizontal_steps;
             }
 
+            // - if you look closely you can see that the pattern in which these triangles are generated matches the pattern
+            // you can find in the above monster comment
+            // - notice how linebreak is subtracted only from indices on the right side of the quad
             uint32_t face_i = (i+j*horizontal_steps)*6;
             sphere->triangles[face_i+0] = i + j*horizontal_steps;
             sphere->triangles[face_i+1] = i + j*horizontal_steps + 1 - linebreak;
@@ -955,6 +1034,9 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
             sphere->triangles[face_i+4] = i + j*horizontal_steps + horizontal_steps;
             sphere->triangles[face_i+5] = i + j*horizontal_steps + 1 - linebreak;
 
+            // - it is easier to generate the optimal indices here as well, for the body faces there are 4 vertices that can
+            // be merged into 2, but the cap faces differ from the body faces and don't have any vertices that can be merged,
+            // so thats why its easier to handle the optimal indices here and below, its easier to adjust for that difference
             sphere->optimal[face_i+0] = optimal_i+0;
             sphere->optimal[face_i+1] = optimal_i+2;
             sphere->optimal[face_i+2] = optimal_i+1;
@@ -962,11 +1044,14 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
             sphere->optimal[face_i+4] = optimal_i+1;
             sphere->optimal[face_i+5] = optimal_i+2;
 
+            // - two triangles have 6 vertices, but only 4 are unique
             cap_offset_i += 6;
             optimal_i += 4;
         }
     }
 
+    // - after generating the body face indices, we generate the two caps
+    // - top_vertex and bottom_vertex are fixed and never change
     uint32_t top_vertex = horizontal_steps*(vertical_steps-1);
     uint32_t bottom_vertex = top_vertex + 1;
     for( uint32_t i = 0; i < horizontal_steps; i++ ) {
@@ -975,6 +1060,9 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
             linebreak = horizontal_steps;
         }
 
+        // - top_vertex and bottom_vertex are always the same, and then we add to more indices to form a triangle,
+        // and the top triangle and bottom triangle follow each other
+        // - both triangles on opposite sides of spheres, meaning indices direction reversed (clockwise vs counter-clockwise)
         uint32_t face_i = cap_offset_i+i*6;
         sphere->triangles[face_i+0] = top_vertex;
         sphere->triangles[face_i+1] = i + 1 - linebreak;
@@ -983,6 +1071,8 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
         sphere->triangles[face_i+4] = (vertical_steps-2)*horizontal_steps + i;
         sphere->triangles[face_i+5] = (vertical_steps-2)*horizontal_steps + i + 1 - linebreak;
 
+        // - notice how the optimal indices are just an enumration here, because there are no shared vertices that can be
+        // optimized away, also why optimal_i increases by 6
         sphere->optimal[face_i+0] = optimal_i+0;
         sphere->optimal[face_i+1] = optimal_i+1;
         sphere->optimal[face_i+2] = optimal_i+2;
@@ -993,7 +1083,7 @@ void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_step
         optimal_i += 6;
     }
 
-    for( uint32_t i = 0; i < horizontal_steps*(vertical_steps-2)+horizontal_steps; i++ ) {
+    for( uint32_t i = 0; i < horizontal_steps*(vertical_steps-1); i++ ) {
         uint32_t a = sphere->triangles[i*6+0];
         uint32_t b = sphere->triangles[i*6+1];
         uint32_t c = sphere->triangles[i*6+2];
@@ -1175,6 +1265,13 @@ void solid_torus24_create(uint32_t horizontal_steps, uint32_t vertical_steps, do
 }
 
 void solid_supertoroid24_create(double n1, double n2, uint32_t horizontal_steps, uint32_t vertical_steps, double radius0, double radius1, const uint8_t color[4], struct SolidTorus24* torus) {
+    log_assert( n1 > 0.0f );
+    log_assert( n2 > 0.0f );
+    log_assert( horizontal_steps > 2 );
+    log_assert( vertical_steps > 2 );
+    log_assert( radius0 > 0.0f );
+    log_assert( radius1 > 0.0f );
+
     if( horizontal_steps > 24 ) {
         horizontal_steps = 24;
     }
@@ -1247,13 +1344,6 @@ void solid_supertoroid24_create(double n1, double n2, uint32_t horizontal_steps,
             torus->vertices[attributes_offset*3+16] = solid_power(sin(theta), n1) * ( radius0 + radius1 * solid_power(cos(phi), n2) );
             torus->vertices[attributes_offset*3+17] = radius1 * solid_power(sin(phi), n2);
 
-            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+0]); */
-            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+4]); */
-            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+8]); */
-            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+12]); */
-            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+16]); */
-            /* color_copy((Color){255, 255, 255, 255}, &torus->colors[attributes_offset*4+20]); */
-
             attributes_offset += 6;
 
             //          0---3---2---1---0
@@ -1295,18 +1385,6 @@ void solid_supertoroid24_create(double n1, double n2, uint32_t horizontal_steps,
                     torus->triangles[indices_offset+4] = v + 1;
                 }
             }
-
-            /* torus->triangles[indices_offset+0] = u*vertical_steps*4 + v*2 + 0; */
-            /* torus->triangles[indices_offset+1] = u*vertical_steps*4 + v*2 + 1; */
-            /* torus->triangles[indices_offset+2] = u*vertical_steps*4 + v*2 + 2; */
-            /* torus->triangles[indices_offset+3] = u*vertical_steps*4 + v*2 + 1; */
-            /* torus->triangles[indices_offset+4] = u*vertical_steps*4 + v*2 + 3; */
-            /* torus->triangles[indices_offset+5] = u*vertical_steps*4 + v*2 + 2; */
-            /* if( v == vertical_steps-1 ) { */
-            /*     torus->triangles[indices_offset+2] = u*vertical_steps*4 + 0; */
-            /*     torus->triangles[indices_offset+4] = u*vertical_steps*4 + 1; */
-            /*     torus->triangles[indices_offset+5] = u*vertical_steps*4 + 0; */
-            /* } */
 
             // 4---3 1  1---7---5---3---1
             // |  / /|  |  /|  /|  /|  /|

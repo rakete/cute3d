@@ -36,14 +36,6 @@
 // - all functionality in here and outside that uses this so far assumes that the mesh data in here
 // is made up exclusivly of triangles, made up by vertices of 3 floats, normals of 3 floats, colors
 // of 4 bytes and texcoords and 2 floats, so don't put in any lines or quads
-// - despite my best efforts, I have on occasion forgot the original purpose of this data structure
-// and abused it as some kind of universal container format for passing triangle data around, this
-// however should be avoided, this data structure is fundamentally static, and if I allow this to
-// become something that gets used to pass around data between various parts of functionality, then
-// I inevitably end up with something that holds variable data filling a solid with data, which then
-// means having to call malloc and realloc on the attribute pointers, then implementing functions
-// to cleanup the allocated memory and keeping track of how much is allocated and so on and so forth
-// - I don't want that to happen, this data structure is supposed to hold only static triangle mesh data!
 struct Solid {
     // - we need two sizes to describe a solid because when we optimize or compress a solid by
     // merging attributes, the amount of indices neccessary to render stays the same, but we have
@@ -65,7 +57,7 @@ struct Solid {
     // - the indices by default are just a series of integers like 0,1,2,3... because the solid
     // is just triangles of attributes with no shared vertices at all, so that the solid can be
     // rendered with glDrawArrays, solid_compress and solid_optimize fill in the indices from
-    // triangles or optimal when called into indices so that these get then used automatically
+    // triangles or optimal when called into indices so that these then get used automatically
     uint32_t* triangles;
     uint32_t* optimal;
     uint32_t* indices;
@@ -78,14 +70,25 @@ struct Solid {
 
 // - there is no solid_create function here because struct Solid is 'abstract', it is only supposed to be
 // created by using a concrete implementation like a cube or a sphere below
+// - the normals generating functions take a pointer to the resulting normals array so that I can use
+// them to generate normals without neccessarily destroying the existing normals, so that I can temporarily
+// switch between normal types fow example
 void solid_hard_normals(const struct Solid* solid, float* normals);
+// - the smooth_normals function takes the hard_normals as extra const argument to make clear that
+// there need to be normals present to generate the smooth normals from, so if you did not somehow
+// generate hard normals first, you can not generate smooth normals
 void solid_smooth_normals(const struct Solid* solid, const float* hard_normals, float* smooth_normals);
 void solid_set_color(struct Solid* solid, const uint8_t color[4]);
 
 // - optimize takes the indices from the optimal array, looks through it and merges attributes
 // which have the same index in the optimal array so that those become shared attributes between
-// multiple triangles
-// - compress does the same, but uses the triangles array instead of the optimal array
+// multiple triangles (shared meaning only one vertex/normal/texcoord/color for a point which is
+// part of two triangles, when before it was two seperate points)
+// - compress does the same, but uses the triangles array instead of the optimal array (meaning
+// optimize should only merge those points that can be merged without loosing important information,
+// for example points that all lie on the same plane, and therefore all have the same normal/texcoord,
+// but compress just merges all points that can be merged regardless of any information loss, so it
+// leaves the minimal set of points that still form the correct shape)
 // - these had two solid arguments before, so they automatically copy stuff into a new solid, but
 // I decided to remove that because most of my functions behave like that and if I ever need to,
 // I'd better implement a solid_copy function to use before using solid_optimize/compress
