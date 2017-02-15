@@ -96,10 +96,10 @@ int32_t main(int32_t argc, char *argv[]) {
     solid_optimize((struct Solid*)&octahedron);
     solid_optimize((struct Solid*)&icosahedron);
     solid_optimize((struct Solid*)&dodecahedron);
-    solid_optimize((struct Solid*)&sphere32);
-    solid_optimize((struct Solid*)&superellipsoid32);
-    solid_optimize((struct Solid*)&torus24);
-    solid_optimize((struct Solid*)&supertoroid24);
+    solid_compress((struct Solid*)&sphere32);
+    solid_compress((struct Solid*)&superellipsoid32);
+    solid_compress((struct Solid*)&torus24);
+    solid_compress((struct Solid*)&supertoroid24);
 
     struct VboMesh box_mesh, cube_mesh, tetrahedron_mesh, octahedron_mesh, icosahedron_mesh, dodecahedron_mesh, sphere32_mesh, superellipsoid32_mesh, torus24_mesh, supertoroid24_mesh;
     vbo_mesh_create_from_solid((struct Solid*)&box, &vbo, &ibo, &box_mesh);
@@ -131,6 +131,7 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){0.0,6.0,10.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
 
+    bool drawn_normals = false;
     while (true) {
         SDL_Event event;
         while( SDL_PollEvent(&event) ) {
@@ -187,19 +188,24 @@ int32_t main(int32_t argc, char *argv[]) {
         quat_to_mat(grid_rotation, grid_transform);
         draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 0.03f, 12.0f, 12.0f, 12);
 
-        draw_solid_normals(&global_dynamic_canvas, 0, box_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&box, 0.05f);
-        draw_solid_normals(&global_dynamic_canvas, 0, cube_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&cube, 0.05f);
-        draw_solid_normals(&global_dynamic_canvas, 0, tetrahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&tetrahedron, 0.05f);
-        draw_solid_normals(&global_dynamic_canvas, 0, octahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&octahedron, 0.05f);
-        draw_solid_normals(&global_dynamic_canvas, 0, icosahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&icosahedron, 0.05f);
-        draw_solid_normals(&global_dynamic_canvas, 0, dodecahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&dodecahedron, 0.05f);
-        draw_solid_normals(&global_dynamic_canvas, 0, sphere32_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&sphere32, 0.05f);
-        draw_solid_normals(&global_dynamic_canvas, 0, superellipsoid32_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&superellipsoid32, 0.05f);
-        draw_solid_normals(&global_dynamic_canvas, 0, torus24_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&torus24, 0.05f);
-        draw_solid_normals(&global_dynamic_canvas, 0, supertoroid24_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&supertoroid24, 0.05f);
+        if( drawn_normals == false ) {
+            draw_solid_normals(&global_static_canvas, 0, box_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&box, 0.05f);
+            draw_solid_normals(&global_static_canvas, 0, cube_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&cube, 0.05f);
+            draw_solid_normals(&global_static_canvas, 0, tetrahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&tetrahedron, 0.05f);
+            draw_solid_normals(&global_static_canvas, 0, octahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&octahedron, 0.05f);
+            draw_solid_normals(&global_static_canvas, 0, icosahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&icosahedron, 0.05f);
+            draw_solid_normals(&global_static_canvas, 0, dodecahedron_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&dodecahedron, 0.05f);
+            draw_solid_normals(&global_static_canvas, 0, sphere32_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&sphere32, 0.05f);
+            draw_solid_normals(&global_static_canvas, 0, superellipsoid32_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&superellipsoid32, 0.05f);
+            draw_solid_normals(&global_static_canvas, 0, torus24_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&torus24, 0.05f);
+            draw_solid_normals(&global_static_canvas, 0, supertoroid24_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&supertoroid24, 0.05f);
+            drawn_normals = true;
+        }
 
         canvas_render_layers(&global_dynamic_canvas, 0, 0, &arcball.camera, (Mat)IDENTITY_MAT);
         canvas_clear(&global_dynamic_canvas);
+
+        canvas_render_layers(&global_static_canvas, 0, 0, &arcball.camera, (Mat)IDENTITY_MAT);
 
         sdl2_gl_swap_window(window);
     }
