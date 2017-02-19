@@ -281,10 +281,10 @@ void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {
     size_t alloc_nodes_result = bsp_tree_alloc_nodes(tree, num_polygons);
     log_assert( alloc_nodes_result >= num_polygons );
 
-    struct BspBuildArrays arrays;
-    bsp_build_arrays_create(&arrays);
-    size_t alloc_arrays_result = bsp_build_arrays_alloc(&arrays, 2 * alloc_polygons_result, alloc_polygons_result);
-    log_assert( alloc_arrays_result > alloc_polygons_result );
+    struct BspBuildState state;
+    bsp_build_state_create(&state);
+    size_t alloc_state_result = bsp_build_state_alloc(&state, 2 * alloc_polygons_result, alloc_polygons_result);
+    log_assert( alloc_state_result > alloc_polygons_result );
 
     Vec3f min = {0};
     Vec3f max = {0};
@@ -326,8 +326,8 @@ void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {
         };
         size_t poly_i = bsp_tree_add_polygon(tree, tree_polygon_size, NULL, parameter_attributes, &tree_polygon);
 
-        arrays.front.polygons[poly_i] = poly_i;
-        arrays.front.occupied += 1;
+        state.front.polygons[poly_i] = poly_i;
+        state.front.occupied += 1;
     }
 
     struct BspBounds bounds = {};
@@ -336,35 +336,35 @@ void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {
     struct BspNode* root = NULL;
     int32_t root_i = bsp_tree_add_node(tree, -1, bounds, &root);
 
-    bsp_build_recur(tree, root, &arrays, 0, num_polygons, &arrays.front);
+    bsp_build_recur(tree, root_i, &state, 0, num_polygons, &state.front);
     log_fail(__FILE__, __LINE__, "BUILT BSP TREE... OR NOT?\n");
 
-    bsp_build_arrays_destroy(&arrays);
+    bsp_build_state_destroy(&state);
 }
 
-void bsp_build_arrays_create(struct BspBuildArrays* arrays) {
-    arrays->front.polygons = NULL;
-    arrays->front.capacity = 0;
-    arrays->front.occupied = 0;
+void bsp_build_state_create(struct BspBuildState* state) {
+    state->front.polygons = NULL;
+    state->front.capacity = 0;
+    state->front.occupied = 0;
 
-    arrays->back.polygons = NULL;
-    arrays->back.capacity = 0;
-    arrays->back.occupied = 0;
+    state->back.polygons = NULL;
+    state->back.capacity = 0;
+    state->back.occupied = 0;
 }
 
-void bsp_build_arrays_destroy(struct BspBuildArrays* arrays) {
-    if( arrays->front.capacity > 0 ) {
-        free(arrays->front.polygons);
+void bsp_build_state_destroy(struct BspBuildState* state) {
+    if( state->front.capacity > 0 ) {
+        free(state->front.polygons);
     }
 
-    if( arrays->back.capacity > 0 ) {
-        free(arrays->back.polygons);
+    if( state->back.capacity > 0 ) {
+        free(state->back.polygons);
     }
 
-    bsp_build_arrays_create(arrays);
+    bsp_build_state_create(state);
 }
 
-size_t bsp_build_arrays_alloc(struct BspBuildArrays* arrays, size_t front_n, size_t back_n) {
+size_t bsp_build_state_alloc(struct BspBuildState* state, size_t front_n, size_t back_n) {
     size_t result = 0;
 
     if( front_n > 0 ) {
@@ -373,12 +373,12 @@ size_t bsp_build_arrays_alloc(struct BspBuildArrays* arrays, size_t front_n, siz
             front_alloc += BSP_BUILD_ARRAYS_ALLOC;
         }
 
-        size_t new_front_capacity = arrays->front.capacity + front_alloc;
+        size_t new_front_capacity = state->front.capacity + front_alloc;
 
-        int32_t* new_front_array = realloc(arrays->front.polygons, new_front_capacity * sizeof(int32_t));
+        int32_t* new_front_array = realloc(state->front.polygons, new_front_capacity * sizeof(int32_t));
         if( new_front_array != NULL ) {
-            arrays->front.polygons = new_front_array;
-            arrays->front.capacity = new_front_capacity;
+            state->front.polygons = new_front_array;
+            state->front.capacity = new_front_capacity;
             result += front_alloc;
         }
     }
@@ -389,12 +389,12 @@ size_t bsp_build_arrays_alloc(struct BspBuildArrays* arrays, size_t front_n, siz
             back_alloc += BSP_BUILD_ARRAYS_ALLOC;
         }
 
-        size_t new_back_capacity = arrays->back.capacity + back_alloc;
+        size_t new_back_capacity = state->back.capacity + back_alloc;
 
-        int32_t* new_back_array = realloc(arrays->back.polygons, new_back_capacity * sizeof(int32_t));
+        int32_t* new_back_array = realloc(state->back.polygons, new_back_capacity * sizeof(int32_t));
         if( new_back_array != NULL ) {
-            arrays->back.polygons = new_back_array;
-            arrays->back.capacity = new_back_capacity;
+            state->back.polygons = new_back_array;
+            state->back.capacity = new_back_capacity;
             result += back_alloc;
         }
     }
@@ -473,7 +473,7 @@ void bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBou
     *selected_divider = best_i;
 }
 
-void bsp_build_recur(struct BspTree* tree, struct BspNode* node, struct BspBuildArrays* arrays, size_t loop_start, size_t loop_end, struct BspBuildPartition* partition) {
+void bsp_build_recur(struct BspTree* tree, int32_t parent_i, struct BspBuildState* state, size_t loop_start, size_t loop_end, struct BspBuildPartition* partition) {
     size_t num_polygons = loop_end - loop_start;
     log_assert( num_polygons > 0 );
 
@@ -487,11 +487,11 @@ void bsp_build_recur(struct BspTree* tree, struct BspNode* node, struct BspBuild
     //draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.01f, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 1.0f, 0.1f);
     //draw_plane(&global_static_canvas, MAX_CANVAS_LAYERS-1, (Mat)IDENTITY_MAT, (Color){120, 120, 150, 127}, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 10.0f);
 
-    size_t front_start = arrays->front.occupied;
+    size_t front_start = state->front.occupied;
     Vec3f front_min = {0};
     Vec3f front_max = {0};
 
-    size_t back_start = arrays->back.occupied;
+    size_t back_start = state->back.occupied;
     Vec3f back_min = {0};
     Vec3f back_max = {0};
 
@@ -625,13 +625,13 @@ void bsp_build_recur(struct BspTree* tree, struct BspNode* node, struct BspBuild
         }
 
         if( front_index > -1 ) {
-            if( arrays->front.occupied + 1 >= arrays->front.capacity ) {
-                size_t alloc_arrays_result = bsp_build_arrays_alloc(arrays, 1, 0);
-                log_assert( alloc_arrays_result > 1 );
+            if( state->front.occupied + 1 >= state->front.capacity ) {
+                size_t alloc_state_result = bsp_build_state_alloc(state, 1, 0);
+                log_assert( alloc_state_result > 1 );
             }
 
-            arrays->front.polygons[arrays->front.occupied] = front_index;
-            arrays->front.occupied += 1;
+            state->front.polygons[state->front.occupied] = front_index;
+            state->front.occupied += 1;
 
             for( size_t polygon_point_i = 0; polygon_point_i < tree->polygons.array[front_index].size; polygon_point_i++ ) {
                 size_t vertex_i = tree->polygons.array[front_index].start + polygon_point_i;
@@ -640,13 +640,13 @@ void bsp_build_recur(struct BspTree* tree, struct BspNode* node, struct BspBuild
         }
 
         if( back_index > -1 ) {
-            if( arrays->back.occupied + 1 >= arrays->back.capacity ) {
-                size_t alloc_arrays_result = bsp_build_arrays_alloc(arrays, 0, 1);
-                log_assert( alloc_arrays_result > 1 );
+            if( state->back.occupied + 1 >= state->back.capacity ) {
+                size_t alloc_state_result = bsp_build_state_alloc(state, 0, 1);
+                log_assert( alloc_state_result > 1 );
             }
 
-            arrays->back.polygons[arrays->back.occupied] = back_index;
-            arrays->back.occupied += 1;
+            state->back.polygons[state->back.occupied] = back_index;
+            state->back.occupied += 1;
 
             for( size_t polygon_point_i = 0; polygon_point_i < tree->polygons.array[back_index].size; polygon_point_i++ ) {
                 size_t vertex_i = tree->polygons.array[back_index].start + polygon_point_i;

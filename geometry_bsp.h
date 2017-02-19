@@ -137,19 +137,19 @@ struct BspBuildPartition {
     size_t occupied;
 };
 
-struct BspBuildArrays {
+struct BspBuildState {
     struct BspBuildPartition front;
     struct BspBuildPartition back;
 };
 
-void bsp_build_arrays_create(struct BspBuildArrays* arrays);
-void bsp_build_arrays_destroy(struct BspBuildArrays* arrays);
+void bsp_build_state_create(struct BspBuildState* arrays);
+void bsp_build_state_destroy(struct BspBuildState* arrays);
 
-WARN_UNUSED_RESULT size_t bsp_build_arrays_alloc(struct BspBuildArrays* arrays, size_t front_n, size_t back_n);
+WARN_UNUSED_RESULT size_t bsp_build_state_alloc(struct BspBuildState* state, size_t front_n, size_t back_n);
 
-void bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBounds bounds, size_t num_polygons, const int32_t* polygon_indices, size_t max_steps, int32_t* selected_divider);
+int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBounds bounds, size_t loop_start, size_t loop_end, const int32_t* polygon_indices, size_t max_steps);
 
-void bsp_build_recur(struct BspTree* tree, struct BspNode* node, struct BspBuildArrays* arrays, size_t start, size_t end, struct BspBuildPartition* partition);
+void bsp_build_recur(struct BspTree* tree, int32_t parent_i, struct BspBuildState* state, size_t loop_start, size_t loop_end, struct BspBuildPartition* partition);
 
 // 1. select a primitive (triangle) not yet part of the tree
 // 2. go through all other triangles seperating them in two
