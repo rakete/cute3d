@@ -177,7 +177,7 @@ WARN_UNUSED_RESULT size_t bsp_tree_alloc_nodes(struct BspTree* tree, size_t n) {
     return 0;
 }
 
-int32_t bsp_tree_add_node(struct BspTree* tree, struct BspBounds bounds, struct BspNode** result) {
+int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, struct BspBounds bounds, struct BspNode** result) {
     if( tree->nodes.occupied + 1 >= tree->nodes.capacity ) {
         size_t alloc_nodes_result = 0;
         alloc_nodes_result = bsp_tree_alloc_nodes(tree, 1);
@@ -334,7 +334,7 @@ void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {
     bsp_node_bounds_create(min, max, num_polygons, &bounds);
 
     struct BspNode* root = NULL;
-    bsp_tree_add_node(tree, bounds, &root);
+    int32_t root_i = bsp_tree_add_node(tree, -1, bounds, &root);
 
     bsp_build_recur(tree, root, &arrays, 0, num_polygons, &arrays.front);
     log_fail(__FILE__, __LINE__, "BUILT BSP TREE... OR NOT?\n");
@@ -655,28 +655,33 @@ void bsp_build_recur(struct BspTree* tree, struct BspNode* node, struct BspBuild
         }
     }
 
-    size_t front_end = arrays->front.occupied;
-    size_t back_end = arrays->back.occupied;
-    if( front_end - front_start > 1 ) {
-        struct BspBounds front_bounds = {};
-        bsp_node_bounds_create(front_min, front_max, front_end - front_start, &front_bounds);
+    size_t front_end = state->front.occupied;
+    size_t back_end = state->back.occupied;
 
-        struct BspNode* front_node = NULL;
-        bsp_tree_add_node(tree, front_bounds, &front_node);
-        bsp_build_recur(tree, front_node, arrays, front_start, front_end, &arrays->front);
-    } else if( front_end - front_start == 1 ) {
-        //printf("front recur end\n");
+    struct BspBounds front_bounds = {};
+    bsp_node_bounds_create(front_min, front_max, front_end - front_start, &front_bounds);
+
+    struct BspNode* front_node = NULL;
+    int32_t front_parent_i = bsp_tree_add_node(tree, parent_i, front_bounds, &front_node);
+    tree->nodes.array[parent_i].tree.front = front_parent_i;
+
+    if( front_end - front_start > 0 ) {
+        bsp_build_recur(tree, front_parent_i, state, front_start, front_end, &state->front);
+    } else if( front_end - front_start == 0 ) {
+        front_node->state.empty = true;
     }
 
-    if( back_end - back_start > 1 ) {
-        struct BspBounds back_bounds = {};
-        bsp_node_bounds_create(back_min, back_max, back_end - back_start, &back_bounds);
+    struct BspBounds back_bounds = {};
+    bsp_node_bounds_create(back_min, back_max, back_end - back_start, &back_bounds);
 
-        struct BspNode* back_node = NULL;
-        bsp_tree_add_node(tree, back_bounds, &back_node);
-        bsp_build_recur(tree, back_node, arrays, back_start, back_end, &arrays->back);
-    } else if( back_end - back_start == 1 ) {
-        //printf("back recur end\n");
+    struct BspNode* back_node = NULL;
+    int32_t back_parent_i = bsp_tree_add_node(tree, parent_i, back_bounds, &back_node);
+    tree->nodes.array[parent_i].tree.back = back_parent_i;
+
+    if( back_end - back_start > 0 ) {
+        bsp_build_recur(tree, back_parent_i, state, back_start, back_end, &state->back);
+    } else if( back_end - back_start == 0 ) {
+        back_node->state.solid = true;
     }
 
 }
