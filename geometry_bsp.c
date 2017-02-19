@@ -402,11 +402,11 @@ size_t bsp_build_state_alloc(struct BspBuildState* state, size_t front_n, size_t
     return result;
 }
 
-void bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBounds bounds, size_t num_polygons, const int32_t* polygon_indices, size_t max_steps, int32_t* selected_divider) {
-    *selected_divider = 0;
-
-    if( num_polygons <= 1 ) {
-        return;
+int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBounds bounds, size_t loop_start, size_t loop_end, const int32_t* polygon_indices, size_t max_steps) {
+    size_t num_polygons = loop_end - loop_start;
+    log_assert( num_polygons > 0 );
+    if( num_polygons <= 2 ) {
+        return polygon_indices[loop_start];
     }
 
     float node_width = bounds.half_width*2.0f;
@@ -429,19 +429,18 @@ void bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBou
         step_size = (size_t)(fstep_size+1.0f);
     }
 
-
     float min_dot = FLT_MAX;
     float min_center_distance = FLT_MAX;
     int32_t best_i = 0;
     float best_score = 0.0f;
-    for( size_t polygon_i = 0; polygon_i < num_polygons; polygon_i += step_size ) {
+    for( size_t polygon_i = loop_start; polygon_i < loop_end; polygon_i += step_size ) {
         int32_t index_i = polygon_indices[polygon_i];
         int32_t start_i = tree->polygons.array[index_i].start;
         float current_score = 0.0f;
 
         float dot = FLT_MAX;
         vec_dot(tree->polygons.array[index_i].normal, normal_comparison_axis, &dot);
-        if( fabs(dot) <= min_dot+CUTE_EPSILON ) {
+        if( fabs(dot) <= min_dot+10.0f*CUTE_EPSILON ) {
             min_dot = fabs(dot);
             current_score += 1.0f;
         }
@@ -458,9 +457,9 @@ void bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBou
         float center_distance = FLT_MAX;
         vec_length(center_vector, &center_distance);
 
-        if( fabs(center_distance) <= min_center_distance+CUTE_EPSILON ) {
+        if( fabs(center_distance) <= min_center_distance+1.0f*CUTE_EPSILON ) {
             min_center_distance = fabs(center_distance);
-            current_score += 2.0f;
+            current_score += 1.0f;
         }
 
         if( current_score >= best_score ) {
@@ -470,22 +469,23 @@ void bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBou
 
     }
 
-    *selected_divider = best_i;
+    return best_i;
 }
 
 void bsp_build_recur(struct BspTree* tree, int32_t parent_i, struct BspBuildState* state, size_t loop_start, size_t loop_end, struct BspBuildPartition* partition) {
     size_t num_polygons = loop_end - loop_start;
     log_assert( num_polygons > 0 );
 
-    bsp_build_select_balanced_divider(tree, node->bounds, num_polygons, &partition->polygons[loop_start], num_polygons/10, &node->divider);
+    int32_t node_divider_i = bsp_build_select_balanced_divider(tree, tree->nodes.array[parent_i].bounds, loop_start, loop_end, partition->polygons, num_polygons/10);
+    tree->nodes.array[parent_i].divider = node_divider_i;
 
-    const struct BspPolygon node_divider = tree->polygons.array[node->divider];
+    const struct BspPolygon node_divider = tree->polygons.array[node_divider_i];
     Vertex node_divider_vertex = {0};
     vertex_copy(&tree->attributes.vertices[node_divider.start*VERTEX_SIZE], node_divider_vertex);
 
-    //draw_polygon_wire(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.01f, node_divider.size, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], node_divider.normal);
-    //draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.01f, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 1.0f, 0.1f);
-    //draw_plane(&global_static_canvas, MAX_CANVAS_LAYERS-1, (Mat)IDENTITY_MAT, (Color){120, 120, 150, 127}, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 10.0f);
+    /* draw_polygon_wire(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.01f, node_divider.size, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], node_divider.normal); */
+    /* draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.01f, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 1.0f, 0.1f); */
+    /* draw_plane(&global_static_canvas, MAX_CANVAS_LAYERS-1, (Mat)IDENTITY_MAT, (Color){120, 120, 150, 127}, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 10.0f); */
 
     size_t front_start = state->front.occupied;
     Vec3f front_min = {0};
@@ -497,7 +497,7 @@ void bsp_build_recur(struct BspTree* tree, int32_t parent_i, struct BspBuildStat
 
     for( size_t loop_i = loop_start; loop_i < loop_end; loop_i++ ) {
         size_t polygon_i = partition->polygons[loop_i];
-        if( (int32_t)polygon_i == node->divider ) {
+        if( (int32_t)polygon_i == node_divider_i ) {
             continue;
         }
 
@@ -526,7 +526,7 @@ void bsp_build_recur(struct BspTree* tree, int32_t parent_i, struct BspBuildStat
                 break;
             case POLYGON_SPANNING:
                 if( result_points[0].num_cuts > 0 ) {
-                    tree->polygons.array[polygon_i].divider = node->divider;
+                    tree->polygons.array[polygon_i].divider = node_divider_i;
 
                     size_t new_poly_size = current_polygon_size+result_points[0].num_cuts;
 
@@ -618,8 +618,8 @@ void bsp_build_recur(struct BspTree* tree, int32_t parent_i, struct BspBuildStat
 
                     tree->polygons.occupied += 2;
 
-                    //draw_polygon_wire(&global_static_canvas, 0, (Mat)IDENTITY_MAT,  (Color){255, 255, 0, 255}, 0.01f, front_occupied, front_vertices, current_polygon.normal);
-                    //draw_polygon_wire(&global_static_canvas, 0, (Mat)IDENTITY_MAT,  (Color){255, 255, 0, 255}, 0.01f, back_occupied, back_vertices, current_polygon.normal);
+                    /* draw_polygon_wire(&global_static_canvas, 0, (Mat)IDENTITY_MAT,  (Color){255, 255, 0, 255}, 0.01f, front_occupied, front_vertices, current_polygon.normal); */
+                    /* draw_polygon_wire(&global_static_canvas, 0, (Mat)IDENTITY_MAT,  (Color){255, 255, 0, 255}, 0.01f, back_occupied, back_vertices, current_polygon.normal); */
                 }
                 break;
         }
