@@ -57,7 +57,7 @@ void bsp_node_create(struct BspBounds bounds, struct BspNode* node) {
     node->tree.parent = -1;
     node->tree.front = -1;
     node->tree.back = -1;
-    node->tree.index = 0;
+    node->tree.index = -1;
     node->tree.depth = 0;
 
     node->state.empty = false;
@@ -187,6 +187,12 @@ int32_t bsp_tree_add_node(struct BspTree* tree, struct BspBounds bounds, struct 
     size_t node_i = tree->nodes.occupied;
     struct BspNode* node = &tree->nodes.array[node_i];
     bsp_node_create(bounds, node);
+
+    node->tree.index = node_i;
+    node->tree.parent = parent;
+    if( parent > -1 ) {
+        node->tree.depth = tree->nodes.array[parent].tree.depth + 1;
+    }
 
     tree->nodes.occupied += 1;
 
