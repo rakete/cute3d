@@ -120,15 +120,11 @@ if build_platform == "linux" or build_toolset == "gcc":
     cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes + " " + defines
     ldflags = linking + " " + libraries
 elif build_toolset == "mingw":
-    if ninja_cute3d.command_exists("sdl2-config") and ninja_cute3d.command_exists("bash"):
-        sdl2_cflags = subprocess.check_output(["bash", "sdl2-config", "--cflags"]).rstrip()
-        sdl2_libs = subprocess.check_output(["bash", "sdl2-config", "--libs"]).rstrip()
-    else:
-        print "could not find sdl2-config, trying to build with:"
-        print "sdl2_cflags = \"-Ic:/MinGW/include/SDL2 -Dmain=SDL_main\""
-        print "sdl2_libs = \"-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows\""
-        sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
-        sdl2_libs = "-Lc:/MinGW/lib -lSDL2main -lSDL2"
+    sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
+    sdl2_libs = "-Lc:/MinGW/lib -lSDL2main -lSDL2"
+    if ninja_cute3d.command_exists("sdl2-config") and ninja_cute3d.command_exists("sh"):
+        sdl2_cflags = subprocess.check_output(["sh", "sdl2-config", "--cflags"]).rstrip()
+        sdl2_libs = subprocess.check_output(["sh", "sdl2-config", "--libs"]).rstrip()
 
     features = "-posix -std=c11 -g -DDEBUG "
     optimization = "-O0" # "-flto=4 -march=native"
@@ -142,8 +138,8 @@ elif build_toolset == "mingw":
     cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes + " " + defines
     ldflags = linking + " " + libraries
 elif build_toolset == "msvc":
-    sdl2_cflags = "/Ic:\\VC\\SDL2-2.0.4\\include"
-    sdl2_libs = "/LIBPATH:c:\\VC\\SDL2-2.0.4\\lib\\x64 SDL2.lib SDL2main.lib"
+    sdl2_cflags = "/Ic:\\Libpath\\SDL2-2.0.4\\include"
+    sdl2_libs = "/LIBPATH:c:\\Libpath\\SDL2-2.0.4\\lib\\x64 SDL2.lib SDL2main.lib"
 
     # - MD is for dynamic linking
     features = " /DDEBUG /DCUTE_BUILD_MSVC /MD"
