@@ -105,7 +105,7 @@ if build_platform == "linux" or build_toolset == "gcc":
         print "could not find sdl2-config, is libsdl2-dev package installed?"
         sys.exit(1)
 
-    features = "-std=c11 -g -DDEBUG -fsanitize=address -fno-omit-frame-pointer "
+    features = "-std=c11 -pg -DDEBUG -fsanitize=address -fno-omit-frame-pointer "
     optimization = "-O0" # "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -Wno-unknown-pragmas -pedantic"
     errors = "-Werror=implicit-function-declaration"
@@ -130,7 +130,7 @@ elif build_toolset == "mingw":
         sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
         sdl2_libs = "-Lc:/MinGW/lib -lSDL2main -lSDL2"
 
-    features = "-posix -std=c11 -g -DDEBUG "
+    features = "-posix -std=c11 -pg -DDEBUG "
     optimization = "-O0" # "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -Wno-unknown-pragmas -pedantic"
     errors = "-Werror=implicit-function-declaration"
