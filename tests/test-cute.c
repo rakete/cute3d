@@ -23,6 +23,7 @@
 #include "time.h"
 
 #include "math_arcball.h"
+#include "math_gametime.h"
 
 #include "geometry_solid.h"
 #include "geometry_draw.h"
@@ -127,6 +128,9 @@ int32_t main(int32_t argc, char** argv) {
     font_create_from_characters(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", 256, symbols, 9, 3, global_default_font_palette, &foo);
     canvas_add_font(&global_dynamic_canvas, "other_font", &foo);
 
+    struct GameTime time = {0};
+    gametime_create(1.0f / 60.0f, &time);
+
     Quat cube_spinning = {0};
     qidentity(cube_spinning);
     while( true ) {
@@ -150,6 +154,8 @@ int32_t main(int32_t argc, char** argv) {
 
         sdl2_debug( SDL_GL_SetSwapInterval(1) );
 
+        gametime_advance(&time, sdl2_time_delta());
+
         glClearDepth(1.0f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
@@ -169,11 +175,17 @@ int32_t main(int32_t argc, char** argv) {
         Mat cube_transform = {0};
         mat_identity(cube_transform);
 
+
         Quat cube_rotation = {0};
         qidentity(cube_rotation);
+
         quat_mul_axis_angle(cube_rotation, (Vec4f){ 0.0, 0.0, 1.0, 1.0 }, 45 * PI/180, cube_rotation);
         quat_mul_axis_angle(cube_rotation, (Vec4f){ 1.0, 0.0, 0.0, 1.0 }, 45 * PI/180, cube_rotation);
-        quat_mul_axis_angle(cube_spinning, (float[]){ 0.0, 1.0, 0.0, 1.0 }, 1 * PI/180, cube_spinning);
+
+        if( gametime_integrate(&time) ) {
+            quat_mul_axis_angle(cube_spinning, (float[]){ 0.0, 1.0, 0.0, 1.0 }, 1 * PI/180, cube_spinning);
+        }
+
         quat_mul(cube_rotation, cube_spinning, cube_rotation);
 
         printf("%f %f %f %f\n", cube_spinning[0], cube_spinning[1], cube_spinning[2], cube_spinning[3]);
