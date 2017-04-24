@@ -126,7 +126,7 @@ elif build_toolset == "mingw":
         sdl2_cflags = subprocess.check_output(["sh", "sdl2-config", "--cflags"]).rstrip()
         sdl2_libs = subprocess.check_output(["sh", "sdl2-config", "--libs"]).rstrip()
 
-    features = "-posix -std=c11 -pg -DDEBUG "
+    features = "-posix -std=c11 -g -DDEBUG "
     optimization = "-O0" # "-flto=4 -march=native"
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -Wno-unknown-pragmas -pedantic"
     errors = "-Werror=implicit-function-declaration"
