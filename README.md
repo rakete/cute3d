@@ -1,4 +1,4 @@
-#Cute3D
+# Cute3D
 
 This is a framework for developing interactive realtime simulations in 3D. It should be useful for game devolepment, but may be also have purpose in robotics and artificial intelligence research.
 
