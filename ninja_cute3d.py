@@ -16,6 +16,7 @@
 
 # You should have received a copy of the GNU General Public License
 # along with Cute3D.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import print_function
 
 import ninja_syntax
 
@@ -45,12 +46,12 @@ def copy(w, build_platform):
         if command_exists("cp"):
             w.rule(name="copy", command="cp $in $out")
         else:
-            print "WARNING: using windows copy command!"
-            print "if you want a reliable and sane build experience you should get gnu cp and"
-            print "put it in your PATH, I am writing this as I am about to give up to try and make things"
-            print "work with windows builtin copy and xcopy.exe, this script will use the cmd builtin"
-            print "copy for copying, but I know that this has several issues and is slow, if you"
-            print "happen to know a better way, please file an issue, thank you"
+            print("WARNING: using windows copy command!")
+            print("if you want a reliable and sane build experience you should get gnu cp and")
+            print("put it in your PATH, I am writing this as I am about to give up to try and make things")
+            print("work with windows builtin copy and xcopy.exe, this script will use the cmd builtin")
+            print("copy for copying, but I know that this has several issues and is slow, if you")
+            print("happen to know a better way, please file an issue, thank you")
             w.rule(name="copy", command="cmd /c \"copy $in $out >nul\"")
     else:
         w.rule(name="copy", command="cp $in $out")

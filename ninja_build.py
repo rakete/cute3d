@@ -16,6 +16,7 @@
 
 # You should have received a copy of the GNU General Public License
 # along with Cute3D.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import print_function
 
 import ninja_syntax
 import ninja_cute3d
@@ -28,7 +29,7 @@ import os
 import re
 
 if not ninja_cute3d.command_exists("ninja"):
-    print "could not find ninja, is ninja-build package installed?"
+    print("could not find ninja, is ninja-build package installed?")
     sys.exit(1)
 
 # - I support out of tree builds, and so I take the path where this script lies, an absolute path,
@@ -39,8 +40,8 @@ current_directory = os.getcwd()
 source_directory = os.path.relpath(script_directory, current_directory)
 build_directory = current_directory
 
-print "source_directory: " + source_directory
-print "build_directory: " + build_directory
+print("source_directory: " + source_directory)
+print("build_directory: " + build_directory)
 
 # - besides figuring out directories the largest part of the first section of this script is figuring various
 # build related configuration settings, most importantly the platform we are building on, which for now
@@ -65,12 +66,12 @@ if len(sys.argv) > 1:
     elif user_toolset == "msvc" and build_platform == "windows":
         build_toolset = user_toolset
     else:
-        print "can not configure toolset " + user_toolset
-        print "use gcc, mingw or msvc"
+        print("can not configure toolset " + user_toolset)
+        print("use gcc, mingw or msvc")
         sys.exit(1)
 
-print "build_platform: " + build_platform
-print "build_toolset: " + build_toolset
+print("build_platform: " + build_platform)
+print("build_toolset: " + build_toolset)
 
 # - now that the toolset and platform are known, I set the compiler and linker parameter settings according
 # to which toolset/platform combination has been selected
@@ -102,7 +103,7 @@ if build_platform == "linux" or build_toolset == "gcc":
         sdl2_cflags = subprocess.check_output(["bash", "sdl2-config", "--cflags"]).rstrip()
         sdl2_libs = subprocess.check_output(["bash", "sdl2-config", "--libs"]).rstrip()
     else:
-        print "could not find sdl2-config, is libsdl2-dev package installed?"
+        print("could not find sdl2-config, is libsdl2-dev package installed?")
         sys.exit(1)
 
     features = "-std=c11 -pg -DDEBUG -fsanitize=address -fno-omit-frame-pointer "
@@ -163,18 +164,18 @@ elif build_toolset == "msvc":
     cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes + " " + defines
     ldflags = "/SUBSYSTEM:CONSOLE /STACK:8388608 " + linking + " " + libraries
 else:
-    print "building with " + build_toolset + " on " + build_platform + " is not supported yet."
+    print("building with " + build_toolset + " on " + build_platform + " is not supported yet.")
     sys.exit(1)
 
-print "sdl2_cflags: " + sdl2_cflags
-print "sdl2_libs: " + sdl2_libs
-print "features: " + features
-print "optimization: " + optimization
-print "warnings: " + warnings
-print "linking: " + linking
-print "libraries: " + libraries
-print "cflags: " + cflags
-print "ldflags: " + ldflags
+print("sdl2_cflags: " + sdl2_cflags)
+print("sdl2_libs: " + sdl2_libs)
+print("features: " + features)
+print("optimization: " + optimization)
+print("warnings: " + warnings)
+print("linking: " + linking)
+print("libraries: " + libraries)
+print("cflags: " + cflags)
+print("ldflags: " + ldflags)
 
 # - always write to build.ninja in current directory for now
 build_file_handle = open("build.ninja", "w+")
