@@ -22,6 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+from __future__ import print_function
 
 import argparse
 import os
@@ -40,7 +41,7 @@ elif platform.system() == 'Linux':
 elif platform.system() == 'Windows':
     ESSL_TO_GLSL = os.path.join(DIR, "angle", "essl_to_glsl_win.exe")
 else:
-    print "Unsupported platform"
+    print("Unsupported platform")
     exit(1)
 
 # See README for where to obtain
@@ -132,13 +133,13 @@ def shader_info(shader_file, prefix_files=[]):
 
         assembly = "".join(lines[:-1])
         if args.assembly:
-            print assembly
+            print(assembly)
         count = lines[-1][2:]
-        print shader_file, count
+        print(shader_file, count)
     else:
-        print 'Error!'
+        print('Error!')
         for line in p.stdout.readlines():
-            print line
+            print(line)
 
 
 def validate_shader(shader_file, prefix_files=[]):
@@ -181,7 +182,7 @@ def validate_shader(shader_file, prefix_files=[]):
                 error += error_format % (line_label, error_message)
 
         if len(error) > 0:
-            print error
+            print(error)
             exit(1)
 
 def standalone():
@@ -209,7 +210,7 @@ def standalone():
     bad_extensions = filter(lambda f: not re.match('^\.(vert|frag)$',
                             os.path.splitext(f)[1]), files)
     for f in bad_extensions:
-        print "Invalid file: %s, only support .frag and .vert files" % f
+        print("Invalid file: %s, only support .frag and .vert files" % f)
         exit(1)
 
     shader_files = []
