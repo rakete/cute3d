@@ -121,8 +121,10 @@ if build_platform == "linux" or build_toolset == "gcc":
     cflags = features + " " + warnings + " " + errors + " " + linking + " " + sdl2_cflags + " " + optimization + " " + includes + " " + defines
     ldflags = linking + " " + libraries
 elif build_toolset == "mingw":
-    sdl2_cflags = "-Ic:/MinGW/include/SDL2 -Dmain=SDL_main"
-    sdl2_libs = "-Lc:/MinGW/lib -lSDL2main -lSDL2"
+    sdl2_cflags = "-Ic:/MinGW/include/SDL2" #-Dmain=SDL_main"
+    # this should be what 'sdl2-config --libs' outputs on windows according to:
+    # https://wiki.libsdl.org/FAQWindows#I_get_.22Undefined_reference_to_.27WinMain.4016.27.22
+    sdl2_libs = "-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows"
     if ninja_cute3d.command_exists("sdl2-config") and ninja_cute3d.command_exists("sh"):
         sdl2_cflags = subprocess.check_output(["sh", "sdl2-config", "--cflags"]).rstrip()
         sdl2_libs = subprocess.check_output(["sh", "sdl2-config", "--libs"]).rstrip()
@@ -132,7 +134,7 @@ elif build_toolset == "mingw":
     warnings = "-Wall -Wmaybe-uninitialized -Wsign-conversion -Wno-missing-field-initializers -Wno-missing-braces -Wno-pedantic-ms-format -Wno-unknown-pragmas -pedantic"
     errors = "-Werror=implicit-function-declaration"
     linking = "-fPIC"
-    libraries = sdl2_libs + " -lmingw32 -mwindows -mwindows -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lshell32 -luuid -lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32"
+    libraries = sdl2_libs + " -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lshell32 -luuid -lole32 -loleaut32 -limm32 -lwinmm -lversion -lm -lopengl32"
     includes = "-I" + source_directory
     defines = "-DCUTE_SHADER_SEARCH_PATH=\\\"shader/:cute3d/shader/\\\""
 
