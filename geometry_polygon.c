@@ -89,6 +89,9 @@ enum PolygonCutType polygon_cut(size_t polygon_size, size_t point_size, const fl
 
     float w = 0.0f;
     vec_dot(plane_normal, plane_point, &w);
+
+    // - first loop goes through all polygon points, initializes ter result_points
+    // - distance in result_point[polygon_i] is computing as distance of polygon point from cutting plane
     for( size_t polygon_i = 0; polygon_i < polygon_size; polygon_i++) {
         const VecP* p = &polygon[polygon_i*point_size];
 
@@ -109,12 +112,25 @@ enum PolygonCutType polygon_cut(size_t polygon_size, size_t point_size, const fl
         } else {
             result_points[polygon_i].type = POLYGON_COPLANNAR;
         }
+
+        // - return_type is what this function returns (obviously), but it is computed here in this fashion,
+        // inside of this loop because the return type needs to be POLYGON_SPANNING if there is at least one
+        // result_points[polygon_i].type == POLYGON_BACK and at least one result_points[polygon_i].type == POLYGON_FRONT,
+        // meaning the cutting plane actually cuts through the polygon
+        // - if return_type ever becomes POLYGON_SPANNING, it stays POLYGON_SPANNING, also the |= works so that any number
+        // of POLYGON_COPLANNAR points does not matter, as long as there is at least one POLYGON_FRONT and one POLYGON_BACK
         return_type |= result_points[polygon_i].type;
 
         result_points[polygon_i].distance = p_distance;
     }
 
     if( return_type == POLYGON_SPANNING ) {
+
+        // - when the cutting plane actually cuts through the polygon, we loop over each edge (by advancing two indices
+        // polygon_i and polygon_j)
+        // - then for each edge that has a starting point on one side of the cutting plane and an end point on the
+        // opposite side of the cutting plane we compute a PolygonCuttingPoint.interpolation_value set the interpolation_index
+        // to the end point index (polygon_j, which is the i+1 index)
         for( size_t polygon_i = 0; polygon_i < polygon_size; polygon_i++ ) {
             size_t polygon_j = (polygon_i+1) % polygon_size;
 
