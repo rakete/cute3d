@@ -21,6 +21,10 @@
 
 int32_t init_sdl2() {
 
+#ifdef _WIN32
+    SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
+#endif
+
     if( SDL_Init(SDL_INIT_EVERYTHING) < 0 ) {
         log_fail(__FILE__, __LINE__, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
