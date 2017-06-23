@@ -34,7 +34,7 @@
 int32_t main(int32_t argc, char *argv[]) {
     printf("<<watchlist//>>\n");
 
-    if( init_sdl2() ) {
+    if( sdl2_init() ) {
         return 1;
     }
 

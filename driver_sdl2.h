@@ -42,7 +42,7 @@
 #endif
 //log_assert(strlen(error) == 0);
 
-WARN_UNUSED_RESULT int32_t init_sdl2();
+WARN_UNUSED_RESULT int32_t sdl2_init();
 
 void sdl2_window(const char* title, int32_t x, int32_t y, int32_t width, int32_t height, SDL_Window** window);
 void sdl2_fullscreen(const char* title, int32_t width, int32_t height, SDL_Window** window);
