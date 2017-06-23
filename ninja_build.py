@@ -318,8 +318,12 @@ def detect_settings(args):
         settings.cflags = settings.features + " " + settings.warnings + " " + settings.errors + " " + settings.linking + " " + settings.sdl2_cflags + " " + settings.optimization + " " + settings.includes + " " + settings.defines
         settings.ldflags = settings.linking + " " + settings.libraries
     elif settings.build_toolset == "msvc":
-        settings.sdl2_cflags = "/Ic:\\Libpath\\SDL2-2.0.4\\include"
-        settings.sdl2_libs = "/LIBPATH:c:\\Libpath\\SDL2-2.0.4\\lib\\x64 SDL2.lib SDL2main.lib"
+        if os.path.exists("c:\\Libpath\\SDL2-2.0.5"):
+            settings.sdl2_cflags = "/Ic:\\Libpath\\SDL2-2.0.5\\include"
+            settings.sdl2_libs = "/LIBPATH:c:\\Libpath\\SDL2-2.0.5\\lib\\x64 SDL2.lib SDL2main.lib"
+        else:
+            settings.sdl2_cflags = "/Ic:\\Libpath\\SDL2-2.0.4\\include"
+            settings.sdl2_libs = "/LIBPATH:c:\\Libpath\\SDL2-2.0.4\\lib\\x64 SDL2.lib SDL2main.lib"
 
         # - MD is for dynamic linking
         settings.features = " /DDEBUG /DCUTE_BUILD_MSVC /MD"
