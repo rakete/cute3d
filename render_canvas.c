@@ -37,7 +37,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
 #ifndef CUTE_BUILD_ES2
     if( canvas->vao == 0 ) {
-        ogl_debug( glGenVertexArrays(1, &canvas->vao) );
+        ogl_debug( glGenVertexArrays(1, &canvas->vao ) );
     } else {
         not_binding_vao = false;
     }
@@ -327,7 +327,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
     }
 #endif
 
-    if( not_binding_vao ) {
+    if( not_binding_vao && canvas->vao == 0 ) {
         // unbind the attribute locations, only those that were actually bound
         for(int32_t attribute_i = 0; attribute_i < MAX_SHADER_ATTRIBUTES; attribute_i++ ) {
             if( loc[attribute_i] > -1 ) {

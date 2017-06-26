@@ -1021,7 +1021,7 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
     }
 #endif
 
-    if( not_binding_vao ) {
+    if( not_binding_vao && mesh->vao == 0 ) {
         for( int32_t array_id = 0; array_id < MAX_SHADER_ATTRIBUTES; array_id++ ) {
             if( loc[array_id] > -1 ) {
                 ogl_debug( glDisableVertexAttribArray((GLuint)loc[array_id]) );
