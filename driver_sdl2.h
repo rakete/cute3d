@@ -40,7 +40,6 @@
 #else
 #define sdl2_debug(line) line
 #endif
-//log_assert(strlen(error) == 0);
 
 WARN_UNUSED_RESULT int32_t sdl2_init();
 
