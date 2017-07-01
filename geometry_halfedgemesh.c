@@ -527,26 +527,21 @@ int32_t halfedgemesh_vertex_iterate(const struct HalfEdgeMesh* mesh, int32_t ver
     log_assert( edge_i != NULL );
     log_assert( i != NULL );
 
-    int32_t result = 0;
     if( *i == 0 || *edge_i == -1 ) {
         *edge_i = mesh->vertices.array[vertex_i].edge;
-        result = 1;
-    } else if( *i % 2 == 1 ) {
+    } else {
         *edge_i = mesh->edges.array[*edge_i].other;
         log_assert( mesh->edges.array[*edge_i].vertex == vertex_i );
-        result = -1;
-    } else if( *i % 2 == 0 ) {
+
         *edge_i = mesh->edges.array[*edge_i].next;
-        result = 1;
     }
     *edge = &mesh->edges.array[*edge_i];
 
     if( *i > 0 && *edge_i == mesh->vertices.array[vertex_i].edge ) {
-        *i = 0;
         return 0;
     }
     *i += 1;
-    return result;
+    return 1;
 }
 
 void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
@@ -822,8 +817,9 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
                 int32_t edge_i = -1;
                 int32_t i = 0;
                 while( halfedgemesh_vertex_iterate(mesh, old_vertex_i, &edge, &edge_i, &i) ) {
-                    if( edge->vertex == old_vertex_i ) {
-                        edge->vertex = new_vertex_i;
+                    struct HalfEdge* other = &mesh->edges.array[edge->other];
+                    if( other->vertex == old_vertex_i ) {
+                        other->vertex = new_vertex_i;
                     }
                 }
 
