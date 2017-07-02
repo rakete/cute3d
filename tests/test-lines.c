@@ -63,6 +63,7 @@ int32_t main(int32_t argc, char *argv[]) {
     struct HalfEdgeMesh hemesh_cube = {0};
     halfedgemesh_create(&hemesh_cube);
     halfedgemesh_append(&hemesh_cube, (struct Solid*)&solid_cube);
+    //halfedgemesh_optimize(&hemesh_cube);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);

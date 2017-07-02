@@ -178,7 +178,25 @@ void draw_halfedgemesh_wire(struct Canvas* canvas,
         int32_t this_index = this_edge->vertex;
         int32_t other_index = other_edge->vertex;
 
-        draw_line(canvas, layer_i, model_matrix, color, line_thickness, mesh->vertices.array[this_index].position, mesh->vertices.array[other_index].position);
+        float offset = line_thickness/4.0f;
+
+        Vec3f this_offset = {0};
+        halfedgemesh_vertex_surface_normal(mesh, this_index, this_offset);
+        vec_mul1f(this_offset, offset, this_offset);
+
+        Vec3f other_offset = {0};
+        halfedgemesh_vertex_surface_normal(mesh, other_index, other_offset);
+        vec_mul1f(other_offset, offset, other_offset);
+
+        Vec3f line_point_this = {0};
+        vec_copy3f(mesh->vertices.array[this_index].position, line_point_this);
+        vec_add(line_point_this, this_offset, line_point_this);
+
+        Vec3f line_point_other = {0};
+        vec_copy3f(mesh->vertices.array[other_index].position, line_point_other);
+        vec_add(line_point_other, other_offset, line_point_other);
+
+        draw_line(canvas, layer_i, model_matrix, color, line_thickness, line_point_this, line_point_other);
     }
 }
 
@@ -223,7 +241,7 @@ void draw_halfedgemesh_edge(struct Canvas* canvas,
     draw_line(canvas, layer_i, model_matrix, color, line_thickness, mesh->vertices.array[edge->vertex].position, mesh->vertices.array[other->vertex].position);
 }
 
-void draw_halfedgemeshertex(struct Canvas* canvas,
+void draw_halfedgemesh_vertex(struct Canvas* canvas,
                               int32_t layer_i,
                               const Mat model_matrix,
                               const Color color,

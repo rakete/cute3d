@@ -93,4 +93,11 @@ void draw_halfedgemesh_vertex(struct Canvas* canvas,
                               int32_t vertex,
                               float scale);
 
+void draw_bsp(struct Canvas* canvas,
+              int32_t layer_i,
+              const Mat Model_matrix,
+              const Color color,
+              float line_thickness,
+              const struct BspTree* tree);
+
 #endif
