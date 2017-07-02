@@ -544,6 +544,25 @@ int32_t halfedgemesh_vertex_iterate(const struct HalfEdgeMesh* mesh, int32_t ver
     return 1;
 }
 
+void halfedgemesh_vertex_surface_normal(const struct HalfEdgeMesh* mesh, int32_t vertex_i, Vec3f surface_normal) {
+    struct HalfEdge* iter_edge;
+    int32_t edge_i = -1;
+    int32_t i = 0;
+    vec_copy3f((Vec3f){0.0f, 0.0f, 0.0f}, surface_normal);
+    while( halfedgemesh_vertex_iterate(mesh, vertex_i, &iter_edge, &edge_i, &i) ) {
+        float weight = 1.0f;
+        int32_t a_i = vertex_i;
+        int32_t b_i = iter_edge->vertex;
+        int32_t c_i = mesh->edges.array[mesh->edges.array[iter_edge->prev].other].vertex;
+        vec_angle_points(mesh->vertices.array[a_i].position, mesh->vertices.array[b_i].position, mesh->vertices.array[c_i].position, &weight);
+
+        Vec3f weighted_normal = {0};
+        vec_mul1f(iter_edge->normal, weight, weighted_normal);
+        vec_add(surface_normal, weighted_normal, surface_normal);
+    }
+    vec_normalize(surface_normal, surface_normal);
+}
+
 void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
     log_assert( mesh != NULL );
     log_assert( mesh->vertices.occupied < INT32_MAX );

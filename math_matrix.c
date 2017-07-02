@@ -238,6 +238,22 @@ float vangle(const Vec3f v, const Vec3f w) {
     return r;
 }
 
+void vec_angle_points(const Vec3f a, const Vec3f b, const Vec3f c, float* r) {
+    Vec3f v = {0};
+    Vec3f w = {0};
+
+    vec_sub(b, a, v);
+    vec_sub(c, a, w);
+
+    vec_angle(v, w, r);
+}
+
+float vangle_points(const Vec3f a, const Vec3f b, const Vec3f c) {
+    float r;
+    vec_angle_points(a, b, c, &r);
+    return r;
+}
+
 void vec_rotate4f(const Vec4f vec, const Quat q, Vec4f r) {
     Quat normed_q;
     quat_normalize(q, normed_q);

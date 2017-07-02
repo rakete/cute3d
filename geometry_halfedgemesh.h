@@ -130,6 +130,8 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid);
 int32_t halfedgemesh_face_iterate(const struct HalfEdgeMesh* mesh, int32_t face_i, struct HalfEdge** edge, int32_t* edge_i, int32_t* i);
 int32_t halfedgemesh_vertex_iterate(const struct HalfEdgeMesh* mesh, int32_t vertex_i, struct HalfEdge** edge, int32_t* edge_i, int32_t* i);
 
+void halfedgemesh_vertex_surface_normal(const struct HalfEdgeMesh* mesh, int32_t vertex_i, Vec3f surface_normal);
+
 // optimize is supposed to look at faces and collapse smaller faces into a larger face with size face_size,
 // if the normals are equal. so for example a box made out of triangles could be compressed into a box of
 // quads
