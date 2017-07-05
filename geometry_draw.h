@@ -35,6 +35,7 @@
 
 #include "geometry_solid.h"
 #include "geometry_halfedgemesh.h"
+#include "geometry_bsp.h"
 
 void draw_solid_normals(struct Canvas* canvas,
                         int32_t layer_i,

@@ -158,7 +158,7 @@ void draw_plane(struct Canvas* canvas,
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, 8, normals);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE, 8, colors);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, 2, GL_FLOAT, 8, texcoords);
-    canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "no_shading", CANVAS_PROJECT_WORLD, GL_TRIANGLES, 4*3, triangles, offset);
+    canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "no_shading", CANVAS_PROJECT_PERSPECTIVE, GL_TRIANGLES, 4*3, triangles, offset);
 }
 
 void draw_halfedgemesh_wire(struct Canvas* canvas,
