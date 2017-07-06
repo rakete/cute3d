@@ -20,7 +20,7 @@ for line in sys.stdin:
     if len(line) == 0:
         suppress_error = False
         for errorline in leakblock_lines:
-            lib_match = re.match(".*i965_dri\.so.*|.*libdrm_intel\.so.*|.*libGL\.so\.1.*|.*libc\.so\.6.*", errorline)
+            lib_match = re.match(".*i965_dri\.so.*|.*libdrm_intel\.so.*|.*libGL\.so\.1.*|.*libc\.so\.6.*|.*libGLX_nvidia\.so\.0.*", errorline)
             if lib_match:
                 suppress_error = True
 
