@@ -56,9 +56,10 @@ struct HalfEdge;
 // to keep it all well aligned plus it would still need preprocessing since gl can only assign
 // one attribute per vertex
 struct HalfEdgeVertex {
-    // position looks like it would be nice in struct HalfEdge, but its here because it is more
+    // - position looks like it would be nice in struct HalfEdge, but its here because it is more
     // convenient to be able to insert the vertices seperately from the edges
     Vec4f position;
+
     // - the index of any of the outgoing edges of this vertex
     int32_t edge;
     int32_t this;
@@ -126,9 +127,10 @@ WARN_UNUSED_RESULT size_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, si
 // in a certain format, so I choose to use only this instead of a more generic function
 void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid);
 
-int32_t halfedgemesh_face_normal(const struct HalfEdgeMesh* mesh, int32_t face_i, int32_t all_edges, Vec3f equal_normal, Vec3f average_normal);
 int32_t halfedgemesh_face_iterate(const struct HalfEdgeMesh* mesh, int32_t face_i, struct HalfEdge** edge, int32_t* edge_i, int32_t* i);
 int32_t halfedgemesh_vertex_iterate(const struct HalfEdgeMesh* mesh, int32_t vertex_i, struct HalfEdge** edge, int32_t* edge_i, int32_t* i);
+
+void halfedgemesh_vertex_surface_normal(const struct HalfEdgeMesh* mesh, int32_t vertex_i, Vec3f surface_normal);
 
 // optimize is supposed to look at faces and collapse smaller faces into a larger face with size face_size,
 // if the normals are equal. so for example a box made out of triangles could be compressed into a box of

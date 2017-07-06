@@ -492,59 +492,6 @@ void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid) {
     free(edges_map);
 }
 
-int32_t halfedgemesh_face_normal(const struct HalfEdgeMesh* mesh, int32_t face_i, int32_t all_edges, Vec3f equal_normal, Vec3f average_normal) {
-    log_assert( mesh != NULL );
-    log_assert( mesh->faces.occupied < INT32_MAX );
-    log_assert( face_i >= 0 );
-    log_assert( face_i <= (int32_t)mesh->faces.occupied );
-    log_assert( equal_normal != NULL || average_normal != NULL );
-
-    struct HalfEdgeFace* face = &mesh->faces.array[face_i];
-
-    struct HalfEdge* first_edge = &mesh->edges.array[face->edge];
-    struct HalfEdge* current_edge = &mesh->edges.array[face->edge];
-
-    int32_t result = 0;
-    if( equal_normal != NULL ) {
-        vec_copy3f(first_edge->normal, equal_normal);
-    }
-
-    if( average_normal != NULL ) {
-        vec_copy3f(first_edge->normal, average_normal);
-        result = 1;
-    }
-
-    if( all_edges && (equal_normal != NULL || average_normal != NULL) ) {
-        for( int32_t i = 0; i < face->size-1; i++ ) {
-            if( equal_normal != NULL && vequal(first_edge->normal, current_edge->normal) ) {
-                result = 1;
-            }
-
-            if( average_normal != NULL ) {
-                average_normal[0] += current_edge->normal[0];
-                average_normal[1] += current_edge->normal[1];
-                average_normal[2] += current_edge->normal[2];
-            } else if( result == 0 ) {
-                break;
-            }
-
-            current_edge = &mesh->edges.array[current_edge->next];
-        }
-
-        if( average_normal != NULL ) {
-            average_normal[0] /= face->size;
-            average_normal[1] /= face->size;
-            average_normal[2] /= face->size;
-
-            if( vlength(average_normal) > CUTE_EPSILON ) {
-                result = 1;
-            }
-        }
-    }
-
-    return result;
-}
-
 int32_t halfedgemesh_face_iterate(const struct HalfEdgeMesh* mesh, int32_t face_i, struct HalfEdge** edge, int32_t* edge_i, int32_t* i) {
     log_assert( mesh != NULL );
     log_assert( mesh->faces.occupied < INT32_MAX );
@@ -580,26 +527,40 @@ int32_t halfedgemesh_vertex_iterate(const struct HalfEdgeMesh* mesh, int32_t ver
     log_assert( edge_i != NULL );
     log_assert( i != NULL );
 
-    int32_t result = 0;
     if( *i == 0 || *edge_i == -1 ) {
         *edge_i = mesh->vertices.array[vertex_i].edge;
-        result = 1;
-    } else if( *i % 2 == 1 ) {
+    } else {
         *edge_i = mesh->edges.array[*edge_i].other;
         log_assert( mesh->edges.array[*edge_i].vertex == vertex_i );
-        result = -1;
-    } else if( *i % 2 == 0 ) {
+
         *edge_i = mesh->edges.array[*edge_i].next;
-        result = 1;
     }
     *edge = &mesh->edges.array[*edge_i];
 
     if( *i > 0 && *edge_i == mesh->vertices.array[vertex_i].edge ) {
-        *i = 0;
         return 0;
     }
     *i += 1;
-    return result;
+    return 1;
+}
+
+void halfedgemesh_vertex_surface_normal(const struct HalfEdgeMesh* mesh, int32_t vertex_i, Vec3f surface_normal) {
+    struct HalfEdge* iter_edge;
+    int32_t edge_i = -1;
+    int32_t i = 0;
+    vec_copy3f((Vec3f){0.0f, 0.0f, 0.0f}, surface_normal);
+    while( halfedgemesh_vertex_iterate(mesh, vertex_i, &iter_edge, &edge_i, &i) ) {
+        float weight = 1.0f;
+        int32_t a_i = vertex_i;
+        int32_t b_i = iter_edge->vertex;
+        int32_t c_i = mesh->edges.array[mesh->edges.array[iter_edge->prev].other].vertex;
+        vec_angle_points(mesh->vertices.array[a_i].position, mesh->vertices.array[b_i].position, mesh->vertices.array[c_i].position, &weight);
+
+        Vec3f weighted_normal = {0};
+        vec_mul1f(iter_edge->normal, weight, weighted_normal);
+        vec_add(surface_normal, weighted_normal, surface_normal);
+    }
+    vec_normalize(surface_normal, surface_normal);
 }
 
 void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
@@ -664,11 +625,21 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
             int32_t face_two_i = mesh->edges.array[other_i].face;
 
             if( ! face_has_normal[face_one_i] ) {
-                face_has_normal[face_one_i] = halfedgemesh_face_normal(mesh, face_one_i, 1, &face_normals[face_one_i*3], NULL);
+                struct HalfEdgeFace* face = &mesh->faces.array[face_one_i];
+                vec_copy3f(face->normal, &face_normals[face_one_i*3]);
+
+                if( vlength(face->normal) > CUTE_EPSILON ) {
+                    face_has_normal[face_one_i] = 1;
+                }
             }
 
             if( ! face_has_normal[face_two_i] ) {
-                face_has_normal[face_two_i] = halfedgemesh_face_normal(mesh, face_two_i, 1, &face_normals[face_two_i*3], NULL);
+                struct HalfEdgeFace* face = &mesh->faces.array[face_two_i];
+                vec_copy3f(face->normal, &face_normals[face_two_i*3]);
+
+                if( vlength(face->normal) > CUTE_EPSILON ) {
+                    face_has_normal[face_two_i] = 1;
+                }
             }
 
             struct HalfEdge* this = &mesh->edges.array[this_i];
@@ -865,8 +836,9 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
                 int32_t edge_i = -1;
                 int32_t i = 0;
                 while( halfedgemesh_vertex_iterate(mesh, old_vertex_i, &edge, &edge_i, &i) ) {
-                    if( edge->vertex == old_vertex_i ) {
-                        edge->vertex = new_vertex_i;
+                    struct HalfEdge* other = &mesh->edges.array[edge->other];
+                    if( other->vertex == old_vertex_i ) {
+                        other->vertex = new_vertex_i;
                     }
                 }
 

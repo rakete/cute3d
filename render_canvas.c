@@ -37,7 +37,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
 #ifndef CUTE_BUILD_ES2
     if( canvas->vao == 0 ) {
-        ogl_debug( glGenVertexArrays(1, &canvas->vao) );
+        ogl_debug( glGenVertexArrays(1, &canvas->vao ) );
     } else {
         not_binding_vao = false;
     }
@@ -187,7 +187,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
             Mat view_matrix = {0};
             for( uint32_t projection_i = 0; projection_i < MAX_CANVAS_PROJECTIONS; projection_i++ ) {
                 // binding matrices to uniforms
-                if( projection_i == CANVAS_PROJECT_SCREEN ) {
+                if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
                     mat_identity(projection_matrix);
                     mat_orthographic(0.0f, (float)camera->screen.width, 0.0f, (float)-camera->screen.height, -0.1f, 0.1f, projection_matrix);
 
@@ -226,7 +226,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                             primitive_type = GL_LINES;
                         }
 
-                        if( projection_i == CANVAS_PROJECT_SCREEN ) {
+                        if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
                             ogl_debug( glDisable(GL_DEPTH_TEST) );
                         }
 
@@ -244,7 +244,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                             glDepthMask(GL_TRUE);
                         }
 
-                        if( projection_i == CANVAS_PROJECT_SCREEN ) {
+                        if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
                             ogl_debug( glEnable(GL_DEPTH_TEST) );
                         }
                     }
@@ -272,7 +272,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
         Mat view_matrix = {0};
         for( int32_t projection_i = 0; projection_i < MAX_CANVAS_PROJECTIONS; projection_i++ ) {
             // yeah, well, perspective or ortho or what?
-            if( projection_i == CANVAS_PROJECT_SCREEN ) {
+            if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
                 mat_identity(projection_matrix);
                 mat_orthographic(0.0f, (float)camera->screen.width, 0.0f, (float)-camera->screen.height, -0.1f, 0.1f, projection_matrix);
 
@@ -308,7 +308,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                 shader_warn_locations(&font->shader, NULL);
 
-                if( projection_i == CANVAS_PROJECT_SCREEN ) {
+                if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
                     ogl_debug( glDisable(GL_DEPTH_TEST);
                                glDrawElements(primitive_type, indices_occupied, indices_type, 0);
                                glEnable(GL_DEPTH_TEST); );
@@ -327,7 +327,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
     }
 #endif
 
-    if( not_binding_vao ) {
+    if( not_binding_vao && canvas->vao == 0 ) {
         // unbind the attribute locations, only those that were actually bound
         for(int32_t attribute_i = 0; attribute_i < MAX_SHADER_ATTRIBUTES; attribute_i++ ) {
             if( loc[attribute_i] > -1 ) {

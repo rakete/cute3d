@@ -56,6 +56,9 @@ void draw_line(struct Canvas* canvas,
         shader_attach(&volumetric_lines_shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "volumetric_lines.frag");
         shader_make_program(&volumetric_lines_shader, SHADER_CANVAS_NAMES, "volumetric_lines_shader");
 
+        float line_attenuation = 1.0f;
+        shader_set_uniform_1f(&volumetric_lines_shader, volumetric_lines_shader.program, SHADER_UNIFORM_LINE_ATTENUATION, 1, GL_FLOAT, &line_attenuation);
+
         int32_t added_index = canvas_add_shader(canvas, "volumetric_lines_shader", &volumetric_lines_shader);
         log_assert( added_index < MAX_CANVAS_SHADER );
 
@@ -114,12 +117,16 @@ void draw_line(struct Canvas* canvas,
     // 2---3---4---5
     //
     //(figure c)
-    //  /4---5---6---7---8---9\
-    // / |  /|  /|  /|  /|  /| \
-    // 3 | / | / | / | / | / | 10
-    // \ |/  |/  |/  |/  |/  | /
-    //  \2---1---0--13--12--11/
-    //
+    //        /--6.....7--\
+    //    /--5   |     |   8--\
+    //  /4   |   |     |   |   9\
+    // / |  /|  /|     |  /|  /| \
+    // 3 | / | / |     | / | / | 10
+    // \ |/  |/  |     |/  |/  | /
+    //  \2   |   |     |   |   11
+    //    \--1   |     |   12-/
+    //        \--0....13--/
+    ///
     // - the current implementation uses the volumetric_lines shader, described here:
     // OpenGL Insights Book: Antialiased Volumetric Lines Using Shader
     // https://github.com/OpenGLInsights/OpenGLInsightsCode/tree/master/Chapter%2011%20Antialiased%20Volumetric%20Lines%20Using%20Shader-Based%20Extrusion
@@ -207,7 +214,7 @@ void draw_line(struct Canvas* canvas,
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, 2, GL_FLOAT, 14, texcoords);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_NEXT_VERTEX, 3, GL_FLOAT, 14, next_vertices);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_LINE_THICKNESS, 1, GL_FLOAT, 14, thickness_array);
-    canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "volumetric_lines_shader", CANVAS_PROJECT_WORLD, GL_TRIANGLES, 12*3, triangles, offset);
+    canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "volumetric_lines_shader", CANVAS_PROJECT_PERSPECTIVE, GL_TRIANGLES, 12*3, triangles, offset);
 }
 
 void draw_grid(struct Canvas* canvas,

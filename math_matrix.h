@@ -91,6 +91,9 @@ VecP* vnormalize(Vec3f v);
 void vec_angle(const Vec3f v, const Vec3f w, float* r);
 float vangle(const Vec3f v, const Vec3f w);
 
+void vec_angle_points(const Vec3f a, const Vec3f b, const Vec3f c, float* r);
+float vangle_points(const Vec3f a, const Vec3f b, const Vec3f c);
+
 void vec_rotate4f(const Vec4f vec, const Quat q, Vec4f r);
 void vec_rotate3f(const Vec3f vec, const Quat q, Vec3f r);
 
