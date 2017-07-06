@@ -113,10 +113,10 @@ int32_t main(int32_t argc, char** argv) {
 
     struct VboMesh cube_mesh = {0};
     vbo_mesh_create(&vbo, &ibo, &cube_mesh);
-    vbo_mesh_append_attributes(&cube_mesh, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, cube.solid.size, cube.vertices);
-    vbo_mesh_append_attributes(&cube_mesh, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE, cube.solid.size, cube.colors);
-    vbo_mesh_append_attributes(&cube_mesh, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, cube.solid.size, cube.normals);
-    vbo_mesh_append_indices(&cube_mesh, cube.solid.size, cube.indices);
+    vbo_mesh_append_attributes(&cube_mesh, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, cube.solid.attributes_size, cube.vertices);
+    vbo_mesh_append_attributes(&cube_mesh, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE, cube.solid.attributes_size, cube.colors);
+    vbo_mesh_append_attributes(&cube_mesh, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, cube.solid.attributes_size, cube.normals);
+    vbo_mesh_append_indices(&cube_mesh, cube.solid.indices_size, cube.indices);
 
     vbo_mesh_print(&cube_mesh);
 
