@@ -26,7 +26,7 @@ Once you have everything neccessary installed you can build Cute3D. Make sure yo
 
     mkdir build
     cd build
-    python ../ninja_build.py
+    python ../ninja_cute3d.py
 
 This should output a brief summary of build settings in your terminal. If you are building on Windows make sure the paths shown for the location of the SDL2 include headers and library files are correct! If these are not correct, you have to edit ninja_build.py to contain the correct paths and then run the last command again.
 
