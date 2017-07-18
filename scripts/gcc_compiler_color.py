@@ -32,12 +32,11 @@ if 'NOCOLOR' in os.environ:
     elif os.environ['NOCOLOR'] == 'true':
         filter = False
 
-p = subprocess.Popen(
-        args=sys.argv[1:],
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        cwd=os.getcwd(), env=os.environ,
-        shell=False
-)
+p = subprocess.Popen( args = sys.argv[1:],
+                      stdout = subprocess.PIPE, stderr=subprocess.STDOUT,
+                      cwd = os.getcwd(),
+                      env = os.environ,
+                      shell = False )
 
 bold          = "\033[01m"
 red_light     = "\033[00;31m"
@@ -61,7 +60,7 @@ while True:
             continue
         else:
             break
-    line = line[:-1].decode('utf-8')
+    line = line[:-1]
 
     if not filter:
         print(line)
