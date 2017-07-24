@@ -37,6 +37,13 @@
 #include "geometry_halfedgemesh.h"
 #include "geometry_bsp.h"
 
+void draw_solid(struct Canvas* canvas,
+                int32_t layer_i,
+                const Mat model_matrix,
+                const Color color,
+                const char* shader_name,
+                const struct Solid* solid);
+
 void draw_solid_normals(struct Canvas* canvas,
                         int32_t layer_i,
                         const Mat model_matrix,

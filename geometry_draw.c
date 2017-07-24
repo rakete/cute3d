@@ -19,6 +19,58 @@
 
 #include "geometry_draw.h"
 
+void draw_solid(struct Canvas* canvas,
+                int32_t layer_i,
+                const Mat model_matrix,
+                const Color color,
+                const char* shader_name,
+                const struct Solid* solid)
+{
+    log_assert( shader_name != NULL );
+    log_assert( strlen(shader_name) > 0 );
+
+    size_t color_component_bytes = sizeof(uint8_t);
+    size_t color_size = 4;
+    ColorP* override_colors = malloc(solid->attributes_size * color_size * color_component_bytes);
+
+    size_t vertex_component_bytes = ogl_sizeof_type(GL_FLOAT);
+    size_t vertex_size = 3;
+    VertexP* transformed_vertices = malloc(solid->attributes_size * vertex_size * vertex_component_bytes);
+    for( size_t i = 0; i < solid->attributes_size; i++ ) {
+        float* vertex_src = (float*)((char*)solid->vertices + i * vertex_size * vertex_component_bytes);
+        float* vertex_dst = (float*)((char*)transformed_vertices + i * vertex_size * vertex_component_bytes);
+        mat_mul_vec3f(model_matrix, vertex_src, vertex_dst);
+
+        uint8_t* color_dst = (uint8_t*)((char*)override_colors + i * color_size * color_component_bytes);
+        color_copy(color, color_dst);
+    }
+
+    uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].occupied;
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, solid->attributes_size, transformed_vertices);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, solid->attributes_size, solid->normals);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE, solid->attributes_size, override_colors);
+    canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, 2, GL_FLOAT, solid->attributes_size, solid->texcoords);
+
+    free(transformed_vertices);
+    free(override_colors);
+
+    int32_t found_index = canvas_find_shader(canvas, shader_name);
+    if( found_index == MAX_CANVAS_SHADER ) {
+        static bool warn_once = true;
+        if( warn_once && strncmp(shader_name, "no_shading", 256) != 0 ) {
+            log_warn(__FILE__, __LINE__, "could not find shader %s in canvas %s, falling back to default shader\n", shader_name, canvas->name);
+            warn_once = false;
+        }
+
+        found_index = canvas_find_shader(canvas, "default_shader");
+        log_assert( found_index < MAX_CANVAS_SHADER );
+
+        canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "default_shader", CANVAS_PROJECT_PERSPECTIVE, GL_TRIANGLES, solid->indices_size, solid->indices, offset);
+    } else {
+        canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, shader_name, CANVAS_PROJECT_PERSPECTIVE, GL_TRIANGLES, solid->indices_size, solid->indices, offset);
+    }
+}
+
 void draw_solid_normals(struct Canvas* canvas,
                         int32_t layer_i,
                         const Mat model_matrix,
@@ -258,4 +310,20 @@ void draw_halfedgemesh_vertex(struct Canvas* canvas,
         draw_vec(canvas, layer_i, model_matrix, color, line_thickness, other->normal, vertex->position, 0.0f, scale);
         edge = &mesh->edges.array[other->next];
     } while(edge->this != vertex->edge);
+}
+
+
+void draw_bsp(struct Canvas* canvas,
+              int32_t layer_i,
+              const Mat Model_matrix,
+              const Color color,
+              float line_thickness,
+              const struct BspTree* tree)
+{
+    //draw_solid
+
+
+    /* draw_polygon_wire(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.01f, node_divider.size, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], node_divider.normal); */
+    /* draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.01f, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 1.0f, 0.1f); */
+    /* draw_plane(&global_static_canvas, MAX_CANVAS_LAYERS-1, (Mat)IDENTITY_MAT, (Color){120, 120, 150, 127}, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 10.0f); */
 }
