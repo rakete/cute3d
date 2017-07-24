@@ -999,7 +999,7 @@ void vbo_mesh_render(struct VboMesh* mesh, struct Shader* shader, const struct C
 
     // - I am passing the loc array so that shader_warn_locations can warn about missing locations for attributes,
     // but only if those attributes are found in the current vbo
-    shader_warn_locations(shader, loc);
+    shader_warn_locations(shader, "vbo_mesh ", loc);
 
     if( mesh->indices.occupied > 0 ) {
         // - the 4th argument of glDrawElements is a pointer, but it is only used as a pointer if we are using a client side array, if

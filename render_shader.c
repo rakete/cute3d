@@ -380,17 +380,18 @@ void shader_verify_locations(struct Shader* p) {
     p->verified = true;
 }
 
-void shader_warn_locations(struct Shader* p, GLint* attribute_locations) {
+void shader_warn_locations(struct Shader* p, const char* prefix, GLint* attribute_locations) {
+    log_assert( prefix != NULL );
     shader_verify_locations(p);
 
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         if( p->attribute[i].warn_once ) {
             if( p->attribute[i].location > -1 ) {
                 if( p->attribute[i].unset ) {
-                    log_warn(__FILE__, __LINE__, "shader \"%s\" attribute \"%s\" never set\n", p->name, p->attribute[i].name);
+                    log_warn(__FILE__, __LINE__, "%sshader \"%s\" attribute \"%s\" never set\n", prefix, p->name, p->attribute[i].name);
                 }
             } else if( attribute_locations != NULL && attribute_locations[i] > -1 ) {
-                log_warn(__FILE__, __LINE__, "the shader \"%s\" is missing a location for the vbo attribute \"%s\"\n", p->name, global_shader_attribute_names[i]);
+                log_warn(__FILE__, __LINE__, "%sthe shader \"%s\" is missing a location for the vbo attribute \"%s\"\n", prefix, p->name, global_shader_attribute_names[i]);
             }
 
             p->attribute[i].warn_once = false;
@@ -400,7 +401,7 @@ void shader_warn_locations(struct Shader* p, GLint* attribute_locations) {
     for( int32_t i = 0; i < MAX_SHADER_UNIFORMS; i++ ) {
         if( p->uniform[i].location > -1 ) {
             if( p->uniform[i].unset && p->uniform[i].warn_once ) {
-                log_warn(__FILE__, __LINE__, "shader \"%s\" uniform \"%s\" never set\n", p->name, p->uniform[i].name);
+                log_warn(__FILE__, __LINE__, "%sshader \"%s\" uniform \"%s\" never set\n", prefix, p->name, p->uniform[i].name);
                 p->uniform[i].warn_once = false;
             }
         }
@@ -421,7 +422,7 @@ void shader_warn_locations(struct Shader* p, GLint* attribute_locations) {
             }
 
             if( texture_id == 0 ) {
-                log_warn(__FILE__, __LINE__, "shader \"%s\" sampler \"%s\" texture unit %d has no texture id bound\n", p->name, p->sampler[i].name, texture_unit);
+                log_warn(__FILE__, __LINE__, "%sshader \"%s\" sampler \"%s\" texture unit %d has no texture id bound\n", prefix, p->name, p->sampler[i].name, texture_unit);
                 p->sampler[i].warn_once = false;
             }
         }

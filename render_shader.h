@@ -181,7 +181,7 @@ void shader_use_program(const struct Shader* p);
 
 void shader_setup_locations(struct Shader* p);
 void shader_verify_locations(struct Shader* p);
-void shader_warn_locations(struct Shader* p, GLint* attribute_locations);
+void shader_warn_locations(struct Shader* p, const char* prefix, GLint* attribute_locations);
 
 GLint shader_add_attribute(struct Shader* shader, int32_t attribute_index, const char* name);
 GLint shader_add_uniform(struct Shader* shader, int32_t uniform_index, const char* name);
