@@ -117,7 +117,6 @@ void canvas_create(const char* name, int32_t width, int32_t height, struct Canva
     canvas_add_attribute(canvas, SHADER_ATTRIBUTE_LINE_THICKNESS, 1, GL_FLOAT);
 
     log_info(__FILE__, __LINE__, "creating shaders for canvas: %s\n", name);
-    log_indent(1);
 
     struct Shader shader = {0};
     shader_create(&shader);
@@ -131,7 +130,6 @@ void canvas_create(const char* name, int32_t width, int32_t height, struct Canva
     font_create_from_characters(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;+-*/=()[]{}", 256, symbols, 9, 3, global_default_font_palette, &font);
 
     log_assert( canvas_add_font(canvas, "default_font", &font) < MAX_CANVAS_FONTS );
-    log_indent(-1);
 }
 
 void canvas_destroy(struct Canvas* canvas) {

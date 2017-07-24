@@ -48,7 +48,6 @@ void draw_line(struct Canvas* canvas,
     int32_t found_index = canvas_find_shader(canvas, "volumetric_lines_shader");
     if( found_index == MAX_CANVAS_SHADER ) {
         log_info(__FILE__, __LINE__, "creating shader for drawing lines on canvas: %s\n", canvas->name);
-        log_indent(1);
 
         struct Shader volumetric_lines_shader;
         shader_create(&volumetric_lines_shader);
@@ -61,8 +60,6 @@ void draw_line(struct Canvas* canvas,
 
         int32_t added_index = canvas_add_shader(canvas, "volumetric_lines_shader", &volumetric_lines_shader);
         log_assert( added_index < MAX_CANVAS_SHADER );
-
-        log_indent(-1);
     }
 
     // - the colors and thickness arrays are filled here, but there is one caveat:

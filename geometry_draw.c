@@ -87,7 +87,6 @@ void draw_plane(struct Canvas* canvas,
     int32_t found_index = canvas_find_shader(canvas, "no_shading");
     if( found_index == MAX_CANVAS_SHADER ) {
         log_info(__FILE__, __LINE__, "creating shader for no shading on canvas: %s\n", canvas->name);
-        log_indent(1);
 
         struct Shader no_shader;
         shader_create(&no_shader);
@@ -97,8 +96,6 @@ void draw_plane(struct Canvas* canvas,
 
         int32_t added_index = canvas_add_shader(canvas, "no_shading", &no_shader);
         log_assert( added_index < MAX_CANVAS_SHADER );
-
-        log_indent(-1);
     }
 
     float halfsize = size/2.0f;

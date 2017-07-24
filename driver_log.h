@@ -38,19 +38,6 @@
 #define log_stringify(a) #a
 #define log_tostring(x) log_stringify(x)
 
-#ifndef LOG_INDENT_CHAR
-#define LOG_INDENT_CHAR ' '
-#endif
-
-#ifndef LOG_INDENT_TABWIDTH
-#define LOG_INDENT_TABWIDTH 2
-#endif
-
-#define MAX_LOG_INDENT 80
-
-extern int32_t global_log_indent_level;
-void log_indent(int32_t level);
-
 void log_printf(const char* message, va_list args);
 void log_message(const char* color, const char* tag, const char* filename, int32_t linenumber, const char* format, size_t n, char* message);
 
