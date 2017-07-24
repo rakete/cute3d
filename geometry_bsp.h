@@ -29,7 +29,6 @@
 
 #include "geometry_solid.h"
 #include "geometry_types.h"
-#include "geometry_draw.h"
 #include "geometry_polygon.h"
 #include "geometry_parameter.h"
 
@@ -49,6 +48,21 @@
 #define BSP_BUILD_ARRAYS_ALLOC 512
 #endif
 
+// - the point of the bsp tree is to take an existing triangle mesh and sort those triangles into binary
+// branches lying in front or behind a dividing plane (selected from the triangles too), while doing this
+// sorting I have to occasionally cut triangles into two polygons if they intersect the dividing plane
+// - the vertices and their attributes are stored in struct BspTree in a continuous arrays, and whenever
+// I cut a polygon, I append new vertices to these arrays so that I leave the old polygon vertices where
+// they are and get two new polygons, which their vertices in correct order, appended to the end of the
+// arrays
+// - the struct BspPolygon represents such a polygon, it contains a start index which tells me which vertex
+// is the first and a size which tells me how many vertices belong to the polygon
+// - it also contains a normal because I need those when constructing the bsp tree and dont want to recalculate
+// them repeatedly
+// - divider is a index which specifies which other polygon divided this polygon, if any
+// - cut.parent is a index, which specifies the original polygon that has been cut to result in this
+// new polygon
+// - cut.sibling is a index which specifies the other half of this polygon if this resulted from a cut
 struct BspPolygon {
     size_t start;
     size_t size;
@@ -64,6 +78,8 @@ struct BspPolygon {
 
 void bsp_polygon_create(struct BspPolygon* poly);
 
+// - convenient to have and easy to gather while constructing the bsp tree, this is used to store the bounds
+// of each subtree for later use
 struct BspBounds {
     float half_width;
     float half_height;
@@ -74,6 +90,16 @@ struct BspBounds {
 
 void bsp_node_bounds_create(Vec3f min, Vec3f max, size_t num_polygons, struct BspBounds* bounds);
 
+// - nodes are what the trees structure is built of, a node can be at a branch or at a leaf position
+// - divider is a index that specifies which divider polygon was used to divide the polygons of this
+// node into front and back subtrees
+// - bounds enclose all vertices which belong to the subtrees of this node
+// - tree.parent is a index which specifies a parent node
+// - tree.front and tree.back are indices to the nodes that represent the front and back subtrees
+// - tree.index is this nodes index inside the tree array
+// - tree.depth is how deep this node is in the tree, how far this node is away from the root
+// - state.empty and state.solid are for leaf nodes to specify if they sit on the 'outside' (empty)
+// or 'inside' (solid) of the mesh
 struct BspNode {
     int32_t divider;
 
@@ -96,6 +122,11 @@ struct BspNode {
 
 void bsp_node_create(struct BspBounds bounds, struct BspNode* node);
 
+// - the bsp tree itself contains just arrays containing the structs described above
+// - the attribute arrays are supposed to be filled with vertex data with non shared vertices,
+// the same way as it is organized in an unoptimized solid
+// - it follows my common pattern where I have a pointer, a capacity and an occupied counter
+// grouped together to form a growing array
 struct BspTree {
     struct {
         VERTEX_TYPE* vertices;
