@@ -24,6 +24,7 @@ import os
 import re
 import glob
 import platform
+import subprocess
 
 def command_exists(cmd):
     for path in os.environ["PATH"].split(os.pathsep):
@@ -277,8 +278,8 @@ def detect_settings(args):
     # like that
     if settings.build_platform == "linux" or settings.build_toolset == "gcc":
         if command_exists("sdl2-config"):
-            settings.sdl2_cflags = subprocess.check_output(["bash", "sdl2-config", "--cflags"]).rstrip()
-            settings.sdl2_libs = subprocess.check_output(["bash", "sdl2-config", "--libs"]).rstrip()
+            settings.sdl2_cflags = subprocess.check_output(["bash", "sdl2-config", "--cflags"]).rstrip().decode("utf-8")
+            settings.sdl2_libs = subprocess.check_output(["bash", "sdl2-config", "--libs"]).rstrip().decode("utf-8")
         else:
             print("could not find sdl2-config, is libsdl2-dev package installed?")
             sys.exit(1)
@@ -291,8 +292,8 @@ def detect_settings(args):
         # - because of bug in gcc(?), I need to explicitly link with -lasan when I use -fsanitize=address, otherwise I get
         # tons of unresolved symbols
         # - asan should come first
-        settings.libraries = "-lasan -lm -lGL " + sdl2_libs
-        settings.includes = "-I" + source_directory
+        settings.libraries = "-lasan -lm -lGL " + settings.sdl2_libs
+        settings.includes = "-I" + settings.source_directory
         settings.defines = "-DCUTE_SHADER_SEARCH_PATH=\\\"shader/:cute3d/shader/\\\""
 
         settings.cflags = settings.features + " " + settings.warnings + " " + settings.errors + " " + settings.linking + " " + settings.sdl2_cflags + " " + settings.optimization + " " + settings.includes + " " + settings.defines
