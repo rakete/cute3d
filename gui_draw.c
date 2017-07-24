@@ -19,24 +19,6 @@
 
 #include "gui_draw.h"
 
-void draw_transform_vertices(size_t vertex_size,
-                             GLenum component_type,
-                             size_t num_vertices,
-                             const float* vertices_in, //[vertex_size*num_vertices],
-                             const Mat transform,
-                             const float* vertices_out) //[vertex_size*num_vertices])
-{
-    log_assert( component_type == GL_FLOAT );
-
-    size_t component_bytes = ogl_sizeof_type(component_type);
-
-    for( size_t i = 0; i < num_vertices; i++ ) {
-        float* src = (float*)((char*)vertices_in + i*vertex_size*component_bytes);
-        float* dst = (float*)((char*)vertices_out + i*vertex_size*component_bytes);
-        mat_mul_vec3f(transform, src, dst);
-    }
-}
-
 void draw_line(struct Canvas* canvas,
                int32_t layer_i,
                const Mat model_matrix,
