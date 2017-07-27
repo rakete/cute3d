@@ -60,6 +60,9 @@ bool vequal(const Vec3f a, const Vec3f b);
 void vec_add(const Vec3f v, const Vec3f w, Vec3f r);
 VecP* vadd(const Vec3f v, Vec3f w);
 
+void vec_add1f(const Vec3f v, float w, Vec3f r);
+VecP* vadd1f(Vec3f v, float w);
+
 void vec_sub(const Vec3f v, const Vec3f w, Vec3f r);
 VecP* vsub(const Vec3f v, Vec3f w);
 

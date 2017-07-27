@@ -81,6 +81,18 @@ VecP* vadd(const Vec3f v, Vec3f w) {
     return w;
 }
 
+void vec_add1f(const Vec3f v, float w, Vec3f r) {
+    r[0] = v[0] + w;
+    r[1] = v[1] + w;
+    r[2] = v[2] + w;
+}
+
+VecP* vadd1f(Vec3f v, float w) {
+    vec_add1f(v,w,v);
+    return v;
+}
+
+
 void vec_sub(const Vec3f v, const Vec3f w, Vec3f r) {
     r[0] = v[0] - w[0];
     r[1] = v[1] - w[1];
