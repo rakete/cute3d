@@ -219,7 +219,10 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                         log_assert( indices_bytes < PTRDIFF_MAX );
 
-                        shader_warn_locations(shader, "canvas ", NULL);
+                        char prefix[256] = {0};
+                        prefix[255] = '\0';
+                        snprintf(prefix, 255, "canvas \"%s\" ", canvas->name);
+                        shader_warn_locations(shader, prefix, NULL);
 
                         GLenum primitive_type = GL_TRIANGLES;
                         if( primitive_i == CANVAS_LINES ) {
@@ -232,6 +235,9 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                         if( layer_i == MAX_CANVAS_LAYERS-1 ) {
                             glDepthMask(GL_FALSE);
+
+                            // - GL_MAX was nice here, but does not exist in es2
+                            /* glBlendEquation(GL_FUNC_ADD); */
                         }
 
                         ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
@@ -242,6 +248,8 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
 
                         if( layer_i == MAX_CANVAS_LAYERS-1 ) {
                             glDepthMask(GL_TRUE);
+
+                            /* glBlendEquation(GL_FUNC_ADD); */
                         }
 
                         if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
@@ -306,7 +314,10 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                 ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].text[font_i][projection_i].id);
                            glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW); );
 
-                shader_warn_locations(&font->shader, "canvas font ",  NULL);
+                char prefix[256] = {0};
+                prefix[255] = '\0';
+                snprintf(prefix, 255, "canvas \"%s\" font ", canvas->name);
+                shader_warn_locations(&font->shader, prefix,  NULL);
 
                 if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
                     ogl_debug( glDisable(GL_DEPTH_TEST);
