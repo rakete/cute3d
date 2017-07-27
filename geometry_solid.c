@@ -766,7 +766,7 @@ void solid_dodecahedron_create(float radius, const uint8_t color[4], struct Soli
     solid_set_color((struct Solid*)dod, color);
 }
 
-void solid_box_create(Vec3f size, const uint8_t color[4], struct SolidBox* box) {
+void solid_box_create(Vec3f half_size, const uint8_t color[4], struct SolidBox* box) {
     *box = (struct SolidBox){ .triangles = { 1, 2, 3,
                                              0, 1, 3,
                                              6, 5, 4,
@@ -806,12 +806,6 @@ void solid_box_create(Vec3f size, const uint8_t color[4], struct SolidBox* box) 
                               .solid.normals = box->normals,
                               .solid.texcoords = box->texcoords
     };
-
-    Vec3f half_size = {0};
-    vec_copy3f(size, half_size);
-    half_size[0] /= 2.0;
-    half_size[1] /= 2.0;
-    half_size[2] /= 2.0;
 
     float points[24]; /* 8 vertices with x, y, z coordinate */
     vec_copy3f((Vec3f){ half_size[0],  half_size[1],  half_size[2]}, &points[0]);
@@ -875,8 +869,8 @@ void solid_box_create(Vec3f size, const uint8_t color[4], struct SolidBox* box) 
     solid_set_color((struct Solid*)box, color);
 }
 
-void solid_cube_create(float size, const uint8_t color[4], struct SolidBox* cube) {
-    solid_box_create((Vec3f){size, size, size}, color, cube);
+void solid_cube_create(float half_size, const uint8_t color[4], struct SolidBox* cube) {
+    solid_box_create((Vec3f){half_size, half_size, half_size}, color, cube);
 }
 
 void solid_superellipsoidN_create(double n1, double n2, uint32_t horizontal_steps, uint32_t vertical_steps, float radius, const uint8_t color[4], struct Solid* sphere) {

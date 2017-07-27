@@ -168,8 +168,8 @@ struct SolidBox {
     float texcoords[72];
 };
 
-void solid_box_create(Vec3f size, const uint8_t color[4], struct SolidBox* box);
-void solid_cube_create(float size, const uint8_t color[4], struct SolidBox* cube);
+void solid_box_create(Vec3f half_size, const uint8_t color[4], struct SolidBox* box);
+void solid_cube_create(float half_size, const uint8_t color[4], struct SolidBox* cube);
 
 struct SolidSphere16 {
     struct Solid solid;
