@@ -57,7 +57,7 @@ void draw_solid(struct Canvas* canvas,
     int32_t found_index = canvas_find_shader(canvas, shader_name);
     if( found_index == MAX_CANVAS_SHADER ) {
         static bool warn_once = true;
-        if( warn_once && strncmp(shader_name, "no_shading", 256) != 0 ) {
+        if( warn_once && strncmp(shader_name, "default_shader", 256) != 0 ) {
             log_warn(__FILE__, __LINE__, "could not find shader %s in canvas %s, falling back to default shader\n", shader_name, canvas->name);
             warn_once = false;
         }
@@ -132,34 +132,19 @@ void draw_plane(struct Canvas* canvas,
                 int32_t layer_i,
                 const Mat model_matrix,
                 const Color color,
+                const char* shader_name,
                 Vec3f plane_normal,
                 Vec3f plane_point,
-                float size)
+                float half_size)
 {
-    int32_t found_index = canvas_find_shader(canvas, "no_shading");
-    if( found_index == MAX_CANVAS_SHADER ) {
-        log_info(__FILE__, __LINE__, "creating shader for no shading on canvas: %s\n", canvas->name);
-
-        struct Shader no_shader;
-        shader_create(&no_shader);
-        shader_attach(&no_shader, GL_VERTEX_SHADER, "prefix.vert", 1, "no_shading.vert");
-        shader_attach(&no_shader, GL_FRAGMENT_SHADER, "prefix.frag", 1, "no_shading.frag");
-        shader_make_program(&no_shader, SHADER_CANVAS_NAMES, "no_shading");
-
-        int32_t added_index = canvas_add_shader(canvas, "no_shading", &no_shader);
-        log_assert( added_index < MAX_CANVAS_SHADER );
-    }
-
-    float halfsize = size/2.0f;
-
-    float vertices[8*3] = { -halfsize, halfsize, 0.002f,
-                            halfsize, halfsize, 0.002f,
-                            halfsize, -halfsize, 0.002f,
-                            -halfsize, -halfsize, 0.002f,
-                            -halfsize, halfsize, -0.002f,
-                            halfsize, halfsize, -0.002f,
-                            halfsize, -halfsize, -0.002f,
-                            -halfsize, -halfsize, -0.002f };
+    float vertices[8*3] = { -half_size, half_size, 0.002f,
+                            half_size, half_size, 0.002f,
+                            half_size, -half_size, 0.002f,
+                            -half_size, -half_size, 0.002f,
+                            -half_size, half_size, -0.002f,
+                            half_size, half_size, -0.002f,
+                            half_size, -half_size, -0.002f,
+                            -half_size, -half_size, -0.002f };
     float normals[8*3] = { 0.0f, 0.0f, 1.0f,
                            0.0f, 0.0f, 1.0f,
                            0.0f, 0.0f, 1.0f,
@@ -189,8 +174,11 @@ void draw_plane(struct Canvas* canvas,
                                 5, 7, 4,
                                 7, 5, 6 };
 
+    Vec3f transformed_point = {0};
+    mat_mul_vec3f(model_matrix, plane_point, transformed_point);
+
     Mat translation = IDENTITY_MAT;
-    mat_translate(translation, plane_point, translation);
+    mat_translate(translation, transformed_point, translation);
 
     Quat rotation = IDENTITY_QUAT;
     quat_from_vec_pair((Vec4f)Z_AXIS, plane_normal, rotation);
@@ -207,7 +195,24 @@ void draw_plane(struct Canvas* canvas,
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_NORMAL, 3, GL_FLOAT, 8, normals);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE, 8, colors);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, 2, GL_FLOAT, 8, texcoords);
-    canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "no_shading", CANVAS_PROJECT_PERSPECTIVE, GL_TRIANGLES, 4*3, triangles, offset);
+
+    int32_t found_index = canvas_find_shader(canvas, shader_name);
+    if( found_index == MAX_CANVAS_SHADER ) {
+        static bool warn_once = true;
+        if( warn_once && strncmp(shader_name, "default_shader", 256) != 0 ) {
+            log_warn(__FILE__, __LINE__, "could not find shader %s in canvas %s, falling back to default shader\n", shader_name, canvas->name);
+            warn_once = false;
+        }
+
+        found_index = canvas_find_shader(canvas, "default_shader");
+        log_assert( found_index < MAX_CANVAS_SHADER );
+
+        canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "default_shader", CANVAS_PROJECT_PERSPECTIVE, CANVAS_TRIANGLES, 4*3, triangles, offset);
+    } else {
+        canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, shader_name, CANVAS_PROJECT_PERSPECTIVE, CANVAS_TRIANGLES, 4*3, triangles, offset);
+    }
+}
+
 }
 
 void draw_halfedgemesh_wire(struct Canvas* canvas,

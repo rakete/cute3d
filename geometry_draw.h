@@ -65,9 +65,10 @@ void draw_plane(struct Canvas* canvas,
                 int32_t layer_i,
                 const Mat model_matrix,
                 const Color color,
+                const char* shader_name,
                 Vec3f plane_normal,
                 Vec3f plane_point,
-                float size);
+                float half_size);
 
 void draw_halfedgemesh_wire(struct Canvas* canvas,
                             int32_t layer_i,
