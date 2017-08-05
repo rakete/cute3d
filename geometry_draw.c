@@ -65,9 +65,9 @@ void draw_solid(struct Canvas* canvas,
         found_index = canvas_find_shader(canvas, "default_shader");
         log_assert( found_index < MAX_CANVAS_SHADER );
 
-        canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "default_shader", CANVAS_PROJECT_PERSPECTIVE, GL_TRIANGLES, solid->indices_size, solid->indices, offset);
+        canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, "default_shader", CANVAS_PROJECT_PERSPECTIVE, CANVAS_TRIANGLES, solid->indices_size, solid->indices, offset);
     } else {
-        canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, shader_name, CANVAS_PROJECT_PERSPECTIVE, GL_TRIANGLES, solid->indices_size, solid->indices, offset);
+        canvas_append_indices(canvas, layer_i, CANVAS_NO_TEXTURE, shader_name, CANVAS_PROJECT_PERSPECTIVE, CANVAS_TRIANGLES, solid->indices_size, solid->indices, offset);
     }
 }
 

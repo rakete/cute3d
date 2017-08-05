@@ -72,11 +72,15 @@
 #endif
 
 #ifndef MAX_CANVAS_PRIMITIVES
-#define MAX_CANVAS_PRIMITIVES 2
+#define MAX_CANVAS_PRIMITIVES 3
 #endif
 
-#define CANVAS_TRIANGLES 0
-#define CANVAS_LINES 1
+// - I made volumetric lines its own primitive type so that when I draw transparent lines
+// I can use a trick to draw lines without overlaps with other lines appearing brighter the
+// rest of the line, but in reality those are still made out of triangles
+#define CANVAS_LINES 0
+#define CANVAS_VOLUMETRIC_LINES 1
+#define CANVAS_TRIANGLES 2
 
 #define CANVAS_NO_TEXTURE MAX_CANVAS_TEXTURES
 
@@ -213,7 +217,7 @@ WARN_UNUSED_RESULT int32_t canvas_find_texture(const struct Canvas* canvas, cons
 
 // - allocating the heap memory for the arrays
 WARN_UNUSED_RESULT size_t canvas_alloc_attributes(struct Canvas* canvas, uint32_t attribute_i, size_t n);
-WARN_UNUSED_RESULT size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, GLenum primitive_type, size_t n);
+WARN_UNUSED_RESULT size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, uint32_t primitive_i, size_t n);
 WARN_UNUSED_RESULT size_t canvas_alloc_text(struct Canvas* canvas, int32_t layer_i, const char* font_name, int32_t projection_i, size_t n);
 
 // - clear is supposed to be called every frame and completely resets all occupied counters, but leaves
@@ -235,7 +239,7 @@ size_t canvas_append_attributes(struct Canvas* canvas, uint32_t attribute_i, uin
 // - the append functions for the indices, they take all neccessary arguments to distinguish drawn stuff for rendering,
 // e.g. what to render with what shader, what projection, etc.
 // - then the functions also takes an offset that is to be added to every index before appending
-size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, GLenum primitive_type, size_t n, uint32_t* indices, size_t offset);
+size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, uint32_t primitive_i, size_t n, uint32_t* indices, size_t offset);
 size_t canvas_append_text(struct Canvas* canvas, int32_t layer_i, const char* font_name, int32_t projection_i, size_t n, uint32_t* indices, size_t offset);
 
 #endif

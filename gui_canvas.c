@@ -406,11 +406,14 @@ size_t canvas_alloc_attributes(struct Canvas* canvas, uint32_t attribute_i, size
     return 0;
 }
 
-size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, GLenum primitive_type, size_t n) {
+size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, uint32_t primitive_i, size_t n) {
     log_assert( canvas != NULL );
     log_assert( layer_i >= 0 );
     log_assert( projection_i >= 0 );
-    log_assert( primitive_type == GL_LINES || primitive_type == GL_TRIANGLES );
+    log_assert( layer_i < MAX_CANVAS_LAYERS );
+    log_assert( texture_i < MAX_CANVAS_TEXTURES+1 );
+    log_assert( projection_i < MAX_CANVAS_PROJECTIONS );
+    log_assert( primitive_i < MAX_CANVAS_PRIMITIVES );
 
     if( n == 0 ) {
         return 0;
@@ -424,11 +427,6 @@ size_t canvas_alloc_indices(struct Canvas* canvas, int32_t layer_i, int32_t text
     if( shader_i == MAX_CANVAS_SHADER ) {
         log_fail(__FILE__, __LINE__, "no shader could be found in canvas when trying to allocate\n");
         return 0;
-    }
-
-    int32_t primitive_i = CANVAS_TRIANGLES;
-    if( primitive_type == GL_LINES ) {
-        primitive_i = CANVAS_LINES;
     }
 
     size_t old_capacity = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].capacity;
@@ -581,12 +579,15 @@ size_t canvas_append_attributes(struct Canvas* canvas, uint32_t attribute_i, uin
     return n;
 }
 
-size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, GLenum primitive_type, size_t n, uint32_t* indices, size_t offset) {
+size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t texture_i, const char* shader_name, int32_t projection_i, uint32_t primitive_i, size_t n, uint32_t* indices, size_t offset) {
     log_assert( canvas != NULL );
     log_assert( layer_i >= 0 );
     log_assert( n > 0 );
     log_assert( indices != NULL );
-    log_assert( primitive_type == GL_TRIANGLES || primitive_type == GL_LINES );
+    log_assert( layer_i < MAX_CANVAS_LAYERS );
+    log_assert( texture_i < MAX_CANVAS_TEXTURES+1 );
+    log_assert( projection_i < MAX_CANVAS_PROJECTIONS );
+    log_assert( primitive_i < MAX_CANVAS_PRIMITIVES );
 
     if( n == 0 ) {
         return 0;
@@ -608,17 +609,12 @@ size_t canvas_append_indices(struct Canvas* canvas, int32_t layer_i, int32_t tex
         return 0;
     }
 
-    int32_t primitive_i = CANVAS_TRIANGLES;
-    if( primitive_type == GL_LINES ) {
-        primitive_i = CANVAS_LINES;
-    }
-
     size_t old_occupied = canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].occupied;
     log_assert( INT32_MAX - n > old_occupied );
     size_t new_occupied = old_occupied + n;
 
     if( new_occupied >= canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].capacity ) {
-        size_t alloc_result = canvas_alloc_indices(canvas, layer_i, texture_i, shader_name, projection_i, primitive_type, n);
+        size_t alloc_result = canvas_alloc_indices(canvas, layer_i, texture_i, shader_name, projection_i, primitive_i, n);
         log_assert( alloc_result >= n );
     }
 
