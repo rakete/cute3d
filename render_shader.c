@@ -605,7 +605,7 @@ GLint shader_set_uniform_matrices(struct Shader* shader, GLuint program, const M
     return ret;
 }
 
-GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
+GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, const void* data) {
     log_assert( shader->program > 0 );
     log_assert( uniform_index >= 0 );
     log_assert( uniform_index <= MAX_SHADER_UNIFORMS );
@@ -655,7 +655,7 @@ GLint shader_set_uniform_1f(struct Shader* shader, GLuint program, int32_t unifo
     return location;
 }
 
-GLint shader_set_uniform_1i(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
+GLint shader_set_uniform_1i(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, const void* data) {
     log_assert( shader->program > 0 );
     log_assert( uniform_index >= 0 );
     log_assert( uniform_index <= MAX_SHADER_UNIFORMS );
@@ -705,7 +705,7 @@ GLint shader_set_uniform_1i(struct Shader* shader, GLuint program, int32_t unifo
     return location;
 }
 
-GLint shader_set_uniform_3f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
+GLint shader_set_uniform_3f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, const void* data) {
     log_assert( shader->program > 0 );
     log_assert( uniform_index >= 0 );
     log_assert( uniform_index <= MAX_SHADER_UNIFORMS );
@@ -761,7 +761,7 @@ GLint shader_set_uniform_3f(struct Shader* shader, GLuint program, int32_t unifo
     return location;
 }
 
-GLint shader_set_uniform_4f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, void* data) {
+GLint shader_set_uniform_4f(struct Shader* shader, GLuint program, int32_t uniform_index, uint32_t size, GLenum type, const void* data) {
     log_assert( shader != NULL );
     log_assert( shader->program > 0 );
     log_assert( uniform_index >= 0 );
