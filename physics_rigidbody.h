@@ -25,9 +25,9 @@
 #include "math_pivot.h"
 
 enum RigidBodyMode {
-    RigidBodyStatic = 0x001,
-    RigidBodyResting = 0x002,
-    RigidBodyInactive = 0x004
+    RIGID_BODY_STATIC = 0x001,
+    RIGID_BODY_RESTING = 0x002,
+    RIGID_BODY_INACTIVE = 0x004
 };
 
 struct RigidBodyDerivative {
