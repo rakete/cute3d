@@ -213,7 +213,97 @@ void draw_plane(struct Canvas* canvas,
     }
 }
 
+void draw_plane_wire(struct Canvas* canvas,
+                     int32_t layer_i,
+                     const Mat model_matrix,
+                     const Color color,
+                     float line_thickness,
+                     Vec3f plane_normal,
+                     Vec3f plane_point,
+                     float half_size)
+{
+    float vertices[4*3] = { -half_size, half_size, 0.0f,
+                            half_size, half_size, 0.0f,
+                            half_size, -half_size, 0.0f,
+                            -half_size, -half_size, 0.0f };
+
+    Vec3f transformed_point = {0};
+    mat_mul_vec3f(model_matrix, plane_point, transformed_point);
+
+    Mat translation = IDENTITY_MAT;
+    mat_translate(translation, transformed_point, translation);
+
+    Quat rotation = IDENTITY_QUAT;
+    quat_from_vec_pair((Vec4f)Z_AXIS, plane_normal, rotation);
+    quat_invert(rotation, rotation);
+    for( size_t i = 0; i < 4; i++ ) {
+        vec_rotate3f(&vertices[i*3], rotation, &vertices[i*3]);
+        mat_mul_vec3f(translation, &vertices[i*3], &vertices[i*3]);
+    }
+
+    Mat identity = {0};
+    mat_identity(identity);
+
+    const VecP* a = &vertices[3*3];
+    const VecP* b = &vertices[0*3];
+    for( size_t i = 0; i < 4; i++ ) {
+        b = &vertices[i*3];
+        draw_line(canvas, layer_i, identity, color, line_thickness, a, b);
+        a = b;
+    }
 }
+
+void draw_box(struct Canvas* canvas,
+              int32_t layer_i,
+              const Mat model_matrix,
+              const Color color,
+              const char* shader_name,
+              Vec3f half_size)
+{
+    struct SolidBox box;
+    solid_box_create(half_size, color, &box);
+    draw_solid(canvas, layer_i, model_matrix, color, shader_name, (struct Solid*)&box);
+}
+
+void draw_box_wire(struct Canvas* canvas,
+                   int32_t layer_i,
+                   const Mat model_matrix,
+                   const Color color,
+                   float line_thickness,
+                   Vec3f half_size)
+{
+    float vertices[8*3] = { -half_size[0], half_size[1], half_size[2],
+                            half_size[0], half_size[1], half_size[2],
+                            half_size[0], -half_size[1], half_size[2],
+                            -half_size[0], -half_size[1], half_size[2],
+                            -half_size[0], half_size[1], -half_size[2],
+                            half_size[0], half_size[1], -half_size[2],
+                            half_size[0], -half_size[1], -half_size[2],
+                            -half_size[0], -half_size[1], -half_size[2] };
+
+    size_t lines[12*2] = { 0, 1,
+                           1, 2,
+                           2, 3,
+                           3, 0,
+                           4, 5,
+                           5, 6,
+                           6, 7,
+                           7, 4,
+                           0, 4,
+                           1, 5,
+                           2, 6,
+                           3, 7 };
+
+    for( size_t i = 0; i < 12; i++ ) {
+        size_t index_a = lines[i*2+0];
+        size_t index_b = lines[i*2+1];
+        VecP* a = &vertices[index_a*3];
+        VecP* b = &vertices[index_b*3];
+        draw_line(canvas, layer_i, model_matrix, color, line_thickness, a, b);
+    }
+
+}
+
 
 void draw_halfedgemesh_wire(struct Canvas* canvas,
                             int32_t layer_i,
