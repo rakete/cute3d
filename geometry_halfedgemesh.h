@@ -123,7 +123,7 @@ WARN_UNUSED_RESULT size_t halfedgemesh_alloc_vertices(struct HalfEdgeMesh* mesh,
 WARN_UNUSED_RESULT size_t halfedgemesh_alloc_faces(struct HalfEdgeMesh* mesh, size_t n);
 WARN_UNUSED_RESULT size_t halfedgemesh_alloc_edges(struct HalfEdgeMesh* mesh, size_t n);
 
-// appending a complete solid at once, that encodes the assumption that the input data is
+// - appending a complete solid at once, that encodes the assumption that the input data is
 // in a certain format, so I choose to use only this instead of a more generic function
 void halfedgemesh_append(struct HalfEdgeMesh* mesh, const struct Solid* solid);
 
@@ -132,7 +132,7 @@ int32_t halfedgemesh_vertex_iterate(const struct HalfEdgeMesh* mesh, int32_t ver
 
 void halfedgemesh_vertex_surface_normal(const struct HalfEdgeMesh* mesh, int32_t vertex_i, Vec3f surface_normal);
 
-// optimize is supposed to look at faces and collapse smaller faces into a larger face with size face_size,
+// - optimize is supposed to look at faces and collapse smaller faces into a larger face with size face_size,
 // if the normals are equal. so for example a box made out of triangles could be compressed into a box of
 // quads
 // - if I implement this to only collapse faces into convex polygons, I could support face_size > 3 and would
