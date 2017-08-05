@@ -187,7 +187,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
             Mat view_matrix = {0};
             for( uint32_t projection_i = 0; projection_i < MAX_CANVAS_PROJECTIONS; projection_i++ ) {
                 // binding matrices to uniforms
-                if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
+                if( projection_i == CANVAS_PROJECT_SCREEN ) {
                     mat_identity(projection_matrix);
                     mat_orthographic(0.0f, (float)camera->screen.width, 0.0f, (float)-camera->screen.height, -0.1f, 0.1f, projection_matrix);
 
@@ -229,7 +229,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                             primitive_type = GL_LINES;
                         }
 
-                        if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
+                        if( projection_i == CANVAS_PROJECT_SCREEN ) {
                             ogl_debug( glDisable(GL_DEPTH_TEST) );
                         }
 
@@ -252,7 +252,8 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                             /* glBlendEquation(GL_FUNC_ADD); */
                         }
 
-                        if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
+
+                        if( projection_i == CANVAS_PROJECT_SCREEN ) {
                             ogl_debug( glEnable(GL_DEPTH_TEST) );
                         }
                     }
@@ -280,7 +281,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
         Mat view_matrix = {0};
         for( int32_t projection_i = 0; projection_i < MAX_CANVAS_PROJECTIONS; projection_i++ ) {
             // yeah, well, perspective or ortho or what?
-            if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
+            if( projection_i == CANVAS_PROJECT_SCREEN ) {
                 mat_identity(projection_matrix);
                 mat_orthographic(0.0f, (float)camera->screen.width, 0.0f, (float)-camera->screen.height, -0.1f, 0.1f, projection_matrix);
 
@@ -319,7 +320,7 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                 snprintf(prefix, 255, "canvas \"%s\" font ", canvas->name);
                 shader_warn_locations(&font->shader, prefix,  NULL);
 
-                if( projection_i == CANVAS_PROJECT_ORTHOGRAPHIC ) {
+                if( projection_i == CANVAS_PROJECT_SCREEN ) {
                     ogl_debug( glDisable(GL_DEPTH_TEST);
                                glDrawElements(primitive_type, indices_occupied, indices_type, 0);
                                glEnable(GL_DEPTH_TEST); );

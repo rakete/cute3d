@@ -61,5 +61,5 @@ void widgets_display_texture(struct Canvas* canvas,
 
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT, 4, vertices);
     canvas_append_attributes(canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, 2, GL_FLOAT, 4, texcoords);
-    canvas_append_indices(canvas, layer_i, texture_i, "default_shader", CANVAS_PROJECT_ORTHOGRAPHIC, GL_TRIANGLES, 2*3, indices, 0);
+    canvas_append_indices(canvas, layer_i, texture_i, "default_shader", CANVAS_PROJECT_SCREEN, CANVAS_TRIANGLES, 2*3, indices, 0);
 }

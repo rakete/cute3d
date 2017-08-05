@@ -60,8 +60,12 @@
 #define MAX_CANVAS_PROJECTIONS 2
 #endif
 
+// - I use a different projection for widgets and stuff that goes to the screen so that
+// I can always disable the depth mask when drawing those, I have no need for orthographic
+// projections in canvas yet, but if I ever do I would have to a another define here
 #define CANVAS_PROJECT_PERSPECTIVE 0
-#define CANVAS_PROJECT_ORTHOGRAPHIC 1
+#define CANVAS_PROJECT_SCREEN 1
+//#define CANVAS_PROJECT_ORTHOGRAPHIC 2
 
 #ifndef MAX_CANVAS_TEXTURES
 #define MAX_CANVAS_TEXTURES 8

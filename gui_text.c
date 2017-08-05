@@ -204,7 +204,7 @@ void text_put_screen(struct Canvas* canvas,
     Mat model_matrix = {0};
     mat_translate(NULL, translation, model_matrix);
 
-    text_put(canvas, layer, cursor, CANVAS_PROJECT_ORTHOGRAPHIC, model_matrix, color, scale, font_name, unicode_text);
+    text_put(canvas, layer, cursor, CANVAS_PROJECT_SCREEN, model_matrix, color, scale, font_name, unicode_text);
 }
 
 void text_printf(struct Canvas* canvas,
