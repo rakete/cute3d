@@ -409,7 +409,7 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
             }
 
             log_assert( minimal_index >= 0 );
-            final_polygon_size = polygon_corner_remove((size_t)final_polygon_size, 3, sizeof(float), clipped_polygon, (size_t)minimal_index, clipped_polygon);
+            final_polygon_size = polygon_corner_remove((size_t)final_polygon_size, 3, sizeof(float), clipped_polygon, (size_t)minimal_index, sizeof(float) * (size_t)max_polygon_size*3, clipped_polygon);
         } while( final_polygon_size > max_contacts );
     }
 

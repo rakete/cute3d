@@ -28,8 +28,6 @@
 #include "geometry_draw.h"
 #include "geometry_polygon.h"
 
-#include "gui_text.h"
-
 #include "physics_sat.h"
 
 #define MAX_CONTACT_POINTS 4

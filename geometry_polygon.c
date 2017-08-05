@@ -44,8 +44,9 @@ void polygon_corner_area(size_t polygon_size, size_t point_size, const float* po
     *result = area;
 }
 
-size_t polygon_corner_remove(size_t polygon_size, size_t point_size, size_t type_size, const void* polygon, size_t corner_i, void* result) {
+size_t polygon_corner_remove(size_t polygon_size, size_t point_size, size_t type_size, const void* polygon, size_t corner_i, size_t result_size, void* result) {
     log_assert( corner_i < polygon_size );
+    log_assert( result_size >= (polygon_size - 1)*point_size*type_size );
 
     size_t j = 0;
     for( size_t i = 0; i < polygon_size; i++ ) {
@@ -57,8 +58,7 @@ size_t polygon_corner_remove(size_t polygon_size, size_t point_size, size_t type
         }
     }
 
-    size_t result_size = polygon_size - 1;
-    return result_size;
+    return polygon_size - 1;
 }
 
 void polygon_compute_normal(size_t polygon_size, size_t point_size, const float* polygon, Vec3f result_normal) {
