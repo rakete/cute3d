@@ -183,6 +183,10 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                 shader_set_uniform_1f(shader, 0, SHADER_UNIFORM_ASPECT_RATIO, 1, GL_FLOAT, &aspect_ratio);
             }
 
+            if( shader->uniform[SHADER_UNIFORM_EYE_POSITION].location > -1 ) {
+                shader_set_uniform_3f(shader, 0, SHADER_UNIFORM_EYE_POSITION, 3, GL_FLOAT, camera->pivot.position);
+            }
+
             Mat projection_matrix = {0};
             Mat view_matrix = {0};
             for( uint32_t projection_i = 0; projection_i < MAX_CANVAS_PROJECTIONS; projection_i++ ) {
