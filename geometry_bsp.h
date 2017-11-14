@@ -48,6 +48,10 @@
 #define BSP_BUILD_ARRAYS_ALLOC 512
 #endif
 
+#ifndef BSP_BUILD_STACK_ALLOC
+#define BSP_BUILD_STACK_ALLOC 512
+#endif
+
 // - the point of the bsp tree is to take an existing triangle mesh and sort those triangles into binary
 // branches lying in front or behind a dividing plane (selected from the triangles too), while doing this
 // sorting I have to occasionally cut triangles into two polygons if they intersect the dividing plane
@@ -127,6 +131,14 @@ void bsp_node_create(struct BspBounds bounds, struct BspNode* node);
 // the same way as it is organized in an unoptimized solid
 // - it follows my common pattern where I have a pointer, a capacity and an occupied counter
 // grouped together to form a growing array
+// - notice that the polygons and the nodes are seperate, every node contains a index into the
+// nodes array, the divider, which tells me which polygon has been used as divider at that
+// tree branch, this means that there is one node for each polygon, but this may change later
+// because I think it may make sense to have a bsp tree where a node contains multiple polygons
+// - despite each node containing exactly one polygon, the way the tree is built should result in
+// a nodes array such that if I look at a node, and take its front index and its back index, then
+// the nodes between front_i < back_i should contain all front polygon indices, and the nodes
+// between back_i < front_i+num_polygons should contain all back polygon indices
 struct BspTree {
     struct {
         VERTEX_TYPE* vertices;
@@ -162,13 +174,44 @@ int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Ve
 
 void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree);
 
+enum BspSide {
+    BSP_FRONT = 0,
+    BSP_BACK
+};
+
+struct BspBuildStackFrame {
+    enum BspSide tree_side;
+    int32_t parent_index;
+
+    size_t partition_start;
+    size_t partition_end;
+
+    Vec3f bounds_min;
+    Vec3f bounds_max;
+};
+
+struct BspBuildStack {
+    struct BspBuildStackFrame* frames;
+    size_t capacity;
+    size_t occupied;
+};
+
+size_t bsp_build_stack_pop(struct BspBuildStack* stack, struct BspBuildStackFrame* frame);
+size_t bsp_build_stack_push(struct BspBuildStack* stack, struct BspBuildStackFrame frame);
+
+WARN_UNUSED_RESULT size_t bsp_build_stack_alloc(struct BspBuildStack* stack, size_t n);
+
 struct BspBuildPartition {
     int32_t* polygons;
     size_t capacity;
     size_t occupied;
 };
 
+WARN_UNUSED_RESULT size_t bsp_build_partition_alloc(struct BspBuildPartition* partition, size_t n);
+
 struct BspBuildState {
+    struct BspBuildStack stack;
+
     struct BspBuildPartition front;
     struct BspBuildPartition back;
 };
@@ -176,10 +219,9 @@ struct BspBuildState {
 void bsp_build_state_create(struct BspBuildState* arrays);
 void bsp_build_state_destroy(struct BspBuildState* arrays);
 
-WARN_UNUSED_RESULT size_t bsp_build_state_alloc(struct BspBuildState* state, size_t front_n, size_t back_n);
-
 int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBounds bounds, size_t loop_start, size_t loop_end, const int32_t* polygon_indices, size_t max_steps);
 
+void bsp_build(struct BspTree* tree, struct BspBuildState* state);
 void bsp_build_recur(struct BspTree* tree, int32_t parent_i, struct BspBuildState* state, size_t loop_start, size_t loop_end, struct BspBuildPartition* partition);
 
 // 1. select a primitive (triangle) not yet part of the tree

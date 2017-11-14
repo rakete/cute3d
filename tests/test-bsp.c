@@ -116,6 +116,11 @@ int32_t main(int32_t argc, char *argv[]) {
 
     struct BspTree torus_bsptree;
     bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree);
+    log_fail(__FILE__, __LINE__, "BUILT BSP TREE... OR NOT?\n");
+
+    printf("torus_bsptree.nodes.array[0].tree.front: %d\n", torus_bsptree.nodes.array[0].tree.front);
+    printf("torus_bsptree.nodes.array[0].tree.back: %d\n", torus_bsptree.nodes.array[0].tree.back);
+
     bsp_tree_destroy(&torus_bsptree);
 
     while (true) {
@@ -144,6 +149,9 @@ int32_t main(int32_t argc, char *argv[]) {
 
         gametime_advance(&time, sdl2_time_delta());
         gametime_integrate(&time);
+
+        bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree);
+        bsp_tree_destroy(&torus_bsptree);
 
         Mat identity;
         mat_identity(identity);

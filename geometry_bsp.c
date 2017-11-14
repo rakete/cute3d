@@ -283,8 +283,12 @@ void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {
 
     struct BspBuildState state;
     bsp_build_state_create(&state);
-    size_t alloc_state_result = bsp_build_state_alloc(&state, 2 * alloc_polygons_result, alloc_polygons_result);
-    log_assert( alloc_state_result > alloc_polygons_result );
+
+    size_t alloc_front_result = bsp_build_partition_alloc(&state.front, 2 * alloc_polygons_result);
+    log_assert( alloc_front_result >= 2 * alloc_polygons_result );
+
+    size_t alloc_back_result = bsp_build_partition_alloc(&state.back, alloc_polygons_result);
+    log_assert( alloc_back_result >= alloc_polygons_result );
 
     Vec3f min = {0};
     Vec3f max = {0};
@@ -330,16 +334,92 @@ void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {
         state.front.occupied += 1;
     }
 
-    struct BspBounds bounds = {};
-    bsp_node_bounds_create(min, max, num_polygons, &bounds);
+    /* struct BspBounds bounds = {}; */
+    /* bsp_node_bounds_create(min, max, num_polygons, &bounds); */
 
-    struct BspNode* root = NULL;
-    int32_t root_i = bsp_tree_add_node(tree, -1, bounds, &root);
+    /* struct BspNode* root = NULL; */
+    /* int32_t root_i = bsp_tree_add_node(tree, -1, bounds, &root); */
 
-    bsp_build_recur(tree, root_i, &state, 0, num_polygons, &state.front);
-    log_fail(__FILE__, __LINE__, "BUILT BSP TREE... OR NOT?\n");
+    struct BspBuildStackFrame root_frame;
+    root_frame.tree_side = BSP_FRONT;
+    root_frame.parent_index = -1;
+    root_frame.partition_start = 0;
+    root_frame.partition_end = num_polygons;
+    vec_copy3f(min, root_frame.bounds_min);
+    vec_copy3f(max, root_frame.bounds_max);
+    bsp_build_stack_push(&state.stack, root_frame);
+
+    bsp_build(tree, &state);
 
     bsp_build_state_destroy(&state);
+}
+
+size_t bsp_build_stack_pop(struct BspBuildStack* stack, struct BspBuildStackFrame* frame) {
+    if( stack->occupied > 0 ) {
+        stack->occupied -= 1;
+        memcpy(frame, &stack->frames[stack->occupied], sizeof(struct BspBuildStackFrame));
+    }
+
+    return stack->occupied;
+}
+
+size_t bsp_build_stack_push(struct BspBuildStack* stack, struct BspBuildStackFrame frame) {
+    if( stack->occupied + 1 >= stack->capacity ) {
+        size_t alloc_result = bsp_build_stack_alloc(stack, 1);
+        log_assert( alloc_result >= 1 );
+    }
+
+    if( stack->occupied + 1 < stack->capacity ) {
+        stack->frames[stack->occupied] = frame;
+        stack->occupied += 1;
+    }
+
+    return stack->occupied;
+}
+
+
+size_t bsp_build_stack_alloc(struct BspBuildStack* stack, size_t n) {
+    size_t result = 0;
+
+    if( n > 0 ) {
+        size_t alloc = BSP_BUILD_STACK_ALLOC;
+        while( alloc < n ) {
+            alloc += BSP_BUILD_STACK_ALLOC;
+        }
+
+        size_t new_capacity = stack->capacity + alloc;
+
+        struct BspBuildStackFrame* new_frames = realloc(stack->frames, new_capacity * sizeof(struct BspBuildStackFrame));
+        if( new_frames != NULL ) {
+            stack->frames = new_frames;
+            stack->capacity = new_capacity;
+            result += alloc;
+        }
+    }
+
+    return result;
+}
+
+size_t bsp_build_partition_alloc(struct BspBuildPartition* partition, size_t n) {
+    size_t result = 0;
+
+    if( n > 0 ) {
+        size_t alloc = BSP_BUILD_ARRAYS_ALLOC;
+        while( alloc < n ) {
+            alloc += BSP_BUILD_ARRAYS_ALLOC;
+        }
+
+        size_t new_capacity = partition->capacity + alloc;
+
+        int32_t* new_array = realloc(partition->polygons, new_capacity * sizeof(int32_t));
+        if( new_array != NULL ) {
+            partition->polygons = new_array;
+            partition->capacity = new_capacity;
+            result += alloc;
+        }
+    }
+
+    return result;
 }
 
 void bsp_build_state_create(struct BspBuildState* state) {
@@ -350,6 +430,10 @@ void bsp_build_state_create(struct BspBuildState* state) {
     state->back.polygons = NULL;
     state->back.capacity = 0;
     state->back.occupied = 0;
+
+    state->stack.frames = NULL;
+    state->stack.capacity = 0;
+    state->stack.occupied = 0;
 }
 
 void bsp_build_state_destroy(struct BspBuildState* state) {
@@ -362,44 +446,6 @@ void bsp_build_state_destroy(struct BspBuildState* state) {
     }
 
     bsp_build_state_create(state);
-}
-
-size_t bsp_build_state_alloc(struct BspBuildState* state, size_t front_n, size_t back_n) {
-    size_t result = 0;
-
-    if( front_n > 0 ) {
-        size_t front_alloc = BSP_BUILD_ARRAYS_ALLOC;
-        while( front_alloc < front_n ) {
-            front_alloc += BSP_BUILD_ARRAYS_ALLOC;
-        }
-
-        size_t new_front_capacity = state->front.capacity + front_alloc;
-
-        int32_t* new_front_array = realloc(state->front.polygons, new_front_capacity * sizeof(int32_t));
-        if( new_front_array != NULL ) {
-            state->front.polygons = new_front_array;
-            state->front.capacity = new_front_capacity;
-            result += front_alloc;
-        }
-    }
-
-    if( back_n > 0 ) {
-        size_t back_alloc = BSP_BUILD_ARRAYS_ALLOC;
-        while( back_alloc < back_n ) {
-            back_alloc += BSP_BUILD_ARRAYS_ALLOC;
-        }
-
-        size_t new_back_capacity = state->back.capacity + back_alloc;
-
-        int32_t* new_back_array = realloc(state->back.polygons, new_back_capacity * sizeof(int32_t));
-        if( new_back_array != NULL ) {
-            state->back.polygons = new_back_array;
-            state->back.capacity = new_back_capacity;
-            result += back_alloc;
-        }
-    }
-
-    return result;
 }
 
 int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBounds bounds, size_t loop_start, size_t loop_end, const int32_t* polygon_indices, size_t max_steps) {
@@ -472,216 +518,249 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
     return best_i;
 }
 
-void bsp_build_recur(struct BspTree* tree, int32_t parent_i, struct BspBuildState* state, size_t loop_start, size_t loop_end, struct BspBuildPartition* partition) {
-    size_t num_polygons = loop_end - loop_start;
-    log_assert( num_polygons > 0 );
+void bsp_build(struct BspTree* tree, struct BspBuildState* state) {
+    while( state->stack.occupied > 0 ) {
+        struct BspBuildStackFrame parent_frame;
+        bsp_build_stack_pop(&state->stack, &parent_frame);
 
-    int32_t node_divider_i = bsp_build_select_balanced_divider(tree, tree->nodes.array[parent_i].bounds, loop_start, loop_end, partition->polygons, num_polygons/10);
-    tree->nodes.array[parent_i].divider = node_divider_i;
+        size_t loop_start = parent_frame.partition_start;
+        size_t loop_end = parent_frame.partition_end;
+        int32_t grandparent_i = parent_frame.parent_index;
+        enum BspSide parent_side = parent_frame.tree_side;
 
-    const struct BspPolygon node_divider = tree->polygons.array[node_divider_i];
-    Vertex node_divider_vertex = {0};
-    vertex_copy(&tree->attributes.vertices[node_divider.start*VERTEX_SIZE], node_divider_vertex);
+        Vec3f parent_min = {0};
+        vec_copy3f(parent_frame.bounds_min, parent_min);
 
-    /* draw_polygon_wire(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.01f, node_divider.size, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], node_divider.normal); */
-    /* draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.01f, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 1.0f, 0.1f); */
-    /* draw_plane(&global_static_canvas, MAX_CANVAS_LAYERS-1, (Mat)IDENTITY_MAT, (Color){120, 120, 150, 127}, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 10.0f); */
+        Vec3f parent_max = {0};
+        vec_copy3f(parent_frame.bounds_max, parent_max);
 
-    size_t front_start = state->front.occupied;
-    Vec3f front_min = {0};
-    Vec3f front_max = {0};
+        struct BspBounds bounds = {};
+        bsp_node_bounds_create(parent_min, parent_max, loop_end - loop_start, &bounds);
 
-    size_t back_start = state->back.occupied;
-    Vec3f back_min = {0};
-    Vec3f back_max = {0};
-
-    for( size_t loop_i = loop_start; loop_i < loop_end; loop_i++ ) {
-        size_t polygon_i = partition->polygons[loop_i];
-        if( (int32_t)polygon_i == node_divider_i ) {
-            continue;
+        struct BspNode* node = NULL;
+        int32_t parent_i = bsp_tree_add_node(tree, grandparent_i, bounds, &node);
+        if( grandparent_i > -1 && parent_side == BSP_FRONT ) {
+            tree->nodes.array[grandparent_i].tree.front = parent_i;
+        } else if( grandparent_i > -1 && parent_side == BSP_BACK ) {
+            tree->nodes.array[grandparent_i].tree.back = parent_i;
         }
 
-        const struct BspPolygon current_polygon = tree->polygons.array[polygon_i];
-        size_t current_polygon_size = current_polygon.size;
-        const VERTEX_TYPE* current_polygon_vertices = &tree->attributes.vertices[current_polygon.start*VERTEX_SIZE];
-        const NORMAL_TYPE* current_polygon_normals = &tree->attributes.normals[current_polygon.start*NORMAL_SIZE];
-        const TEXCOORD_TYPE* current_polygon_texcoords = &tree->attributes.texcoords[current_polygon.start*TEXCOORD_SIZE];
-        const COLOR_TYPE* current_polygon_colors = &tree->attributes.colors[current_polygon.start*COLOR_SIZE];
+        struct BspBuildPartition* partition = &state->front;
+        if( parent_side == BSP_BACK ) {
+            partition = &state->back;
+        }
 
-        size_t result_size = current_polygon_size;
-        struct PolygonCutPoint result_points[current_polygon_size];
-        enum PolygonCutType result_type = polygon_cut(current_polygon_size, VERTEX_SIZE, current_polygon_vertices,
-                                                      node_divider.normal, node_divider_vertex,
-                                                      result_size, result_points);
+        size_t num_polygons = loop_end - loop_start;
+        log_assert( num_polygons > 0 );
 
-        int32_t front_index = -1;
-        int32_t back_index = -1;
-        switch(result_type) {
-            case POLYGON_COPLANNAR:
-            case POLYGON_FRONT:
-                front_index = polygon_i;
-                break;
-            case POLYGON_BACK:
-                back_index = polygon_i;
-                break;
-            case POLYGON_SPANNING:
-                if( result_points[0].num_cuts > 0 ) {
-                    tree->polygons.array[polygon_i].divider = node_divider_i;
+        int32_t node_divider_i = bsp_build_select_balanced_divider(tree, tree->nodes.array[parent_i].bounds, loop_start, loop_end, partition->polygons, num_polygons/10);
+        tree->nodes.array[parent_i].divider = node_divider_i;
 
-                    size_t new_poly_size = current_polygon_size+result_points[0].num_cuts;
+        const struct BspPolygon node_divider = tree->polygons.array[node_divider_i];
+        Vertex node_divider_vertex = {0};
+        vertex_copy(&tree->attributes.vertices[node_divider.start*VERTEX_SIZE], node_divider_vertex);
 
-                    size_t front_occupied = 0;
-                    VERTEX_TYPE front_vertices[new_poly_size*VERTEX_SIZE];
-                    NORMAL_TYPE front_normals[new_poly_size*NORMAL_SIZE];
-                    TEXCOORD_TYPE front_texcoords[new_poly_size*TEXCOORD_SIZE];
-                    COLOR_TYPE front_colors[new_poly_size*COLOR_SIZE];
+        size_t front_start = state->front.occupied;
+        Vec3f front_min = {0};
+        Vec3f front_max = {0};
 
-                    size_t back_occupied = 0;
-                    VERTEX_TYPE back_vertices[new_poly_size*VERTEX_SIZE];
-                    NORMAL_TYPE back_normals[new_poly_size*NORMAL_SIZE];
-                    TEXCOORD_TYPE back_texcoords[new_poly_size*TEXCOORD_SIZE];
-                    COLOR_TYPE back_colors[new_poly_size*COLOR_SIZE];
+        size_t back_start = state->back.occupied;
+        Vec3f back_min = {0};
+        Vec3f back_max = {0};
 
-                    for( size_t result_i = 0; result_i < result_size; result_i++ ) {
-                        if( result_points[result_i].type == POLYGON_BACK || result_points[result_i].type == POLYGON_COPLANNAR ) {
-                            vertex_copy(&current_polygon_vertices[result_i*VERTEX_SIZE], &back_vertices[back_occupied*VERTEX_SIZE]);
-                            normal_copy(&current_polygon_normals[result_i*NORMAL_SIZE], &back_normals[back_occupied*NORMAL_SIZE]);
-                            texcoord_copy(&current_polygon_texcoords[result_i*TEXCOORD_SIZE], &back_texcoords[back_occupied*TEXCOORD_SIZE]);
-                            color_copy(&current_polygon_colors[result_i*COLOR_SIZE], &back_colors[back_occupied*COLOR_SIZE]);
-                            back_occupied += 1;
+        for( size_t loop_i = loop_start; loop_i < loop_end; loop_i++ ) {
+            size_t polygon_i = partition->polygons[loop_i];
+            if( (int32_t)polygon_i == node_divider_i ) {
+                continue;
+            }
+
+            const struct BspPolygon current_polygon = tree->polygons.array[polygon_i];
+            size_t current_polygon_size = current_polygon.size;
+            const VERTEX_TYPE* current_polygon_vertices = &tree->attributes.vertices[current_polygon.start*VERTEX_SIZE];
+            const NORMAL_TYPE* current_polygon_normals = &tree->attributes.normals[current_polygon.start*NORMAL_SIZE];
+            const TEXCOORD_TYPE* current_polygon_texcoords = &tree->attributes.texcoords[current_polygon.start*TEXCOORD_SIZE];
+            const COLOR_TYPE* current_polygon_colors = &tree->attributes.colors[current_polygon.start*COLOR_SIZE];
+
+            size_t result_size = current_polygon_size;
+            struct PolygonCutPoint result_points[current_polygon_size];
+            enum PolygonCutType result_type = polygon_cut(current_polygon_size, VERTEX_SIZE, current_polygon_vertices,
+                                                          node_divider.normal, node_divider_vertex,
+                                                          result_size, result_points);
+
+            int32_t front_index = -1;
+            int32_t back_index = -1;
+            switch(result_type) {
+                case POLYGON_COPLANNAR:
+                case POLYGON_FRONT:
+                    front_index = polygon_i;
+                    break;
+                case POLYGON_BACK:
+                    back_index = polygon_i;
+                    break;
+                case POLYGON_SPANNING:
+                    if( result_points[0].num_cuts > 0 ) {
+                        tree->polygons.array[polygon_i].divider = node_divider_i;
+
+                        size_t new_poly_size = current_polygon_size+result_points[0].num_cuts;
+
+                        size_t front_occupied = 0;
+                        VERTEX_TYPE front_vertices[new_poly_size*VERTEX_SIZE];
+                        NORMAL_TYPE front_normals[new_poly_size*NORMAL_SIZE];
+                        TEXCOORD_TYPE front_texcoords[new_poly_size*TEXCOORD_SIZE];
+                        COLOR_TYPE front_colors[new_poly_size*COLOR_SIZE];
+
+                        size_t back_occupied = 0;
+                        VERTEX_TYPE back_vertices[new_poly_size*VERTEX_SIZE];
+                        NORMAL_TYPE back_normals[new_poly_size*NORMAL_SIZE];
+                        TEXCOORD_TYPE back_texcoords[new_poly_size*TEXCOORD_SIZE];
+                        COLOR_TYPE back_colors[new_poly_size*COLOR_SIZE];
+
+                        for( size_t result_i = 0; result_i < result_size; result_i++ ) {
+                            if( result_points[result_i].type == POLYGON_BACK || result_points[result_i].type == POLYGON_COPLANNAR ) {
+                                vertex_copy(&current_polygon_vertices[result_i*VERTEX_SIZE], &back_vertices[back_occupied*VERTEX_SIZE]);
+                                normal_copy(&current_polygon_normals[result_i*NORMAL_SIZE], &back_normals[back_occupied*NORMAL_SIZE]);
+                                texcoord_copy(&current_polygon_texcoords[result_i*TEXCOORD_SIZE], &back_texcoords[back_occupied*TEXCOORD_SIZE]);
+                                color_copy(&current_polygon_colors[result_i*COLOR_SIZE], &back_colors[back_occupied*COLOR_SIZE]);
+                                back_occupied += 1;
+                            }
+
+                            if( result_points[result_i].type == POLYGON_FRONT || result_points[result_i].type == POLYGON_COPLANNAR ) {
+                                vertex_copy(&current_polygon_vertices[result_i*VERTEX_SIZE], &front_vertices[front_occupied*VERTEX_SIZE]);
+                                normal_copy(&current_polygon_normals[result_i*NORMAL_SIZE], &front_normals[front_occupied*NORMAL_SIZE]);
+                                texcoord_copy(&current_polygon_texcoords[result_i*TEXCOORD_SIZE], &front_texcoords[front_occupied*TEXCOORD_SIZE]);
+                                color_copy(&current_polygon_colors[result_i*COLOR_SIZE], &front_colors[front_occupied*COLOR_SIZE]);
+                                front_occupied += 1;
+                            }
+
+                            if( result_points[result_i].interpolation_index > -1 ) {
+                                const VertexP* vertex_a = &current_polygon_vertices[result_i*VERTEX_SIZE];
+                                const VertexP* vertex_b = &current_polygon_vertices[result_points[result_i].interpolation_index*VERTEX_SIZE];
+                                Vertex vertex_r = {0};
+                                vertex_lerp(vertex_b, vertex_a, result_points[result_i].interpolation_value, vertex_r);
+
+                                const NormalP* normal_a = &current_polygon_normals[result_i*NORMAL_SIZE];
+                                const NormalP* normal_b = &current_polygon_normals[result_points[result_i].interpolation_index*NORMAL_SIZE];
+                                Normal normal_r = {0};
+                                normal_lerp(normal_b, normal_a, result_points[result_i].interpolation_value, normal_r);
+
+                                const TexcoordP* texcoord_a = &current_polygon_texcoords[result_i*TEXCOORD_SIZE];
+                                const TexcoordP* texcoord_b = &current_polygon_texcoords[result_points[result_i].interpolation_index*TEXCOORD_SIZE];
+                                Texcoord texcoord_r = {0};
+                                texcoord_lerp(texcoord_b, texcoord_a, result_points[result_i].interpolation_value, texcoord_r);
+
+                                const ColorP* color_a = &current_polygon_colors[result_i*COLOR_SIZE];
+                                const ColorP* color_b = &current_polygon_colors[result_points[result_i].interpolation_index*COLOR_SIZE];
+                                Color color_r = {0};
+                                color_lerp(color_b, color_a, result_points[result_i].interpolation_value, color_r);
+
+                                vertex_copy(vertex_r, &back_vertices[back_occupied*VERTEX_SIZE]);
+                                normal_copy(normal_r, &back_normals[back_occupied*NORMAL_SIZE]);
+                                texcoord_copy(texcoord_r, &back_texcoords[back_occupied*TEXCOORD_SIZE]);
+                                color_copy(color_r, &back_colors[back_occupied*COLOR_SIZE]);
+                                back_occupied += 1;
+
+                                vertex_copy(vertex_r, &front_vertices[front_occupied*VERTEX_SIZE]);
+                                normal_copy(normal_r, &front_normals[front_occupied*NORMAL_SIZE]);
+                                texcoord_copy(texcoord_r, &front_texcoords[front_occupied*TEXCOORD_SIZE]);
+                                color_copy(color_r, &front_colors[front_occupied*COLOR_SIZE]);
+                                front_occupied += 1;
+                            }
                         }
 
-                        if( result_points[result_i].type == POLYGON_FRONT || result_points[result_i].type == POLYGON_COPLANNAR ) {
-                            vertex_copy(&current_polygon_vertices[result_i*VERTEX_SIZE], &front_vertices[front_occupied*VERTEX_SIZE]);
-                            normal_copy(&current_polygon_normals[result_i*NORMAL_SIZE], &front_normals[front_occupied*NORMAL_SIZE]);
-                            texcoord_copy(&current_polygon_texcoords[result_i*TEXCOORD_SIZE], &front_texcoords[front_occupied*TEXCOORD_SIZE]);
-                            color_copy(&current_polygon_colors[result_i*COLOR_SIZE], &front_colors[front_occupied*COLOR_SIZE]);
-                            front_occupied += 1;
-                        }
+                        struct BspPolygon* front_polygon = NULL;
+                        struct ParameterAttributes parameter_front_attributes = {
+                            .vertices = front_vertices,
+                            .normals = front_normals,
+                            .texcoords = front_texcoords,
+                            .colors = front_colors
+                        };
+                        front_index = bsp_tree_add_polygon(tree, front_occupied, current_polygon.normal, parameter_front_attributes, &front_polygon);
+                        front_polygon->cut.parent = polygon_i;
+                        front_polygon->cut.sibling = back_index;
 
-                        if( result_points[result_i].interpolation_index > -1 ) {
-                            const VertexP* vertex_a = &current_polygon_vertices[result_i*VERTEX_SIZE];
-                            const VertexP* vertex_b = &current_polygon_vertices[result_points[result_i].interpolation_index*VERTEX_SIZE];
-                            Vertex vertex_r = {0};
-                            vertex_lerp(vertex_b, vertex_a, result_points[result_i].interpolation_value, vertex_r);
+                        struct BspPolygon* back_polygon = NULL;
+                        struct ParameterAttributes parameter_back_attributes = {
+                            .vertices = back_vertices,
+                            .normals = back_normals,
+                            .texcoords = back_texcoords,
+                            .colors = back_colors
+                        };
+                        back_index = bsp_tree_add_polygon(tree, back_occupied, current_polygon.normal, parameter_back_attributes, &back_polygon);
+                        back_polygon->cut.parent = polygon_i;
+                        back_polygon->cut.sibling = front_index;
 
-                            const NormalP* normal_a = &current_polygon_normals[result_i*NORMAL_SIZE];
-                            const NormalP* normal_b = &current_polygon_normals[result_points[result_i].interpolation_index*NORMAL_SIZE];
-                            Normal normal_r = {0};
-                            normal_lerp(normal_b, normal_a, result_points[result_i].interpolation_value, normal_r);
-
-                            const TexcoordP* texcoord_a = &current_polygon_texcoords[result_i*TEXCOORD_SIZE];
-                            const TexcoordP* texcoord_b = &current_polygon_texcoords[result_points[result_i].interpolation_index*TEXCOORD_SIZE];
-                            Texcoord texcoord_r = {0};
-                            texcoord_lerp(texcoord_b, texcoord_a, result_points[result_i].interpolation_value, texcoord_r);
-
-                            const ColorP* color_a = &current_polygon_colors[result_i*COLOR_SIZE];
-                            const ColorP* color_b = &current_polygon_colors[result_points[result_i].interpolation_index*COLOR_SIZE];
-                            Color color_r = {0};
-                            color_lerp(color_b, color_a, result_points[result_i].interpolation_value, color_r);
-
-                            vertex_copy(vertex_r, &back_vertices[back_occupied*VERTEX_SIZE]);
-                            normal_copy(normal_r, &back_normals[back_occupied*NORMAL_SIZE]);
-                            texcoord_copy(texcoord_r, &back_texcoords[back_occupied*TEXCOORD_SIZE]);
-                            color_copy(color_r, &back_colors[back_occupied*COLOR_SIZE]);
-                            back_occupied += 1;
-
-                            vertex_copy(vertex_r, &front_vertices[front_occupied*VERTEX_SIZE]);
-                            normal_copy(normal_r, &front_normals[front_occupied*NORMAL_SIZE]);
-                            texcoord_copy(texcoord_r, &front_texcoords[front_occupied*TEXCOORD_SIZE]);
-                            color_copy(color_r, &front_colors[front_occupied*COLOR_SIZE]);
-                            front_occupied += 1;
-                        }
+                        tree->polygons.occupied += 2;
                     }
+                    break;
+            }
 
-                    struct BspPolygon* front_polygon = NULL;
-                    struct ParameterAttributes parameter_front_attributes = {
-                        .vertices = front_vertices,
-                        .normals = front_normals,
-                        .texcoords = front_texcoords,
-                        .colors = front_colors
-                    };
-                    front_index = bsp_tree_add_polygon(tree, front_occupied, current_polygon.normal, parameter_front_attributes, &front_polygon);
-                    front_polygon->cut.parent = polygon_i;
-                    front_polygon->cut.sibling = back_index;
-
-                    struct BspPolygon* back_polygon = NULL;
-                    struct ParameterAttributes parameter_back_attributes = {
-                        .vertices = back_vertices,
-                        .normals = back_normals,
-                        .texcoords = back_texcoords,
-                        .colors = back_colors
-                    };
-                    back_index = bsp_tree_add_polygon(tree, back_occupied, current_polygon.normal, parameter_back_attributes, &back_polygon);
-                    back_polygon->cut.parent = polygon_i;
-                    back_polygon->cut.sibling = front_index;
-
-                    tree->polygons.occupied += 2;
-
-                    /* draw_polygon_wire(&global_static_canvas, 0, (Mat)IDENTITY_MAT,  (Color){255, 255, 0, 255}, 0.01f, front_occupied, front_vertices, current_polygon.normal); */
-                    /* draw_polygon_wire(&global_static_canvas, 0, (Mat)IDENTITY_MAT,  (Color){255, 255, 0, 255}, 0.01f, back_occupied, back_vertices, current_polygon.normal); */
+            if( front_index > -1 ) {
+                if( state->front.occupied + 1 >= state->front.capacity ) {
+                    size_t alloc_state_result = bsp_build_partition_alloc(&state->front, 1);
+                    log_assert( alloc_state_result > 1 );
                 }
-                break;
-        }
 
-        if( front_index > -1 ) {
-            if( state->front.occupied + 1 >= state->front.capacity ) {
-                size_t alloc_state_result = bsp_build_state_alloc(state, 1, 0);
-                log_assert( alloc_state_result > 1 );
+                state->front.polygons[state->front.occupied] = front_index;
+                state->front.occupied += 1;
+
+                for( size_t polygon_point_i = 0; polygon_point_i < tree->polygons.array[front_index].size; polygon_point_i++ ) {
+                    size_t vertex_i = tree->polygons.array[front_index].start + polygon_point_i;
+                    vec_minmax(&tree->attributes.vertices[vertex_i], front_min, front_max);
+                }
             }
 
-            state->front.polygons[state->front.occupied] = front_index;
-            state->front.occupied += 1;
+            if( back_index > -1 ) {
+                if( state->back.occupied + 1 >= state->back.capacity ) {
+                    size_t alloc_state_result = bsp_build_partition_alloc(&state->back, 1);
+                    log_assert( alloc_state_result > 1 );
+                }
 
-            for( size_t polygon_point_i = 0; polygon_point_i < tree->polygons.array[front_index].size; polygon_point_i++ ) {
-                size_t vertex_i = tree->polygons.array[front_index].start + polygon_point_i;
-                vec_minmax(&tree->attributes.vertices[vertex_i], front_min, front_max);
-            }
-        }
+                state->back.polygons[state->back.occupied] = back_index;
+                state->back.occupied += 1;
 
-        if( back_index > -1 ) {
-            if( state->back.occupied + 1 >= state->back.capacity ) {
-                size_t alloc_state_result = bsp_build_state_alloc(state, 0, 1);
-                log_assert( alloc_state_result > 1 );
-            }
-
-            state->back.polygons[state->back.occupied] = back_index;
-            state->back.occupied += 1;
-
-            for( size_t polygon_point_i = 0; polygon_point_i < tree->polygons.array[back_index].size; polygon_point_i++ ) {
-                size_t vertex_i = tree->polygons.array[back_index].start + polygon_point_i;
-                vec_minmax(&tree->attributes.vertices[vertex_i], back_min, back_max);
+                for( size_t polygon_point_i = 0; polygon_point_i < tree->polygons.array[back_index].size; polygon_point_i++ ) {
+                    size_t vertex_i = tree->polygons.array[back_index].start + polygon_point_i;
+                    vec_minmax(&tree->attributes.vertices[vertex_i], back_min, back_max);
+                }
             }
         }
+
+        size_t front_end = state->front.occupied;
+        size_t back_end = state->back.occupied;
+
+        if( back_end - back_start > 0 ) {
+            struct BspBuildStackFrame back_frame;
+            back_frame.tree_side = BSP_BACK;
+            back_frame.parent_index = parent_i;
+            back_frame.partition_start = back_start;
+            back_frame.partition_end = back_end;
+            vec_copy3f(back_min, back_frame.bounds_min);
+            vec_copy3f(back_max, back_frame.bounds_max);
+            bsp_build_stack_push(&state->stack, back_frame);
+        } else if( back_end - back_start == 0 ) {
+            struct BspBounds solid_bounds = {0.0f, 0.0f, 0.0f, {0.0f, 0.0f, 0.0f}, 0};
+            struct BspNode* solid_node = NULL;
+            int32_t solid_i = bsp_tree_add_node(tree, parent_i, solid_bounds, &solid_node);
+            solid_node->state.solid = true;
+            tree->nodes.array[parent_i].tree.back = solid_i;
+        }
+
+        if( front_end - front_start > 0 ) {
+            struct BspBuildStackFrame front_frame;
+            front_frame.tree_side = BSP_FRONT;
+            front_frame.parent_index = parent_i;
+            front_frame.partition_start = front_start;
+            front_frame.partition_end = front_end;
+            vec_copy3f(front_min, front_frame.bounds_min);
+            vec_copy3f(front_max, front_frame.bounds_max);
+            bsp_build_stack_push(&state->stack, front_frame);
+        } else if( front_end - front_start == 0 ) {
+            struct BspBounds empty_bounds = {0.0f, 0.0f, 0.0f, {0.0f, 0.0f, 0.0f}, 0};
+            struct BspNode* empty_node = NULL;
+            int32_t empty_i = bsp_tree_add_node(tree, parent_i, empty_bounds, &empty_node);
+            empty_node->state.empty = true;
+            tree->nodes.array[parent_i].tree.front = empty_i;
+        }
+
     }
-
-    size_t front_end = state->front.occupied;
-    size_t back_end = state->back.occupied;
-
-    struct BspBounds front_bounds = {};
-    bsp_node_bounds_create(front_min, front_max, front_end - front_start, &front_bounds);
-
-    struct BspNode* front_node = NULL;
-    int32_t front_parent_i = bsp_tree_add_node(tree, parent_i, front_bounds, &front_node);
-    tree->nodes.array[parent_i].tree.front = front_parent_i;
-
-    if( front_end - front_start > 0 ) {
-        bsp_build_recur(tree, front_parent_i, state, front_start, front_end, &state->front);
-    } else if( front_end - front_start == 0 ) {
-        front_node->state.empty = true;
-    }
-
-    struct BspBounds back_bounds = {};
-    bsp_node_bounds_create(back_min, back_max, back_end - back_start, &back_bounds);
-
-    struct BspNode* back_node = NULL;
-    int32_t back_parent_i = bsp_tree_add_node(tree, parent_i, back_bounds, &back_node);
-    tree->nodes.array[parent_i].tree.back = back_parent_i;
-
-    if( back_end - back_start > 0 ) {
-        bsp_build_recur(tree, back_parent_i, state, back_start, back_end, &state->back);
-    } else if( back_end - back_start == 0 ) {
-        back_node->state.solid = true;
-    }
-
 }
