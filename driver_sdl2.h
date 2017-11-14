@@ -20,6 +20,11 @@
 #ifndef DRIVER_SDL2_H
 #define DRIVER_SDL2_H
 
+// - if a error is reported here on windows with flycheck because:
+// 'strings.h' file not found
+// then you need to undef HAVE_STRINGS_H in SDL_config.h, strings.h
+// is a unix include but mingw SDL2 seems to expect to find it on
+// windows too
 #include "SDL2/SDL.h"
 #include "assert.h"
 
