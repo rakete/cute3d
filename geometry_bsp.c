@@ -439,6 +439,10 @@ void bsp_build_state_destroy(struct BspBuildState* state) {
         free(state->back.polygons);
     }
 
+    if( state->stack.capacity > 0 ) {
+        free(state->stack.frames);
+    }
+
     bsp_build_state_create(state);
 }
 
