@@ -334,12 +334,6 @@ void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {
         state.front.occupied += 1;
     }
 
-    /* struct BspBounds bounds = {}; */
-    /* bsp_node_bounds_create(min, max, num_polygons, &bounds); */
-
-    /* struct BspNode* root = NULL; */
-    /* int32_t root_i = bsp_tree_add_node(tree, -1, bounds, &root); */
-
     struct BspBuildStackFrame root_frame;
     root_frame.tree_side = BSP_FRONT;
     root_frame.parent_index = -1;

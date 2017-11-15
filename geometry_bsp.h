@@ -221,8 +221,7 @@ void bsp_build_state_destroy(struct BspBuildState* arrays);
 
 int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBounds bounds, size_t loop_start, size_t loop_end, const int32_t* polygon_indices, size_t max_steps);
 
-void bsp_build(struct BspTree* tree, struct BspBuildState* state);
-void bsp_build_recur(struct BspTree* tree, int32_t parent_i, struct BspBuildState* state, size_t loop_start, size_t loop_end, struct BspBuildPartition* partition);
+struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state);
 
 // 1. select a primitive (triangle) not yet part of the tree
 // 2. go through all other triangles seperating them in two
