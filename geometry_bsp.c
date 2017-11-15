@@ -268,7 +268,7 @@ int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Ve
     return polygon_i;
 }
 
-void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {
+struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {
     bsp_tree_create(tree);
 
     size_t alloc_attributes_result = bsp_tree_alloc_attributes(tree, solid->attributes_size);
@@ -343,9 +343,11 @@ void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {
     vec_copy3f(max, root_frame.bounds_max);
     bsp_build_stack_push(&state.stack, root_frame);
 
-    bsp_build(tree, &state);
+    struct BspNode* root = bsp_build(tree, &state);
 
     bsp_build_state_destroy(&state);
+
+    return root;
 }
 
 size_t bsp_build_stack_pop(struct BspBuildStack* stack, struct BspBuildStackFrame* frame) {
@@ -516,7 +518,13 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
     return best_i;
 }
 
-void bsp_build(struct BspTree* tree, struct BspBuildState* state) {
+struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
+    if( state->stack.occupied == 0 ) {
+        return NULL;
+    }
+
+    struct BspNode* root = &tree->nodes.array[tree->nodes.occupied];
+
     while( state->stack.occupied > 0 ) {
         struct BspBuildStackFrame parent_frame;
         bsp_build_stack_pop(&state->stack, &parent_frame);
@@ -761,4 +769,6 @@ void bsp_build(struct BspTree* tree, struct BspBuildState* state) {
         }
 
     }
+
+    return root;
 }

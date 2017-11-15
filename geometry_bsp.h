@@ -172,7 +172,7 @@ WARN_UNUSED_RESULT size_t bsp_tree_alloc_nodes(struct BspTree* tree, size_t n);
 int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, struct BspBounds bounds, struct BspNode** node);
 int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Vec3f polygon_normal, struct ParameterAttributes polygon_attributes, struct BspPolygon** polygon);
 
-void bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree);
+struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree);
 
 enum BspSide {
     BSP_FRONT = 0,
