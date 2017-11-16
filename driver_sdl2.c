@@ -19,7 +19,7 @@
 
 #include "driver_sdl2.h"
 
-int32_t sdl2_init() {
+int32_t init_sdl2() {
 
 #ifdef _WIN32
     SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
