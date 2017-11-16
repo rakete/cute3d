@@ -182,11 +182,7 @@ int32_t main(int32_t argc, char *argv[]) {
         vbo_mesh_render(&torus24_mesh, &shader, &arcball.camera, torus24_transform);
         vbo_mesh_render(&supertoroid24_mesh, &shader, &arcball.camera, supertoroid24_transform);
 
-        Quat grid_rotation = {0};
-        quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
-        Mat grid_transform = {0};
-        quat_to_mat(grid_rotation, grid_transform);
-        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 0.03f, 12.0f, 12.0f, 12);
+        draw_grid(&global_dynamic_canvas, 0, identity, (Color){127, 127, 127, 255}, 0.03f, 12.0f, 12.0f, 12);
 
         if( drawn_normals == false ) {
             draw_solid_normals(&global_static_canvas, 0, box_transform, (Color){255, 255, 0, 255}, 0.01f, (struct Solid*)&box, 0.05f);

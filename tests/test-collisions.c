@@ -130,13 +130,6 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){5.0, 3.0, 5.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0, 1000.0, &arcball);
 
-    Quat grid_rotation = {0};
-    quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
-    Mat grid_transform = {0};
-    quat_to_mat(grid_rotation, grid_transform);
-
-    //Vec3f move = {-0.01, 0.0, 0.0};
-
     size_t num_entities = 2;
     struct PickingSphere* picking_spheres[2];
     picking_spheres[0] = &entity_a.picking_sphere;
@@ -149,7 +142,7 @@ int32_t main(int32_t argc, char *argv[]) {
     struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);
 
-    draw_grid(&global_static_canvas, 0, grid_transform, (Color){127, 127, 127, 127}, 0.01f, 12.0f, 12.0f, 12);
+    draw_grid(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){127, 127, 127, 127}, 0.01f, 12.0f, 12.0f, 12);
 
     while (true) {
 

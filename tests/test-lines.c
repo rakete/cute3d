@@ -86,11 +86,6 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1f, 1000.0, &arcball);
 
-    Quat grid_rotation = {0};
-    quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
-    Mat grid_transform = {0};
-    quat_to_mat(grid_rotation, grid_transform);
-
     struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);
 
@@ -132,8 +127,8 @@ int32_t main(int32_t argc, char *argv[]) {
         vbo_mesh_render(&vbo_mesh, &shader, &arcball.camera, identity);
         draw_halfedgemesh_wire(&global_dynamic_canvas, 0, identity, (Color){255, 255, 0, 255}, 0.03f, &hemesh_cube);
 
-        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){20, 180, 240, 255}, 0.03f, 12.0f, 12.0f, 12);
-        draw_circle(&global_dynamic_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.05f, 2.0f, 0.0f, PI/2, 1.0f);
+        draw_grid(&global_dynamic_canvas, 0, identity, (Color){20, 180, 240, 255}, 0.03f, 12.0f, 12.0f, 12);
+        draw_circle(&global_dynamic_canvas, 0, identity, (Color){255, 0, 0, 255}, 0.05f, 2.0f, 0.0f, PI/2, 1.0f);
 
         Vec4f screen_cursor = {0,0,0,1};
         text_show_fps(&global_dynamic_canvas, 0, screen_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0, "default_font", time.frame);

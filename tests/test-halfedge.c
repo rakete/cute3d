@@ -174,11 +174,7 @@ int32_t main(int32_t argc, char *argv[]) {
         vbo_mesh_render(&sphere16_mesh, &shader, &arcball.camera, sphere16_transform);
         vbo_mesh_render(&sphere32_mesh, &shader, &arcball.camera, sphere32_transform);
 
-        Quat grid_rotation = {0};
-        quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
-        Mat grid_transform = {0};
-        quat_to_mat(grid_rotation, grid_transform);
-        draw_grid(&global_dynamic_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 0.02f, 12.0f, 12.0f, 12);
+        draw_grid(&global_dynamic_canvas, 0, identity, (Color){127, 127, 127, 255}, 0.02f, 12.0f, 12.0f, 12);
 
         draw_halfedgemesh_wire(&global_dynamic_canvas, 1, tetrahedron_transform, (Color){255, 255, 0, 255}, 0.02f, &tetrahedron_hemesh);
         draw_halfedgemesh_wire(&global_dynamic_canvas, 1, box_transform, (Color){255, 255, 0, 255}, 0.02f, &box_hemesh);

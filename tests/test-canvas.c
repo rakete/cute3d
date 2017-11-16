@@ -82,18 +82,6 @@ int32_t main(int32_t argc, char *argv[]) {
     struct Arcball arcball = {0};
     arcball_create(window, (Vec4f){1.0,2.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.01, 1000.0, &arcball);
 
-    Quat grid_rotation1;
-    quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation1);
-    Mat grid_transform1;
-    mat_identity(grid_transform1);
-    mat_rotate(grid_transform1, grid_rotation1, grid_transform1);
-    mat_translate(grid_transform1, (Vec3f){0, -1, 0}, grid_transform1);
-
-    Quat grid_rotation2;
-    quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){1.0, 0.0, 0.0, 1.0}, grid_rotation2);
-    Mat grid_transform2;
-    quat_to_mat(grid_rotation2, grid_transform2);
-
     struct Character symbols[256] = {0};
     default_font_create(symbols);
 
@@ -144,7 +132,7 @@ int32_t main(int32_t argc, char *argv[]) {
                    glClearColor(.0f, .0f, .0f, 1.0f);
                    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); );
 
-        draw_grid(&text_canvas, 0, grid_transform1, (Color){20, 180, 240, 255}, 0.02f, 12.0f, 12.0f, 12);
+        draw_grid(&text_canvas, 0, (Mat)IDENTITY_MAT, (Color){20, 180, 240, 255}, 0.02f, 12.0f, 12.0f, 12);
 
         draw_basis(&text_canvas, 1, (Mat)IDENTITY_MAT, 0.02f, 1.0f);
 

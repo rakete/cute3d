@@ -162,12 +162,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
     Mat identity = {0};
     mat_identity(identity);
-
-    Quat grid_rotation = {0};
-    quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, (Vec4f){0.0, 1.0, 0.0, 1.0}, grid_rotation);
-    Mat grid_transform = {0};
-    quat_to_mat(grid_rotation, grid_transform);
-    draw_grid(&global_static_canvas, 0, grid_transform, (Color){127, 127, 127, 255}, 0.03f, 12.0f, 12.0f, 12);
+    draw_grid(&global_static_canvas, 0, identity, (Color){127, 127, 127, 255}, 0.03f, 12.0f, 12.0f, 12);
 
     Mat shading_label_transform = {0};
     mat_rotate(identity, grid_rotation, shading_label_transform);

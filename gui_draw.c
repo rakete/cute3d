@@ -224,21 +224,21 @@ void draw_grid(struct Canvas* canvas,
         float xf = -width/2.0f + (float)i * (width / (float)steps);
         float yf = -height/2.0f + (float)i * (height / (float)steps);
 
-        Vec3f a = {-width/2.0f, yf, 0.0};
-        Vec3f b = {width/2.0f, yf, 0.0};
-        Vec3f c = {xf, -height/2.0f, 0.0};
-        Vec3f d = {xf, height/2.0f, 0.0};
+        Vec3f a = {-width/2.0f, 0.0, yf};
+        Vec3f b = {width/2.0f, 0.0, yf};
+        Vec3f c = {xf, 0.0, -height/2.0f};
+        Vec3f d = {xf, 0.0, height/2.0f};
 
         draw_line(canvas, layer_i, model_matrix, color, line_thickness, a, b);
         draw_line(canvas, layer_i, model_matrix, color, line_thickness, c, d);
 
         if( i == 0 ) {
-            Vec3f e = {-width/2.0f, height/2.0f, 0.0};
-            Vec3f f = {width/2.0f, height/2.0f, 0.0};
-            Vec3f g = {width/2.0f, -height/2.0f, 0.0};
+          Vec3f e = {-width/2.0f, 0.0, height/2.0f};
+          Vec3f f = {width/2.0f, 0.0, height/2.0f};
+          Vec3f g = {width/2.0f, 0.0, -height/2.0f};
 
-            draw_line(canvas, layer_i, model_matrix, color, line_thickness, e, f);
-            draw_line(canvas, layer_i, model_matrix, color, line_thickness, f, g);
+          draw_line(canvas, layer_i, model_matrix, color, line_thickness, e, f);
+          draw_line(canvas, layer_i, model_matrix, color, line_thickness, f, g);
         }
     }
 }
