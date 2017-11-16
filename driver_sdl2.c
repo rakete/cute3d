@@ -84,7 +84,7 @@ void sdl2_fullscreen(const char* title, int32_t width, int32_t height, SDL_Windo
         });
 }
 
-void sdl2_glcontext(int major, int minor, SDL_Window* window, const uint8_t clear_color[4], SDL_GLContext** context) {
+void sdl2_glcontext(int major, int minor, SDL_Window* window, SDL_GLContext** context) {
     log_assert( major == 2 || major == 3 || major == 4 );
     log_assert( minor >= 0 && minor < 10 );
 
@@ -147,12 +147,6 @@ void sdl2_glcontext(int major, int minor, SDL_Window* window, const uint8_t clea
             glEnable(GL_CULL_FACE);
             glFrontFace(GL_CCW);
             glCullFace(GL_BACK);
-
-            glClearColor((float)clear_color[0] / 255.0f,
-                         (float)clear_color[1] / 255.0f,
-                         (float)clear_color[2] / 255.0f,
-                         (float)clear_color[3] / 255.0f);
-            glClearDepth(1);
         });
 
 #ifndef CUTE_BUILD_ES2
@@ -165,6 +159,15 @@ void sdl2_glcontext(int major, int minor, SDL_Window* window, const uint8_t clea
     log_info(__FILE__, __LINE__, "gl stencil buffer bits: %d\n", stencil_bits);
 #endif
 
+}
+
+void sdl2_clear(uint8_t clear_color[4], GLfloat clear_depth, GLbitfield  clear_bits) {
+    ogl_debug( glClearColor((float)clear_color[0] / 255.0f,
+                            (float)clear_color[1] / 255.0f,
+                            (float)clear_color[2] / 255.0f,
+                            (float)clear_color[3] / 255.0f);
+               glClearDepth(clear_depth);
+               glClear( clear_bits ); );
 }
 
 double sdl2_time_delta() {

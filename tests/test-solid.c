@@ -38,7 +38,7 @@ int32_t main(int32_t argc, char *argv[]) {
     sdl2_window("test-solid", 100, 60, 1280, 720, &window);
 
     SDL_GLContext* context;
-    sdl2_glcontext(3, 2, window, (Color){0, 0, 0, 255}, &context);
+    sdl2_glcontext(3, 2, window, &context);
 
     if( init_shader() ) {
         return 1;

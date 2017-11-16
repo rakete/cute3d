@@ -43,7 +43,7 @@ int32_t main(int32_t argc, char *argv[]) {
     sdl2_window("test-lines", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, &window);
 
     SDL_GLContext* context;
-    sdl2_glcontext(3, 2, window, (Color){0.0f, 0.0f, 0.0f, 1.0f}, &context);
+    sdl2_glcontext(3, 2, window, &context);
 
     if( init_shader() ) {
         return 1;
