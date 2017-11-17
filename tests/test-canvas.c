@@ -72,7 +72,7 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_canvas(width, height) ) {
+    if( init_canvas() ) {
         return 1;
     }
 
@@ -80,7 +80,7 @@ int32_t main(int32_t argc, char *argv[]) {
     printf("MAX_OGL_PRIMITIVES: %d\n", MAX_OGL_PRIMITIVES);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){1.0,2.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.01, 1000.0, &arcball);
+    arcball_create(width, height, (Vec4f){1.0,2.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.01, 1000.0, &arcball);
 
     struct Character symbols[256] = {0};
     default_font_create(symbols);
@@ -95,7 +95,7 @@ int32_t main(int32_t argc, char *argv[]) {
     font_create_from_characters(L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;", 256, symbols, 9, 3, global_default_font_palette, &font);
 
     struct Canvas text_canvas = {0};
-    canvas_create("text_canvas", width, height, &text_canvas);
+    canvas_create("text_canvas", &text_canvas);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTEX, 3, GL_FLOAT);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTEX_COLOR, 4, GL_UNSIGNED_BYTE);
     canvas_add_attribute(&text_canvas, SHADER_ATTRIBUTE_VERTEX_TEXCOORD, 2, GL_FLOAT);
@@ -109,19 +109,13 @@ int32_t main(int32_t argc, char *argv[]) {
     while (true) {
         SDL_Event event;
         while( sdl2_poll_event(&event) ) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    goto done;
-                case SDL_KEYDOWN: {
-                    SDL_KeyboardEvent* key_event = (SDL_KeyboardEvent*)&event;
-                    if(key_event->keysym.scancode == SDL_SCANCODE_ESCAPE) {
-                        goto done;
-                    }
-                    break;
-                }
+            if( sdl2_handle_quit(event) ) {
+                goto done;
             }
+            sdl2_handle_resize(event);
 
-            arcball_event(&arcball, event);
+            arcball_handle_resize(&arcball, event);
+            arcball_handle_mouse(&arcball, event);
         }
 
         gametime_advance(&time, sdl2_time_delta());

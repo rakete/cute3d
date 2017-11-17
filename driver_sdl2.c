@@ -249,6 +249,37 @@ int32_t sdl2_poll_event(SDL_Event* event) {
     return ret;
 }
 
+int32_t sdl2_handle_quit(SDL_Event event) {
+    switch(event.type) {
+        case SDL_QUIT: {
+            return 1;
+        }
+        case SDL_KEYDOWN: {
+            SDL_KeyboardEvent* key_event = (SDL_KeyboardEvent*)&event;
+            if(key_event->keysym.scancode == SDL_SCANCODE_ESCAPE) {
+                return 1;
+            }
+            break;
+        }
+    }
+
+    return 0;
+}
+
+int32_t sdl2_handle_resize(SDL_Event event) {
+    int32_t ret = 0;
+    if(event.type == SDL_WINDOWEVENT) {
+        if(event.window.event == SDL_WINDOWEVENT_RESIZED ||
+           event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+        {
+            ogl_debug( glViewport(0, 0, event.window.data1, event.window.data2); );
+            ret = 1;
+        }
+    }
+
+    return ret;
+}
+
 void sdl2_gl_swap_window(SDL_Window* window) {
     double t1 = sdl2_time();
 #ifdef _WIN32

@@ -19,10 +19,7 @@
 
 #include "math_arcball.h"
 
-void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float z_near, float z_far, struct Arcball* arcball) {
-    int32_t width,height;
-    sdl2_debug( SDL_GL_GetDrawableSize(window, &width, &height) );
-
+void arcball_create(int32_t width, int32_t height, Vec4f eye, Vec4f target, float z_near, float z_far, struct Arcball* arcball) {
     // - if the user specifies an eye and target so that we are looking along the y-axis (like 0,1,0 and 0,0,0),
     // then we just adjust the eye a tiny bit upwards to prevent a black screen because the up_axis used in
     // arcball_event is the y axis, and two parallel axis have no cross product and things become 0 and everything
@@ -57,7 +54,21 @@ void arcball_create(SDL_Window* window, Vec4f eye, Vec4f target, float z_near, f
     vec_copy4f(target, arcball->target);
 }
 
-bool arcball_event(struct Arcball* arcball, SDL_Event event) {
+int32_t arcball_handle_resize(struct Arcball* arcball, SDL_Event event) {
+    int32_t ret = 0;
+
+    ret = camera_handle_resize(&arcball->camera, event);
+
+    float z_near = arcball->camera.frustum.z_near;
+    float z_far = arcball->camera.frustum.z_far;
+    float top = (z_near/arcball->camera.screen.width) * arcball->camera.screen.height/2.0f;
+    float bottom = -top;
+    camera_set_frustum(&arcball->camera, -z_near/2.0f, z_near/2.0f, bottom, top, z_near, z_far);
+
+    return ret;
+}
+
+int32_t arcball_handle_mouse(struct Arcball* arcball, SDL_Event event) {
     static int32_t mouse_down = 0;
     static const float rotation_slowness_factor = 0.25f;
     static int32_t next_flipped = 0;
@@ -190,5 +201,5 @@ bool arcball_event(struct Arcball* arcball, SDL_Event event) {
         }
     }
 
-    return true;
+    return 1;
 }

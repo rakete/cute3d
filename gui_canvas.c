@@ -22,23 +22,20 @@
 struct Canvas global_dynamic_canvas = {0};
 struct Canvas global_static_canvas = {0};
 
-int32_t init_canvas(int32_t width, int32_t height) {
-    canvas_create("global_dynamic_canvas", width, height, &global_dynamic_canvas);
-    canvas_create("global_static_canvas", width, height, &global_static_canvas);
+int32_t init_canvas() {
+    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
+    canvas_create("global_static_canvas", &global_static_canvas);
 
     return 0;
 }
 
-void canvas_create(const char* name, int32_t width, int32_t height, struct Canvas* canvas) {
+void canvas_create(const char* name, struct Canvas* canvas) {
     log_assert( canvas != NULL );
     log_assert( strlen(name) > 0 );
     log_assert( strlen(name) < 256 );
 
     canvas->name[0] = '\0';
     strncat(canvas->name, name, strlen(name));
-
-    canvas->width = width;
-    canvas->height = height;
 
     for( int32_t i = 0; i < MAX_SHADER_ATTRIBUTES; i++ ) {
         canvas->components[i].size = 0;
