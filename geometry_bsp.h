@@ -89,10 +89,9 @@ struct BspBounds {
     float half_height;
     float half_depth;
     Vec3f center;
-    size_t num_polygons;
 };
 
-void bsp_node_bounds_create(Vec3f min, Vec3f max, size_t num_polygons, struct BspBounds* bounds);
+void bsp_node_bounds_create(Vec3f min, Vec3f max, struct BspBounds* bounds);
 
 // - nodes are what the trees structure is built of, a node can be at a branch or at a leaf position
 // - divider is a index that specifies which divider polygon was used to divide the polygons of this
@@ -106,6 +105,7 @@ void bsp_node_bounds_create(Vec3f min, Vec3f max, size_t num_polygons, struct Bs
 // or 'inside' (solid) of the mesh
 struct BspNode {
     int32_t divider;
+    size_t num_polygons;
 
     struct BspBounds bounds;
 
@@ -124,7 +124,7 @@ struct BspNode {
     } state;
 };
 
-void bsp_node_create(struct BspBounds bounds, struct BspNode* node);
+void bsp_node_create(struct BspNode* node);
 
 // - the bsp tree itself contains just arrays containing the structs described above
 // - the attribute arrays are supposed to be filled with vertex data with non shared vertices,

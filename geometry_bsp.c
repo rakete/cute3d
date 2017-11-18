@@ -33,26 +33,25 @@ void bsp_polygon_create(struct BspPolygon* polygon) {
     polygon->cut.sibling = -1;
 }
 
-void bsp_node_bounds_create(Vec3f min, Vec3f max, size_t num_polygons, struct BspBounds* bounds) {
+void bsp_node_bounds_create(Vec3f min, Vec3f max, struct BspBounds* bounds) {
     bounds->half_width = (max[0] - min[0])/2.0f;
     bounds->half_height = (max[1] - min[1])/2.0f;
     bounds->half_depth = (max[2] - min[2])/2.0f;
     bounds->center[0] = min[0] + bounds->half_width;
     bounds->center[1] = min[1] + bounds->half_height;
     bounds->center[2] = min[2] + bounds->half_depth;
-    bounds->num_polygons = num_polygons;
 }
 
-void bsp_node_create(struct BspBounds bounds, struct BspNode* node) {
+void bsp_node_create(struct BspNode* node) {
     node->divider = 0;
+    node->num_polygons = 0;
 
-    node->bounds.half_width = bounds.half_width;
-    node->bounds.half_height = bounds.half_height;
-    node->bounds.half_depth = bounds.half_depth;
-    node->bounds.center[0] = bounds.center[0];
-    node->bounds.center[1] = bounds.center[1];
-    node->bounds.center[2] = bounds.center[2];
-    node->bounds.num_polygons = bounds.num_polygons;
+    node->bounds.half_width = 0.0f;
+    node->bounds.half_height = 0.0f;
+    node->bounds.half_depth = 0.0f;
+    node->bounds.center[0] = 0.0f;
+    node->bounds.center[1] = 0.0f;
+    node->bounds.center[2] = 0.0f;
 
     node->tree.parent = -1;
     node->tree.front = -1;
@@ -177,7 +176,7 @@ WARN_UNUSED_RESULT size_t bsp_tree_alloc_nodes(struct BspTree* tree, size_t n) {
     return 0;
 }
 
-int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, struct BspBounds bounds, struct BspNode** result) {
+int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, struct BspNode** result) {
     if( tree->nodes.occupied + 1 >= tree->nodes.capacity ) {
         size_t alloc_nodes_result = 0;
         alloc_nodes_result = bsp_tree_alloc_nodes(tree, 1);
@@ -186,7 +185,7 @@ int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, struct BspBounds
 
     size_t node_i = tree->nodes.occupied;
     struct BspNode* node = &tree->nodes.array[node_i];
-    bsp_node_create(bounds, node);
+    bsp_node_create(node);
 
     node->tree.index = node_i;
     node->tree.parent = parent;
@@ -341,9 +340,8 @@ struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* 
     root_frame.partition_end = num_polygons;
     vec_copy3f(min, root_frame.bounds_min);
     vec_copy3f(max, root_frame.bounds_max);
-    bsp_build_stack_push(&state.stack, root_frame);
 
-    struct BspNode* root = bsp_build(tree, &state);
+    struct BspNode* root = bsp_build(tree, root_frame, &state);
 
     bsp_build_state_destroy(&state);
 
@@ -541,7 +539,7 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
         vec_copy3f(parent_frame.bounds_max, parent_max);
 
         struct BspBounds bounds = {};
-        bsp_node_bounds_create(parent_min, parent_max, loop_end - loop_start, &bounds);
+        bsp_node_bounds_create(parent_min, parent_max, &bounds);
 
         struct BspNode* node = NULL;
         int32_t parent_i = bsp_tree_add_node(tree, grandparent_i, bounds, &node);
@@ -744,11 +742,11 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
             vec_copy3f(back_max, back_frame.bounds_max);
             bsp_build_stack_push(&state->stack, back_frame);
         } else if( back_end - back_start == 0 ) {
-            struct BspBounds solid_bounds = {0.0f, 0.0f, 0.0f, {0.0f, 0.0f, 0.0f}, 0};
             struct BspNode* solid_node = NULL;
-            int32_t solid_i = bsp_tree_add_node(tree, parent_i, solid_bounds, &solid_node);
+            int32_t solid_i = bsp_tree_add_node(tree, node_i, &solid_node);
             solid_node->state.solid = true;
-            tree->nodes.array[parent_i].tree.back = solid_i;
+
+            tree->nodes.array[node_i].tree.back = solid_i;
         }
 
         if( front_end - front_start > 0 ) {
@@ -761,11 +759,11 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
             vec_copy3f(front_max, front_frame.bounds_max);
             bsp_build_stack_push(&state->stack, front_frame);
         } else if( front_end - front_start == 0 ) {
-            struct BspBounds empty_bounds = {0.0f, 0.0f, 0.0f, {0.0f, 0.0f, 0.0f}, 0};
             struct BspNode* empty_node = NULL;
-            int32_t empty_i = bsp_tree_add_node(tree, parent_i, empty_bounds, &empty_node);
+            int32_t empty_i = bsp_tree_add_node(tree, node_i, &empty_node);
             empty_node->state.empty = true;
-            tree->nodes.array[parent_i].tree.front = empty_i;
+
+            tree->nodes.array[node_i].tree.front = empty_i;
         }
 
     }
