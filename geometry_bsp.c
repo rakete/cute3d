@@ -211,6 +211,8 @@ int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Ve
     log_assert( polygon_attributes.vertices != NULL );
     memcpy(&tree->attributes.vertices[polygon_start*VERTEX_SIZE], polygon_attributes.vertices, polygon_size*VERTEX_SIZE*sizeof(VERTEX_TYPE));
 
+    // - all attributes beside the vertices are optional, so this array of zeros is copied into the bsp tree instead
+    // when a attribute pointer is NULL
     char* zeros = NULL;
     if( polygon_attributes.normals == NULL || polygon_attributes.texcoords != NULL || polygon_attributes.colors != NULL ) {
         zeros = calloc(polygon_size * 4 * sizeof(float), sizeof(char));
@@ -252,7 +254,7 @@ int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Ve
     struct BspPolygon* polygon = &tree->polygons.array[polygon_i];
     bsp_polygon_create(polygon);
 
-    polygon->start = polygon_start; //polygon_i*polygon_size*VERTEX_SIZE;
+    polygon->start = polygon_start;
     polygon->size = polygon_size;
 
     if( polygon_normal == NULL ) {
@@ -293,6 +295,9 @@ struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* 
     Vec3f max = {0};
     for( size_t indices_i = 0; indices_i < solid->indices_size; indices_i += 3 ) {
 
+        // - the for loop goes through the indices of the solid, gets the attributes according
+        // to the index from the solid and copies them into the tree->attributes, while doing
+        // this it also collects the maximum and minimum xyz values
         VERTEX_TYPE tree_polygon_vertices[3*VERTEX_SIZE];
         NORMAL_TYPE tree_polygon_normals[3*NORMAL_SIZE];
         TEXCOORD_TYPE tree_polygon_texcoords[3*TEXCOORD_SIZE];
@@ -319,6 +324,8 @@ struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* 
             vec_minmax(src_vertex, min, max);
         }
 
+        // - it also adds polygons to the tree, it assumes every polygon is a triangle, which
+        // should also be true when handling solids
         size_t tree_polygon_size = 3;
         struct BspPolygon* tree_polygon = NULL;
         struct ParameterAttributes parameter_attributes = {
@@ -329,10 +336,15 @@ struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* 
         };
         size_t poly_i = bsp_tree_add_polygon(tree, tree_polygon_size, NULL, parameter_attributes, &tree_polygon);
 
+        // - the state.front partition gets filled with the indices of the polygons in the tree,
+        // this is later used by bsp_build when sorting the polygons into front and back
         state.front.polygons[poly_i] = poly_i;
         state.front.occupied += 1;
     }
 
+    // - an initial stack frame is created for bsp_build to pop when it starts, it contains
+    // the range of all added polygons, and the collected min max vec3fs, and contains with which
+    // side of the paritions to start (BSP_FRONT in this case, because we filled that above)
     struct BspBuildStackFrame root_frame;
     root_frame.tree_side = BSP_FRONT;
     root_frame.parent_index = -1;
@@ -449,10 +461,19 @@ void bsp_build_state_destroy(struct BspBuildState* state) {
 int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBounds bounds, size_t loop_start, size_t loop_end, const int32_t* polygon_indices, size_t max_steps) {
     size_t num_polygons = loop_end - loop_start;
     log_assert( num_polygons > 0 );
+
     if( num_polygons <= 2 ) {
         return polygon_indices[loop_start];
     }
 
+    // - I want to divide through its smallest dimension because I assumed that way
+    // I would get less cuts that I need to compute, never actually verified that
+    // assumption
+    // - so I look at the bounding box dimension, and copy the axis along which the
+    // mesh has the smallest size into normal_comparison_axis, so that later I can
+    // compare polygon normals to it and use the dot product to determine if a normal
+    // is more perpendicular to that comparison axis, which means the polygon is
+    // aligned in such a way as to better cut the mesh through its minimal dimension
     float node_width = bounds.half_width*2.0f;
     float node_height = bounds.half_height*2.0f;
     float node_depth = bounds.half_depth*2.0f;
@@ -466,6 +487,9 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
         vec_copy3f((Vec4f)Z_AXIS, normal_comparison_axis);
     }
 
+    // - I found this trick somewhere but I forgot where exactly, its just some way
+    // to round correctly so that I get a max_steps number of steps through all
+    // polygons when I step by step_size
     size_t step_size = 1;
     if( max_steps < num_polygons && max_steps > 0 ) {
         float fstep_size = (float)num_polygons / (float)max_steps;
@@ -473,6 +497,15 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
         step_size = (size_t)(fstep_size+1.0f);
     }
 
+    // - go through polygons while increasing by step_size so that we only test max_steps
+    // polygons
+    // - the test consist of comparing the polygon normal with the minimum dimension axis
+    // from above, and computing the center-to-center distance
+    // - the polygon is then scored according to these tests, meaning that if the polygon
+    // has a normal that is 'more' orthognal compared to the minimum axis of all previously
+    // tested polygons, and that is nearer to the center of the mesh then all previously tested
+    // polygons, then it is scored higher and potentially selected as new divider candidate
+    // to return
     float min_dot = FLT_MAX;
     float min_center_distance = FLT_MAX;
     int32_t best_i = 0;
@@ -486,6 +519,15 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
         vec_dot(tree->polygons.array[index_i].normal, normal_comparison_axis, &dot);
         if( fabs(dot) <= min_dot+10.0f*CUTE_EPSILON ) {
             min_dot = fabs(dot);
+            // - scoring and then selecting based on the score is less then ideal, the first
+            // polygon tested will always be the best polygon since I initialize min_dot
+            // and min_center_distance to FLT_MAX, so to prevent always selecting the first
+            // polygon I use the if( polygon_i > loop_start ) condition below when setting
+            // the best_score, and I also put in these terms where I increase the score
+            // by a small amount when for later polygons, so that this method favours
+            // later polygons that match the test over earlier polygons
+            // - this is not tested well but seems to work good enough, may be worth
+            // looking into again at a later point in time
             current_score += 1.0f + polygon_i*CUTE_EPSILON;
         }
 
@@ -518,20 +560,34 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
     return best_i;
 }
 
-struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
+struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_frame, struct BspBuildState* state) {
+    bsp_build_stack_push(&state->stack, root_frame);
+
     if( state->stack.occupied == 0 ) {
         return NULL;
     }
 
     struct BspNode* root = &tree->nodes.array[tree->nodes.occupied];
 
+    // - this while loop runs as long as there are frames left on the stack, first thing it does
+    // is pop the last pushed frame and then processed the associated branch, so at the end of this while
+    // I add frames for every subbranch that I want to process next, if there is nothing to process left
+    // I do not add anything to the stack and eventually this while loop ends
+    // - a short summary of what happens inside this while: after popping the last stack frame and using
+    // its values to initialze various local variables, I first select a polygon as divider out of all
+    // polygons that belong to the current branch, then I go through all other polygons and test them
+    // against the divider polygon and decide if they are in front, behind or are being cut by the
+    // divider, I handle them accordingly by appending their index to the front or back partition or by
+    // cutting them into to new polygons and appending those to the front and back partitions, this
+    // is repeated until I have added a node for every polygon into the tree
     while( state->stack.occupied > 0 ) {
+        // - first thing to be done, pop the stack frame
         struct BspBuildStackFrame parent_frame;
         bsp_build_stack_pop(&state->stack, &parent_frame);
 
         size_t loop_start = parent_frame.partition_start;
         size_t loop_end = parent_frame.partition_end;
-        int32_t grandparent_i = parent_frame.parent_index;
+        int32_t parent_i = parent_frame.parent_index;
         enum BspSide parent_side = parent_frame.tree_side;
 
         Vec3f parent_min = {0};
@@ -543,12 +599,24 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
         struct BspBounds bounds = {};
         bsp_node_bounds_create(parent_min, parent_max, &bounds);
 
+        // - here a node is added the is going to represent the current branch, but the rest
+        // of the code below never really touches this node again, so there is never anything
+        // 'put into' the node, which may seem strange, but it is not because the only thing
+        // that the node contains is indices to other nodes
         struct BspNode* node = NULL;
-        int32_t parent_i = bsp_tree_add_node(tree, grandparent_i, bounds, &node);
-        if( grandparent_i > -1 && parent_side == BSP_FRONT ) {
-            tree->nodes.array[grandparent_i].tree.front = parent_i;
-        } else if( grandparent_i > -1 && parent_side == BSP_BACK ) {
-            tree->nodes.array[grandparent_i].tree.back = parent_i;
+        int32_t node_i = bsp_tree_add_node(tree, parent_i, &node);
+        node->num_polygons = loop_end - loop_start;
+        node->bounds = bounds;
+        // - since we just added a node for this branch, we now know its index, that means we
+        // need to 'go back in time' to when we created our parent node, and set this nodes index
+        // as either the parent nodes front or back sub-branch, depending on which branch we are
+        // currently working
+        // - so when we are currently in BSP_FRONT, then the .tree.front index of the node located
+        // at the index parent_i must be set to node_i (which we can only know now), makes sense right?
+        if( parent_i > -1 && parent_side == BSP_FRONT ) {
+            tree->nodes.array[parent_i].tree.front = node_i;
+        } else if( parent_i > -1 && parent_side == BSP_BACK ) {
+            tree->nodes.array[parent_i].tree.back = node_i;
         }
 
         struct BspBuildPartition* partition = &state->front;
@@ -559,8 +627,10 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
         size_t num_polygons = loop_end - loop_start;
         log_assert( num_polygons > 0 );
 
-        int32_t node_divider_i = bsp_build_select_balanced_divider(tree, tree->nodes.array[parent_i].bounds, loop_start, loop_end, partition->polygons, num_polygons/10);
-        tree->nodes.array[parent_i].divider = node_divider_i;
+        // - this calls bsp_build_select_balanced_divider to determine a good divider
+        // to be used for this branch
+        int32_t node_divider_i = bsp_build_select_balanced_divider(tree, tree->nodes.array[node_i].bounds, loop_start, loop_end, partition->polygons, num_polygons/10);
+        tree->nodes.array[node_i].divider = node_divider_i;
 
         const struct BspPolygon node_divider = tree->polygons.array[node_divider_i];
         Vertex node_divider_vertex = {0};
@@ -574,6 +644,10 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
         Vec3f back_min = {0};
         Vec3f back_max = {0};
 
+        // - this for loop goes through all polygons that belong to a branch and tests them against
+        // the selected dividing polygon, it puts the polygon index into either the front or back partition,
+        // or if the divider cuts through the polygon then it uses the polygon_cut function to create
+        // new polygons from the cut and inserts them into the tree
         for( size_t loop_i = loop_start; loop_i < loop_end; loop_i++ ) {
             size_t polygon_i = partition->polygons[loop_i];
             if( (int32_t)polygon_i == node_divider_i ) {
@@ -587,6 +661,8 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
             const TEXCOORD_TYPE* current_polygon_texcoords = &tree->attributes.texcoords[current_polygon.start*TEXCOORD_SIZE];
             const COLOR_TYPE* current_polygon_colors = &tree->attributes.colors[current_polygon.start*COLOR_SIZE];
 
+            // - the polygon_cut is done here, it doubles as front/back test and its result_type is used in the
+            // switch below to decide what to do with the current polygon
             size_t result_size = current_polygon_size;
             struct PolygonCutPoint result_points[current_polygon_size];
             enum PolygonCutType result_type = polygon_cut(current_polygon_size, VERTEX_SIZE, current_polygon_vertices,
@@ -596,6 +672,10 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
             int32_t front_index = -1;
             int32_t back_index = -1;
             switch(result_type) {
+                // - when the polygon_cut function result_type indicates that this polygon is either coplannar to
+                // the divider or completley in front or completely behind it, then this switch puts it into either
+                // the front or back partition by setting front/back_index equal to this polygons index,
+                // front/back_index is then later appended to the front or back partition when it is > -1
                 case POLYGON_COPLANNAR:
                 case POLYGON_FRONT:
                     front_index = polygon_i;
@@ -607,6 +687,12 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
                     if( result_points[0].num_cuts > 0 ) {
                         tree->polygons.array[polygon_i].divider = node_divider_i;
 
+                        // - if the polygon is cut through by the divider, then we need to create two new polygons,
+                        // and these arrays here are what we use to collect the attributes for the two new polygons,
+                        // so that means
+                        // - we allocate these arrays locally and make them both large enough to hold the whole
+                        // original polygon + the number of new vertices, which should actually give us something
+                        // that is one vertex too large, but what the hell
                         size_t new_poly_size = current_polygon_size+result_points[0].num_cuts;
 
                         size_t front_occupied = 0;
@@ -621,6 +707,12 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
                         TEXCOORD_TYPE back_texcoords[new_poly_size*TEXCOORD_SIZE];
                         COLOR_TYPE back_colors[new_poly_size*COLOR_SIZE];
 
+                        // - for loop through the results from polygon_cut and put vertices into front and back
+                        // - if there is an interpolation value then that means we are on an edge which has been cut, and we need
+                        // to lerp the current vertex to the next vertex with the interpolation value to receive a new vertex that
+                        // lies exactly where the edge was cut, we then put this new vertex into front AND back because its part
+                        // of both resulting polygons
+                        // - this code only looks like so much because the same thing for four different attributes
                         for( size_t result_i = 0; result_i < result_size; result_i++ ) {
                             if( result_points[result_i].type == POLYGON_BACK || result_points[result_i].type == POLYGON_COPLANNAR ) {
                                 vertex_copy(&current_polygon_vertices[result_i*VERTEX_SIZE], &back_vertices[back_occupied*VERTEX_SIZE]);
@@ -673,6 +765,11 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
                             }
                         }
 
+                        // - we are still in the case that handles a cut polygon, the switch statement ends after the break; below!
+                        // - this section actually adds the two new polygons that resulted from the cut, and then also sets
+                        // front_ and back_index so that they both are > -1
+                        // - adding a new polygon means also adding all its vertices/attributes to the tree, bs_tree_add_polygon takes
+                        // care of that
                         struct BspPolygon* front_polygon = NULL;
                         struct ParameterAttributes parameter_front_attributes = {
                             .vertices = front_vertices,
@@ -697,9 +794,15 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
 
                         tree->polygons.occupied += 2;
                     }
+                    // - there is no need to put an else here, polygon_cut should not report a cut for a single coplannar vertex,
+                    // so only if there are actually vertices in front and behind the divider polygon_cut will return POLYGON_SPANNING
                     break;
             }
 
+            // - after the switch statement where we decided where to put the current polygon or cut it into two
+            // new polygons, we append the front_ or back_index to the front or back partition, or both to both
+            // partitions, those polygons will be then processed in the future when we process those sub-branches
+            // - we also look at each polygon vertex here and accumulate the min and max vec3fs for the sub-branches
             if( front_index > -1 ) {
                 if( state->front.occupied + 1 >= state->front.capacity ) {
                     size_t alloc_state_result = bsp_build_partition_alloc(&state->front, 1);
@@ -731,17 +834,29 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
             }
         }
 
+        // - front_start and back_start are set above before processing and adding polygons to the front
+        // and back partitions, together with front_end and back_end the front_start/end and back_start/end
+        // tuples define the range of polygons to be processed in the front and back sub-branches
         size_t front_end = state->front.occupied;
         size_t back_end = state->back.occupied;
 
+        // - test if back_end - back_start > 0 to determine if there are polygons to be processed in the back
+        // sub-branch, if that is true we need to push a new stack frame onto the stack that describes that
+        // sub-branch
+        // - if there are no polygons to be processed in the back sub-branch, then we insert a new node an mark
+        // it as solid, solid because we defined 'back' to mean behind divider plane according to the plane normal,
+        // and because all possible dividers come from mesh faces, and the meshes faces all have normals pointing
+        // outwards, then when we end on a 'back' side of a divider, we should be inside the mesh, therefore
+        // marking that end as solid, correspondingly when ending a front branch we mark the last node as empty
         if( back_end - back_start > 0 ) {
             struct BspBuildStackFrame back_frame;
             back_frame.tree_side = BSP_BACK;
-            back_frame.parent_index = parent_i;
+            back_frame.parent_index = node_i;
             back_frame.partition_start = back_start;
             back_frame.partition_end = back_end;
             vec_copy3f(back_min, back_frame.bounds_min);
             vec_copy3f(back_max, back_frame.bounds_max);
+
             bsp_build_stack_push(&state->stack, back_frame);
         } else if( back_end - back_start == 0 ) {
             struct BspNode* solid_node = NULL;
@@ -751,14 +866,17 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state) {
             tree->nodes.array[node_i].tree.back = solid_i;
         }
 
+        // - same as above, but for front
+        // - notice how we mark an ending node as empty here, as opposed to solid above
         if( front_end - front_start > 0 ) {
             struct BspBuildStackFrame front_frame;
             front_frame.tree_side = BSP_FRONT;
-            front_frame.parent_index = parent_i;
+            front_frame.parent_index = node_i;
             front_frame.partition_start = front_start;
             front_frame.partition_end = front_end;
             vec_copy3f(front_min, front_frame.bounds_min);
             vec_copy3f(front_max, front_frame.bounds_max);
+
             bsp_build_stack_push(&state->stack, front_frame);
         } else if( front_end - front_start == 0 ) {
             struct BspNode* empty_node = NULL;

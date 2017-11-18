@@ -60,7 +60,8 @@
 // they are and get two new polygons, which their vertices in correct order, appended to the end of the
 // arrays
 // - the struct BspPolygon represents such a polygon, it contains a start index which tells me which vertex
-// is the first and a size which tells me how many vertices belong to the polygon
+// is the first and a size which tells me how many vertices belong to the polygon, again, remember the
+// indices unit is vertices, so start*VERTEX_SIZE is the actual index into tree->attributes.vertices
 // - it also contains a normal because I need those when constructing the bsp tree and dont want to recalculate
 // them repeatedly
 // - divider is a index which specifies which other polygon divided this polygon, if any
@@ -138,7 +139,12 @@ void bsp_node_create(struct BspNode* node);
 // - despite each node containing exactly one polygon, the way the tree is built should result in
 // a nodes array such that if I look at a node, and take its front index and its back index, then
 // the nodes between front_i < back_i should contain all front polygon indices, and the nodes
-// between back_i < front_i+num_polygons should contain all back polygon indices
+// between back_i < front_i+num_polygons should contain all back polygon indices, so in that way
+// you can interpret a node as containing multiple polygons (as nodes)
+// - remember that while the tree is originally filled with triangles, the polygons are not neccessarily
+// triangles, they are polygons! when the build algorithm cuts a triangle, it can result in a
+// triangle and a quad, and that quad may be cut again... so when looking at the polygons you
+// may need to triangulate them before using them
 struct BspTree {
     struct {
         VERTEX_TYPE* vertices;
@@ -169,16 +175,51 @@ WARN_UNUSED_RESULT size_t bsp_tree_alloc_attributes(struct BspTree* tree, size_t
 WARN_UNUSED_RESULT size_t bsp_tree_alloc_polygons(struct BspTree* tree, size_t n);
 WARN_UNUSED_RESULT size_t bsp_tree_alloc_nodes(struct BspTree* tree, size_t n);
 
-int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, struct BspBounds bounds, struct BspNode** node);
+// - bsp_tree_add_node will add a new empty node to the tree, connected to the parent index,
+// and it returns the index of the new node
+// - it is important to fill the node after adding it, the bsp_tree_add_node leaves it completely
+// empty apart from the parent, index and depth values
+int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, struct BspNode** node);
+// - bsp_tree_add_polygon adds a new polygon and also fills it with the attributes supplied in the
+// polygon_attributes argument
 int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Vec3f polygon_normal, struct ParameterAttributes polygon_attributes, struct BspPolygon** polygon);
 
+// - bsp_tree_create_from_solid is the function a user is supposed to call when he wants to create
+// a bsp tree, from a solid obviously, I planned to have other functions for halfedgemesh etc.
+// - it returns a pointer to the root node
 struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree);
 
+// - beyond this point only data structures and functions for building the tree are defined
+// - these are supposed to be called internally only
+// - since I rewrote my original recursive building function to be iterative, I needed to implement
+// my own stack, that what struct BspBuildStackFrame and BspBuildStack are
+// - each BspBuildStackFrame contains everything that I need to keep track of to continue building
+// a branch once I have finished with the other, so for example when the iterative building starts,
+// it will first pick a divider and sort polygons into front and back partitions, then put two stack
+// frames on the stack, one for the back partition and one for the front partition, then on the
+// next iteration it pops the stack and continues building with the front partition and does
+// the same thing there. this continues until there are no polygons left in the front partition, at
+// which point the only frame left on the stack is the frame for the first back partition, which
+// gets popped and the building algorithm starts going down that branch
 enum BspSide {
     BSP_FRONT = 0,
     BSP_BACK
 };
 
+// - tree side tells me which branch I am working on, I need this to select the correct partition to
+// process
+// - parent_index I need to append the next node to the correct parent index
+// - partiton_start and partition_end are the indices into the partition which I need
+// to process for this branch
+// - bounds_min and bounds_max are neccessary because I calculate them when processing the polygons
+// for a branch, but only need them when creating a node for the next branch into which I sorted
+// those polygons (front or back)
+// - notice I could easily create nodes right after processing the polygons, and therefore eliminate
+// some of these variables I need to keep here, but I choose not to because when I create the nodes
+// only right before processing a branch, the nodes in the tree will be ordered as such that all nodes
+// between front_i and back_i belong to the front branch, and all nodes between back_i and
+// front_i+num_polygons belong to the back branch, if I change when the nodes are created, I also
+// change that ordering!
 struct BspBuildStackFrame {
     enum BspSide tree_side;
     int32_t parent_index;
@@ -201,6 +242,11 @@ size_t bsp_build_stack_push(struct BspBuildStack* stack, struct BspBuildStackFra
 
 WARN_UNUSED_RESULT size_t bsp_build_stack_alloc(struct BspBuildStack* stack, size_t n);
 
+// - I needed a way to accumulate all indices that need to be processed for the next
+// front or back branch, a partition is temporary storage for those indices
+// - the indices are only appended, there is no reuse or clearing involved, so the same
+// index will be appended repeatedly as often as the corresponding polygon shows up
+// in a sub-branch (it 'disappears' when it is selected as divider and becomes a node)
 struct BspBuildPartition {
     int32_t* polygons;
     size_t capacity;
@@ -216,12 +262,39 @@ struct BspBuildState {
     struct BspBuildPartition back;
 };
 
+// - I decided against making create and destroy functions for frame, stack and partion, they are
+// all handled together by state_create and state_destroy
 void bsp_build_state_create(struct BspBuildState* arrays);
 void bsp_build_state_destroy(struct BspBuildState* arrays);
 
+// - bsp_build_select_balanced_divider is in the internal section but should eventually
+// go in the public section when I ever have more then only this one function to select
+// a divider
+// - it goes through the polygons represented by polygon_indices, from loop_start to loop_end
+// and selects a polygon that is as near as possible to the center of bounds, the argument
+// max_steps can be used to restrict how many polygons will be tested so that this function
+// won't take too much time
+// - it returns the index of the polygon that represents a divider plane that should result
+// in the most balanced cut of the mesh
 int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct BspBounds bounds, size_t loop_start, size_t loop_end, const int32_t* polygon_indices, size_t max_steps);
 
-struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildState* state);
+// - bsp_build builds a bsp tree, it is not very user friendly
+// - to use bsp_build first the input mesh should be processed and tree->attributes
+// and tree->polygons must be filled with the attributes and polygons of the mesh,
+// then state is to be initialized and the state->front partition should be filled with
+// the indices of the polygons inside the tree to be processed (basicly the indices
+// should just be numbers from 0 to num_polygons, so that should not be very difficult),
+// and then finally a stack frame must be created and pushed on state->state which
+// contains the neccessary data to process the root node: side is whatever side contains
+// the initial polygon indices (BSP_FRONT in this example), parent should be -1 since
+// the root has no parent, partition_start is probably 0 and partition_start is
+// num_polygons, and bounds_min and bounds_max are the vec3fs containing the minimum
+// and maximum xyz values of the meshes vertices
+// - just use bsp_create_from_solid or at least look at its source for an example
+// how to use this function
+// - I added root_frame argument to make the creation of the stack frame representing
+// the root branch explicit
+struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_frame, struct BspBuildState* state);
 
 // 1. select a primitive (triangle) not yet part of the tree
 // 2. go through all other triangles seperating them in two
