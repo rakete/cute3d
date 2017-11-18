@@ -462,7 +462,7 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
         vec_copy3f((Vec4f)X_AXIS, normal_comparison_axis);
     } else if( node_height <= node_width && node_height <= node_depth ) {
         vec_copy3f((Vec4f)Y_AXIS, normal_comparison_axis);
-    } else if( node_depth <= node_width && node_depth <= node_height ) {
+    } else {
         vec_copy3f((Vec4f)Z_AXIS, normal_comparison_axis);
     }
 
@@ -486,7 +486,7 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
         vec_dot(tree->polygons.array[index_i].normal, normal_comparison_axis, &dot);
         if( fabs(dot) <= min_dot+10.0f*CUTE_EPSILON ) {
             min_dot = fabs(dot);
-            current_score += 1.0f;
+            current_score += 1.0f + polygon_i*CUTE_EPSILON;
         }
 
         Vec3f average_vertex = {0.0f, 0.0f, 0.0f};
@@ -503,11 +503,13 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
 
         if( fabs(center_distance) <= min_center_distance+1.0f*CUTE_EPSILON ) {
             min_center_distance = fabs(center_distance);
-            current_score += 1.0f;
+            current_score += 1.0f + polygon_i*CUTE_EPSILON;
         }
 
         if( current_score >= best_score ) {
-            best_score = current_score;
+            if( polygon_i > loop_start ) {
+                best_score = current_score;
+            }
             best_i = index_i;
         }
 
