@@ -57,13 +57,17 @@ void arcball_create(int32_t width, int32_t height, Vec4f eye, Vec4f target, floa
 int32_t arcball_handle_resize(struct Arcball* arcball, SDL_Event event) {
     int32_t ret = 0;
 
-    ret = camera_handle_resize(&arcball->camera, event);
+    if(event.type == SDL_WINDOWEVENT) {
+        if(event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+            ret = camera_handle_resize(&arcball->camera, event);
 
-    float z_near = arcball->camera.frustum.z_near;
-    float z_far = arcball->camera.frustum.z_far;
-    float top = (z_near/arcball->camera.screen.width) * arcball->camera.screen.height/2.0f;
-    float bottom = -top;
-    camera_set_frustum(&arcball->camera, -z_near/2.0f, z_near/2.0f, bottom, top, z_near, z_far);
+            float z_near = arcball->camera.frustum.z_near;
+            float z_far = arcball->camera.frustum.z_far;
+            float top = (z_near/arcball->camera.screen.width) * arcball->camera.screen.height/2.0f;
+            float bottom = -top;
+            camera_set_frustum(&arcball->camera, -z_near/2.0f, z_near/2.0f, bottom, top, z_near, z_far);
+        }
+    }
 
     return ret;
 }

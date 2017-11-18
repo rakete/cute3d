@@ -44,9 +44,7 @@ void camera_create(int32_t width, int32_t height, enum CameraProjection projecti
 int32_t camera_handle_resize(struct Camera* camera, SDL_Event event) {
     int32_t ret = 0;
     if(event.type == SDL_WINDOWEVENT) {
-        if(event.window.event == SDL_WINDOWEVENT_RESIZED ||
-           event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-        {
+        if(event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
             camera->screen.width = event.window.data1;
             camera->screen.height = event.window.data2;
             ret = 1;
