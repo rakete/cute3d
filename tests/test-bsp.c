@@ -59,7 +59,7 @@ int32_t main(int32_t argc, char *argv[]) {
     if( init_canvas(width, height) ) {
         return 1;
     }
-    canvas_create("global_dynamic_canvas", width, height, &global_dynamic_canvas);
+    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
 
     struct SolidBox solid_in = {0};
     solid_cube_create(1.0f, (Color){255, 255, 0, 255}, &solid_in);
@@ -83,7 +83,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_make_program(&shader, SHADER_DEFAULT_NAMES, "flat_shader");
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001f, 100.0, &arcball);
+    arcball_create(width, height, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001f, 100.0, &arcball);
 
     struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);
@@ -121,19 +121,13 @@ int32_t main(int32_t argc, char *argv[]) {
     while (true) {
         SDL_Event event;
         while( sdl2_poll_event(&event) ) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    goto done;
-                case SDL_KEYDOWN: {
-                    SDL_KeyboardEvent* key_event = (SDL_KeyboardEvent*)&event;
-                    if(key_event->keysym.scancode == SDL_SCANCODE_ESCAPE) {
-                        goto done;
-                    }
-                    break;
-                }
+            if( sdl2_handle_quit(event) ) {
+                goto done;
             }
+            sdl2_handle_resize(event);
 
-            arcball_event(&arcball, event);
+            arcball_handle_resize(&arcball, event);
+            arcball_handle_mouse(&arcball, event);
         }
 
         sdl2_gl_set_swap_interval(1);
