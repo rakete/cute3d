@@ -227,16 +227,6 @@ double sdl2_time() {
     return t;
 }
 
-#define sdl2_profile(line)                                              \
-    double t1 = sdl2_time();                                            \
-    line;                                                               \
-    double t2 = sdl2_time();                                            \
-    double t = (t2 - t1) * 1000;                                        \
-    if( t > 0.5 ) {                                                     \
-        log_warn(__FILE__, __LINE__, "%s: %.02fms\n", sdl2_stringify(line), t); \
-    }
-
-
 int32_t sdl2_poll_event(SDL_Event* event) {
     double t1 = sdl2_time();
     int32_t ret = 0;

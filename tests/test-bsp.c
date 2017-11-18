@@ -110,8 +110,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_mesh_create_from_solid((struct Solid*)&torus, &vbo, &ibo, &torus_mesh);
 
     struct BspTree torus_bsptree;
-    bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree);
-    log_fail(__FILE__, __LINE__, "BUILT BSP TREE... OR NOT?\n");
+    sdl2_profile( 0.0f, bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree); );
 
     printf("torus_bsptree.nodes.array[0].tree.front: %d\n", torus_bsptree.nodes.array[0].tree.front);
     printf("torus_bsptree.nodes.array[0].tree.back: %d\n", torus_bsptree.nodes.array[0].tree.back);
@@ -139,13 +138,13 @@ int32_t main(int32_t argc, char *argv[]) {
         gametime_advance(&time, sdl2_time_delta());
         gametime_integrate(&time);
 
-        bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree);
+        sdl2_profile( 0.0f, bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree); );
         bsp_tree_destroy(&torus_bsptree);
 
         Mat identity;
         mat_identity(identity);
         //vbo_mesh_render(&vbo_mesh, &shader, &arcball.camera, identity);
-        vbo_mesh_render(&torus_mesh, &shader, &arcball.camera, identity);
+        sdl2_profile( 0.0f, vbo_mesh_render(&torus_mesh, &shader, &arcball.camera, identity); );
 
         draw_grid(&global_dynamic_canvas, 0, identity, (Color){120, 120, 120, 255}, 0.01f, 12.0f, 12.0f, 12);
 
@@ -154,8 +153,8 @@ int32_t main(int32_t argc, char *argv[]) {
         Vec4f screen_cursor = {0,0,0,1};
         text_show_fps(&global_dynamic_canvas, 0, screen_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0f, "default_font", time.frame);
 
-        canvas_render_layers(&global_static_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
-        canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT);
+        sdl2_profile( 0.0f, canvas_render_layers(&global_static_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT); );
+        sdl2_profile( 0.0f, canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT); );
         canvas_clear(&global_dynamic_canvas);
 
         sdl2_gl_swap_window(window);

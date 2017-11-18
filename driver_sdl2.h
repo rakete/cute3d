@@ -46,6 +46,16 @@
 #define sdl2_debug(line) line
 #endif
 
+#define sdl2_profile(min, line) do {                                     \
+        double t1 = sdl2_time();                                        \
+        line;                                                           \
+        double t2 = sdl2_time();                                        \
+        double t = (t2 - t1) * 1000;                                    \
+        if( t > min ) {                                                 \
+            log_info(__FILE__, __LINE__, "%.02fms: %s\n", t, sdl2_stringify(line)); \
+        }                                                               \
+    } while(0)
+
 WARN_UNUSED_RESULT int32_t init_sdl2();
 
 void sdl2_window(const char* title, int32_t x, int32_t y, int32_t width, int32_t height, SDL_Window** window);
