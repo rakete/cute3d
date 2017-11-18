@@ -65,8 +65,11 @@ if build_settings.build_platform == "windows" and os.path.relpath(build_settings
 if build_settings.build_toolset == "mingw" or build_settings.build_toolset == "gcc":
     # - use gcc_compiler_color
     gcc_compiler_color_path = os.path.join(build_settings.script_directory, "scripts", "gcc_compiler_color.py")
+    compiler_call = "gcc "
+    if build_settings.build_platform != "windows":
+        compiler_call = "python " + gcc_compiler_color_path + " gcc"
     # -c and /c in gcc and cl.exe mean: compile without linking
-    w.rule(name="compile", command="python " + gcc_compiler_color_path + " gcc -MMD -MF $out.d -c $in -o $out " + build_settings.cflags, deps="gcc", depfile="$out.d")
+    w.rule(name="compile", command=compiler_call + " -MMD -MF $out.d -c $in -o $out " + build_settings.cflags, deps="gcc", depfile="$out.d")
     w.newline()
     w.rule(name="link", command="gcc $in -o $out " + build_settings.ldflags)
     w.newline()
