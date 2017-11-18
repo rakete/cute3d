@@ -779,7 +779,6 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
                         };
                         front_index = bsp_tree_add_polygon(tree, front_occupied, current_polygon.normal, parameter_front_attributes, &front_polygon);
                         front_polygon->cut.parent = polygon_i;
-                        front_polygon->cut.sibling = back_index;
 
                         struct BspPolygon* back_polygon = NULL;
                         struct ParameterAttributes parameter_back_attributes = {
@@ -790,6 +789,9 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
                         };
                         back_index = bsp_tree_add_polygon(tree, back_occupied, current_polygon.normal, parameter_back_attributes, &back_polygon);
                         back_polygon->cut.parent = polygon_i;
+
+                        // - set siblings here when I know bot back_ and front_index
+                        front_polygon->cut.sibling = back_index;
                         back_polygon->cut.sibling = front_index;
 
                         tree->polygons.occupied += 2;
