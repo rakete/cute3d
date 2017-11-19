@@ -353,7 +353,7 @@ struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* 
     vec_copy3f(min, root_frame.bounds_min);
     vec_copy3f(max, root_frame.bounds_max);
 
-    struct BspNode* root = bsp_build(tree, root_frame, &state);
+    struct BspNode* root = bsp_build(tree, root_frame, false, &state);
 
     bsp_build_state_destroy(&state);
 
@@ -560,7 +560,7 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
     return best_i;
 }
 
-struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_frame, struct BspBuildState* state) {
+struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_frame, bool triangulate, struct BspBuildState* state) {
     bsp_build_stack_push(&state->stack, root_frame);
 
     if( state->stack.occupied == 0 ) {
@@ -669,8 +669,12 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
                                                           node_divider.normal, node_divider_vertex,
                                                           result_size, result_points);
 
-            int32_t front_index = -1;
-            int32_t back_index = -1;
+            // - I changed the building algorithm so that it (optionally) triangulates the polygons the result
+            // from a cut, before it did not, and because when you cut a triangle you get a triangle and a quad,
+            // and when you triangulate a quad you get two triangles, that means we need to handle (potentially)
+            // two front polygons or two back polygons, thats why these guys are arrays of size 2
+            int32_t front_index[2] = {-1, -1};
+            int32_t back_index[2] = {-1, -1};
             switch(result_type) {
                 // - when the polygon_cut function result_type indicates that this polygon is either coplannar to
                 // the divider or completley in front or completely behind it, then this switch puts it into either
@@ -678,10 +682,19 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
                 // front/back_index is then later appended to the front or back partition when it is > -1
                 case POLYGON_COPLANNAR:
                 case POLYGON_FRONT:
-                    front_index = polygon_i;
+                    front_index[0] = polygon_i;
+                    // - accumulate min and max vec3fs for front here (and back just below obviously), this
+                    // was previously done after the current switch statement but is now done inside because
+                    // this way I can use the front_vertices for accumulation in the POLYGON_SPANNING case
+                    for( size_t vertex_i = 0; vertex_i < current_polygon_size; vertex_i++ ) {
+                        vec_minmax(&current_polygon_vertices[vertex_i*VERTEX_SIZE], front_min, front_max);
+                    }
                     break;
                 case POLYGON_BACK:
-                    back_index = polygon_i;
+                    back_index[0] = polygon_i;
+                    for( size_t vertex_i = 0; vertex_i < current_polygon_size; vertex_i++ ) {
+                        vec_minmax(&current_polygon_vertices[vertex_i*VERTEX_SIZE], back_min, back_max);
+                    }
                     break;
                 case POLYGON_SPANNING:
                     if( result_points[0].num_cuts > 0 ) {
@@ -766,35 +779,100 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
                         }
 
                         // - we are still in the case that handles a cut polygon, the switch statement ends after the break; below!
-                        // - this section actually adds the two new polygons that resulted from the cut, and then also sets
-                        // front_ and back_index so that they both are > -1
-                        // - adding a new polygon means also adding all its vertices/attributes to the tree, bs_tree_add_polygon takes
-                        // care of that
-                        struct BspPolygon* front_polygon = NULL;
+                        // - now we are about to use the resulting attributes from the cut above to add new polygons, but before we
+                        // do that we accumulate min and max vec3fs for both the front and back polygons that we got from the cut,
+                        // this is done here because we can just easily just iterate over the vertices from the cut, which should be
+                        // at most 4, instead of iterating over them later after the switch is done and after we triangulated the
+                        // 4 vertices, which should then be 6 vertices to iterate over (also accessing them later is ugly, so this is
+                        // just nicer)
+                        for( size_t vertex_i = 0; vertex_i < front_occupied; vertex_i++ ) {
+                            vec_minmax(&front_vertices[vertex_i*VERTEX_SIZE], front_min, front_max);
+                        }
+
+                        for( size_t vertex_i = 0; vertex_i < back_occupied; vertex_i++ ) {
+                            vec_minmax(&back_vertices[vertex_i*VERTEX_SIZE], back_min, back_max);
+                        }
+
+                        struct BspPolygon* front_polygon[2] = {NULL, NULL};
                         struct ParameterAttributes parameter_front_attributes = {
                             .vertices = front_vertices,
                             .normals = front_normals,
                             .texcoords = front_texcoords,
                             .colors = front_colors
                         };
-                        front_index = bsp_tree_add_polygon(tree, front_occupied, current_polygon.normal, parameter_front_attributes, &front_polygon);
-                        front_polygon->cut.parent = polygon_i;
 
-                        struct BspPolygon* back_polygon = NULL;
+                        struct BspPolygon* back_polygon[2] = {NULL, NULL};
                         struct ParameterAttributes parameter_back_attributes = {
                             .vertices = back_vertices,
                             .normals = back_normals,
                             .texcoords = back_texcoords,
                             .colors = back_colors
                         };
-                        back_index = bsp_tree_add_polygon(tree, back_occupied, current_polygon.normal, parameter_back_attributes, &back_polygon);
-                        back_polygon->cut.parent = polygon_i;
+
+                        // - this section adds the new polygons that resulted from the cut to the tree
+                        // - if the one of the polygons to add has more then 3 vertices, then we need to triangulate it (optionally),
+                        // since when triangulate is true we _always_ triangulate, we can only get a quad here to triangulate,
+                        // which makes it easy: just take the first three vertices, and then the first, third and last vertex
+                        // - so the first bsp_tree_add_polygon call just adds the first 3 vertices, then I loop over the vertices
+                        // and rearrange them, then add the second triangle
+                        // - notice that the indices in other[3] = {0,2,3} are the indices where I pick from, and these
+                        // need to be increasing indices, something like {2,3,0} would not work because the for loop would overwrite the
+                        // value at index 0 with the value found at index 2
+                        if( triangulate && front_occupied > 3 ) {
+                            log_assert(front_occupied == 4);
+
+                            front_index[0] = bsp_tree_add_polygon(tree, 3, current_polygon.normal, parameter_front_attributes, &front_polygon[0]);
+                            front_polygon[0]->cut.parent = polygon_i;
+
+                            size_t other[3] = {0,2,3};
+                            for( size_t triangle_i = 0; triangle_i < 3; triangle_i++ ) {
+                                vertex_copy(&front_vertices[other[triangle_i]*VERTEX_SIZE], &front_vertices[triangle_i*VERTEX_SIZE]);
+                                normal_copy(&front_normals[other[triangle_i]*NORMAL_SIZE], &front_normals[triangle_i*NORMAL_SIZE]);
+                                texcoord_copy(&front_texcoords[other[triangle_i]*TEXCOORD_SIZE], &front_texcoords[triangle_i*TEXCOORD_SIZE]);
+                                color_copy(&front_colors[other[triangle_i]*COLOR_SIZE], &front_colors[triangle_i*COLOR_SIZE]);
+                            }
+                            front_index[1] = bsp_tree_add_polygon(tree, 3, current_polygon.normal, parameter_front_attributes, &front_polygon[1]);
+                            front_polygon[1]->cut.parent = polygon_i;
+                        } else {
+                            front_index[0] = bsp_tree_add_polygon(tree, front_occupied, current_polygon.normal, parameter_front_attributes, &front_polygon[0]);
+                            front_polygon[0]->cut.parent = polygon_i;
+                        }
+
+                        // - same as above, but for back polygon
+                        if( triangulate && back_occupied > 3 ) {
+                            log_assert(back_occupied == 4);
+
+                            back_index[0] = bsp_tree_add_polygon(tree, 3, current_polygon.normal, parameter_back_attributes, &back_polygon[0]);
+                            back_polygon[0]->cut.parent = polygon_i;
+
+                            size_t other[3] = {0,2,3};
+                            for( size_t triangle_i = 0; triangle_i < 3; triangle_i++ ) {
+                                vertex_copy(&back_vertices[other[triangle_i]*VERTEX_SIZE], &back_vertices[triangle_i*VERTEX_SIZE]);
+                                normal_copy(&back_normals[other[triangle_i]*NORMAL_SIZE], &back_normals[triangle_i*NORMAL_SIZE]);
+                                texcoord_copy(&back_texcoords[other[triangle_i]*TEXCOORD_SIZE], &back_texcoords[triangle_i*TEXCOORD_SIZE]);
+                                color_copy(&back_colors[other[triangle_i]*COLOR_SIZE], &back_colors[triangle_i*COLOR_SIZE]);
+                            }
+                            back_index[1] = bsp_tree_add_polygon(tree, 3, current_polygon.normal, parameter_back_attributes, &back_polygon[1]);
+                            back_polygon[1]->cut.parent = polygon_i;
+                        } else {
+                            back_index[0] = bsp_tree_add_polygon(tree, back_occupied, current_polygon.normal, parameter_back_attributes, &back_polygon[0]);
+                            back_polygon[0]->cut.parent = polygon_i;
+                        }
 
                         // - set siblings here when I know bot back_ and front_index
-                        front_polygon->cut.sibling = back_index;
-                        back_polygon->cut.sibling = front_index;
-
-                        tree->polygons.occupied += 2;
+                        front_polygon[0]->cut.sibling = back_index[0];
+                        if( front_polygon[1] != NULL ) {
+                            // - it is not immediatly obvious, but there should never be a situation where when the front_polygon
+                            // is triangulated into two triangles, the back polygon is triangulated into two triangles as well, thats
+                            // why I assert here that there is only one back polygon
+                            log_assert(back_polygon[1] == NULL);
+                            front_polygon[1]->cut.sibling = back_index[0];
+                        }
+                        back_polygon[0]->cut.sibling = front_index[0];
+                        if( back_polygon[1] != NULL ) {
+                            log_assert(front_polygon[1] == NULL);
+                            back_polygon[1]->cut.sibling = front_index[0];
+                        }
                     }
                     // - there is no need to put an else here, polygon_cut should not report a cut for a single coplannar vertex,
                     // so only if there are actually vertices in front and behind the divider polygon_cut will return POLYGON_SPANNING
@@ -804,35 +882,45 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
             // - after the switch statement where we decided where to put the current polygon or cut it into two
             // new polygons, we append the front_ or back_index to the front or back partition, or both to both
             // partitions, those polygons will be then processed in the future when we process those sub-branches
-            // - we also look at each polygon vertex here and accumulate the min and max vec3fs for the sub-branches
-            if( front_index > -1 ) {
+            // -+we also look at each polygon vertex here and accumulate the min and max vec3fs for the sub-branches+
+            // - accumulation of min and max is NOT done here anymore, it moved into the switch statement above
+            if( front_index[1] > -1 ) {
+                if( state->front.occupied + 2 >= state->front.capacity ) {
+                    size_t alloc_state_result = bsp_build_partition_alloc(&state->front, 2);
+                    log_assert( alloc_state_result > 2 );
+                }
+
+                state->front.polygons[state->front.occupied+0] = front_index[0];
+                state->front.polygons[state->front.occupied+1] = front_index[1];
+                state->front.occupied += 2;
+            } else if( front_index[0] > -1 ) {
                 if( state->front.occupied + 1 >= state->front.capacity ) {
                     size_t alloc_state_result = bsp_build_partition_alloc(&state->front, 1);
                     log_assert( alloc_state_result > 1 );
                 }
 
-                state->front.polygons[state->front.occupied] = front_index;
+                state->front.polygons[state->front.occupied] = front_index[0];
                 state->front.occupied += 1;
-
-                for( size_t polygon_point_i = 0; polygon_point_i < tree->polygons.array[front_index].size; polygon_point_i++ ) {
-                    size_t vertex_i = tree->polygons.array[front_index].start + polygon_point_i;
-                    vec_minmax(&tree->attributes.vertices[vertex_i], front_min, front_max);
-                }
             }
 
-            if( back_index > -1 ) {
+            if( back_index[1] > -1 ) {
+                if( state->back.occupied + 2 >= state->back.capacity ) {
+                    size_t alloc_state_result = bsp_build_partition_alloc(&state->back, 2);
+                    log_assert( alloc_state_result > 2 );
+                }
+
+                state->back.polygons[state->back.occupied+0] = back_index[0];
+                state->back.polygons[state->back.occupied+1] = back_index[1];
+                state->back.occupied += 2;
+
+            } else if( back_index[0] > -1 ) {
                 if( state->back.occupied + 1 >= state->back.capacity ) {
                     size_t alloc_state_result = bsp_build_partition_alloc(&state->back, 1);
                     log_assert( alloc_state_result > 1 );
                 }
 
-                state->back.polygons[state->back.occupied] = back_index;
+                state->back.polygons[state->back.occupied] = back_index[0];
                 state->back.occupied += 1;
-
-                for( size_t polygon_point_i = 0; polygon_point_i < tree->polygons.array[back_index].size; polygon_point_i++ ) {
-                    size_t vertex_i = tree->polygons.array[back_index].start + polygon_point_i;
-                    vec_minmax(&tree->attributes.vertices[vertex_i], back_min, back_max);
-                }
             }
         }
 

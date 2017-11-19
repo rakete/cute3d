@@ -294,7 +294,10 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
 // how to use this function
 // - I added root_frame argument to make the creation of the stack frame representing
 // the root branch explicit
-struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_frame, struct BspBuildState* state);
+// - I added triangulation to the build process then realized it may have a non
+// significant impact on the performance, so I added the bool triangulate argument
+// so that I can easily disable triangulation if needed
+struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_frame, bool triangulate, struct BspBuildState* state);
 
 // 1. select a primitive (triangle) not yet part of the tree
 // 2. go through all other triangles seperating them in two
