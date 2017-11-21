@@ -46,7 +46,7 @@
 #define MAX_SHADER_OBJECTS 32
 #endif
 
-#define MAX_SHADER_ATTRIBUTE_NAMES 2
+#define MAX_SHADER_ATTRIBUTE_NAMES 32
 
 // attribute ids for default attributes
 #define SHADER_DEFAULT_NAMES 0
