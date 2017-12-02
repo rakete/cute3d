@@ -75,8 +75,11 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
+    int32_t width = 1280;
+    int32_t height = 720;
+
     SDL_Window* window;
-    sdl2_window("test-collisions", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, &window);
+    sdl2_window("cute3d: " __FILE__, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(3, 2, window, &context);
@@ -92,8 +95,8 @@ int32_t main(int32_t argc, char *argv[]) {
     if( init_canvas(1280,720) ) {
         return 1;
     }
-    canvas_create("global_dynamic_canvas", 1280, 720, &global_dynamic_canvas);
-    canvas_create("global_static_canvas", 1280, 720, &global_static_canvas);
+    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
+    canvas_create("global_static_canvas", &global_static_canvas);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
@@ -128,7 +131,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_set_uniform_4f(&flat_shader, flat_shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){5.0, 3.0, 5.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0, 1000.0, &arcball);
+    arcball_create(width, height, (Vec4f){5.0, 3.0, 5.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 1.0, 1000.0, &arcball);
 
     size_t num_entities = 2;
     struct PickingSphere* picking_spheres[2];
@@ -147,19 +150,11 @@ int32_t main(int32_t argc, char *argv[]) {
     while (true) {
 
         SDL_Event event;
-        while( SDL_PollEvent(&event) ) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    goto done;
-                case SDL_KEYDOWN: {
-                    SDL_KeyboardEvent* key_event = (SDL_KeyboardEvent*)&event;
-                    if(key_event->keysym.scancode == SDL_SCANCODE_ESCAPE) {
-                        goto done;
-                    }
-                    break;
-                }
+        while( sdl2_poll_event(&event) ) {
+            if( sdl2_handle_quit(event) ) {
+                goto done;
             }
-
+            sdl2_handle_resize(event);
 
             if( picking_sphere_drag_event(&arcball.camera, num_entities, picking_spheres, event) ) {
                 struct CollisionEntity* selected_entity = NULL;
@@ -206,7 +201,8 @@ int32_t main(int32_t argc, char *argv[]) {
                     last_y = -1;
                 }
             } else {
-                arcball_event(&arcball, event);
+                arcball_handle_resize(&arcball, event);
+                arcball_handle_mouse(&arcball, event);
             }
         }
 

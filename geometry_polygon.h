@@ -25,6 +25,8 @@
 #include "math_matrix.h"
 #include "math_types.h"
 
+#include "geometry_types.h"
+
 void polygon_corner_area(size_t polygon_size, size_t point_size, const float* polygon, size_t corner_i, float* result);
 
 size_t polygon_corner_remove(size_t polygon_size, size_t point_size, size_t type_size, const void* polygon, size_t corner_i, size_t result_size, void* result);
@@ -84,5 +86,20 @@ enum PolygonCutType polygon_cut(size_t polygon_size, size_t point_size, const fl
                                 size_t result_size, struct PolygonCutPoint* result_points);
 
 void polygon_triangulate(size_t polygon_size, size_t point_size, const float* polygon, size_t result_size, size_t* result);
+
+void polygon_clip_edge_edge(const Vec3f edge1_point,
+                            const Vec3f edge1_segment,
+                            const Vec3f edge2_point,
+                            const Vec3f edge2_segment,
+                            Vec3f closest1,
+                            Vec3f closest2);
+
+int32_t polygon_clip_face_face(int32_t incident_size,
+                               const float* incident_polygon, //[incident_size*3],
+                               int32_t reference_size,
+                               const float* reference_polygon, //[reference_size*3],
+                               const Vec3f reference_normal,
+                               int32_t max_polygon_size,
+                               float* clipped_polygon); //[max_polygon_size*3])
 
 #endif

@@ -158,3 +158,171 @@ enum PolygonCutType polygon_cut(size_t polygon_size, size_t point_size, const fl
 void polygon_triangulate(size_t polygon_size, size_t point_size, const float* polygon, size_t result_size, size_t* result) {
 
 }
+
+// - I more or less took this whole function from bounce lite, and translated it,
+// its a pretty standard implementation of a method to find the two closest points
+// of two line segments
+// - no need to do segments actually, there should always be an intersection when
+// this is called in this contact generation context, says the game physics pearls
+// book as well
+void polygon_clip_edge_edge(const Vec3f edge1_point,
+                            const Vec3f edge1_segment,
+                            const Vec3f edge2_point,
+                            const Vec3f edge2_segment,
+                            Vec3f closest1,
+                            Vec3f closest2)
+{
+    Vec3f line2_to_line1 = {0};
+    vec_sub(edge1_point, edge2_point, line2_to_line1);
+
+    float edge1_segment_length = vsquared(edge1_segment);
+    float edge2_segment_length = vsquared(edge2_segment);
+
+    float dot12 = vdot(edge1_segment, edge2_segment);
+    float d = vdot(edge1_segment, line2_to_line1);
+    float e = vdot(edge2_segment, line2_to_line1);
+
+    float denominator = edge1_segment_length * edge2_segment_length - dot12 * dot12;
+
+    float fraction1 = (dot12 * e - d * edge2_segment_length) / denominator;
+    float fraction2 = (dot12 * fraction1 + e) / edge2_segment_length;
+
+    vec_mul1f(edge1_segment, fraction1, closest1);
+    vec_add(edge1_point, closest1, closest1);
+
+    vec_mul1f(edge2_segment, fraction2, closest2);
+    vec_add(edge2_point, closest2, closest2);
+}
+
+int32_t polygon_clip_face_face(int32_t incident_size,
+                               const float* incident_polygon, //[incident_size*3],
+                               int32_t reference_size,
+                               const float* reference_polygon, //[reference_size*3],
+                               const Vec3f reference_normal,
+                               int32_t max_polygon_size,
+                               float* clipped_polygon) //[max_polygon_size*3])
+{
+    log_assert( incident_size > 0 );
+    log_assert( reference_size > 0 );
+    log_assert( max_polygon_size == incident_size*2);
+
+    // - this implements the sutherland-hodgman method to clip two polygons, we'll change the
+    // shape of the incident polygon so that it fits into the boundaries spanned by the
+    // reference polygon
+    // - to do this we'll setup a temp_polyon that we use as temporary storage while iteratively
+    // refining the incident_polygon, we fill it initially with the incident_polygon points
+#ifdef CUTE_BUILD_MSVC
+    float* temp_polygon = _alloca(sizeof(float) * (size_t)max_polygon_size*3);
+#else
+    float temp_polygon[max_polygon_size*3];
+#endif
+    memcpy(temp_polygon, incident_polygon, (size_t)incident_size*3*sizeof(float));
+    // - the method may add vertices to the inicident_polygon, we know max_polygon_size is ==
+    // incident_size*2 (as we asserted above), the clipped_polygon_size starts the same as
+    // incident_size but grows according to how many vertices are added, it may never grow >
+    // max_polygon_ size
+    int32_t clipped_polygon_size = incident_size;
+
+    // - whenever I loop over a polygon looking only at one point may not be enough, I need
+    // need a whole line (or corner), then I make use of a pattern like this
+    // - I handle the only edge case, the first point that forms a line together with the last
+    // point in the polygon, by initializing p and q manually here to represent that edge case line,
+    // handling it without any complex if constructs inside the loop
+    // - inside the loop it is enough to just assign q from where i points into the polygon,
+    // and to set p = q at the end of the loop, this will iterate over all p -> q lines of the
+    // polygon
+    const VecP* p = &reference_polygon[(reference_size-1)*3];
+    const VecP* q = &reference_polygon[0];
+    for( int32_t i = 0; i < reference_size; i++ ) {
+        q = &reference_polygon[i*3];
+
+        float plane_offset = 0.0;
+        vec_dot(reference_normal, q, &plane_offset);
+
+        Vec3f plane_normal = {0};
+        vec_sub(p, q, plane_normal);
+        vec_cross(plane_normal, reference_normal, plane_normal);
+        vec_normalize(plane_normal, plane_normal);
+
+        // - a and b here same as p and q above, but for the inner loop, a_distance and b_distance
+        // are handled this way too
+        int32_t polygon_counter = 0;
+        VecP* a = &temp_polygon[(clipped_polygon_size-1)*3];
+        float a_distance = 0.0;
+        VecP* b = &temp_polygon[0];
+        float b_distance = 0.0;
+        vec_dot(plane_normal, a, &a_distance);
+        a_distance = a_distance - plane_offset;
+
+        // - this for loop uses the ith clipping plane (from the reference polygon),
+        // goes through all edges of the current temporary clipped polygon and clips
+        // them against the plane
+        for( int32_t j = 0; j < clipped_polygon_size; j++ ) {
+            b = &temp_polygon[j*3];
+            vec_dot(plane_normal, b, &b_distance);
+            b_distance = b_distance - plane_offset;
+
+            // - I also assume that the plane normal points outwards, which is important because then 'below'
+            // means distance < 0.0, and above means distance > 0.0
+            if( a_distance <= 0.0f && b_distance <= 0.0f ) {
+                // - both vertices are below the clipping plane, that means the edge that is represented by
+                // these two vertices does not intersect the edge that is represented by the clipping plane
+                // - that means we just keep the second vertex and move on, both are 'potentially inside', but only
+                // the second one has never been seen and needs to be kept
+                vec_copy3f(b, &clipped_polygon[polygon_counter*3]);
+                polygon_counter += 1;
+                log_assert( polygon_counter <= max_polygon_size, "%lu %lu\n", polygon_counter, max_polygon_size);
+            } else if( a_distance < 0.0f || b_distance < 0.0f ) {
+                // - compute the ratio of how far away a is from the clipping plane to how far b is away, this
+                // correlates to how far _along_ the intersection point is on the edge between a and b, starting
+                // from a
+                // - in other words, the edge vector (b - a) multiplied by the ratio, points from a to the intersection
+                // vertex on the clipping plane
+                float intersect_ratio = a_distance / (a_distance - b_distance);
+                Vertex intersect_vertex = {0};
+
+                // a + intersect_offset * (b - a);
+                vec_sub(b, a, intersect_vertex);
+                vec_mul1f(intersect_vertex, intersect_ratio, intersect_vertex);
+                vec_add(a, intersect_vertex, intersect_vertex);
+
+                // - we checked a_distance <= 0.0 || b_distance <= 0.0, that means either of those two vertices
+                // is below the clipping plane, so we are creating an intersection vertex that we have to keep
+                vec_copy3f(intersect_vertex, &clipped_polygon[polygon_counter*3]);
+                polygon_counter += 1;
+                log_assert( polygon_counter <= max_polygon_size, "%lu %lu\n", polygon_counter, max_polygon_size);
+                //draw_vec(&global_dynamic_canvas, 0, pivot1_world_transform, edge_color, 0.01f, intersect_vertex, (Vec3f){0.0f, 0.0f, 0.0f}, 1.0f, 1.0f);
+
+                if( a_distance > 0.0f ) {
+                    // - if the second vertex is above the clipping plane, then we need only the intersection vertex
+                    // and can disregard the b vertex, it is outside the clipping area and is not needed
+                    // - but if the first vertex is above the clipping plane (which is what this if tests), and the
+                    // second therefore potentially inside the clipping area, we need to keep it so that the following
+                    // clipping tests will test it and decide if it is within the clipping area or not
+                    vec_copy3f(b, &clipped_polygon[polygon_counter*3]);
+                    polygon_counter += 1;
+                    log_assert( polygon_counter <= max_polygon_size, "%lu %lu\n", polygon_counter, max_polygon_size);
+                }
+            }
+            // there is no else here, it could be used to handle the case where both vertices are outside the
+            // clipping area, but then nothing needs to be done, so I don't need an else
+
+            // - the a of the next iteration is the b of this iteration, same for the distances
+            a = b;
+            a_distance = b_distance;
+        }
+
+        // - clipped_polygon_size is used in for loop in abort condition, so polygon_counter is used to count
+        // points and then we just set the new size here
+        clipped_polygon_size = polygon_counter;
+
+        // - copy the contents of temp_polygon to clipped_polygon, so the next iteration refines clipped_polygon
+        // further, if this was the last iteration the clipped_polygon now contains the final polygon
+        memcpy(temp_polygon, clipped_polygon, (size_t)clipped_polygon_size*3*sizeof(float));
+
+        // - p of next iteration is q of this iteration
+        p = q;
+    }
+
+    return clipped_polygon_size;
+}
