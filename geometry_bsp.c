@@ -599,10 +599,7 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
         struct BspBounds bounds = {};
         bsp_node_bounds_create(parent_min, parent_max, &bounds);
 
-        // - here a node is added the is going to represent the current branch, but the rest
-        // of the code below never really touches this node again, so there is never anything
-        // 'put into' the node, which may seem strange, but it is not because the only thing
-        // that the node contains is indices to other nodes
+        // - here a node is added the is going to represent the current branch
         struct BspNode* node = NULL;
         int32_t node_i = bsp_tree_add_node(tree, parent_i, &node);
         node->num_polygons = loop_end - loop_start;
@@ -933,11 +930,8 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
         // - test if back_end - back_start > 0 to determine if there are polygons to be processed in the back
         // sub-branch, if that is true we need to push a new stack frame onto the stack that describes that
         // sub-branch
-        // - if there are no polygons to be processed in the back sub-branch, then we insert a new node an mark
-        // it as solid, solid because we defined 'back' to mean behind divider plane according to the plane normal,
-        // and because all possible dividers come from mesh faces, and the meshes faces all have normals pointing
-        // outwards, then when we end on a 'back' side of a divider, we should be inside the mesh, therefore
-        // marking that end as solid, correspondingly when ending a front branch we mark the last node as empty
+        // - if there are no polygons to be processed in the back sub-branch, then we mark the current node
+        // as solid node, meaning that behind this nodes divider is inside the mesh
         if( back_end - back_start > 0 ) {
             struct BspBuildStackFrame back_frame;
             back_frame.tree_side = BSP_BACK;
@@ -949,15 +943,12 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
 
             bsp_build_stack_push(&state->stack, back_frame);
         } else if( back_end - back_start == 0 ) {
-            struct BspNode* solid_node = NULL;
-            int32_t solid_i = bsp_tree_add_node(tree, node_i, &solid_node);
-            solid_node->state.solid = true;
-
-            tree->nodes.array[node_i].tree.back = solid_i;
+            node->state.solid = true;
         }
 
         // - same as above, but for front
-        // - notice how we mark an ending node as empty here, as opposed to solid above
+        // - notice how we mark an ending node as empty here, meaning the in front of this nodes divider
+        // is outside of the mesh
         if( front_end - front_start > 0 ) {
             struct BspBuildStackFrame front_frame;
             front_frame.tree_side = BSP_FRONT;
@@ -969,11 +960,7 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
 
             bsp_build_stack_push(&state->stack, front_frame);
         } else if( front_end - front_start == 0 ) {
-            struct BspNode* empty_node = NULL;
-            int32_t empty_i = bsp_tree_add_node(tree, node_i, &empty_node);
-            empty_node->state.empty = true;
-
-            tree->nodes.array[node_i].tree.front = empty_i;
+            node->state.empty = true;
         }
 
     }
