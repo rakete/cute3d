@@ -46,15 +46,23 @@
 #define sdl2_debug(line) line
 #endif
 
-#define sdl2_profile(min, line) do {                                     \
+#define sdl2_profile(name, rate, min, line) do {                        \
+        static double avg_time = 0.0f;                                  \
+        static uint64_t avg_counter = 1;                                \
+        static double last_time = -DBL_MAX;                             \
         double t1 = sdl2_time();                                        \
         line;                                                           \
-        double t2 = sdl2_time();                                        \
-        double t = (t2 - t1) * 1000;                                    \
-        if( t > min ) {                                                 \
-            log_info(__FILE__, __LINE__, "%.02fms: %s\n", t, sdl2_stringify(line)); \
+        if( rate >= 0.0f && t1 - last_time > rate ) {                   \
+            last_time = t1;                                             \
+            double t2 = sdl2_time();                                    \
+            double t = (t2 - t1) * 1000;                                \
+            avg_time += t;                                              \
+            if( t > min ) {                                             \
+                log_info(__FILE__, __LINE__, "%s: %.02fms %.02favg\n", name, t, avg_time/(double)avg_counter); \
+            }                                                           \
+            avg_counter++;                                              \
         }                                                               \
-    } while(0)
+} while(0)
 
 WARN_UNUSED_RESULT int32_t init_sdl2();
 
