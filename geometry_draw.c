@@ -258,11 +258,14 @@ void draw_box(struct Canvas* canvas,
               const Mat model_matrix,
               const Color color,
               const char* shader_name,
-              Vec3f half_size)
+              Vec3f half_size,
+              Vec3f center)
 {
     struct SolidBox box;
     solid_box_create(half_size, color, &box);
-    draw_solid(canvas, layer_i, model_matrix, color, shader_name, (struct Solid*)&box);
+    Mat box_transform = {0};
+    mat_translate(model_matrix, center, box_transform);
+    draw_solid(canvas, layer_i, box_transform, color, shader_name, (struct Solid*)&box);
 }
 
 void draw_box_wire(struct Canvas* canvas,
@@ -270,7 +273,8 @@ void draw_box_wire(struct Canvas* canvas,
                    const Mat model_matrix,
                    const Color color,
                    float line_thickness,
-                   Vec3f half_size)
+                   Vec3f half_size,
+                   Vec3f center)
 {
     float vertices[8*3] = { -half_size[0], half_size[1], half_size[2],
                             half_size[0], half_size[1], half_size[2],
@@ -294,12 +298,14 @@ void draw_box_wire(struct Canvas* canvas,
                            2, 6,
                            3, 7 };
 
+    Mat box_transform = {0};
+    mat_translate(model_matrix, center, box_transform);
     for( size_t i = 0; i < 12; i++ ) {
         size_t index_a = lines[i*2+0];
         size_t index_b = lines[i*2+1];
         VecP* a = &vertices[index_a*3];
         VecP* b = &vertices[index_b*3];
-        draw_line(canvas, layer_i, model_matrix, color, line_thickness, a, b);
+        draw_line(canvas, layer_i, box_transform, color, line_thickness, a, b);
     }
 
 }

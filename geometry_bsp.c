@@ -34,21 +34,21 @@ void bsp_polygon_create(struct BspPolygon* polygon) {
 }
 
 void bsp_node_bounds_create(Vec3f min, Vec3f max, struct BspBounds* bounds) {
-    bounds->half_width = (max[0] - min[0])/2.0f;
-    bounds->half_height = (max[1] - min[1])/2.0f;
-    bounds->half_depth = (max[2] - min[2])/2.0f;
-    bounds->center[0] = min[0] + bounds->half_width;
-    bounds->center[1] = min[1] + bounds->half_height;
-    bounds->center[2] = min[2] + bounds->half_depth;
+    bounds->half_size[0] = (max[0] - min[0])/2.0f;
+    bounds->half_size[1] = (max[1] - min[1])/2.0f;
+    bounds->half_size[2] = (max[2] - min[2])/2.0f;
+    bounds->center[0] = min[0] + bounds->half_size[0];
+    bounds->center[1] = min[1] + bounds->half_size[1];
+    bounds->center[2] = min[2] + bounds->half_size[2];
 }
 
 void bsp_node_create(struct BspNode* node) {
     node->divider = 0;
     node->num_polygons = 0;
 
-    node->bounds.half_width = 0.0f;
-    node->bounds.half_height = 0.0f;
-    node->bounds.half_depth = 0.0f;
+    node->bounds.half_size[0] = 0.0f;
+    node->bounds.half_size[1] = 0.0f;
+    node->bounds.half_size[2] = 0.0f;
     node->bounds.center[0] = 0.0f;
     node->bounds.center[1] = 0.0f;
     node->bounds.center[2] = 0.0f;
@@ -291,8 +291,8 @@ struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* 
     size_t alloc_back_result = bsp_build_partition_alloc(&state.back, alloc_polygons_result);
     log_assert( alloc_back_result >= alloc_polygons_result );
 
-    Vec3f min = {0};
-    Vec3f max = {0};
+    Vec3f min = {FLT_MAX, FLT_MAX, FLT_MAX};
+    Vec3f max = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
     for( size_t indices_i = 0; indices_i < solid->indices_size; indices_i += 3 ) {
 
         // - the for loop goes through the indices of the solid, gets the attributes according
@@ -474,9 +474,9 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
     // compare polygon normals to it and use the dot product to determine if a normal
     // is more perpendicular to that comparison axis, which means the polygon is
     // aligned in such a way as to better cut the mesh through its minimal dimension
-    float node_width = bounds.half_width*2.0f;
-    float node_height = bounds.half_height*2.0f;
-    float node_depth = bounds.half_depth*2.0f;
+    float node_width = bounds.half_size[0]*2.0f;
+    float node_height = bounds.half_size[1]*2.0f;
+    float node_depth = bounds.half_size[2]*2.0f;
 
     Vec3f normal_comparison_axis = {0};
     if( node_width <= node_height && node_width <= node_depth ) {

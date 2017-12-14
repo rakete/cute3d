@@ -84,9 +84,7 @@ void bsp_polygon_create(struct BspPolygon* poly);
 // - convenient to have and easy to gather while constructing the bsp tree, this is used to store the bounds
 // of each subtree for later use
 struct BspBounds {
-    float half_width;
-    float half_height;
-    float half_depth;
+    Vec3f half_size;
     Vec3f center;
 };
 
