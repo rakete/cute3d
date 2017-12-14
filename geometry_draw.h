@@ -37,6 +37,7 @@
 #include "geometry_solid.h"
 #include "geometry_halfedgemesh.h"
 #include "geometry_bsp.h"
+#include "geometry_intersect.h"
 
 void draw_solid(struct Canvas* canvas,
                 int32_t layer_i,
@@ -85,14 +86,16 @@ void draw_box(struct Canvas* canvas,
               const Mat model_matrix,
               const Color color,
               const char* shader_name,
-              Vec3f half_size);
+              Vec3f half_size,
+              Vec3f center);
 
 void draw_box_wire(struct Canvas* canvas,
                    int32_t layer_i,
                    const Mat model_matrix,
                    const Color color,
                    float line_thickness,
-                   Vec3f half_size);
+                   Vec3f half_size,
+                   Vec3f center);
 
 void draw_halfedgemesh_wire(struct Canvas* canvas,
                             int32_t layer_i,
@@ -129,8 +132,10 @@ void draw_halfedgemesh_vertex(struct Canvas* canvas,
 void draw_bsp(struct Canvas* canvas,
               int32_t layer_i,
               const Mat Model_matrix,
-              const Color color,
-              float line_thickness,
+              const Color color1,
+              const Color color2,
+              float line_thickness1,
+              float line_thickness2,
               const struct BspTree* tree);
 
 #endif

@@ -416,15 +416,47 @@ void draw_halfedgemesh_vertex(struct Canvas* canvas,
 
 void draw_bsp(struct Canvas* canvas,
               int32_t layer_i,
-              const Mat Model_matrix,
-              const Color color,
-              float line_thickness,
+              const Mat model_matrix,
+              const Color color1,
+              const Color color2,
+              float line_thickness1,
+              float line_thickness2,
               const struct BspTree* tree)
 {
-    //draw_solid
+    int32_t num_polygons = tree->nodes.array[0].num_polygons;
+    float ratio = 1.0f/(float)num_polygons;
+    size_t color_index = 0;
 
+    for( size_t node_i = tree->nodes.occupied; node_i > 0; node_i-- ) {
+        const struct BspNode* node = &tree->nodes.array[node_i-1];
+        float t = ratio*(float)node->num_polygons;
 
-    /* draw_polygon_wire(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.01f, node_divider.size, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], node_divider.normal); */
-    /* draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 0, 0, 255}, 0.01f, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 1.0f, 0.1f); */
-    /* draw_plane(&global_static_canvas, MAX_CANVAS_LAYERS-1, (Mat)IDENTITY_MAT, (Color){120, 120, 150, 127}, node_divider.normal, &tree->attributes.vertices[node_divider.start*VERTEX_SIZE], 10.0f); */
+        struct ColorPaletteEntry draw_color = global_color_palette_NES[color_index];
+        /* color_index++; */
+        /* if( color_index == NUM_NES_COLORS ) { */
+        /*     color_index = 0; */
+        /* } */
+        /* //color_copy(color2, draw_color.rgb); */
+        /* //color_random(draw_color.rgb); */
+        /* //draw_color.rgb[3] = color2[3]; */
+        color_lerp(color1, color2, t, draw_color.rgb);
+        float draw_thickness = line_thickness2*t + (1.0f-t)*line_thickness1;
+
+        struct BspPolygon* polygon = &tree->polygons.array[node->divider];
+        float* polygon_vertices = &tree->attributes.vertices[polygon->start*VERTEX_SIZE];
+        draw_polygon_wire(canvas, layer_i, model_matrix, draw_color.rgb, draw_thickness,
+                          polygon->size, polygon_vertices, polygon->normal);
+        if( node->num_polygons > 1 &&
+            node->state.empty == false &&
+            node->state.solid == false &&
+            tree->nodes.array[node->tree.front].num_polygons > 1 )
+        {
+            float dividing_plane_vertices[6*VERTEX_SIZE];
+            size_t dividing_plane_num_vertices = intersect_plane_aabb(polygon->normal, &polygon_vertices[0], node->bounds.half_size, node->bounds.center, 6*VERTEX_SIZE, dividing_plane_vertices);
+            draw_polygon_wire(canvas, layer_i, model_matrix, draw_color.rgb, draw_thickness,
+                              dividing_plane_num_vertices, dividing_plane_vertices, polygon->normal);
+            draw_box_wire(canvas, layer_i, model_matrix, draw_color.rgb, draw_thickness,
+                          node->bounds.half_size, node->bounds.center);
+        }
+    }
 }

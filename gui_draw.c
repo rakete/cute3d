@@ -61,8 +61,14 @@ void draw_line(struct Canvas* canvas,
     }
 
     Vec3f a, b;
-    mat_mul_vec3f(model_matrix, p, a);
-    mat_mul_vec3f(model_matrix, q, b);
+    if( model_matrix != NULL )  {
+        mat_mul_vec3f(model_matrix, p, a);
+        mat_mul_vec3f(model_matrix, q, b);
+    } else {
+        vec_copy3f(p, a);
+        vec_copy3f(q, b);
+    }
+
 
     //(figure a)
     // a          b
@@ -114,76 +120,79 @@ void draw_line(struct Canvas* canvas,
     // - my method differs from the description in the links, I don't use textures on quads at the endpoints, I make
     // actual half circles at the endpoints, this means I do not have to worry about transparency issues, I still
     // implemented some basic transparency handling in the shader for antialiasing using the texcoords
-    uint32_t triangles[12*3] =
-        { 0, 1, 6,
-          6, 1, 5,
-          1, 2, 5,
-          5, 2, 4,
-          4, 2, 3,
+    uint32_t triangles[12*3] = {
+        0, 1, 6,
+        6, 1, 5,
+        1, 2, 5,
+        5, 2, 4,
+        4, 2, 3,
 
-         13, 0, 7,
-          7, 0, 6,
+        13, 0, 7,
+        7, 0, 6,
 
-         12, 13, 8,
-          8, 13, 7,
-         11, 12, 9,
-          9, 12, 8,
-         11, 9, 10 };
+        12, 13, 8,
+        8, 13, 7,
+        11, 12, 9,
+        9, 12, 8,
+        11, 9, 10
+    };
 
     float alpha = 300 * PI_OVER_180;
     float beta = 330 * PI_OVER_180;
     float gamma = 30 * PI_OVER_180;
     float delta = 60 * PI_OVER_180;
-    float texcoords[16*2] =
-        { 0.0f, -1.0f,             // 0
-          -cosf(alpha), sinf(alpha), // 1
-          -cosf(beta), sinf(beta),   // 2
-          -1.0f, 0.0f,             // 3
-          -cosf(gamma), sinf(gamma), // 4
-          -cosf(delta), sinf(delta), // 5
-          0.0f, 1.0f,              // 6
+    float texcoords[16*2] = {
+        0.0f, -1.0f,             // 0
+        -cosf(alpha), sinf(alpha), // 1
+        -cosf(beta), sinf(beta),   // 2
+        -1.0f, 0.0f,             // 3
+        -cosf(gamma), sinf(gamma), // 4
+        -cosf(delta), sinf(delta), // 5
+        0.0f, 1.0f,              // 6
 
-          0.0f, 1.0f,              // 7
-          cosf(delta), sinf(delta),  // 8
-          cosf(gamma), sinf(gamma),  // 9
-          1.0f, 0.0f,              // 10
-          cosf(beta), sinf(beta),    // 11
-          cosf(alpha), sinf(alpha),  // 12
-          0.0f, -1.0f,             // 13
-        };
+        0.0f, 1.0f,              // 7
+        cosf(delta), sinf(delta),  // 8
+        cosf(gamma), sinf(gamma),  // 9
+        1.0f, 0.0f,              // 10
+        cosf(beta), sinf(beta),    // 11
+        cosf(alpha), sinf(alpha),  // 12
+        0.0f, -1.0f,             // 13
+    };
 
 
-    float vertices[14*3] =
-        { a[0], a[1], a[2],
-          a[0], a[1], a[2],
-          a[0], a[1], a[2],
-          a[0], a[1], a[2],
-          a[0], a[1], a[2],
-          a[0], a[1], a[2],
-          a[0], a[1], a[2],
-          b[0], b[1], b[2],
-          b[0], b[1], b[2],
-          b[0], b[1], b[2],
-          b[0], b[1], b[2],
-          b[0], b[1], b[2],
-          b[0], b[1], b[2],
-          b[0], b[1], b[2] };
+    float vertices[14*3] = {
+        a[0], a[1], a[2],
+        a[0], a[1], a[2],
+        a[0], a[1], a[2],
+        a[0], a[1], a[2],
+        a[0], a[1], a[2],
+        a[0], a[1], a[2],
+        a[0], a[1], a[2],
+        b[0], b[1], b[2],
+        b[0], b[1], b[2],
+        b[0], b[1], b[2],
+        b[0], b[1], b[2],
+        b[0], b[1], b[2],
+        b[0], b[1], b[2],
+        b[0], b[1], b[2]
+    };
 
-    float next_vertices[14*3] =
-        { b[0], b[1], b[2],
-          b[0], b[1], b[2],
-          b[0], b[1], b[2],
-          b[0], b[1], b[2],
-          b[0], b[1], b[2],
-          b[0], b[1], b[2],
-          b[0], b[1], b[2],
-          a[0], a[1], a[2],
-          a[0], a[1], a[2],
-          a[0], a[1], a[2],
-          a[0], a[1], a[2],
-          a[0], a[1], a[2],
-          a[0], a[1], a[2],
-          a[0], a[1], a[2] };
+    float next_vertices[14*3] = {
+        b[0], b[1], b[2],
+        b[0], b[1], b[2],
+        b[0], b[1], b[2],
+        b[0], b[1], b[2],
+        b[0], b[1], b[2],
+        b[0], b[1], b[2],
+        b[0], b[1], b[2],
+        a[0], a[1], a[2],
+        a[0], a[1], a[2],
+        a[0], a[1], a[2],
+        a[0], a[1], a[2],
+        a[0], a[1], a[2],
+        a[0], a[1], a[2],
+        a[0], a[1], a[2]
+    };
 
     // - I used to append to canvas in all other functions, but now draw_line is used everywhere instead, this also
     // makes the stack allocations much more predictable, since the arrays here are fixed size
@@ -233,12 +242,12 @@ void draw_grid(struct Canvas* canvas,
         draw_line(canvas, layer_i, model_matrix, color, line_thickness, c, d);
 
         if( i == 0 ) {
-          Vec3f e = {-width/2.0f, 0.0, height/2.0f};
-          Vec3f f = {width/2.0f, 0.0, height/2.0f};
-          Vec3f g = {width/2.0f, 0.0, -height/2.0f};
+            Vec3f e = {-width/2.0f, 0.0, height/2.0f};
+            Vec3f f = {width/2.0f, 0.0, height/2.0f};
+            Vec3f g = {width/2.0f, 0.0, -height/2.0f};
 
-          draw_line(canvas, layer_i, model_matrix, color, line_thickness, e, f);
-          draw_line(canvas, layer_i, model_matrix, color, line_thickness, f, g);
+            draw_line(canvas, layer_i, model_matrix, color, line_thickness, e, f);
+            draw_line(canvas, layer_i, model_matrix, color, line_thickness, f, g);
         }
     }
 }

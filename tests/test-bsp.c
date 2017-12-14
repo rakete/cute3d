@@ -21,9 +21,12 @@
 
 #include "math_gametime.h"
 #include "math_arcball.h"
+#include "math_geometry.h"
+#include "math_color.h"
 
 #include "geometry_halfedgemesh.h"
 #include "geometry_bsp.h"
+#include "geometry_draw.h"
 
 #include "gui_draw.h"
 #include "gui_text.h"
@@ -43,7 +46,7 @@ int32_t main(int32_t argc, char *argv[]) {
     uint32_t height = 720;
 
     SDL_Window* window;
-    sdl2_window("test-bsp", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
+    sdl2_window("cute3d: " __FILE__, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(3, 2, window, &context);
@@ -110,7 +113,7 @@ int32_t main(int32_t argc, char *argv[]) {
     vbo_mesh_create_from_solid((struct Solid*)&torus, &vbo, &ibo, &torus_mesh);
 
     struct BspTree torus_bsptree;
-    sdl2_profile( 0.0f, bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree); );
+    sdl2_profile( "bsp_tree_create_from_solid", -1.0f, 0.0f, bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree); );
 
     printf("torus_bsptree.nodes.array[0].tree.front: %d\n", torus_bsptree.nodes.array[0].tree.front);
     printf("torus_bsptree.nodes.array[0].tree.back: %d\n", torus_bsptree.nodes.array[0].tree.back);
@@ -129,7 +132,7 @@ int32_t main(int32_t argc, char *argv[]) {
             arcball_handle_mouse(&arcball, event);
         }
 
-        sdl2_gl_set_swap_interval(1);
+        sdl2_gl_set_swap_interval(0);
 
         ogl_debug( glClearDepth(1.0f);
                    glClearColor(.0f, .0f, .0f, 1.0f);
@@ -138,24 +141,31 @@ int32_t main(int32_t argc, char *argv[]) {
         gametime_advance(&time, sdl2_time_delta());
         gametime_integrate(&time);
 
-        sdl2_profile( 0.0f, bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree); );
-        bsp_tree_destroy(&torus_bsptree);
-
         Mat identity;
         mat_identity(identity);
-        //vbo_mesh_render(&vbo_mesh, &shader, &arcball.camera, identity);
-        sdl2_profile( 0.0f, vbo_mesh_render(&torus_mesh, &shader, &arcball.camera, identity); );
+        sdl2_profile( LOG_ANSI_BLUE "vbo_mesh_render" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      vbo_mesh_render(&torus_mesh, &shader, &arcball.camera, identity); );
 
-        draw_grid(&global_dynamic_canvas, 0, identity, (Color){120, 120, 120, 255}, 0.01f, 12.0f, 12.0f, 12);
+        sdl2_profile( LOG_ANSI_RED "draw_grid" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      draw_grid(&global_dynamic_canvas, 0, identity, (Color){120, 120, 120, 255}, 0.01f, 12.0f, 12.0f, 12); );
 
-        //draw_solid_normals(&global_dynamic_canvas, MAX_CANVAS_LAYERS-1, identity, (Color){255, 255, 0, 127}, 0.01f, (struct Solid*)&torus, 0.05f);
+        sdl2_profile( LOG_ANSI_YELLOW "bsp_tree_create_from_solid" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree); );
+        sdl2_profile( LOG_ANSI_RED "draw_bsp" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      draw_bsp(&global_dynamic_canvas, 0, identity, (Color){255, 25, 255, 255}, (Color){255, 255, 255, 128}, 0.005f, 0.05f, &torus_bsptree); );
+        sdl2_profile( LOG_ANSI_YELLOW "bsp_tree_destroy" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      bsp_tree_destroy(&torus_bsptree); );
+
 
         Vec4f screen_cursor = {0,0,0,1};
         text_show_fps(&global_dynamic_canvas, 0, screen_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0f, "default_font", time.frame);
 
-        sdl2_profile( 0.0f, canvas_render_layers(&global_static_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT); );
-        sdl2_profile( 0.0f, canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT); );
-        canvas_clear(&global_dynamic_canvas);
+        sdl2_profile( LOG_ANSI_BLUE "canvas_render_layers(static)" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      canvas_render_layers(&global_static_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT); );
+        sdl2_profile( LOG_ANSI_BLUE "canvas_render_layers(dynamic)" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      canvas_render_layers(&global_dynamic_canvas, 0, MAX_CANVAS_LAYERS, &arcball.camera, (Mat)IDENTITY_MAT); );
+        sdl2_profile( LOG_ANSI_BLUE "canvas_clear" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      canvas_clear(&global_dynamic_canvas); );
 
         sdl2_gl_swap_window(window);
     }
