@@ -24,8 +24,7 @@
 
 #include "math_matrix.h"
 #include "math_types.h"
-
-#include "geometry_types.h"
+#include "math_geometry.h"
 
 void polygon_corner_area(size_t polygon_size, size_t point_size, const float* polygon, size_t corner_i, float* result);
 

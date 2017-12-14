@@ -23,8 +23,8 @@
 #include "limits.h"
 
 #include "math_types.h"
+#include "math_geometry.h"
 
-#include "geometry_types.h"
 #include "geometry_solid.h"
 
 #include "driver_platform.h"

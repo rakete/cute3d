@@ -28,9 +28,7 @@
 #include "math_geometry.h"
 
 #include "geometry_solid.h"
-#include "geometry_types.h"
 #include "geometry_polygon.h"
-#include "geometry_parameter.h"
 
 #ifndef BSP_ATTRIBUTES_ALLOC
 #define BSP_ATTRIBUTES_ALLOC 2048

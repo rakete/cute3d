@@ -24,14 +24,42 @@
 #include "stdio.h"
 #include "math.h"
 
-#include "math_types.h"
 #include "math_matrix.h"
+#include "math_color.h"
 
-#include "geometry_types.h"
+#define MAX_GEOMETRY_ATTRIBUTES 4
+#define GEOMETRY_ATTRIBUTE_VERTEX 0
+#define GEOMETRY_ATTRIBUTE_TEXCOORD 1
+#define GEOMETRY_ATTRIBUTE_NORMAL 2
+#define GEOMETRY_ATTRIBUTE_COLOR 3
 
-void color_copy(const Color c, Color r);
-void color_round(const Vec4f a, Color r);
-void color_lerp(const Color a, const Color b, float t, Color r);
+#define LINE_SIZE 2
+#define TRIANGLE_SIZE 3
+#define QUAD_SIZE 4
+
+#define VERTEX_SIZE 3
+#define NORMAL_SIZE 3
+#define TEXCOORD_SIZE 2
+
+#define VERTEX_TYPE float
+#define TEXCOORD_TYPE float
+#define NORMAL_TYPE float
+
+typedef float Vertex[VERTEX_SIZE];
+typedef float VertexP;
+
+typedef float Normal[NORMAL_SIZE];
+typedef float NormalP;
+
+typedef float Texcoord[TEXCOORD_SIZE];
+typedef float TexcoordP;
+
+struct ParameterAttributes {
+    VERTEX_TYPE* vertices;
+    NORMAL_TYPE* normals;
+    TEXCOORD_TYPE* texcoords;
+    COLOR_TYPE* colors;
+};
 
 void vertex_copy(const Vertex v, Vertex r);
 void vertex_lerp(const Vertex a, const Vertex b, float t, Vertex r);

@@ -22,11 +22,13 @@
 
 #include "stdlib.h"
 #include "stdint.h"
+#include "string.h"
 
-#include "geometry_types.h"
+#include "driver_log.h"
 
 #include "math_types.h"
 #include "math_matrix.h"
+#include "math_geometry.h"
 
 
 // - this data structure has been created to hold very simple primitives like cubes, spheres etc.

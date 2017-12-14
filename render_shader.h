@@ -23,8 +23,7 @@
 #include "stdio.h"
 
 #include "math_matrix.h"
-
-#include "geometry_types.h"
+#include "math_geometry.h"
 
 #include "io_path.h"
 

@@ -26,6 +26,7 @@
 #include "math_camera.h"
 #include "math_geometry.h"
 #include "math_draw.h"
+#include "math_color.h"
 
 #include "driver_ogl.h"
 #include "driver_glsl.h"

@@ -23,7 +23,8 @@
 #include "stdint.h"
 #include "stdlib.h"
 
-#include "geometry_types.h"
+#include "math_geometry.h"
+
 #include "geometry_solid.h"
 
 #include "render_vbo.h"

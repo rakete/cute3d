@@ -25,8 +25,7 @@
 
 #include "math_types.h"
 #include "math_matrix.h"
-
-#include "geometry_types.h"
+#include "math_geometry.h"
 
 enum IntersectPlaneSegmentResult {
     PLANE_SEGMENT_ON_PLANE = -1,
