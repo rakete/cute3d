@@ -34,8 +34,11 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
+    uint32_t width = 1280;
+    uint32_t height = 720;
+
     SDL_Window* window;
-    sdl2_window("test-solid", 100, 60, 1280, 720, &window);
+    sdl2_window("cute3d: " __FILE__, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(3, 2, window, &context);
@@ -51,8 +54,8 @@ int32_t main(int32_t argc, char *argv[]) {
     if( init_canvas(1280,720) ) {
         return 1;
     }
-    canvas_create("global_dynamic_canvas", 1280, 720, &global_dynamic_canvas);
-    canvas_create("global_static_canvas", 1280, 720, &global_static_canvas);
+    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
+    canvas_create("global_static_canvas", &global_static_canvas);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
@@ -76,8 +79,8 @@ int32_t main(int32_t argc, char *argv[]) {
     struct SolidSphere32 superellipsoid32 = {0};
     struct SolidTorus24 torus24 = {0};
     struct SolidTorus24 supertoroid24 = {0};
-    solid_box_create((Vec3f){1.5, 0.25, 1.75}, (Color){0, 255, 0, 255}, &box);
-    solid_cube_create(1.0, (Color){255, 0, 255, 255}, &cube);
+    solid_box_create((Vec3f){0.5, 0.25, 0.75}, (Color){0, 255, 0, 255}, &box);
+    solid_cube_create(0.75, (Color){255, 0, 255, 255}, &cube);
 
     solid_tetrahedron_create(1.0f, (Color){255, 0, 0, 255}, &tetrahedron);
     solid_octahedron_create(1.0f, (Color){255, 0, 0, 255}, &octahedron);
@@ -129,25 +132,19 @@ int32_t main(int32_t argc, char *argv[]) {
     /* shader_set_uniform(&shader, SHADER_UNIFORM_AMBIENT_LIGHT, "4f", 4, GL_FLOAT, foo); */
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){0.0,6.0,10.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
+    arcball_create(width, height, (Vec4f){0.0,6.0,10.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
 
     bool drawn_normals = false;
     while (true) {
         SDL_Event event;
-        while( SDL_PollEvent(&event) ) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    goto done;
-                case SDL_KEYDOWN: {
-                    SDL_KeyboardEvent* key_event = (SDL_KeyboardEvent*)&event;
-                    if(key_event->keysym.scancode == SDL_SCANCODE_ESCAPE) {
-                        goto done;
-                    }
-                    break;
-                }
+        while( sdl2_poll_event(&event) ) {
+            if( sdl2_handle_quit(event) ) {
+                goto done;
             }
+            sdl2_handle_resize(event);
 
-            arcball_event(&arcball, event);
+            arcball_handle_resize(&arcball, event);
+            arcball_handle_mouse(&arcball, event);
         }
 
         sdl2_gl_set_swap_interval(1);
