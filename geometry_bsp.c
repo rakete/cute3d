@@ -630,19 +630,19 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
         // - this calls bsp_build_select_balanced_divider to determine a good divider
         // to be used for this branch
         int32_t node_divider_i = bsp_build_select_balanced_divider(tree, tree->nodes.array[node_i].bounds, loop_start, loop_end, partition->polygons, num_polygons/10);
-        tree->nodes.array[node_i].divider = node_divider_i;
+        node->divider = node_divider_i;
 
         const struct BspPolygon node_divider = tree->polygons.array[node_divider_i];
         Vertex node_divider_vertex = {0};
         vertex_copy(&tree->attributes.vertices[node_divider.start*VERTEX_SIZE], node_divider_vertex);
 
         size_t front_start = state->front.occupied;
-        Vec3f front_min = {0};
-        Vec3f front_max = {0};
+        Vec3f front_min = {FLT_MAX, FLT_MAX, FLT_MAX};
+        Vec3f front_max = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
 
         size_t back_start = state->back.occupied;
-        Vec3f back_min = {0};
-        Vec3f back_max = {0};
+        Vec3f back_min = {FLT_MAX, FLT_MAX, FLT_MAX};
+        Vec3f back_max = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
 
         // - this for loop goes through all polygons that belong to a branch and tests them against
         // the selected dividing polygon, it puts the polygon index into either the front or back partition,
