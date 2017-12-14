@@ -85,9 +85,9 @@ void color_round(const Vec4f a, Color r) {
     s[3] = 255.0f*a[3];
 
     r[0] = (s[0] >= 0.0f) ? (uint8_t)(s[0]+0.5f) : (uint8_t)(s[0]-0.5f);
-    r[1] = (s[0] >= 0.0f) ? (uint8_t)(s[0]+0.5f) : (uint8_t)(s[0]-0.5f);
-    r[2] = (s[0] >= 0.0f) ? (uint8_t)(s[0]+0.5f) : (uint8_t)(s[0]-0.5f);
-    r[3] = (s[0] >= 0.0f) ? (uint8_t)(s[0]+0.5f) : (uint8_t)(s[0]-0.5f);
+    r[1] = (s[0] >= 0.0f) ? (uint8_t)(s[1]+0.5f) : (uint8_t)(s[1]-0.5f);
+    r[2] = (s[0] >= 0.0f) ? (uint8_t)(s[2]+0.5f) : (uint8_t)(s[2]-0.5f);
+    r[3] = (s[0] >= 0.0f) ? (uint8_t)(s[3]+0.5f) : (uint8_t)(s[3]-0.5f);
 }
 
 void color_lerp(const Color a, const Color b, float t, Color r) {

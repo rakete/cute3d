@@ -20,6 +20,8 @@
 #ifndef MATH_COLOR_H
 #define MATH_COLOR_H
 
+#include "stdlib.h"
+#include "stdio.h"
 #include "stdint.h"
 
 #include "math_types.h"
