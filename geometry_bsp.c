@@ -662,9 +662,9 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
             // switch below to decide what to do with the current polygon
             size_t result_size = current_polygon_size;
             struct PolygonCutPoint result_points[current_polygon_size];
-            enum PolygonCutType result_type = polygon_cut(current_polygon_size, VERTEX_SIZE, current_polygon_vertices,
-                                                          node_divider.normal, node_divider_vertex,
-                                                          result_size, result_points);
+            enum PolygonCutType result_type = polygon_cut_test(current_polygon_size, VERTEX_SIZE, current_polygon_vertices,
+                                                               node_divider.normal, node_divider_vertex,
+                                                               result_size, result_points);
 
             // - I changed the building algorithm so that it (optionally) triangulates the polygons the result
             // from a cut, before it did not, and because when you cut a triangle you get a triangle and a quad,
@@ -705,13 +705,11 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
                         // that is one vertex too large, but what the hell
                         size_t new_poly_size = current_polygon_size+result_points[0].num_cuts;
 
-                        size_t front_occupied = 0;
                         VERTEX_TYPE front_vertices[new_poly_size*VERTEX_SIZE];
                         NORMAL_TYPE front_normals[new_poly_size*NORMAL_SIZE];
                         TEXCOORD_TYPE front_texcoords[new_poly_size*TEXCOORD_SIZE];
                         COLOR_TYPE front_colors[new_poly_size*COLOR_SIZE];
 
-                        size_t back_occupied = 0;
                         VERTEX_TYPE back_vertices[new_poly_size*VERTEX_SIZE];
                         NORMAL_TYPE back_normals[new_poly_size*NORMAL_SIZE];
                         TEXCOORD_TYPE back_texcoords[new_poly_size*TEXCOORD_SIZE];
@@ -723,57 +721,12 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
                         // lies exactly where the edge was cut, we then put this new vertex into front AND back because its part
                         // of both resulting polygons
                         // - this code only looks like so much because the same thing for four different attributes
-                        for( size_t result_i = 0; result_i < result_size; result_i++ ) {
-                            if( result_points[result_i].type == POLYGON_BACK || result_points[result_i].type == POLYGON_COPLANNAR ) {
-                                vertex_copy(&current_polygon_vertices[result_i*VERTEX_SIZE], &back_vertices[back_occupied*VERTEX_SIZE]);
-                                normal_copy(&current_polygon_normals[result_i*NORMAL_SIZE], &back_normals[back_occupied*NORMAL_SIZE]);
-                                texcoord_copy(&current_polygon_texcoords[result_i*TEXCOORD_SIZE], &back_texcoords[back_occupied*TEXCOORD_SIZE]);
-                                color_copy(&current_polygon_colors[result_i*COLOR_SIZE], &back_colors[back_occupied*COLOR_SIZE]);
-                                back_occupied += 1;
-                            }
-
-                            if( result_points[result_i].type == POLYGON_FRONT || result_points[result_i].type == POLYGON_COPLANNAR ) {
-                                vertex_copy(&current_polygon_vertices[result_i*VERTEX_SIZE], &front_vertices[front_occupied*VERTEX_SIZE]);
-                                normal_copy(&current_polygon_normals[result_i*NORMAL_SIZE], &front_normals[front_occupied*NORMAL_SIZE]);
-                                texcoord_copy(&current_polygon_texcoords[result_i*TEXCOORD_SIZE], &front_texcoords[front_occupied*TEXCOORD_SIZE]);
-                                color_copy(&current_polygon_colors[result_i*COLOR_SIZE], &front_colors[front_occupied*COLOR_SIZE]);
-                                front_occupied += 1;
-                            }
-
-                            if( result_points[result_i].interpolation_index > -1 ) {
-                                const VertexP* vertex_a = &current_polygon_vertices[result_i*VERTEX_SIZE];
-                                const VertexP* vertex_b = &current_polygon_vertices[result_points[result_i].interpolation_index*VERTEX_SIZE];
-                                Vertex vertex_r = {0};
-                                vertex_lerp(vertex_b, vertex_a, result_points[result_i].interpolation_value, vertex_r);
-
-                                const NormalP* normal_a = &current_polygon_normals[result_i*NORMAL_SIZE];
-                                const NormalP* normal_b = &current_polygon_normals[result_points[result_i].interpolation_index*NORMAL_SIZE];
-                                Normal normal_r = {0};
-                                normal_lerp(normal_b, normal_a, result_points[result_i].interpolation_value, normal_r);
-
-                                const TexcoordP* texcoord_a = &current_polygon_texcoords[result_i*TEXCOORD_SIZE];
-                                const TexcoordP* texcoord_b = &current_polygon_texcoords[result_points[result_i].interpolation_index*TEXCOORD_SIZE];
-                                Texcoord texcoord_r = {0};
-                                texcoord_lerp(texcoord_b, texcoord_a, result_points[result_i].interpolation_value, texcoord_r);
-
-                                const ColorP* color_a = &current_polygon_colors[result_i*COLOR_SIZE];
-                                const ColorP* color_b = &current_polygon_colors[result_points[result_i].interpolation_index*COLOR_SIZE];
-                                Color color_r = {0};
-                                color_lerp(color_b, color_a, result_points[result_i].interpolation_value, color_r);
-
-                                vertex_copy(vertex_r, &back_vertices[back_occupied*VERTEX_SIZE]);
-                                normal_copy(normal_r, &back_normals[back_occupied*NORMAL_SIZE]);
-                                texcoord_copy(texcoord_r, &back_texcoords[back_occupied*TEXCOORD_SIZE]);
-                                color_copy(color_r, &back_colors[back_occupied*COLOR_SIZE]);
-                                back_occupied += 1;
-
-                                vertex_copy(vertex_r, &front_vertices[front_occupied*VERTEX_SIZE]);
-                                normal_copy(normal_r, &front_normals[front_occupied*NORMAL_SIZE]);
-                                texcoord_copy(texcoord_r, &front_texcoords[front_occupied*TEXCOORD_SIZE]);
-                                color_copy(color_r, &front_colors[front_occupied*COLOR_SIZE]);
-                                front_occupied += 1;
-                            }
-                        }
+                        size_t front_occupied = new_poly_size;
+                        size_t back_occupied = new_poly_size;
+                        polygon_cut_split(current_polygon_size, (struct ParameterConstAttributes){ .vertices = current_polygon_vertices, .normals = current_polygon_normals, .texcoords = current_polygon_texcoords, .colors = current_polygon_colors },
+                                          result_size, result_points,
+                                          &front_occupied, (struct ParameterAttributes){ .vertices = front_vertices, .normals = front_normals, .texcoords = front_texcoords, .colors = front_colors},
+                                          &back_occupied, (struct ParameterAttributes){ .vertices = back_vertices, .normals = back_normals, .texcoords = back_texcoords, .colors = back_colors});
 
                         // - we are still in the case that handles a cut polygon, the switch statement ends after the break; below!
                         // - now we are about to use the resulting attributes from the cut above to add new polygons, but before we
