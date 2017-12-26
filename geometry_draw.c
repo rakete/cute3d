@@ -446,13 +446,14 @@ void draw_bsp(struct Canvas* canvas,
         float* polygon_vertices = &tree->attributes.vertices[polygon->start*VERTEX_SIZE];
         draw_polygon_wire(canvas, layer_i, model_matrix, draw_color.rgb, draw_thickness,
                           polygon->size, polygon_vertices, polygon->normal);
-        if( node->num_polygons > 1 &&
-            node->state.empty == false &&
-            node->state.solid == false &&
-            tree->nodes.array[node->tree.front].num_polygons > 1 )
+        if( node->num_polygons > 1
+            /* node->state.empty == false && */
+            /* node->state.solid == false && */
+            /* tree->nodes.array[node->tree.front].num_polygons > 1 */
+            )
         {
-            float dividing_plane_vertices[6*VERTEX_SIZE];
-            size_t dividing_plane_num_vertices = intersect_plane_aabb(polygon->normal, &polygon_vertices[0], node->bounds.half_size, node->bounds.center, 6*VERTEX_SIZE, dividing_plane_vertices);
+            float dividing_plane_vertices[12*VERTEX_SIZE];
+            size_t dividing_plane_num_vertices = intersect_plane_aabb(polygon->normal, polygon_vertices, node->bounds.center, node->bounds.half_size, 12*VERTEX_SIZE, dividing_plane_vertices);
             draw_polygon_wire(canvas, layer_i, model_matrix, draw_color.rgb, draw_thickness,
                               dividing_plane_num_vertices, dividing_plane_vertices, polygon->normal);
             draw_box_wire(canvas, layer_i, model_matrix, draw_color.rgb, draw_thickness,
