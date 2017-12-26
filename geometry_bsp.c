@@ -53,15 +53,12 @@ void bsp_node_create(struct BspNode* node) {
     node->bounds.center[1] = 0.0f;
     node->bounds.center[2] = 0.0f;
 
+    node->tree.side = BSP_NOSIDE;
     node->tree.parent = -1;
     node->tree.front = -1;
     node->tree.back = -1;
     node->tree.index = -1;
     node->tree.depth = 0;
-
-    node->state.empty = false;
-    node->state.solid = false;
-    node->state.disabled = false;
 }
 
 void bsp_tree_create(struct BspTree* tree) {
@@ -176,7 +173,7 @@ WARN_UNUSED_RESULT size_t bsp_tree_alloc_nodes(struct BspTree* tree, size_t n) {
     return 0;
 }
 
-int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, struct BspNode** result) {
+int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, enum BspSide side, struct BspNode** result) {
     if( tree->nodes.occupied + 1 >= tree->nodes.capacity ) {
         size_t alloc_nodes_result = 0;
         alloc_nodes_result = bsp_tree_alloc_nodes(tree, 1);
@@ -188,9 +185,15 @@ int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, struct BspNode**
     bsp_node_create(node);
 
     node->tree.index = node_i;
-    node->tree.parent = parent;
     if( parent > -1 ) {
+        node->tree.parent = parent;
+        node->tree.side = side;
         node->tree.depth = tree->nodes.array[parent].tree.depth + 1;
+        if( side == BSP_FRONT ) {
+            tree->nodes.array[parent].tree.front = node_i;
+        } else if( side == BSP_BACK ) {
+            tree->nodes.array[parent].tree.back = node_i;
+        }
     }
 
     tree->nodes.occupied += 1;
@@ -601,20 +604,9 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
 
         // - here a node is added the is going to represent the current branch
         struct BspNode* node = NULL;
-        int32_t node_i = bsp_tree_add_node(tree, parent_i, &node);
+        int32_t node_i = bsp_tree_add_node(tree, parent_i, parent_side, &node);
         node->num_polygons = loop_end - loop_start;
         node->bounds = bounds;
-        // - since we just added a node for this branch, we now know its index, that means we
-        // need to 'go back in time' to when we created our parent node, and set this nodes index
-        // as either the parent nodes front or back sub-branch, depending on which branch we are
-        // currently working
-        // - so when we are currently in BSP_FRONT, then the .tree.front index of the node located
-        // at the index parent_i must be set to node_i (which we can only know now), makes sense right?
-        if( parent_i > -1 && parent_side == BSP_FRONT ) {
-            tree->nodes.array[parent_i].tree.front = node_i;
-        } else if( parent_i > -1 && parent_side == BSP_BACK ) {
-            tree->nodes.array[parent_i].tree.back = node_i;
-        }
 
         struct BspBuildPartition* partition = &state->front;
         if( parent_side == BSP_BACK ) {
@@ -626,7 +618,7 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
 
         // - this calls bsp_build_select_balanced_divider to determine a good divider
         // to be used for this branch
-        int32_t node_divider_i = bsp_build_select_balanced_divider(tree, tree->nodes.array[node_i].bounds, loop_start, loop_end, partition->polygons, num_polygons/10);
+        int32_t node_divider_i = bsp_build_select_balanced_divider(tree, bounds, loop_start, loop_end, partition->polygons, num_polygons/10);
         node->divider = node_divider_i;
 
         const struct BspPolygon node_divider = tree->polygons.array[node_divider_i];
@@ -885,6 +877,9 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
         // sub-branch
         // - if there are no polygons to be processed in the back sub-branch, then we mark the current node
         // as solid node, meaning that behind this nodes divider is inside the mesh
+        // - I changed the code so that when there are no polygons in a sub-branch we do nothing, meaning
+        // the tree.front and tree.back indices stay -1 for the current node and no state.solid and state.empty
+        // booleans are neccessary
         if( back_end - back_start > 0 ) {
             struct BspBuildStackFrame back_frame;
             back_frame.tree_side = BSP_BACK;
@@ -895,13 +890,9 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
             vec_copy3f(back_max, back_frame.bounds_max);
 
             bsp_build_stack_push(&state->stack, back_frame);
-        } else if( back_end - back_start == 0 ) {
-            node->state.solid = true;
         }
 
         // - same as above, but for front
-        // - notice how we mark an ending node as empty here, meaning the in front of this nodes divider
-        // is outside of the mesh
         if( front_end - front_start > 0 ) {
             struct BspBuildStackFrame front_frame;
             front_frame.tree_side = BSP_FRONT;
@@ -912,8 +903,6 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
             vec_copy3f(front_max, front_frame.bounds_max);
 
             bsp_build_stack_push(&state->stack, front_frame);
-        } else if( front_end - front_start == 0 ) {
-            node->state.empty = true;
         }
 
     }

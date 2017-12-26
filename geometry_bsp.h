@@ -90,6 +90,12 @@ struct BspBounds {
 
 void bsp_node_bounds_create(Vec3f min, Vec3f max, struct BspBounds* bounds);
 
+enum BspSide {
+    BSP_NOSIDE = -1,
+    BSP_FRONT = 0,
+    BSP_BACK
+};
+
 // - nodes are what the trees structure is built of, a node can be at a branch or at a leaf position
 // - divider is a index that specifies which divider polygon was used to divide the polygons of this
 // node into front and back subtrees
@@ -98,8 +104,6 @@ void bsp_node_bounds_create(Vec3f min, Vec3f max, struct BspBounds* bounds);
 // - tree.front and tree.back are indices to the nodes that represent the front and back subtrees
 // - tree.index is this nodes index inside the tree array
 // - tree.depth is how deep this node is in the tree, how far this node is away from the root
-// - state.empty and state.solid are for leaf nodes to specify if they sit on the 'outside' (empty)
-// or 'inside' (solid) of the mesh
 struct BspNode {
     int32_t divider;
     size_t num_polygons;
@@ -107,18 +111,13 @@ struct BspNode {
     struct BspBounds bounds;
 
     struct {
+        enum BspSide side;
         int32_t parent;
         int32_t front;
         int32_t back;
         int32_t index;
         int32_t depth;
     } tree;
-
-    struct {
-        bool empty;
-        bool solid;
-        bool disabled;
-    } state;
 };
 
 void bsp_node_create(struct BspNode* node);
@@ -174,8 +173,9 @@ WARN_UNUSED_RESULT size_t bsp_tree_alloc_nodes(struct BspTree* tree, size_t n);
 // - bsp_tree_add_node will add a new empty node to the tree, connected to the parent index,
 // and it returns the index of the new node
 // - it is important to fill the node after adding it, the bsp_tree_add_node leaves it completely
-// empty apart from the parent, index and depth values
-int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, struct BspNode** node);
+// empty apart from the parent, index and depth values, that why this function takes a pointer
+// to a pointer to a node, so the user gets a pointer to the added node after adding it
+int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, enum BspSide side, struct BspNode** node);
 // - bsp_tree_add_polygon adds a new polygon and also fills it with the attributes supplied in the
 // polygon_attributes argument
 int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Vec3f polygon_normal, struct ParameterAttributes polygon_attributes, struct BspPolygon** polygon);
@@ -197,11 +197,6 @@ struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* 
 // the same thing there. this continues until there are no polygons left in the front partition, at
 // which point the only frame left on the stack is the frame for the first back partition, which
 // gets popped and the building algorithm starts going down that branch
-enum BspSide {
-    BSP_FRONT = 0,
-    BSP_BACK
-};
-
 // - tree side tells me which branch I am working on, I need this to select the correct partition to
 // process
 // - parent_index I need to append the next node to the correct parent index
