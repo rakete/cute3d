@@ -272,6 +272,53 @@ int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Ve
     return polygon_i;
 }
 
+int32_t bsp_tree_test_polygon(const struct BspTree* tree, int32_t start_i,
+                              size_t polygon_size, const float* polygon_vertices,
+                              struct BspNode* result_node, enum PolygonCutType* result_cut_type, size_t result_size, struct PolygonCutPoint* result_points)
+{
+    size_t test_index = start_i;
+
+    while( true ) {
+        const struct BspNode* test_node = &tree->nodes.array[test_index];
+
+        const struct BspPolygon test_divider = tree->polygons.array[test_node->divider];
+        Vertex test_divider_vertex = {0};
+        vertex_copy(&tree->attributes.vertices[test_divider.start*VERTEX_SIZE], test_divider_vertex);
+
+        *result_cut_type = polygon_cut_test(polygon_size, VERTEX_SIZE, polygon_vertices,
+                                            test_divider.normal, test_divider_vertex,
+                                            result_size, result_points);
+
+        switch(*result_cut_type) {
+            case POLYGON_COPLANNAR:
+            case POLYGON_FRONT:
+                if( test_node->tree.front > -1 ) {
+                    test_index = test_node->tree.front;
+                } else {
+                    result_node->tree.parent = test_index;
+                    result_node->tree.side = BSP_FRONT;
+                    return -1;
+                }
+                test_index = test_node->tree.front;
+                break;
+            case POLYGON_BACK:
+                if( test_node->tree.back > -1 ) {
+                    test_index = test_node->tree.back;
+                } else {
+                    result_node->tree.parent = test_index;
+                    result_node->tree.side = BSP_BACK;
+                    return -1;
+                }
+                break;
+            case POLYGON_SPANNING:
+                return test_index;
+                break;
+        }
+    }
+
+    return -1;
+}
+
 struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {
     bsp_tree_create(tree);
 

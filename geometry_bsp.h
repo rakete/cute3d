@@ -180,6 +180,23 @@ int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, enum BspSide sid
 // polygon_attributes argument
 int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Vec3f polygon_normal, struct ParameterAttributes polygon_attributes, struct BspPolygon** polygon);
 
+// - test a polygon against bsp tree, start in tree at node_i and test polygon against divider, if
+// the polygon is in front or behind divider the function continues testing with the front or back
+// subtree, until the polygon lands in an empty back or front branch, then *node is filled with
+// indices as if *node would be inserted into that empty branch, but to actually add to the tree
+// the user needs to add the polygon with bsp_tree_add_polygon and the *node with bsp_tree_add_node,
+// the return code in this case is -1
+// - if the polygon is cut by a divider while testing, then *node will be left alone (probably,
+// writing this while not having it implemented yet), but cut_type and result_points will contain
+// the result from the cut just like from polygon_cut, the return int32_t in this case is the index
+// of the node that contains the divider thats responsible for the cut, so that the user can decide
+// to continue testing from that index with one of the two polygons resulting from the cut
+int32_t bsp_tree_test_polygon(const struct BspTree* tree, int32_t start_i,
+                              size_t polygon_size, const float* polygon_vertices,
+                              struct BspNode* result_node, enum PolygonCutType* result_cut_type, size_t result_size, struct PolygonCutPoint* result_points);
+
+int32_t bsp_tree_test_ray(const struct BspTree* tree, const Vec3f origin, const Vec3f direction, float* near, float* far);
+
 // - bsp_tree_create_from_solid is the function a user is supposed to call when he wants to create
 // a bsp tree, from a solid obviously, I planned to have other functions for halfedgemesh etc.
 // - it returns a pointer to the root node
