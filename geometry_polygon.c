@@ -78,9 +78,9 @@ void polygon_compute_normal(size_t polygon_size, size_t point_size, const float*
     vec_normalize(result_normal, result_normal);
 }
 
-enum PolygonCutType polygon_cut(size_t polygon_size, size_t point_size, const float* polygon,
-                                const Vec3f plane_normal, const Vec3f plane_point,
-                                size_t result_size, struct PolygonCutPoint* result_points)
+enum PolygonCutType polygon_cut_test(size_t polygon_size, size_t point_size, const float* polygon,
+                                     const Vec3f plane_normal, const Vec3f plane_point,
+                                     size_t result_size, struct PolygonCutPoint* result_points)
 {
     log_assert( polygon_size >= 3 );
     log_assert( result_size >= polygon_size );
@@ -155,8 +155,86 @@ enum PolygonCutType polygon_cut(size_t polygon_size, size_t point_size, const fl
     return return_type;
 }
 
-void polygon_triangulate(size_t polygon_size, size_t point_size, const float* polygon, size_t result_size, size_t* result) {
+void polygon_cut_split(size_t polygon_size, struct ParameterConstAttributes polygon_attributes,
+                       size_t result_size, const struct PolygonCutPoint* result_points,
+                       size_t* front_size, struct ParameterAttributes front_attributes, size_t* back_size, struct ParameterAttributes back_attributes)
+{
+    log_assert( polygon_size >= 3 );
+    log_assert( result_size == polygon_size );
+    log_assert( *front_size >= polygon_size+result_points[0].num_cuts );
+    log_assert( *back_size >= polygon_size+result_points[0].num_cuts );
 
+    const VERTEX_TYPE* polygon_vertices = polygon_attributes.vertices;
+    const NORMAL_TYPE* polygon_normals = polygon_attributes.normals;
+    const TEXCOORD_TYPE* polygon_texcoords = polygon_attributes.texcoords;
+    const COLOR_TYPE* polygon_colors = polygon_attributes.colors;
+
+    VERTEX_TYPE* front_vertices = front_attributes.vertices;
+    NORMAL_TYPE* front_normals = front_attributes.normals;
+    TEXCOORD_TYPE* front_texcoords = front_attributes.texcoords;
+    COLOR_TYPE* front_colors = front_attributes.colors;
+
+    VERTEX_TYPE* back_vertices = back_attributes.vertices;
+    NORMAL_TYPE* back_normals = back_attributes.normals;
+    TEXCOORD_TYPE* back_texcoords = back_attributes.texcoords;
+    COLOR_TYPE* back_colors = back_attributes.colors;
+
+    size_t front_occupied = 0;
+    size_t back_occupied = 0;
+    for( size_t result_i = 0; result_i < result_size; result_i++ ) {
+        if( result_points[result_i].type == POLYGON_BACK || result_points[result_i].type == POLYGON_COPLANNAR ) {
+            vertex_copy(&polygon_vertices[result_i*VERTEX_SIZE], &back_vertices[back_occupied*VERTEX_SIZE]);
+            normal_copy(&polygon_normals[result_i*NORMAL_SIZE], &back_normals[back_occupied*NORMAL_SIZE]);
+            texcoord_copy(&polygon_texcoords[result_i*TEXCOORD_SIZE], &back_texcoords[back_occupied*TEXCOORD_SIZE]);
+            color_copy(&polygon_colors[result_i*COLOR_SIZE], &back_colors[back_occupied*COLOR_SIZE]);
+            back_occupied += 1;
+        }
+
+        if( result_points[result_i].type == POLYGON_FRONT || result_points[result_i].type == POLYGON_COPLANNAR ) {
+            vertex_copy(&polygon_vertices[result_i*VERTEX_SIZE], &front_vertices[front_occupied*VERTEX_SIZE]);
+            normal_copy(&polygon_normals[result_i*NORMAL_SIZE], &front_normals[front_occupied*NORMAL_SIZE]);
+            texcoord_copy(&polygon_texcoords[result_i*TEXCOORD_SIZE], &front_texcoords[front_occupied*TEXCOORD_SIZE]);
+            color_copy(&polygon_colors[result_i*COLOR_SIZE], &front_colors[front_occupied*COLOR_SIZE]);
+            front_occupied += 1;
+        }
+
+        if( result_points[result_i].interpolation_index > -1 ) {
+            const VertexP* vertex_a = &polygon_vertices[result_i*VERTEX_SIZE];
+            const VertexP* vertex_b = &polygon_vertices[result_points[result_i].interpolation_index*VERTEX_SIZE];
+            Vertex vertex_r = {0};
+            vertex_lerp(vertex_b, vertex_a, result_points[result_i].interpolation_value, vertex_r);
+
+            const NormalP* normal_a = &polygon_normals[result_i*NORMAL_SIZE];
+            const NormalP* normal_b = &polygon_normals[result_points[result_i].interpolation_index*NORMAL_SIZE];
+            Normal normal_r = {0};
+            normal_lerp(normal_b, normal_a, result_points[result_i].interpolation_value, normal_r);
+
+            const TexcoordP* texcoord_a = &polygon_texcoords[result_i*TEXCOORD_SIZE];
+            const TexcoordP* texcoord_b = &polygon_texcoords[result_points[result_i].interpolation_index*TEXCOORD_SIZE];
+            Texcoord texcoord_r = {0};
+            texcoord_lerp(texcoord_b, texcoord_a, result_points[result_i].interpolation_value, texcoord_r);
+
+            const ColorP* color_a = &polygon_colors[result_i*COLOR_SIZE];
+            const ColorP* color_b = &polygon_colors[result_points[result_i].interpolation_index*COLOR_SIZE];
+            Color color_r = {0};
+            color_lerp(color_b, color_a, result_points[result_i].interpolation_value, color_r);
+
+            vertex_copy(vertex_r, &back_attributes.vertices[back_occupied*VERTEX_SIZE]);
+            normal_copy(normal_r, &back_normals[back_occupied*NORMAL_SIZE]);
+            texcoord_copy(texcoord_r, &back_texcoords[back_occupied*TEXCOORD_SIZE]);
+            color_copy(color_r, &back_colors[back_occupied*COLOR_SIZE]);
+            back_occupied += 1;
+
+            vertex_copy(vertex_r, &front_vertices[front_occupied*VERTEX_SIZE]);
+            normal_copy(normal_r, &front_normals[front_occupied*NORMAL_SIZE]);
+            texcoord_copy(texcoord_r, &front_texcoords[front_occupied*TEXCOORD_SIZE]);
+            color_copy(color_r, &front_colors[front_occupied*COLOR_SIZE]);
+            front_occupied += 1;
+        }
+    }
+
+    *front_size = front_occupied;
+    *back_size = back_occupied;
 }
 
 // - I more or less took this whole function from bounce lite, and translated it,

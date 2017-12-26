@@ -80,10 +80,15 @@ struct PolygonCutPoint {
 // - it should not matter if the polygon is convex
 // - this function assumes that result_size >= polygon_size, meaning that result_points will have one PolygonCutPoint for every
 // point in the polygon, regardless of whether there is a cut or not, so allocate result_points[] accordingly
-enum PolygonCutType polygon_cut(size_t polygon_size, size_t point_size, const float* polygon,
-                                const Vec3f plane_normal, const Vec3f plane_point,
-                                size_t result_size, struct PolygonCutPoint* result_points);
+enum PolygonCutType polygon_cut_test(size_t polygon_size, size_t point_size, const float* polygon,
+                                     const Vec3f plane_normal, const Vec3f plane_point,
+                                     size_t result_size, struct PolygonCutPoint* result_points);
 
+void polygon_cut_split(size_t polygon_size, struct ParameterConstAttributes polygon_attributes,
+                       size_t result_size, const struct PolygonCutPoint* result_points,
+                       size_t* front_size, struct ParameterAttributes front_attributes, size_t* back_size, struct ParameterAttributes back_attributes);
+
+// - http://www.s-hull.org/paper/s_hull.pdf
 void polygon_triangulate(size_t polygon_size, size_t point_size, const float* polygon, size_t result_size, size_t* result);
 
 void polygon_clip_edge_edge(const Vec3f edge1_point,
