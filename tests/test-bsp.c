@@ -86,7 +86,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_make_program(&shader, SHADER_DEFAULT_NAMES, "flat_shader");
 
     struct Arcball arcball = {0};
-    arcball_create(width, height, (Vec4f){1.0,2.0,6.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001f, 100.0, &arcball);
+    arcball_create(width, height, (Vec4f){6.0,6.0,10.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.001f, 100.0, &arcball);
 
     struct GameTime time = {0};
     gametime_create(1.0f / 60.0f, &time);
@@ -99,26 +99,30 @@ int32_t main(int32_t argc, char *argv[]) {
 
     struct SolidTorus24 torus;
     solid_torus24_create(12, 12, 1.0, 0.5, (Color){127, 255, 127, 255}, &torus);
-    //solid_optimize(&torus);
-    //solid_smooth_normals(&torus, &torus.normals, &torus.normals);
-    //solid_compress(&torus);
-
-    //struct SolidBox cube;
-    //solid_cube_create(1.0f, (Color){255, 127, 255, 255}, &cube);
-    //solid_optimize(&torus);
-    //solid_smooth_normals(&torus, &torus.normals, &torus.normals);
-    //solid_compress(&torus);
+    solid_optimize(&torus);
+    solid_smooth_normals(&torus, &torus.normals, &torus.normals);
+    solid_compress(&torus);
 
     struct VboMesh torus_mesh = {0};
     vbo_mesh_create_from_solid((struct Solid*)&torus, &vbo, &ibo, &torus_mesh);
 
     struct BspTree torus_bsptree;
-    sdl2_profile( "bsp_tree_create_from_solid", -1.0f, 0.0f, bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree); );
 
-    printf("torus_bsptree.nodes.array[0].tree.front: %d\n", torus_bsptree.nodes.array[0].tree.front);
-    printf("torus_bsptree.nodes.array[0].tree.back: %d\n", torus_bsptree.nodes.array[0].tree.back);
+    struct SolidBox cube;
+    solid_cube_create(1.0f, (Color){55, 127, 255, 255}, &cube);
 
-    bsp_tree_destroy(&torus_bsptree);
+    struct VboMesh cube_mesh = {0};
+    vbo_mesh_create_from_solid((struct Solid*)&cube, &vbo, &ibo, &cube_mesh);
+
+    struct BspTree cube_bsptree;
+
+    struct SolidIcosahedron icosahedron = {0};
+    solid_icosahedron_create(0.75f, (Color){255, 55, 55, 255}, &icosahedron);
+
+    struct VboMesh icosahedron_mesh = {0};
+    vbo_mesh_create_from_solid((struct Solid*)&icosahedron, &vbo, &ibo, &icosahedron_mesh);
+
+    struct BspTree icosahedron_bsptree;
 
     while (true) {
         SDL_Event event;
@@ -141,23 +145,45 @@ int32_t main(int32_t argc, char *argv[]) {
         gametime_advance(&time, sdl2_time_delta());
         gametime_integrate(&time);
 
-        Mat identity;
-        mat_identity(identity);
+        Mat transform;
+        mat_identity(transform);
+
+        mat_translate(transform, (Vec3f){-2.0f, 0.0f, -2.0f}, transform);
         sdl2_profile( LOG_ANSI_BLUE "vbo_mesh_render" LOG_ANSI_RESET, 1.0f, 0.0f,
-                      vbo_mesh_render(&torus_mesh, &shader, &arcball.camera, identity); );
-
-        sdl2_profile( LOG_ANSI_RED "draw_grid" LOG_ANSI_RESET, 1.0f, 0.0f,
-                      draw_grid(&global_dynamic_canvas, 0, identity, (Color){120, 120, 120, 255}, 0.01f, 12.0f, 12.0f, 12); );
-
+                      vbo_mesh_render(&torus_mesh, &shader, &arcball.camera, transform); );
         sdl2_profile( LOG_ANSI_YELLOW "bsp_tree_create_from_solid" LOG_ANSI_RESET, 1.0f, 0.0f,
                       bsp_tree_create_from_solid((struct Solid*)&torus, &torus_bsptree); );
         sdl2_profile( LOG_ANSI_RED "draw_bsp" LOG_ANSI_RESET, 1.0f, 0.0f,
-                      draw_bsp(&global_dynamic_canvas, 0, identity, (Color){255, 25, 255, 255}, (Color){255, 255, 255, 128}, 0.005f, 0.05f, &torus_bsptree); );
+                      draw_bsp(&global_dynamic_canvas, 0, transform, (Color){255, 25, 127, 255}, (Color){255, 255, 255, 128}, 0.005f, 0.05f, &torus_bsptree); );
         sdl2_profile( LOG_ANSI_YELLOW "bsp_tree_destroy" LOG_ANSI_RESET, 1.0f, 0.0f,
                       bsp_tree_destroy(&torus_bsptree); );
 
+        mat_translate(transform, (Vec3f){0.0f, 0.0f, 4.0f}, transform);
+        sdl2_profile( LOG_ANSI_BLUE "vbo_mesh_render" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      vbo_mesh_render(&cube_mesh, &shader, &arcball.camera, transform); );
+        sdl2_profile( LOG_ANSI_YELLOW "bsp_tree_create_from_solid" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      bsp_tree_create_from_solid((struct Solid*)&cube, &cube_bsptree); );
+        sdl2_profile( LOG_ANSI_RED "draw_bsp" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      draw_bsp(&global_dynamic_canvas, 0, transform, (Color){255, 127, 25, 255}, (Color){255, 255, 255, 128}, 0.005f, 0.05f, &cube_bsptree); );
+        sdl2_profile( LOG_ANSI_YELLOW "bsp_tree_destroy" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      bsp_tree_destroy(&cube_bsptree); );
 
-        Vec4f screen_cursor = {0,0,0,1};
+        mat_translate(transform, (Vec3f){4.0f, 0.0f, 0.0f}, transform);
+        sdl2_profile( LOG_ANSI_BLUE "vbo_mesh_render" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      vbo_mesh_render(&icosahedron_mesh, &shader, &arcball.camera, transform); );
+        sdl2_profile( LOG_ANSI_YELLOW "bsp_tree_create_from_solid" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      bsp_tree_create_from_solid((struct Solid*)&icosahedron, &icosahedron_bsptree); );
+        sdl2_profile( LOG_ANSI_RED "draw_bsp" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      draw_bsp(&global_dynamic_canvas, 0, transform, (Color){25, 255, 127, 255}, (Color){255, 255, 255, 128}, 0.005f, 0.05f, &icosahedron_bsptree); );
+        sdl2_profile( LOG_ANSI_YELLOW "bsp_tree_destroy" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      bsp_tree_destroy(&icosahedron_bsptree); );
+
+        sdl2_profile( LOG_ANSI_RED "draw_grid" LOG_ANSI_RESET, 1.0f, 0.0f,
+                      draw_grid(&global_dynamic_canvas, 0, (Mat)IDENTITY_MAT, (Color){120, 120, 120, 255}, 0.01f, 12.0f, 12.0f, 12); );
+
+        //camera_ray(&arcball.camera, CAMERA_PERSPECTIVE, x, int32_t y, Vec4f ray)
+
+        Vec4f screen_cursor = {0.0f, 0.0f, 0.0f, 1.0f};
         text_show_fps(&global_dynamic_canvas, 0, screen_cursor, 0, 0, (Color){255, 255, 255, 255}, 20.0f, "default_font", time.frame);
 
         sdl2_profile( LOG_ANSI_BLUE "canvas_render_layers(static)" LOG_ANSI_RESET, 1.0f, 0.0f,
