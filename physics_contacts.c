@@ -258,18 +258,6 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
     }
     log_assert( contacts->num_contacts <= MAX_CONTACT_POINTS );
 
-#if DEBUG
-    // - debug code that draws the contact manifold
-    Mat pivot1_world_transform = {0};
-    pivot_world_transform(pivot1, pivot1_world_transform);
-    VecP* m = contacts->points[contacts->num_contacts-1];
-    for( int32_t i = 0; i < contacts->num_contacts; i++ ) {
-        VecP* n = contacts->points[i];
-        draw_line(&global_dynamic_canvas, 0, pivot1_world_transform, (Color){255, 255, 255, 255}, 0.08f, m, n);
-        m = n;
-    }
-#endif
-
     return final_polygon_size;
 
 }

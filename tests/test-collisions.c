@@ -239,23 +239,27 @@ int32_t main(int32_t argc, char *argv[]) {
 
         colliding_prepare_shape((struct Shape*)&entity_a.shape);
         colliding_prepare_shape((struct Shape*)&entity_b.shape);
-        for( uint32_t i = 0; i < 10; i++ ) {
-            struct Collision collision = {0};
-            struct CollisionParameter collision_parameter = {
-                .face_tolerance = 0.9,
-                .edge_tolerance = 0.95,
-                .absolute_tolerance = 0.025
-            };
-            colliding_prepare_collision((struct Shape*)&entity_a.shape,
-                                        (struct Shape*)&entity_b.shape,
-                                        collision_parameter,
-                                        &collision);
+        struct Collision collision = {0};
+        struct CollisionParameter collision_parameter = {
+            .face_tolerance = 0.9,
+            .edge_tolerance = 0.95,
+            .absolute_tolerance = 0.025
+        };
+        colliding_prepare_collision((struct Shape*)&entity_a.shape,
+                                    (struct Shape*)&entity_b.shape,
+                                    collision_parameter,
+                                    &collision);
 
-            static int32_t collision_counter = 1;
-            if( colliding_test_convex_convex(&collision) ) {
-                colliding_contact_convex_convex(&collision);
-                //printf("//collision: %d\n", collision_counter);
-                collision_counter++;
+        if( colliding_test_convex_convex(&collision) ) {
+            colliding_contact_convex_convex(&collision);
+            //printf("//collision: %d\n", collision_counter);
+
+            const struct Contacts* contacts = &collision.contacts;
+            VecP* m = contacts->points[contacts->num_contacts-1];
+            for( int32_t i = 0; i < contacts->num_contacts; i++ ) {
+                VecP* n = contacts->points[i];
+                draw_line(&global_dynamic_canvas, 0, transform_b, (Color){255, 255, 255, 255}, 0.08f, m, n);
+                m = n;
             }
         }
 
