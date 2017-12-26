@@ -29,6 +29,8 @@
 #include "math_matrix.h"
 #include "math_camera.h"
 
+#include "geometry_intersect.h"
+
 struct PickingSphere {
     struct Pivot pivot;
 
