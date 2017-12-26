@@ -61,6 +61,13 @@ struct ParameterAttributes {
     COLOR_TYPE* colors;
 };
 
+struct ParameterConstAttributes {
+    const VERTEX_TYPE* vertices;
+    const NORMAL_TYPE* normals;
+    const TEXCOORD_TYPE* texcoords;
+    const COLOR_TYPE* colors;
+};
+
 void vertex_copy(const Vertex v, Vertex r);
 void vertex_lerp(const Vertex a, const Vertex b, float t, Vertex r);
 
