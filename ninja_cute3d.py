@@ -83,7 +83,6 @@ elif build_toolset == "msvc":
 # - chdir to source_directory and enumrate all .c files
 os.chdir(build_settings.source_directory)
 sources = glob.glob("*.c")
-sources.remove("driver_allegro.c")
 os.chdir(build_settings.current_directory)
 
 # - create build command for every .c file creating an .o (or .obj if platform is windows)
