@@ -23,6 +23,7 @@
 #include "math.h"
 
 #include "driver_log.h"
+
 #include "math_types.h"
 #include "math_matrix.h"
 
@@ -72,10 +73,8 @@ QuatP* qnormalize(Quat q);
 
 // quaternion conversion
 void quat_to_mat(const Quat q, Mat r);
-//QuatP* qto_mat(const Quat q, Mat m);
 
 void quat_to_axis_angle(const Quat q, Vec4f axis, float* angle);
-//QuatP* qto_axis_angle(Quat q);
 
 // quaternion interpolation
 void quat_slerp(const Quat qa, const Quat qb, float t, Quat r);

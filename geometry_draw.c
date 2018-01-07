@@ -39,7 +39,7 @@ void draw_solid(struct Canvas* canvas,
     for( size_t i = 0; i < solid->attributes_size; i++ ) {
         float* vertex_src = (float*)((char*)solid->vertices + i * vertex_size * vertex_component_bytes);
         float* vertex_dst = (float*)((char*)transformed_vertices + i * vertex_size * vertex_component_bytes);
-        mat_mul_vec3f(model_matrix, vertex_src, vertex_dst);
+        mat_mul_vec(model_matrix, vertex_src, vertex_dst);
 
         uint8_t* color_dst = (uint8_t*)((char*)override_colors + i * color_size * color_component_bytes);
         color_copy(color, color_dst);
@@ -175,7 +175,7 @@ void draw_plane(struct Canvas* canvas,
                                 7, 5, 6 };
 
     Vec3f transformed_point = {0};
-    mat_mul_vec3f(model_matrix, plane_point, transformed_point);
+    mat_mul_vec(model_matrix, plane_point, transformed_point);
 
     Mat translation = IDENTITY_MAT;
     mat_translate(translation, transformed_point, translation);
@@ -184,10 +184,10 @@ void draw_plane(struct Canvas* canvas,
     quat_from_vec_pair(plane_normal, (Vec4f)Z_AXIS, rotation);
     quat_invert(rotation, rotation);
     for( size_t i = 0; i < 8; i++ ) {
-        vec_rotate3f(&vertices[i*3], rotation, &vertices[i*3]);
-        mat_mul_vec3f(translation, &vertices[i*3], &vertices[i*3]);
+        vec_rotate(&vertices[i*3], rotation, &vertices[i*3]);
+        mat_mul_vec(translation, &vertices[i*3], &vertices[i*3]);
 
-        vec_rotate3f(&normals[i*3], rotation, &normals[i*3]);
+        vec_rotate(&normals[i*3], rotation, &normals[i*3]);
     }
 
     uint32_t offset = canvas->attributes[SHADER_ATTRIBUTE_VERTEX].occupied;
@@ -228,7 +228,7 @@ void draw_plane_wire(struct Canvas* canvas,
                             -half_size, -half_size, 0.0f };
 
     Vec3f transformed_point = {0};
-    mat_mul_vec3f(model_matrix, plane_point, transformed_point);
+    mat_mul_vec(model_matrix, plane_point, transformed_point);
 
     Mat translation = IDENTITY_MAT;
     mat_translate(translation, transformed_point, translation);
@@ -237,8 +237,8 @@ void draw_plane_wire(struct Canvas* canvas,
     quat_from_vec_pair(plane_normal, (Vec4f)Z_AXIS, rotation);
     quat_invert(rotation, rotation);
     for( size_t i = 0; i < 4; i++ ) {
-        vec_rotate3f(&vertices[i*3], rotation, &vertices[i*3]);
-        mat_mul_vec3f(translation, &vertices[i*3], &vertices[i*3]);
+        vec_rotate(&vertices[i*3], rotation, &vertices[i*3]);
+        mat_mul_vec(translation, &vertices[i*3], &vertices[i*3]);
     }
 
     Mat identity = {0};

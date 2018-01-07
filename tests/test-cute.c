@@ -191,6 +191,8 @@ int32_t main(int32_t argc, char** argv) {
         printf("%f %f %f %f\n", cube_spinning[0], cube_spinning[1], cube_spinning[2], cube_spinning[3]);
 
         quat_to_mat(cube_rotation, cube_transform);
+        // - fuck it, not fixing this now, quat_to_mat row/column order aftermath
+        mat_transpose(cube_transform, cube_transform);
 
         mat_translate(cube_transform, (Vec4f){ -2.1, 0.0, 0.0, 1.0 }, cube_transform);
 

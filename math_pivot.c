@@ -75,7 +75,9 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec3f target) {
     if( fabs(dot_yaw + 1.0f) < CUTE_EPSILON ) {
         // vector a and b point exactly in the opposite direction,
         // so it is a 180 degrees turn around the up-axis
-        quat_mul_axis_angle(world_pivot.orientation, up_axis, PI, rotation);
+        Quat rotation = {0};
+        quat_from_axis_angle(up_axis, PI, rotation);
+        quat_mul(world_pivot.orientation, rotation, rotation);
     } else if( fabs(dot_yaw - (1.0f)) < CUTE_EPSILON ) {
         // vector a and b point exactly in the same direction
         // so we return the identity quaternion
@@ -166,8 +168,8 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec3f target) {
         //   flip_axis and then use the dot product between the flip_axis and up_axis
         //   to decide if I am flipped
         Vec4f flip_axis = {0};
-        vec_rotate4f(up_axis, inverted_orientation, flip_axis);
-        vec_rotate4f(flip_axis, yaw_pitch_rotation, flip_axis);
+        vec_rotate(up_axis, inverted_orientation, flip_axis);
+        vec_rotate(flip_axis, yaw_pitch_rotation, flip_axis);
 
         float dot_pitch = vdot(up_axis, flip_axis);
 
@@ -179,7 +181,8 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec3f target) {
         //   stuck when trying to flip the camera over
         if( dot_pitch < 0.0f ) {
             result = 1;
-            quat_mul_axis_angle(yaw_pitch_rotation, target_axis, PI, yaw_pitch_rotation);
+            quat_from_axis_angle(target_axis, PI, rotation);
+            quat_mul(yaw_pitch_rotation, rotation, yaw_pitch_rotation);
         }
 
         quat_copy(yaw_pitch_rotation, rotation);

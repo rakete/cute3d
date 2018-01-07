@@ -58,9 +58,9 @@ void quat_from_euler_angles(float x, float y, float z, Quat q) {
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma warning(push)
 #pragma warning(disable : 4244)
-  	q[0] = c1c2 * s3 + s1s2 * c3;
-	q[1] = s1 * c2 * c3 + c1 * s2 * s3;
-	q[2] = c1 * s2 * c3 - s1 * c2 * s3;
+    q[0] = c1c2 * s3 + s1s2 * c3;
+    q[1] = s1 * c2 * c3 + c1 * s2 * s3;
+    q[2] = c1 * s2 * c3 - s1 * c2 * s3;
     q[3] = c1c2 * c3 - s1s2 * s3;
 #pragma warning(pop)
 #pragma GCC diagnostic pop
@@ -131,7 +131,7 @@ void quat_mul_axis_angle(const Quat q, const Vec3f axis, const float angle, Quat
         quat_copy(q, r);
     }
 
-    Quat rotation;
+    Quat rotation = {0};
     quat_from_axis_angle(axis, angle, rotation);
     quat_mul(q, rotation, r);
 }
@@ -295,10 +295,10 @@ void quat_to_mat(const Quat q, Mat r) {
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma warning(push)
 #pragma warning(disable : 4244)
-    r[0] = ww + xx - yy - zz; r[4] = 2*(xy + wz);       r[8]  =  2*(xz - wy);       r[12] = 0;
-    r[1] = 2*(xy - wz);       r[5] = ww - xx + yy - zz; r[9]  =  2*(yz + wx);       r[13] = 0;
-    r[2] = 2*(xz + wy);       r[6] = 2*(yz - wx);       r[10] =  ww - xx - yy + zz; r[14] = 0;
-    r[3] = 0;                 r[7] = 0;                 r[11] =  0;                 r[15] = ww + xx + yy + zz;
+    r[0] = ww + xx - yy - zz; r[4] = 2*(xy - wz);       r[8]  = 2*(xz + wy);        r[12] = 0;
+    r[1] = 2*(xy + wz);       r[5] = ww - xx + yy - zz; r[9]  = 2*(yz - wx);        r[13] = 0;
+    r[2] = 2*(xz - wy);       r[6] = 2*(yz + wx);       r[10] = ww - xx - yy + zz;  r[14] = 0;
+    r[3] = 0;                 r[7] = 0;                 r[11] = 0;                  r[15] = ww + xx + yy + zz;
 #pragma warning(pop)
 #pragma GCC diagnostic pop
 }

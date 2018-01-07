@@ -266,32 +266,40 @@ float vangle_points(const Vec3f a, const Vec3f b, const Vec3f c) {
     return r;
 }
 
-void vec_rotate4f(const Vec4f vec, const Quat q, Vec4f r) {
-    Quat normed_q;
-    quat_normalize(q, normed_q);
+void vec_rotate(const Vec3f v_in, const Quat q, Vec3f r) {
+    /* Quat normed_q; */
+    /* quat_normalize(q, normed_q); */
 
-    Quat product;
-    quat_mul(normed_q, vec, product);
+    /* Quat conj; */
+    /* quat_conjugate(q, conj); */
 
-    Quat conj;
-    quat_conjugate(normed_q, conj);
+    /* Quat product; */
+    /* quat_mul(q, v, product); */
 
-    quat_mul(product, conj, r);
-}
+    /* quat_mul(product, conj, r); */
 
-void vec_rotate3f(const Vec3f vec, const Quat q, Vec3f r) {
-    Vec4f result4f;
-    Vec4f vec4f;
-    vec4f[0] = vec[0];
-    vec4f[1] = vec[1];
-    vec4f[2] = vec[2];
-    vec4f[3] = 1.0;
+    Vec4f v = {0};
+    v[0] = v_in[0];
+    v[1] = v_in[1];
+    v[2] = v_in[2];
 
-    vec_rotate4f(vec4f, q, result4f);
+    float s = q[3];
 
-    r[0] = result4f[0];
-    r[1] = result4f[1];
-    r[2] = result4f[2];
+    vec_mul1f(q, 2.0f * vdot(q, v), r);
+
+    Vec3f t = {0};
+    vec_mul1f(v, s*s - vdot(q, q), t);
+    vec_add(r, t, r);
+
+    Vec3f u = {0};
+    vec_cross(q, v, u);
+    vec_mul1f(u, 2.0f * s, u);
+    vec_add(r, u, r);
+
+    /* vprime = */
+    /*     2.0f * dot(u, v) * u */
+    /*     + (s*s - dot(u, u)) * v */
+    /*     + 2.0f * s * cross(u, v); */
 }
 
 void vec_nullp(const Vec4f v, bool* r) {
@@ -525,7 +533,7 @@ void mat_identity(Mat m) {
     m[3] = 0.0f; m[7] = 0.0f; m[11] = 0.0f; m[15] = 1.0f;
 }
 
-void mat_invert4f(const Mat m, double* det, Mat r) {
+void mat_invert(const Mat m, double* det, Mat r) {
     double inv[16];
 
     inv[0] =
@@ -601,7 +609,8 @@ void mat_invert4f(const Mat m, double* det, Mat r) {
         m[12] * m[1] * m[10] -
         m[12] * m[2] * m[9];
 
-    inv[2] = m[1]  * m[6] * m[15] -
+    inv[2] =
+        m[1]  * m[6] * m[15] -
         m[1]  * m[7] * m[14] -
         m[5]  * m[2] * m[15] +
         m[5]  * m[3] * m[14] +
@@ -680,61 +689,8 @@ void mat_invert4f(const Mat m, double* det, Mat r) {
     if(det) *det = d;
 }
 
-MatP* minvert4f(Mat m, double* det) {
-    mat_invert4f(m,det,m);
-    return m;
-}
-
-void mat_invert3f(const Mat m, double* det, Mat r) {
-    // 00:0:0 10:3:4 20:6:8
-    // 01:1:1 11:4:5 21:7:9
-    // 02:2:2 12:5:6 22:8:10
-
-    // computes the inverse of a matrix m
-    double d =
-        m[0] * (m[5] * m[10] - m[9] * m[6]) -
-        m[1] * (m[4] * m[10] - m[6] * m[8]) +
-        m[2] * (m[4] * m[9] - m[5] * m[8]);
-
-    if(det) *det = 0;
-    if(d == 0) {
-        mat_copy3f(m, r);
-        return;
-    }
-
-    double invdet = 1.0 / d;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma warning(push)
-#pragma warning(disable : 4244)
-    r[0] = (m[5] * m[10] - m[9] * m[6]) * invdet;
-    r[1] = (m[2] * m[9] - m[1] * m[10]) * invdet;
-    r[2] = (m[1] * m[6] - m[2] * m[5]) * invdet;
-    r[3] = m[3];
-
-    r[4] = (m[6] * m[8] - m[4] * m[10]) * invdet;
-    r[5] = (m[0] * m[10] - m[2] * m[8]) * invdet;
-    r[6] = (m[4] * m[2] - m[0] * m[6]) * invdet;
-    r[7] = m[7];
-
-    r[8] = (m[4] * m[9] - m[8] * m[5]) * invdet;
-    r[9] = (m[8] * m[1] - m[0] * m[9]) * invdet;
-    r[10] = (m[0] * m[5] - m[4] * m[1]) * invdet;
-    r[11] = m[11];
-
-    r[12] = m[12];
-    r[13] = m[13];
-    r[14] = m[14];
-    r[15] = m[15];
-#pragma warning(pop)
-#pragma GCC diagnostic pop
-
-    if(det) *det = d;
-}
-
-MatP* minvert3f(Mat m, double* det) {
-    mat_invert3f(m,det,m);
+MatP* minvert(Mat m, double* det) {
+    mat_invert(m,det,m);
     return m;
 }
 
@@ -770,34 +726,9 @@ MatP* mmul(const Mat m, Mat n) {
     return n;
 }
 
-void mat_mul_vec4f(const Mat m, const Vec4f v, Vec4f r) {
-    if( v[3] != 1.0f ) {
-        log_warn(__FILE__, __LINE__, "mat_mul_vec4f vec argument with vec[3] ! = 1.0f\n");
-    }
-
-    double t[4] = {0};
-    t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]*v[3];
-    t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]*v[3];
-    t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]*v[3];
-    t[3] = m[3]*v[0] + m[7]*v[1] + m[11]*v[2] + m[15]*v[3];
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma warning(push)
-#pragma warning(disable : 4244)
-    r[0] = t[0]; r[1] = t[1]; r[2] = t[2]; r[3] = t[3];
-#pragma warning(pop)
-#pragma GCC diagnostic pop
-
-}
-
-MatP* mmul_vec4f(const Mat m, Vec4f v) {
-    mat_mul_vec4f(m,v,v);
-    return v;
-}
-
-void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r) {
+void mat_mul_vec(const Mat m, const Vec3f v, Vec3f r) {
     double t[3] = {0};
+
     t[0] = m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12];
     t[1] = m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13];
     t[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14];
@@ -812,8 +743,8 @@ void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r) {
 
 }
 
-MatP* mmul_vec3f(const Mat m, Vec3f v) {
-    mat_mul_vec3f(m,v,v);
+MatP* mmul_vec(const Mat m, Vec3f v) {
+    mat_mul_vec(m,v,v);
     return v;
 }
 
@@ -874,7 +805,7 @@ void mat_scale(const Mat m, float s, Mat r) {
     }
 }
 
-void mat_transpose4f(const Mat m, Mat r) {
+void mat_transpose(const Mat m, Mat r) {
     Mat t;
     t[0] = m[0];  t[4] = m[1];  t[8]  = m[2];  t[12] = m[3];
     t[1] = m[4];  t[5] = m[5];  t[9]  = m[6];  t[13] = m[7];
@@ -886,25 +817,8 @@ void mat_transpose4f(const Mat m, Mat r) {
     }
 }
 
-MatP* mtranspose4f(Mat m) {
-    mat_transpose4f(m, m);
-    return m;
-}
-
-void mat_transpose3f(const Mat m, Mat r) {
-    Mat t;
-    t[0] = m[0];  t[4] = m[1];  t[8]  = m[2];  t[12] = m[12];
-    t[1] = m[4];  t[5] = m[5];  t[9]  = m[6];  t[13] = m[13];
-    t[2] = m[8];  t[6] = m[9];  t[10] = m[10]; t[14] = m[14];
-    t[3] = m[3];  t[7] = m[7];  t[11] = m[11]; t[15] = m[15];
-
-    for( int32_t i = 0; i < 16; i++ ) {
-        r[i] = t[i];
-    }
-}
-
-MatP* mtranspose3f(Mat m) {
-    mat_transpose3f(m, m);
+MatP* mtranspose(Mat m) {
+    mat_transpose(m, m);
     return m;
 }
 

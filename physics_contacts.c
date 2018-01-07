@@ -54,8 +54,8 @@ int32_t contacts_halfedgemesh_edge_edge(const struct SatEdgeTestResult* edge_tes
     vec_copy3f(mesh2->vertices.array[edge2->vertex].position, edge2_head);
     vec_copy3f(mesh2->vertices.array[other2->vertex].position, other2_head);
 
-    mat_mul_vec3f(pivot2_to_pivot1_transform, edge2_head, edge2_head);
-    mat_mul_vec3f(pivot2_to_pivot1_transform, other2_head, other2_head);
+    mat_mul_vec(pivot2_to_pivot1_transform, edge2_head, edge2_head);
+    mat_mul_vec(pivot2_to_pivot1_transform, other2_head, other2_head);
 
     Vec3f edge2_direction = {0};
     vec_sub(other2_head, edge2_head, edge2_direction);
@@ -124,7 +124,7 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
         struct HalfEdgeFace* current_face = &mesh2->faces.array[current_edge->face];
 
         Vec3f transformed_normal = {0};
-        mat_mul_vec3f(normal_transform, current_face->normal, transformed_normal);
+        mat_mul_vec(normal_transform, current_face->normal, transformed_normal);
 
         float dot = -FLT_MAX;
         vec_dot(transformed_normal, reference_face->normal, &dot);
@@ -173,7 +173,7 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
     do {
         VecP* current_incident_vertex = mesh2->vertices.array[current_edge->vertex].position;
         log_assert( face_i < (size_t)incident_face->size );
-        mat_mul_vec3f(pivot2_to_pivot1_transform, current_incident_vertex, &incident_polygon[face_i*3]);
+        mat_mul_vec(pivot2_to_pivot1_transform, current_incident_vertex, &incident_polygon[face_i*3]);
 
         current_edge = &mesh2->edges.array[current_edge->next];
         face_i += 1;

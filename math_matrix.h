@@ -99,8 +99,8 @@ float vangle(const Vec3f v, const Vec3f w);
 void vec_angle_points(const Vec3f a, const Vec3f b, const Vec3f c, float* r);
 float vangle_points(const Vec3f a, const Vec3f b, const Vec3f c);
 
-void vec_rotate4f(const Vec4f vec, const Quat q, Vec4f r);
-void vec_rotate3f(const Vec3f vec, const Quat q, Vec3f r);
+void vec_rotate(const Vec3f v, const Quat q, Vec3f r);
+VecP* vrotate(Vec3f v, const Quat q);
 
 // vector tests
 void vec_nullp(const Vec4f v, bool* r);
@@ -116,7 +116,7 @@ void vec_sign(const Vec4f v, int* sign);
 int32_t vsign(const Vec4f v);
 
 void vec_perpendicular(const Vec4f v, Vec4f r);
-VecP* vperpendicular(const Vec4f v);
+VecP* vperpendicular(Vec4f v);
 
 void vec_basis(const Vec3f x, Vec3f y, Vec3f z);
 
@@ -139,20 +139,14 @@ void mat_identity(Mat m);
 MatP* midentity(Mat m);
 
 // matrix operations
-void mat_invert4f(const Mat m, double* det, Mat r);
-MatP* minvert4f(Mat m, double* det);
-
-void mat_invert3f(const Mat m, double* det, Mat r);
-MatP* minvert3f(Mat m, double* det);
+void mat_invert(const Mat m, double* det, Mat r);
+MatP* minvert(Mat m, double* det);
 
 void mat_mul(const Mat m, const Mat n, Mat r);
 MatP* mmul(const Mat m, Mat n);
 
-void mat_mul_vec4f(const Mat m, const Vec4f v, Vec4f r);
-MatP* mmul_vec4f(const Mat m, Vec4f v);
-
-void mat_mul_vec3f(const Mat m, const Vec3f v, Vec3f r);
-MatP* mmul_vec3f(const Mat m, Vec3f v);
+void mat_mul_vec(const Mat m, const Vec3f v, Vec3f r);
+MatP* mmul_vec(const Mat m, Vec3f v);
 
 void mat_translate(const Mat m, const Vec3f v, Mat r);
 MatP* mtranslate(const Vec4f v, Mat m);
@@ -163,11 +157,8 @@ MatP* mrotate(Mat m, const Quat q);
 void mat_scale(const Mat m, float s, Mat r);
 //MatP* mscale(float s, Mat m);
 
-void mat_transpose4f(const Mat m, Mat r);
-MatP* mtranspose4f(Mat m);
-
-void mat_transpose3f(const Mat m, Mat r);
-MatP* mtranspose3f(Mat m);
+void mat_transpose(const Mat m, Mat r);
+MatP* mtranspose(Mat m);
 
 void mat_get_rotation(const Mat m, Mat r);
 MatP* mget_rotation(Mat m);

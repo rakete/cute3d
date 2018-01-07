@@ -235,7 +235,7 @@ int32_t main(int32_t argc, char *argv[]) {
         pivot_between_transform(&entity_a.pivot, &entity_b.pivot, between_transform);
 
         Vec3f foo = {0};
-        mat_mul_vec3f(between_transform, entity_a.hemesh.vertices.array[0].position, foo);
+        mat_mul_vec(between_transform, entity_a.hemesh.vertices.array[0].position, foo);
 
         colliding_prepare_shape((struct Shape*)&entity_a.shape);
         colliding_prepare_shape((struct Shape*)&entity_b.shape);

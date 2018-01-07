@@ -102,7 +102,7 @@ int32_t arcball_handle_mouse(struct Arcball* arcball, SDL_Event event) {
         // the cameras orientation, the way I set up the lookat implementation this should always
         // result in a vector parallel to the x-z-plane
         Vec4f right_axis = RIGHT_AXIS;
-        vec_rotate4f(right_axis, inverted_orientation, right_axis);
+        vec_rotate(right_axis, inverted_orientation, right_axis);
         if( mouse.xrel != 0 ) {
             // - then we'll just multiply the resulting axis with the mouse x relative movement, inversely
             // scaled by how far we are away from what we are looking at (farer means faster, nearer
@@ -157,7 +157,7 @@ int32_t arcball_handle_mouse(struct Arcball* arcball, SDL_Event event) {
         quat_invert(arcball->camera.pivot.orientation, inverted_orientation);
 
         Vec4f right_axis = RIGHT_AXIS;
-        vec_rotate4f(right_axis, inverted_orientation, right_axis);
+        vec_rotate(right_axis, inverted_orientation, right_axis);
 
         Quat pitch_rotation = {0};
         quat_from_axis_angle(right_axis, -PI/180 * mouse.yrel * rotation_slowness_factor, pitch_rotation);
@@ -171,7 +171,7 @@ int32_t arcball_handle_mouse(struct Arcball* arcball, SDL_Event event) {
         // - orbit is translated back and replaces the camera position
         Vec4f orbit = {0};
         vec_sub(arcball->camera.pivot.position, arcball->target, orbit);
-        vec_rotate4f(orbit, rotation, orbit);
+        vec_rotate(orbit, rotation, orbit);
         vec_add(arcball->target, orbit, arcball->camera.pivot.position);
 
         // - after updating the position we just call lookat to compute the new
@@ -194,7 +194,7 @@ int32_t arcball_handle_mouse(struct Arcball* arcball, SDL_Event event) {
             quat_invert(arcball->camera.pivot.orientation, inverted_orientation);
 
             Vec4f forward_axis = FORWARD_AXIS;
-            vec_rotate4f(forward_axis, inverted_orientation, forward_axis);
+            vec_rotate(forward_axis, inverted_orientation, forward_axis);
 
             Vec4f zoom = {0};
             vec_mul1f(forward_axis, wheel.y/arcball->zoom_factor*(*eye_distance), zoom);

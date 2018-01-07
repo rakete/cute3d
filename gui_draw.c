@@ -62,8 +62,8 @@ void draw_line(struct Canvas* canvas,
 
     Vec3f a, b;
     if( model_matrix != NULL )  {
-        mat_mul_vec3f(model_matrix, p, a);
-        mat_mul_vec3f(model_matrix, q, b);
+        mat_mul_vec(model_matrix, p, a);
+        mat_mul_vec(model_matrix, q, b);
     } else {
         vec_copy3f(p, a);
         vec_copy3f(q, b);

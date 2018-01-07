@@ -133,10 +133,10 @@ void text_put(struct Canvas* canvas,
             uint32_t color_offset = primitive_offset*COLOR_SIZE;
             uint32_t texcoord_offset = primitive_offset*TEXCOORD_SIZE;
 
-            mat_mul_vec3f( glyph_matrix, (Vec3f){0.0f - kerning, 0.0f, 0.0f}, &vertices[vertex_offset + 0*VERTEX_SIZE] );
-            mat_mul_vec3f( glyph_matrix, (Vec3f){1.0f - kerning, 0.0f, 0.0f}, &vertices[vertex_offset + 1*VERTEX_SIZE] );
-            mat_mul_vec3f( glyph_matrix, (Vec3f){1.0f - kerning, -1.0f, 0.0f}, &vertices[vertex_offset + 2*VERTEX_SIZE] );
-            mat_mul_vec3f( glyph_matrix, (Vec3f){0.0f - kerning, -1.0f, 0.0f}, &vertices[vertex_offset + 3*VERTEX_SIZE] );
+            mat_mul_vec( glyph_matrix, (Vec3f){0.0f - kerning, 0.0f, 0.0f}, &vertices[vertex_offset + 0*VERTEX_SIZE] );
+            mat_mul_vec( glyph_matrix, (Vec3f){1.0f - kerning, 0.0f, 0.0f}, &vertices[vertex_offset + 1*VERTEX_SIZE] );
+            mat_mul_vec( glyph_matrix, (Vec3f){1.0f - kerning, -1.0f, 0.0f}, &vertices[vertex_offset + 2*VERTEX_SIZE] );
+            mat_mul_vec( glyph_matrix, (Vec3f){0.0f - kerning, -1.0f, 0.0f}, &vertices[vertex_offset + 3*VERTEX_SIZE] );
 
             color_copy( color, &colors[color_offset + 0*COLOR_SIZE] );
             color_copy( color, &colors[color_offset + 1*COLOR_SIZE] );

@@ -35,13 +35,13 @@ void draw_arrow( struct Canvas* canvas,
 
     Vec4f z = { 0.0, 0.0, 1.0, 1.0 };
     Vec4f axis = {0};
-    vec_cross(v,z,axis);
+    vec_cross(z,v,axis);
     if( vnullp(axis) ) {
         vec_perpendicular(z,axis);
     }
 
     float angle = 0.0f;
-    vec_angle(v,z,&angle);
+    vec_angle(z,v,&angle);
 
     Quat rotation = {0};
     quat_from_axis_angle(axis, angle, rotation);
@@ -89,15 +89,17 @@ void draw_vec(struct Canvas* canvas,
 
     // - I wish I could remember why I did this rotation madness just to display a vector,
     // it baffles me that it even works, correctly even it seems
+    // - had to touch it in the quat_to_mat row/column order aftermath, had to change order
+    // of vec_cross arguments to make it work correctly again
     Vec4f z = { 0.0, 0.0, 1.0, 1.0 };
     Vec4f axis = {0};
-    vec_cross(v,z,axis);
+    vec_cross(z, v, axis);
     if( vnullp(axis) ) {
         vec_perpendicular(z,axis);
     }
 
     float angle = 0.0f;
-    vec_angle(v,z,&angle);
+    vec_angle(z, v, &angle);
 
     Quat rotation = {0};
     quat_from_axis_angle(axis, angle, rotation);

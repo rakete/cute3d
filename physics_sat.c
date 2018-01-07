@@ -29,7 +29,7 @@ void sat_halfedgemesh_transform_vertices(const struct HalfEdgeMesh* mesh,
 
     struct HalfEdgeVertex* mesh_vertices = mesh->vertices.array;
     for( uint32_t i = 0; i < mesh->vertices.occupied && i*3 < size; i++ ) {
-        mat_mul_vec3f(transform, mesh_vertices[i].position, &transformed_vertices[i*3]);
+        mat_mul_vec(transform, mesh_vertices[i].position, &transformed_vertices[i*3]);
     }
 }
 
@@ -85,7 +85,7 @@ void sat_halfedgemesh_rotate_face_normals(const struct HalfEdgeMesh* mesh,
         // - instead of all that messing around with quats, just the rotation part of the
         // transform also seems to work fine (a little more expensive I guess, but meh)
         vec_copy3f(mesh_faces[i].normal, &transformed_normals[i*3]);
-        mat_mul_vec3f(transform_rotation, &transformed_normals[i*3], &transformed_normals[i*3]);
+        mat_mul_vec(transform_rotation, &transformed_normals[i*3], &transformed_normals[i*3]);
     }
 }
 
