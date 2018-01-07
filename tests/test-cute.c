@@ -132,7 +132,7 @@ int32_t main(int32_t argc, char** argv) {
     gametime_create(1.0f / 60.0f, &time);
 
     Quat cube_spinning = {0};
-    qidentity(cube_spinning);
+    quat_identity(cube_spinning);
     while( true ) {
         SDL_Event event;
         while( sdl2_poll_event(&event) ) {
@@ -177,7 +177,7 @@ int32_t main(int32_t argc, char** argv) {
 
 
         Quat cube_rotation = {0};
-        qidentity(cube_rotation);
+        quat_identity(cube_rotation);
 
         quat_mul_axis_angle(cube_rotation, (Vec4f){ 0.0, 0.0, 1.0, 1.0 }, 45 * PI/180, cube_rotation);
         quat_mul_axis_angle(cube_rotation, (Vec4f){ 1.0, 0.0, 0.0, 1.0 }, 45 * PI/180, cube_rotation);

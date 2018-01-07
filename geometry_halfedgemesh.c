@@ -628,7 +628,7 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
                 struct HalfEdgeFace* face = &mesh->faces.array[face_one_i];
                 vec_copy3f(face->normal, &face_normals[face_one_i*3]);
 
-                if( vlength(face->normal) > CUTE_EPSILON ) {
+                if( vec_length(face->normal) > CUTE_EPSILON ) {
                     face_has_normal[face_one_i] = 1;
                 }
             }
@@ -637,7 +637,7 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
                 struct HalfEdgeFace* face = &mesh->faces.array[face_two_i];
                 vec_copy3f(face->normal, &face_normals[face_two_i*3]);
 
-                if( vlength(face->normal) > CUTE_EPSILON ) {
+                if( vec_length(face->normal) > CUTE_EPSILON ) {
                     face_has_normal[face_two_i] = 1;
                 }
             }
@@ -658,7 +658,7 @@ void halfedgemesh_optimize(struct HalfEdgeMesh* mesh) {
                 normal_b[1] = face_normals[face_two_i*3+1];
                 normal_b[2] = face_normals[face_two_i*3+2];
 
-                if( vequal(normal_a, normal_b) ) {
+                if( vec_equal(normal_a, normal_b) ) {
                     log_assert( this->prev != this->this );
                     log_assert( this->next != this->this );
                     log_assert( this->prev != this->next );

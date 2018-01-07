@@ -35,8 +35,8 @@ enum IntersectPlaneSegmentResult intersect_plane_segment(const Vec3f plane_norma
     // - the intersection point (result - plane_point = w + s * u ) must be perpendicular to plane_normal,
     // so that means when we solve (plane_normal * (w + s * u) = 0) for s we get:
     // s = -(plane_normal * w) / plane_normal * u
-    float d = vdot(plane_normal, u);
-    float n = -1.0f * vdot(plane_normal, w);
+    float d = vec_dot(plane_normal, u);
+    float n = -1.0f * vec_dot(plane_normal, w);
 
     // - before we compute s we check if the line is parallel to the plane, which is the case if
     // plane_normal * u = 0
@@ -77,7 +77,7 @@ enum IntersectPlanePlaneResult intersect_plane_plane(const Vec3f plane_normal_a,
         // test if disjoint or coincide
         Vec3f v = {0};
         vec_sub(plane_point_b, plane_point_a, v);
-        if( vdot(plane_normal_a, v) == 0 ) {// Pn2.V0 lies in Pn1
+        if( vec_dot(plane_normal_a, v) == 0 ) {// Pn2.V0 lies in Pn1
             return PLANE_PLANE_COINCIDE; // Pn1 and Pn2 coincide
         } else {
             return PLANE_PLANE_DISJOINT; // Pn1 and Pn2 are disjoint
@@ -105,8 +105,8 @@ enum IntersectPlanePlaneResult intersect_plane_plane(const Vec3f plane_normal_a,
     // next, to get a point on the intersect line
     // zero the max coord, and solve for the other two
     float d1, d2; // the constants in the 2 plane equations
-    d1 = -vdot(plane_normal_a, plane_point_a); // note: could be pre-stored  with plane
-    d2 = -vdot(plane_normal_b, plane_point_b); // ditto
+    d1 = -vec_dot(plane_normal_a, plane_point_a); // note: could be pre-stored  with plane
+    d2 = -vec_dot(plane_normal_b, plane_point_b); // ditto
 
     switch (maxc) { // select max coordinate
         case 1: // intersect with x=0
@@ -193,7 +193,7 @@ static int intersect_sort_convex_points_comparison(const void* a, const void* b)
     VecP* v = ((struct IntersectSortConvexPointsContext*)b)->transformed_vertex;
     Vec3f w = {0};
     vec_cross(u, v, w);
-    return vdot(w, normal) < 0.0f;
+    return vec_dot(w, normal) < 0.0f;
 }
 
 size_t intersect_plane_aabb(const Vec3f plane_normal, const Vec3f plane_point, const Vec3f aabb_center, const Vec3f aabb_half_size, size_t result_size, float* result) {
@@ -414,14 +414,12 @@ bool intersect_ray_sphere(const Vec4f origin, const Vec4f direction, const Vec3f
     vec_sub(sphere_center, origin, L);
 
     // geometric solution
-    float tca;
-    vec_dot(L, direction, &tca);
+    float tca = vec_dot(L, direction);
     if( tca < 0 ) {
         return false;
     }
 
-    float d2;
-    vec_dot(L, L, &d2);
+    float d2 = vec_dot(L, L);
     d2 = d2 - tca * tca;
 
     float radius2 = sphere_radius * sphere_radius;
@@ -508,11 +506,11 @@ bool intersect_ray_aabb(const Vec3f origin, const Vec3f direction, const Vec3f a
 bool intersect_ray_plane(const Vec3f origin, const Vec3f direction, const Vec3f plane_normal, const Vec3f plane_point, float* result) {
     *result = -FLT_MAX;
 
-    float d = vdot(plane_normal, direction);
+    float d = vec_dot(plane_normal, direction);
     if( d > CUTE_EPSILON ) {
         Vec3f u = {0};
         vec_sub(plane_point, origin, u);
-        *result = vdot(u, plane_normal) / d;
+        *result = vec_dot(u, plane_normal) / d;
         return (*result >= 0.0f);
     }
 

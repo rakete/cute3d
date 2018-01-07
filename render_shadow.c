@@ -28,8 +28,7 @@ void shadow_frustum_matrices(const struct Camera* camera, Vec3f light_position, 
     Vec3f diagonal_vec = {0};
     vec_sub(frustum_vertices.left_top_far, frustum_vertices.right_bottom_near, diagonal_vec);
 
-    float longest_diagonal = 0.0f;
-    vec_length(diagonal_vec, &longest_diagonal);
+    float longest_diagonal = vec_length(diagonal_vec);
 
 }
 

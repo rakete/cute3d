@@ -26,363 +26,15 @@ void vec_copy4f(const Vec4f v, Vec4f r) {
     r[3] = v[3];
 }
 
-VecP* vcopy4f(const Vec4f v, Vec4f r) {
-    vec_copy4f(v,r);
-    return r;
-}
-
 void vec_copy3f(const Vec4f v, Vec3f r) {
     r[0] = v[0];
     r[1] = v[1];
     r[2] = v[2];
 }
 
-VecP* vcopy3f(const Vec4f v, Vec3f r) {
-    vec_copy3f(v,r);
-    return r;
-}
-
 void vec_copy2f(const Vec4f v, Vec2f r) {
     r[0] = v[0];
     r[1] = v[1];
-}
-
-VecP* vcopy2f(const Vec4f v, Vec2f r) {
-    vec_copy2f(v,r);
-    return r;
-}
-
-void vec_equal(const Vec4f a, const Vec4f b, bool* r) {
-    *r = 0;
-
-    // having these somewhat larger (larger then FLT_EPSILON at least) works better
-    if( fabs(a[0] - b[0]) <= 0.00001 &&
-        fabs(a[1] - b[1]) <= 0.00001 &&
-        fabs(a[2] - b[2]) <= 0.00001 )
-    {
-        *r = 1;
-    }
-}
-
-bool vequal(const Vec4f a, const Vec4f b) {
-    bool r;
-    vec_equal(a,b,&r);
-    return r;
-}
-
-void vec_add(const Vec3f v, const Vec3f w, Vec3f r) {
-    r[0] = v[0] + w[0];
-    r[1] = v[1] + w[1];
-    r[2] = v[2] + w[2];
-}
-
-VecP* vadd(const Vec3f v, Vec3f w) {
-    vec_add(v,w,w);
-    return w;
-}
-
-void vec_add1f(const Vec3f v, float w, Vec3f r) {
-    r[0] = v[0] + w;
-    r[1] = v[1] + w;
-    r[2] = v[2] + w;
-}
-
-VecP* vadd1f(Vec3f v, float w) {
-    vec_add1f(v,w,v);
-    return v;
-}
-
-
-void vec_sub(const Vec3f v, const Vec3f w, Vec3f r) {
-    r[0] = v[0] - w[0];
-    r[1] = v[1] - w[1];
-    r[2] = v[2] - w[2];
-}
-
-VecP* vsub(const Vec3f v, Vec3f w) {
-    vec_sub(v,w,w);
-    return w;
-}
-
-void vec_sub1f(const Vec3f v, float w, Vec3f r) {
-    r[0] = v[0] - w;
-    r[1] = v[1] - w;
-    r[2] = v[2] - w;
-}
-
-VecP* vsub1f(Vec3f v, float w) {
-    vec_sub1f(v,w,v);
-    return v;
-}
-
-void vec_mul1f(const Vec3f v, float w, Vec3f r) {
-    r[0] = v[0]*w;
-    r[1] = v[1]*w;
-    r[2] = v[2]*w;
-}
-
-VecP* vmul1f(Vec3f v, float w) {
-    vec_mul1f(v,w,v);
-    return v;
-}
-
-void vec_invert(const Vec3f v, Vec3f r) {
-    r[0] = -v[0];
-    r[1] = -v[1];
-    r[2] = -v[2];
-}
-
-VecP* vinvert(Vec3f v) {
-    vec_invert(v,v);
-    return v;
-}
-
-void vec_dot(const Vec3f v, const Vec3f w, float* r) {
-    *r = v[0]*w[0] + v[1]*w[1] + v[2]*w[2];
-}
-
-float vdot(const Vec3f v, const Vec3f w) {
-    float r;
-    vec_dot(v,w,&r);
-    return r;
-}
-
-void vec_cross(const Vec3f v, const Vec3f w, Vec3f r) {
-    double t[3];
-    t[0] = v[1]*w[2] - v[2]*w[1];
-    t[1] = v[2]*w[0] - v[0]*w[2];
-    t[2] = v[0]*w[1] - v[1]*w[0];
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma warning(push)
-#pragma warning(disable : 4244)
-    r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
-#pragma warning(pop)
-#pragma GCC diagnostic pop
-}
-
-VecP* vcross(const Vec4f v, Vec4f w) {
-    vec_cross(v,w,w);
-    return w;
-}
-
-void vec_squared(const Vec3f v, float* r) {
-    *r = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
-}
-
-float vsquared(const Vec3f v) {
-    float r;
-    vec_squared(v,&r);
-    return r;
-}
-
-void vec_length(const Vec3f v, float* r) {
-    if( v[0] == 0.0f && v[1] == 0.0f && v[2] == 0.0f ) {
-        // - I had this return 0 when all v[*] < CUTE_EPSILON, but it turned out I don't really like getting
-        // zero from this function because dividing by zero gives me nan, which causes problems elsewhere, so,
-        // only return zero when all coords are actually zero
-        *r = 0.0f;
-    } else if( fabs(v[0]) < CUTE_EPSILON && fabs(v[1]) < CUTE_EPSILON && fabs(v[2]) < CUTE_EPSILON ) {
-        // - used to return 0 here, now just make CUTE_EPSILON smallest possible vector length
-        *r = CUTE_EPSILON;
-    } else {
-        *r = (float)sqrt( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
-    }
-}
-
-float vlength(const Vec3f v) {
-    float r;
-    vec_length(v,&r);
-    return r;
-}
-
-void vec_normalize(const Vec3f v, Vec3f r) {
-    double norm = vlength(v);
-
-    // guard against nan
-    if( norm < CUTE_EPSILON ) {
-        norm = CUTE_EPSILON;
-    }
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma warning(push)
-#pragma warning(disable : 4244)
-    r[0] = v[0] / norm;
-    r[1] = v[1] / norm;
-    r[2] = v[2] / norm;
-#pragma warning(pop)
-#pragma GCC diagnostic pop
-
-    r[0] = isnan(r[0]) ? 0.0f : r[0];
-    r[1] = isnan(r[1]) ? 0.0f : r[1];
-    r[2] = isnan(r[2]) ? 0.0f : r[2];
-}
-
-VecP* vnormalize(Vec4f v) {
-    vec_normalize(v,v);
-    return v;
-}
-
-void vec_angle(const Vec3f v, const Vec3f w, float* r) {
-    Vec3f normed_v, normed_w;
-    vec_normalize(v, normed_v);
-    vec_normalize(w, normed_w);
-
-
-    double dot = vdot(normed_v,normed_w);
-
-    if( dot < -1.0 ) {
-        *r = PI;
-    } else if( dot > 1.0 ) {
-        *r = 0.0f;
-    } else {
-        log_assert( -1.0 <= dot && dot <= 1.0, "-1.0 <= %f <= 1.0\n", dot );
-        *r = (float)acos(dot);
-    }
-
-}
-
-float vangle(const Vec3f v, const Vec3f w) {
-    float r;
-    vec_angle(v,w,&r);
-    return r;
-}
-
-void vec_angle_points(const Vec3f a, const Vec3f b, const Vec3f c, float* r) {
-    Vec3f v = {0};
-    Vec3f w = {0};
-
-    vec_sub(b, a, v);
-    vec_sub(c, a, w);
-
-    vec_angle(v, w, r);
-}
-
-float vangle_points(const Vec3f a, const Vec3f b, const Vec3f c) {
-    float r;
-    vec_angle_points(a, b, c, &r);
-    return r;
-}
-
-void vec_rotate(const Vec3f v_in, const Quat q, Vec3f r) {
-    /* Quat normed_q; */
-    /* quat_normalize(q, normed_q); */
-
-    /* Quat conj; */
-    /* quat_conjugate(q, conj); */
-
-    /* Quat product; */
-    /* quat_mul(q, v, product); */
-
-    /* quat_mul(product, conj, r); */
-
-    Vec4f v = {0};
-    v[0] = v_in[0];
-    v[1] = v_in[1];
-    v[2] = v_in[2];
-
-    float s = q[3];
-
-    vec_mul1f(q, 2.0f * vdot(q, v), r);
-
-    Vec3f t = {0};
-    vec_mul1f(v, s*s - vdot(q, q), t);
-    vec_add(r, t, r);
-
-    Vec3f u = {0};
-    vec_cross(q, v, u);
-    vec_mul1f(u, 2.0f * s, u);
-    vec_add(r, u, r);
-
-    /* vprime = */
-    /*     2.0f * dot(u, v) * u */
-    /*     + (s*s - dot(u, u)) * v */
-    /*     + 2.0f * s * cross(u, v); */
-}
-
-void vec_nullp(const Vec4f v, bool* r) {
-    if( fabs(v[0]) < CUTE_EPSILON &&
-        fabs(v[1]) < CUTE_EPSILON &&
-        fabs(v[2]) < CUTE_EPSILON )
-    {
-        *r = 1;
-    } else {
-        *r = 0;
-    }
-}
-
-bool vnullp(const Vec4f v) {
-    bool r;
-    vec_nullp(v,&r);
-    return r;
-}
-
-void vec_unitp(const Vec4f v, bool* r) {
-    if( fabs(vlength(v) - 1.0f) < CUTE_EPSILON ) {
-        *r = 1;
-    } else {
-        *r = 0;
-    }
-}
-
-bool vunitp(const Vec4f v) {
-    bool r;
-    vec_unitp(v,&r);
-    return r;
-}
-
-void vec_sum(const Vec4f v, float* sum) {
-    *sum = v[0] + v[1] + v[2];
-}
-
-float vsum(const Vec4f v) {
-    float sum;
-    vec_sum(v, &sum);
-    return sum;
-}
-
-void vec_sign(const Vec4f v, int* sign) {
-    // this is a hack, it was created when I wanted to visualize quaternion and needed a way to distinguish
-    // an rotation axis form its inverse, without having both the axis and its inverse at that moment
-    //
-    // so this function tries to find a sign for a given vector, that should always opposite of the sign
-    // that the vectors inverse has
-    Vec4f w;
-    vec_normalize(v, w);
-
-    float sum = vsum(w);
-    if( sum != 0.0 ) {
-        *sign = (int)sum;
-        return;
-    }
-
-    float sum01 = v[0] + v[1];
-    if( sum01 != 0.0f ) {
-        *sign = (int)sum;
-        return;
-    }
-
-    float sum12 = v[1] + v[2];
-    if( sum12 != 0.0f ) {
-        *sign = (int)sum;
-        return;
-    }
-
-    float sum02 = v[0] + v[2];
-    if( sum02 != 0.0f ) {
-        *sign = (int)sum;
-        return;
-    }
-
-    *sign = 0;
-}
-
-int32_t vsign(const Vec4f v) {
-    int32_t sign;
-    vec_sign(v, &sign);
-    return sign;
 }
 
 void vec_perpendicular(const Vec4f v, Vec4f r) {
@@ -449,6 +101,240 @@ void vec_basis(const Vec3f x, Vec3f y, Vec3f z) {
     /* vec_cross(x, y, z); */
 }
 
+void vec_add(const Vec3f v, const Vec3f w, Vec3f r) {
+    r[0] = v[0] + w[0];
+    r[1] = v[1] + w[1];
+    r[2] = v[2] + w[2];
+}
+
+void vec_add1f(const Vec3f v, float w, Vec3f r) {
+    r[0] = v[0] + w;
+    r[1] = v[1] + w;
+    r[2] = v[2] + w;
+}
+
+void vec_sub(const Vec3f v, const Vec3f w, Vec3f r) {
+    r[0] = v[0] - w[0];
+    r[1] = v[1] - w[1];
+    r[2] = v[2] - w[2];
+}
+
+void vec_sub1f(const Vec3f v, float w, Vec3f r) {
+    r[0] = v[0] - w;
+    r[1] = v[1] - w;
+    r[2] = v[2] - w;
+}
+
+void vec_mul1f(const Vec3f v, float w, Vec3f r) {
+    r[0] = v[0]*w;
+    r[1] = v[1]*w;
+    r[2] = v[2]*w;
+}
+
+void vec_invert(const Vec3f v, Vec3f r) {
+    r[0] = -v[0];
+    r[1] = -v[1];
+    r[2] = -v[2];
+}
+
+float vec_dot(const Vec3f v, const Vec3f w) {
+    float ret = v[0]*w[0] + v[1]*w[1] + v[2]*w[2];
+    return ret;
+}
+
+void vec_cross(const Vec3f v, const Vec3f w, Vec3f r) {
+    double t[3];
+    t[0] = v[1]*w[2] - v[2]*w[1];
+    t[1] = v[2]*w[0] - v[0]*w[2];
+    t[2] = v[0]*w[1] - v[1]*w[0];
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma warning(push)
+#pragma warning(disable : 4244)
+    r[0] = t[0]; r[1] = t[1]; r[2] = t[2];
+#pragma warning(pop)
+#pragma GCC diagnostic pop
+}
+
+float vec_squared(const Vec3f v) {
+    float ret = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
+    return ret;
+}
+
+float vec_length(const Vec3f v) {
+    float ret = 0.0f;
+    if( v[0] == 0.0f && v[1] == 0.0f && v[2] == 0.0f ) {
+        // - I had this return 0 when all v[*] < CUTE_EPSILON, but it turned out I don't really like getting
+        // zero from this function because dividing by zero gives me nan, which causes problems elsewhere, so,
+        // only return zero when all coords are actually zero
+        ret = 0.0f;
+    } else if( fabs(v[0]) < CUTE_EPSILON && fabs(v[1]) < CUTE_EPSILON && fabs(v[2]) < CUTE_EPSILON ) {
+        // - used to return 0 here, now just make CUTE_EPSILON smallest possible vector length
+        ret = CUTE_EPSILON;
+    } else {
+        ret = (float)sqrt( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
+    }
+
+    return ret;
+}
+
+void vec_normalize(const Vec3f v, Vec3f r) {
+    double norm = vec_length(v);
+
+    // guard against nan
+    if( norm < CUTE_EPSILON ) {
+        norm = CUTE_EPSILON;
+    }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma warning(push)
+#pragma warning(disable : 4244)
+    r[0] = v[0] / norm;
+    r[1] = v[1] / norm;
+    r[2] = v[2] / norm;
+#pragma warning(pop)
+#pragma GCC diagnostic pop
+
+    r[0] = isnan(r[0]) ? 0.0f : r[0];
+    r[1] = isnan(r[1]) ? 0.0f : r[1];
+    r[2] = isnan(r[2]) ? 0.0f : r[2];
+}
+
+void vec_angle(const Vec3f v, const Vec3f w, float* r) {
+    Vec3f normed_v, normed_w;
+    vec_normalize(v, normed_v);
+    vec_normalize(w, normed_w);
+
+
+    double dot = vec_dot(normed_v,normed_w);
+
+    if( dot < -1.0 ) {
+        *r = PI;
+    } else if( dot > 1.0 ) {
+        *r = 0.0f;
+    } else {
+        log_assert( -1.0 <= dot && dot <= 1.0, "-1.0 <= %f <= 1.0\n", dot );
+        *r = (float)acos(dot);
+    }
+
+}
+
+void vec_angle_points(const Vec3f a, const Vec3f b, const Vec3f c, float* r) {
+    Vec3f v = {0};
+    Vec3f w = {0};
+
+    vec_sub(b, a, v);
+    vec_sub(c, a, w);
+
+    vec_angle(v, w, r);
+}
+
+void vec_rotate(const Vec3f v_in, const Quat q, Vec3f r) {
+    /* Quat normed_q; */
+    /* quat_normalize(q, normed_q); */
+
+    /* Quat conj; */
+    /* quat_conjugate(q, conj); */
+
+    /* Quat product; */
+    /* quat_mul(q, v, product); */
+
+    /* quat_mul(product, conj, r); */
+
+    Vec4f v = {0};
+    v[0] = v_in[0];
+    v[1] = v_in[1];
+    v[2] = v_in[2];
+
+    float s = q[3];
+
+    vec_mul1f(q, 2.0f * vec_dot(q, v), r);
+
+    Vec3f t = {0};
+    vec_mul1f(v, s*s - vec_dot(q, q), t);
+    vec_add(r, t, r);
+
+    Vec3f u = {0};
+    vec_cross(q, v, u);
+    vec_mul1f(u, 2.0f * s, u);
+    vec_add(r, u, r);
+
+    /* vprime = */
+    /*     2.0f * dot(u, v) * u */
+    /*     + (s*s - dot(u, u)) * v */
+    /*     + 2.0f * s * cross(u, v); */
+}
+
+bool vec_nullp(const Vec4f v) {
+    if( fabs(v[0]) < CUTE_EPSILON &&
+        fabs(v[1]) < CUTE_EPSILON &&
+        fabs(v[2]) < CUTE_EPSILON )
+    {
+        return true;
+    }
+    return false;
+}
+
+bool vec_unitp(const Vec4f v) {
+    if( fabs(vec_length(v) - 1.0f) < CUTE_EPSILON ) {
+        return true;
+    }
+    return false;
+}
+
+bool vec_equal(const Vec4f a, const Vec4f b) {
+    bool ret = 0;
+
+    // - having these somewhat larger (larger then FLT_EPSILON at least) works better
+    if( fabs(a[0] - b[0]) <= 0.00001f &&
+        fabs(a[1] - b[1]) <= 0.00001f &&
+        fabs(a[2] - b[2]) <= 0.00001f )
+    {
+        ret = 1;
+    }
+
+    return ret;
+}
+
+float vec_sum(const Vec4f v) {
+    float sum = v[0] + v[1] + v[2];
+    return sum;
+}
+
+float vec_sign(const Vec4f v) {
+    // this is a hack, it was created when I wanted to visualize quaternion and needed a way to distinguish
+    // an rotation axis form its inverse, without having both the axis and its inverse at that moment
+    //
+    // so this function tries to find a sign for a given vector, that should always opposite of the sign
+    // that the vectors inverse has
+    Vec4f w = {0};
+    vec_normalize(v, w);
+
+    float sum = vec_sum(w);
+    if( sum != 0.0 ) {
+        return sum;
+    }
+
+    float sum01 = v[0] + v[1];
+    if( sum01 != 0.0f ) {
+        return sum;
+    }
+
+    float sum12 = v[1] + v[2];
+    if( sum12 != 0.0f ) {
+        return sum;
+    }
+
+    float sum02 = v[0] + v[2];
+    if( sum02 != 0.0f ) {
+        return sum;
+    }
+
+    return -FLT_MAX;
+}
+
 void vec_print(const char* title, const Vec3f v) {
     printf("%s(%f %f %f)\n", title, v[0], v[1], v[2]);
 }
@@ -486,12 +372,6 @@ void mat_copy4f(const Mat m, Mat r) {
     r[1] = m[1];  r[5] = m[5];  r[9] = m[9];   r[13] = m[13];
     r[2] = m[2];  r[6] = m[6];  r[10] = m[10]; r[14] = m[14];
     r[3] = m[3];  r[7] = m[7];  r[11] = m[11]; r[15] = m[15];
-}
-
-void mat_copy3f(const Mat m, Mat r) {
-    r[0] = m[0];  r[4] = m[4];  r[7] = m[7];
-    r[1] = m[1];  r[5] = m[5];  r[8] = m[8];
-    r[2] = m[2];  r[6] = m[6];  r[9] = m[9];
 }
 
 void mat_basis(const Vec4f x, Mat r) {
@@ -689,11 +569,6 @@ void mat_invert(const Mat m, double* det, Mat r) {
     if(det) *det = d;
 }
 
-MatP* minvert(Mat m, double* det) {
-    mat_invert(m,det,m);
-    return m;
-}
-
 void mat_mul(const Mat n, const Mat m, Mat r) {
     Mat t;
     t[0] = m[0] * n[0] + m[4] * n[1] + m[8] * n[2] + m[12] * n[3];
@@ -721,11 +596,6 @@ void mat_mul(const Mat n, const Mat m, Mat r) {
     r[12] = t[12]; r[13] = t[13]; r[14] = t[14]; r[15] = t[15];
 }
 
-MatP* mmul(const Mat m, Mat n) {
-    mat_mul(n,m,n);
-    return n;
-}
-
 void mat_mul_vec(const Mat m, const Vec3f v, Vec3f r) {
     double t[3] = {0};
 
@@ -741,11 +611,6 @@ void mat_mul_vec(const Mat m, const Vec3f v, Vec3f r) {
 #pragma warning(pop)
 #pragma GCC diagnostic pop
 
-}
-
-MatP* mmul_vec(const Mat m, Vec3f v) {
-    mat_mul_vec(m,v,v);
-    return v;
 }
 
 void mat_translate(const Mat m, const Vec3f v, Mat r) {
@@ -767,11 +632,6 @@ void mat_translate(const Mat m, const Vec3f v, Mat r) {
     }
 }
 
-MatP* mtranslate(const Vec4f v, Mat m) {
-    mat_translate(m,v,m);
-    return m;
-}
-
 void mat_rotate(const Mat m, const Quat q, Mat r) {
     if( m != NULL ) {
         Mat n;
@@ -781,11 +641,6 @@ void mat_rotate(const Mat m, const Quat q, Mat r) {
     } else {
         quat_to_mat(q,r);
     }
-}
-
-MatP* mrotate(Mat m, const Quat q) {
-    mat_rotate(m,q,m);
-    return m;
 }
 
 void mat_scale(const Mat m, float s, Mat r) {
@@ -817,11 +672,6 @@ void mat_transpose(const Mat m, Mat r) {
     }
 }
 
-MatP* mtranspose(Mat m) {
-    mat_transpose(m, m);
-    return m;
-}
-
 void mat_get_rotation(const Mat m, Mat r) {
     double scale = sqrt( m[0]*m[0] + m[4]*m[4] + m[8]*m[8] );
 
@@ -838,18 +688,8 @@ void mat_get_rotation(const Mat m, Mat r) {
 
 }
 
-MatP* mget_rotation(Mat m) {
-    mat_get_rotation(m, m);
-    return m;
-}
-
 void mat_get_translation(const Mat m, Mat r) {
     mat_translate(NULL, (Vec3f){m[12], m[13], m[14]}, r);
-}
-
-MatP* mget_translation(Mat m) {
-    mat_get_translation(m, m);
-    return m;
 }
 
 void mat_print(const char* title, const Mat m) {

@@ -82,7 +82,7 @@ int32_t contacts_halfedgemesh_edge_edge(const struct SatEdgeTestResult* edge_tes
     Vec3f center2_to_center1 = {0};
     vec_sub(pivot2->position, pivot1->position, center2_to_center1);
 
-    if( vdot(normal, center2_to_center1) <= 0.0f ) {
+    if( vec_dot(normal, center2_to_center1) <= 0.0f ) {
         vec_invert(normal, contacts->normal);
     } else {
         vec_copy3f(normal, contacts->normal);
@@ -126,8 +126,7 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
         Vec3f transformed_normal = {0};
         mat_mul_vec(normal_transform, current_face->normal, transformed_normal);
 
-        float dot = -FLT_MAX;
-        vec_dot(transformed_normal, reference_face->normal, &dot);
+        float dot = vec_dot(transformed_normal, reference_face->normal);
         if( dot < min_dot ) {
             min_dot = dot;
             incident_face_index = current_edge->face;
@@ -194,17 +193,14 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
     // - after clipping, we may have to many contact points, we want to reduce them so that they fit
     // into the struct Contacts* result
     // - the first thing we do is to keep only those which are below the reference faces plane
-    float reference_offset = 0.0;
     const struct HalfEdge* reference_edge = &mesh1->edges.array[reference_face->edge];
-    vec_dot(reference_face->normal, mesh1->vertices.array[reference_edge->vertex].position, &reference_offset);
+    float reference_offset = vec_dot(reference_face->normal, mesh1->vertices.array[reference_edge->vertex].position);
 
     int32_t below_polygon_size = 0;
     for( int32_t i = 0; i < clipped_polygon_size; i++ ) {
         const VecP* contact_point = &clipped_polygon[i*3];
 
-        float distance = 0.0;
-        vec_dot(reference_face->normal, contact_point, &distance);
-        distance -= reference_offset;
+        float distance = vec_dot(reference_face->normal, contact_point) - reference_offset;
 
         if( distance < 0.0f ) {
             vec_copy3f(contact_point, &clipped_polygon[below_polygon_size*3]);
@@ -249,9 +245,7 @@ int32_t contacts_halfedgemesh_face_face(const struct SatFaceTestResult* face_tes
     for( int32_t i = 0; i < final_polygon_size; i++ ) {
         vec_copy3f(&clipped_polygon[i*3], contacts->points[contacts->num_contacts]);
 
-        float distance = FLT_MAX;
-        vec_dot(reference_face->normal, &clipped_polygon[i*3], &distance);
-        distance -= reference_offset;
+        float distance = vec_dot(reference_face->normal, &clipped_polygon[i*3]) - reference_offset;
         contacts->penetration[contacts->num_contacts] = distance;
 
         contacts->num_contacts += 1;

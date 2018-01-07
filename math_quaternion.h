@@ -31,45 +31,32 @@
 void quat_copy(const Quat q, Quat r);
 
 void quat_identity(Quat q);
-QuatP* qidentity(Quat q);
 
 void quat_from_euler_angles(float x, float y, float z, Quat q);
-QuatP* qfrom_euler_angles(float x, float y, float z, Quat q);
 
 void quat_from_axis_angle(const Vec3f axis, const float angle, Quat q);
-QuatP* qfrom_axis_angle(Quat axis, const float angle);
 
 // - create quaternion that rotates a -> b
 void quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q);
-QuatP* qfrom_vec_pair(const Vec3f a, Quat b);
 
 // quaternion operations
 void quat_mul_axis_angle(const Quat q, const Vec3f axis, const float angle, Quat r);
-QuatP* qmul_axis_angle(const Vec3f axis, const float angle, Quat q);
 
 void quat_mul(const Quat qa, const Quat qb, Quat r);
-QuatP* qmul(const Quat qa, Quat qb);
 
 void quat_mul1f(const Quat qa, float b, Quat r);
-QuatP* qmul1f(Quat qa, float b);
 
 void quat_add(const Quat qa, const Quat qb, Quat r);
-QuatP* qadd(const Quat qa, Quat qb);
 
-void quat_dot(const Quat qa, const Quat qb, float* r);
-float qdot(const Quat qa, const Quat qb);
+float quat_dot(const Quat qa, const Quat qb);
 
 void quat_conjugate(const Quat q, Quat r);
-//QuatP* qconjugate(Quat q);
 
 void quat_invert(const Quat q, Quat r);
-//QuatP* qinvert(Quat q);
 
-void quat_magnitude(const Quat q, float* r);
-float qmagnitude(const Quat q);
+float quat_magnitude(const Quat q);
 
 void quat_normalize(const Quat q, Quat r);
-QuatP* qnormalize(Quat q);
 
 // quaternion conversion
 void quat_to_mat(const Quat q, Mat r);
@@ -78,6 +65,5 @@ void quat_to_axis_angle(const Quat q, Vec4f axis, float* angle);
 
 // quaternion interpolation
 void quat_slerp(const Quat qa, const Quat qb, float t, Quat r);
-QuatP* qslerp(const Quat qa, Quat qb, float t);
 
 #endif

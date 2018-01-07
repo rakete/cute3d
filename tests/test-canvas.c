@@ -131,7 +131,9 @@ int32_t main(int32_t argc, char *argv[]) {
         draw_basis(&text_canvas, 1, (Mat)IDENTITY_MAT, 0.02f, 1.0f);
 
         Mat text_matrix = {0};
-        mat_rotate(NULL, qfrom_axis_angle((Vec4f){1.0, 0.0, 0.0, 1.0}, PI/2), text_matrix);
+        Quat text_rotation = {0};
+        quat_from_axis_angle((Vec4f){1.0, 0.0, 0.0, 1.0}, PI/2, text_rotation);
+        mat_rotate(NULL, text_rotation, text_matrix);
         mat_translate(text_matrix, (Vec4f){-3.5, -1.0, 6.25, 1.0}, text_matrix);
 
         Vec4f world_cursor = {0,0,0,1};

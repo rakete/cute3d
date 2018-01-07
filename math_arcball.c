@@ -201,7 +201,7 @@ int32_t arcball_handle_mouse(struct Arcball* arcball, SDL_Event event) {
             vec_add(arcball->camera.pivot.position, zoom, arcball->camera.pivot.position);
 
             // - eye_distance is kept in camera state, so we need to update it here
-            *eye_distance = vlength(arcball->camera.pivot.position);
+            *eye_distance = vec_length(arcball->camera.pivot.position);
         }
     }
 

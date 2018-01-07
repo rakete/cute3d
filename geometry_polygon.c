@@ -35,11 +35,9 @@ void polygon_corner_area(size_t polygon_size, size_t point_size, const float* po
     Vec3f edge_bc = {0};
     vec_sub(c, b, edge_bc);
 
-    float area = 0.0;
     Vec3f edge_cross = {0};
     vec_cross(edge_ba, edge_bc, edge_cross);
-    vec_length(edge_cross, &area);
-    area = area/2.0f;
+    float area = vec_length(edge_cross)/2.0f;
 
     *result = area;
 }
@@ -87,16 +85,14 @@ enum PolygonCutType polygon_cut_test(size_t polygon_size, size_t point_size, con
 
     enum PolygonCutType return_type = POLYGON_COPLANNAR;
 
-    float w = 0.0f;
-    vec_dot(plane_normal, plane_point, &w);
+    float w = vec_dot(plane_normal, plane_point);
 
     // - first loop goes through all polygon points, initializes ter result_points
     // - distance in result_point[polygon_i] is computing as distance of polygon point from cutting plane
     for( size_t polygon_i = 0; polygon_i < polygon_size; polygon_i++) {
         const VecP* p = &polygon[polygon_i*point_size];
 
-        float p_distance = 0.0f;
-        vec_dot(plane_normal, p, &p_distance);
+        float p_distance = vec_dot(plane_normal, p);
         p_distance -= w;
 
         result_points[polygon_i].interpolation_index = -1;
@@ -253,12 +249,12 @@ void polygon_clip_edge_edge(const Vec3f edge1_point,
     Vec3f line2_to_line1 = {0};
     vec_sub(edge1_point, edge2_point, line2_to_line1);
 
-    float edge1_segment_length = vsquared(edge1_segment);
-    float edge2_segment_length = vsquared(edge2_segment);
+    float edge1_segment_length = vec_squared(edge1_segment);
+    float edge2_segment_length = vec_squared(edge2_segment);
 
-    float dot12 = vdot(edge1_segment, edge2_segment);
-    float d = vdot(edge1_segment, line2_to_line1);
-    float e = vdot(edge2_segment, line2_to_line1);
+    float dot12 = vec_dot(edge1_segment, edge2_segment);
+    float d = vec_dot(edge1_segment, line2_to_line1);
+    float e = vec_dot(edge2_segment, line2_to_line1);
 
     float denominator = edge1_segment_length * edge2_segment_length - dot12 * dot12;
 
@@ -314,8 +310,7 @@ int32_t polygon_clip_face_face(int32_t incident_size,
     for( int32_t i = 0; i < reference_size; i++ ) {
         q = &reference_polygon[i*3];
 
-        float plane_offset = 0.0;
-        vec_dot(reference_normal, q, &plane_offset);
+        float plane_offset = vec_dot(reference_normal, q);
 
         Vec3f plane_normal = {0};
         vec_sub(p, q, plane_normal);
@@ -325,20 +320,20 @@ int32_t polygon_clip_face_face(int32_t incident_size,
         // - a and b here same as p and q above, but for the inner loop, a_distance and b_distance
         // are handled this way too
         int32_t polygon_counter = 0;
+
         VecP* a = &temp_polygon[(clipped_polygon_size-1)*3];
-        float a_distance = 0.0;
+        float a_distance = 0.0f;
+        a_distance = vec_dot(plane_normal, a) - plane_offset;
+
         VecP* b = &temp_polygon[0];
-        float b_distance = 0.0;
-        vec_dot(plane_normal, a, &a_distance);
-        a_distance = a_distance - plane_offset;
+        float b_distance = 0.0f;
 
         // - this for loop uses the ith clipping plane (from the reference polygon),
         // goes through all edges of the current temporary clipped polygon and clips
         // them against the plane
         for( int32_t j = 0; j < clipped_polygon_size; j++ ) {
             b = &temp_polygon[j*3];
-            vec_dot(plane_normal, b, &b_distance);
-            b_distance = b_distance - plane_offset;
+            b_distance = vec_dot(plane_normal, b) - plane_offset;
 
             // - I also assume that the plane normal points outwards, which is important because then 'below'
             // means distance < 0.0, and above means distance > 0.0

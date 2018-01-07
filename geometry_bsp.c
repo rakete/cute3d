@@ -570,8 +570,7 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
         log_assert(start_i >= 0);
         float current_score = 0.0f;
 
-        float dot = FLT_MAX;
-        vec_dot(tree->polygons.array[index_i].normal, normal_comparison_axis, &dot);
+        float dot = vec_dot(tree->polygons.array[index_i].normal, normal_comparison_axis);
         if( fabs(dot) <= min_dot+10.0f*CUTE_EPSILON ) {
             min_dot = fabs(dot);
             // - scoring and then selecting based on the score is less then ideal, the first
@@ -595,8 +594,7 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
 
         Vec3f center_vector = {0};
         vec_sub(bounds.center, average_vertex, center_vector);
-        float center_distance = FLT_MAX;
-        vec_length(center_vector, &center_distance);
+        float center_distance = vec_length(center_vector);
 
         if( fabs(center_distance) <= min_center_distance+1.0f*CUTE_EPSILON ) {
             min_center_distance = fabs(center_distance);

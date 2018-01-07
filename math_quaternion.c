@@ -35,11 +35,6 @@ void quat_identity(Quat q) {
     q[3] = 1.0;
 }
 
-QuatP* qidentity(Quat q) {
-    quat_identity(q);
-    return q;
-}
-
 void quat_from_euler_angles(float x, float y, float z, Quat q) {
     // http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/index.htm
     double c1 = cos(y/2);
@@ -65,11 +60,6 @@ void quat_from_euler_angles(float x, float y, float z, Quat q) {
 #pragma warning(pop)
 #pragma GCC diagnostic pop
 
-}
-
-QuatP* qfrom_euler_angles(float x, float y, float z, Quat q) {
-    quat_from_euler_angles(x, y, z, q);
-    return q;
 }
 
 void quat_from_axis_angle(const Vec3f axis, const float angle, Quat q) {
@@ -98,11 +88,6 @@ void quat_from_axis_angle(const Vec3f axis, const float angle, Quat q) {
 #pragma GCC diagnostic pop
 }
 
-QuatP* qfrom_axis_angle(Quat axis, const float angle) {
-    quat_from_axis_angle(axis, angle, axis);
-    return axis;
-}
-
 void quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
     Vec4f axis;
     vec_cross(a,b,axis);
@@ -119,11 +104,6 @@ void quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
     quat_from_axis_angle(axis, angle, q);
 }
 
-QuatP* qfrom_vec_pair(const Vec3f a, Quat b) {
-    quat_from_vec_pair(a,b,b);
-    return b;
-}
-
 void quat_mul_axis_angle(const Quat q, const Vec3f axis, const float angle, Quat r) {
     if( (fabs(axis[0]) < CUTE_EPSILON && fabs(axis[1]) < CUTE_EPSILON && fabs(axis[2]) < CUTE_EPSILON) ||
         fabs(angle) < CUTE_EPSILON )
@@ -134,11 +114,6 @@ void quat_mul_axis_angle(const Quat q, const Vec3f axis, const float angle, Quat
     Quat rotation = {0};
     quat_from_axis_angle(axis, angle, rotation);
     quat_mul(q, rotation, r);
-}
-
-QuatP* qmul_axis_angle(const Vec3f axis, const float angle, Quat q) {
-    quat_mul_axis_angle(q, axis, angle, q);
-    return q;
 }
 
 void quat_mul(const Quat qa, const Quat qb, Quat r) {
@@ -158,21 +133,11 @@ void quat_mul(const Quat qa, const Quat qb, Quat r) {
 #pragma GCC diagnostic pop
 }
 
-QuatP* qmul(const Quat qa, Quat qb) {
-    quat_mul(qa,qb,qb);
-    return qb;
-}
-
 void quat_mul1f(const Quat qa, float b, Quat r) {
     r[0] = qa[0] * b;
     r[1] = qa[1] * b;
     r[2] = qa[2] * b;
     r[3] = qa[3] * b;
-}
-
-QuatP* qmul1f(Quat qa, float b) {
-    quat_mul1f(qa,b,qa);
-    return qa;
 }
 
 void quat_add(const Quat qa, const Quat qb, Quat r) {
@@ -182,12 +147,7 @@ void quat_add(const Quat qa, const Quat qb, Quat r) {
     r[3] = qa[3] + qb[3];
 }
 
-QuatP* qadd(const Quat qa, Quat qb) {
-    quat_add(qa,qb,qb);
-    return qb;
-}
-
-void quat_dot(const Quat qa, const Quat qb, float* r) {
+float quat_dot(const Quat qa, const Quat qb) {
     double x1,y1,z1,w1,x2,y2,z2,w2;
     x1 = qa[0];  y1 = qa[1];  z1 = qa[2];  w1 = qa[3];
     x2 = qb[0];  y2 = qb[1];  z2 = qb[2];  w2 = qb[3];
@@ -196,15 +156,10 @@ void quat_dot(const Quat qa, const Quat qb, float* r) {
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma warning(push)
 #pragma warning(disable : 4244)
-    *r = w1*w2 + x1*x2 + y1*y2 + z1*z2;
+    float ret = w1*w2 + x1*x2 + y1*y2 + z1*z2;
 #pragma warning(pop)
 #pragma GCC diagnostic pop
-}
-
-float qdot(const Quat qa, const Quat qb) {
-    float dot;
-    quat_dot(qa,qb,&dot);
-    return dot;
+    return ret;
 }
 
 void quat_conjugate(const Quat q, Quat r) {
@@ -227,17 +182,17 @@ void quat_invert(const Quat q, Quat r) {
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma warning(push)
 #pragma warning(disable : 4244)
-    r[0] = conj[0] / pow(qmagnitude(q), 2.0);
-    r[1] = conj[1] / pow(qmagnitude(q), 2.0);
-    r[2] = conj[2] / pow(qmagnitude(q), 2.0);
-    r[3] = conj[3] / pow(qmagnitude(q), 2.0);
+    float qmagnitude = quat_magnitude(q);
+    r[0] = conj[0] / pow(qmagnitude, 2.0);
+    r[1] = conj[1] / pow(qmagnitude, 2.0);
+    r[2] = conj[2] / pow(qmagnitude, 2.0);
+    r[3] = conj[3] / pow(qmagnitude, 2.0);
 #pragma warning(pop)
 #pragma GCC diagnostic pop
 }
 
 void quat_normalize(const Quat q, Quat r) {
-    float norm = 0.0f;
-    quat_magnitude(q, &norm);
+    float norm = quat_magnitude(q);
     if( norm < CUTE_EPSILON ) {
         r[0] = 0;
         r[1] = 0;
@@ -258,19 +213,9 @@ void quat_normalize(const Quat q, Quat r) {
     }
 }
 
-QuatP* qnormalize(Quat q) {
-    quat_normalize(q, q);
-    return q;
-}
-
-void quat_magnitude(const Quat q, float* r) {
-    *r = (float)(sqrt(qdot(q, q)));
-}
-
-float qmagnitude(const Quat q) {
-    float magnitude = 0.0f;
-    quat_magnitude(q, &magnitude);
-    return magnitude;
+float quat_magnitude(const Quat q) {
+    float ret = (float)(sqrt(quat_dot(q, q)));
+    return ret;
 }
 
 void quat_to_mat(const Quat q, Mat r) {
@@ -303,11 +248,6 @@ void quat_to_mat(const Quat q, Mat r) {
 #pragma GCC diagnostic pop
 }
 
-QuatP* qto_mat(const Quat q, Mat m) {
-    quat_to_mat(q,m);
-    return m;
-}
-
 void quat_to_axis_angle(const Quat p, Vec4f axis, float* angle) {
     Quat q;
     quat_copy(p, q);
@@ -337,7 +277,7 @@ void quat_to_axis_angle(const Quat p, Vec4f axis, float* angle) {
 
     }
 
-    float length = vlength(axis);
+    float length = vec_length(axis);
     if( length < CUTE_EPSILON ) {
         *angle = 0.0f;
     }
@@ -372,9 +312,4 @@ void quat_slerp(const Quat qa, const Quat qb, float t, Quat r) {
     quat_mul1f(qa, alpha, ua);
     quat_mul1f(qb, beta, ub);
     quat_add(ua, ub, r);
-}
-
-QuatP* qslerp(const Quat qa, Quat qb, float t) {
-    quat_slerp(qa, qb, t, qb);
-    return qb;
 }

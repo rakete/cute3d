@@ -36,7 +36,7 @@ void draw_arrow( struct Canvas* canvas,
     Vec4f z = { 0.0, 0.0, 1.0, 1.0 };
     Vec4f axis = {0};
     vec_cross(z,v,axis);
-    if( vnullp(axis) ) {
+    if( vec_nullp(axis) ) {
         vec_perpendicular(z,axis);
     }
 
@@ -94,7 +94,7 @@ void draw_vec(struct Canvas* canvas,
     Vec4f z = { 0.0, 0.0, 1.0, 1.0 };
     Vec4f axis = {0};
     vec_cross(z, v, axis);
-    if( vnullp(axis) ) {
+    if( vec_nullp(axis) ) {
         vec_perpendicular(z,axis);
     }
 
@@ -106,8 +106,7 @@ void draw_vec(struct Canvas* canvas,
     quat_to_mat(rotation, arrow_matrix);
 
     // - not only scale it with scale, but also scale it with the actual length it should have
-    float length = 1.0f;
-    vec_length(v, &length);
+    float length = vec_length(v);
     mat_scale(arrow_matrix, scale * length, arrow_matrix);
 
     if( pos ) {
@@ -171,7 +170,7 @@ void draw_quaternion(struct Canvas* canvas,
     // axis-angle representation, we get an axis and its inverse (like 1,0,0 and -1,0,0) first with angles
     // from 0 to 2*PI and then from 2*PI back to 0
     Vec4f axis_inverse = {0};
-    if( vsign(axis) < 0 ) {
+    if( vec_sign(axis) < 0 ) {
         // so when the axis and the angle is fed to draw_circle, since it always changes direction, the circle arrow
         // will direction will change too, so this if makes sure that axis is always pointing in the same direction
         angle = 2*PI - angle;

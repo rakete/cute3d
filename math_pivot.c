@@ -68,8 +68,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec3f target) {
     Vec4f target_direction;
     vec_sub(target, world_pivot.position, target_direction);
 
-    float dot_yaw = 0.0f;
-    vec_dot(target_direction, forward_axis, &dot_yaw);
+    float dot_yaw = vec_dot(target_direction, forward_axis);
 
     Quat rotation = {0};
     if( fabs(dot_yaw + 1.0f) < CUTE_EPSILON ) {
@@ -94,7 +93,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec3f target) {
         //   up_axis plane, resulting in up_projection which is a vector that
         //   points from the up_axis plane to the tip of the target_direction
         Vec4f up_projection = {0};
-        vec_mul1f(up_axis, vdot(target_direction, up_axis), up_projection);
+        vec_mul1f(up_axis, vec_dot(target_direction, up_axis), up_projection);
 
         // - so then by subtracting the up_projection from the target_direction,
         //   I get a vector lying in the up_axis plane, pointing towards the target
@@ -115,7 +114,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec3f target) {
         //   forward_axis and use the resulting yaw_axis
         Vec4f yaw_axis = {0};
         vec_cross(yaw_direction, forward_axis, yaw_axis);
-        if( vnullp(yaw_axis) ) {
+        if( vec_nullp(yaw_axis) ) {
             vec_copy4f(up_axis, yaw_axis);
         }
 
@@ -147,7 +146,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec3f target) {
         // - and just as in the yaw case we compute an rotation pitch_axis
         Vec4f pitch_axis = {0};
         vec_cross(target_direction, yaw_forward_axis, pitch_axis);
-        if( vnullp(pitch_axis) ) {
+        if( vec_nullp(pitch_axis) ) {
             vec_copy4f(right_axis, pitch_axis);
         }
 
@@ -171,7 +170,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec3f target) {
         vec_rotate(up_axis, inverted_orientation, flip_axis);
         vec_rotate(flip_axis, yaw_pitch_rotation, flip_axis);
 
-        float dot_pitch = vdot(up_axis, flip_axis);
+        float dot_pitch = vec_dot(up_axis, flip_axis);
 
         Vec4f target_axis = {0};
         vec_normalize(target_direction, target_axis);
@@ -196,7 +195,7 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec3f target) {
         quat_copy(rotation, pivot->orientation);
     }
 
-    vec_length(target_direction, &pivot->eye_distance);
+    pivot->eye_distance = vec_length(target_direction);
 
     return result;
 }

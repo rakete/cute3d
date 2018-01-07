@@ -182,8 +182,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
                         Vec4f move = {0};
                         vec_sub(b, a, move);
-                        float length = 0.0f;
-                        vec_length(move, &length);
+                        float length = vec_length(move);
 
                         move[1] = 0.0f;
                         vec_normalize(move, move);

@@ -153,7 +153,7 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
             Vec3f vertex;
             vec_copy3f(&transformed_vertices[vertex_j*3], vertex);
 
-            float projection = vdot(vertex, plane_normal);
+            float projection = vec_dot(vertex, plane_normal);
 
             if( projection > best_projection ) {
                 best_projection = projection;
@@ -169,7 +169,7 @@ struct SatFaceTestResult sat_test_faces(const Mat mesh2_to_mesh1_transform,
         // d = n . (s - p)
         int32_t vertex_i = mesh1_edges[mesh1_faces[face_i].edge].vertex;
         vec_sub(support, mesh1_vertices[vertex_i].position, support);
-        float distance = vdot(support, face_normal);
+        float distance = vec_dot(support, face_normal);
 
         // - keep track of largest distance/penetration, the result should be the vertex face distance
         // of the pair where the largest penetration into our mesh occurs
@@ -256,7 +256,7 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
             vec_sub(&transformed_vertices[other2->vertex*3], edge2_head, edge2_direction);
             vec_normalize(edge2_direction, edge2_direction);
 
-            if( fabs(vdot(edge1_direction, edge2_direction)) >= 1.0f - CUTE_EPSILON) {
+            if( fabs(vec_dot(edge1_direction, edge2_direction)) >= 1.0f - CUTE_EPSILON) {
                 continue;
             }
 
@@ -270,10 +270,10 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
 
             const VecP* dxc = edge2_direction;
 
-            float cba = vdot(c, bxa);
-            float dba = vdot(d, bxa);
-            float adc = vdot(a, dxc);
-            float bdc = vdot(b, dxc);
+            float cba = vec_dot(c, bxa);
+            float dba = vec_dot(d, bxa);
+            float adc = vec_dot(a, dxc);
+            float bdc = vec_dot(b, dxc);
 
             // - the magic test from the slides that decides if edge1 and edge2 form a minowski face,
             // if this is true, then we can do the actual computation of the distance between two edges
@@ -281,8 +281,8 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
                 Vec3f plane_normal = {0};
                 vec_cross(edge1_direction, edge2_direction, plane_normal);
 
-                float cross_length = vlength(plane_normal);
-                float test_length = sqrtf( vsquared(edge1_direction) * vsquared(edge2_direction) );
+                float cross_length = vec_length(plane_normal);
+                float test_length = sqrtf( vec_squared(edge1_direction) * vec_squared(edge2_direction) );
                 if( cross_length < 0.005f * test_length ) {
                     continue;
                 }
@@ -292,13 +292,13 @@ struct SatEdgeTestResult sat_test_edges(const Mat mesh2_to_mesh1_transform,
                 vec_invert(edge1_head, center_direction);
                 vec_normalize(center_direction, center_direction);
 
-                if( vdot(center_direction, plane_normal) > 0.0f ) {
+                if( vec_dot(center_direction, plane_normal) > 0.0f ) {
                     vec_mul1f(plane_normal, -1.0f, plane_normal);
                 }
 
                 Vec3f other_point = {0};
                 vec_sub(edge2_head, edge1_head, other_point);
-                float distance = vdot(other_point, plane_normal);
+                float distance = vec_dot(other_point, plane_normal);
                 if( distance > result.distance ) {
                     result.found_result = true;
                     result.distance = distance;
