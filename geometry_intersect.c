@@ -19,9 +19,9 @@
 
 #include "geometry_intersect.h"
 
-enum IntersectPlaneSegmentResult intersect_plane_segment(const Vec3f plane_normal, const Vec3f plane_point, const Vec3f a, const Vec3f b, float* interpolation_value, Vec3f result) {
-    vec_copy3f((Vec3f){0.0f, 0.0f, 0.0f}, result);
-    *interpolation_value = -FLT_MAX;
+enum IntersectPlaneSegmentResult intersect_plane_segment(const Vec3f plane_normal, const Vec3f plane_point, const Vec3f a, const Vec3f b, float* result_interpolation_value, Vec3f result_point) {
+    vec_copy3f((Vec3f){0.0f, 0.0f, 0.0f}, result_point);
+    *result_interpolation_value = -FLT_MAX;
 
     // - u is the vector pointing from a towards b, we use it so we can express our problem as:
     // result = a + s * u
@@ -43,7 +43,7 @@ enum IntersectPlaneSegmentResult intersect_plane_segment(const Vec3f plane_norma
     if( fabs(d) < CUTE_EPSILON ) {
         // - if n is zero then w lies on the plane because it is perpendicular to plane_normal
         if( n == 0.0f ) {
-            vec_copy3f(a, result);
+            vec_copy3f(a, result_point);
             return PLANE_SEGMENT_ON_PLANE;
         } else {
             return PLANE_SEGMENT_PARALLEL;
@@ -54,9 +54,9 @@ enum IntersectPlaneSegmentResult intersect_plane_segment(const Vec3f plane_norma
     // intersection point on the plane:
     // result = a + s * u
     float s = n / d;
-    *interpolation_value = s;
-    vec_mul1f(u, s, result);
-    vec_add(result, a, result);
+    *result_interpolation_value = s;
+    vec_mul1f(u, s, result_point);
+    vec_add(result_point, a, result_point);
 
     if (s < 0.0f || s > 1.0f) {
         return PLANE_SEGMENT_ONLY_LINE_INTERSECTION;
@@ -196,17 +196,17 @@ static int intersect_sort_convex_points_comparison(const void* a, const void* b)
     return vdot(w, normal) < 0.0f;
 }
 
-size_t intersect_plane_aabb(const Vec3f plane_normal, const Vec3f plane_point, const Vec3f aabb_center, const Vec3f aabb_half_sizes, size_t result_size, float* result) {
+size_t intersect_plane_aabb(const Vec3f plane_normal, const Vec3f plane_point, const Vec3f aabb_center, const Vec3f aabb_half_size, size_t result_size, float* result) {
     log_assert( result_size >= 6*VERTEX_SIZE );
 
-    float right = aabb_center[0] + aabb_half_sizes[0];
-    float left = aabb_center[0] - aabb_half_sizes[0];
+    float right = aabb_center[0] + aabb_half_size[0];
+    float left = aabb_center[0] - aabb_half_size[0];
 
-    float top = aabb_center[1] + aabb_half_sizes[1];
-    float bottom = aabb_center[1] - aabb_half_sizes[1];
+    float top = aabb_center[1] + aabb_half_size[1];
+    float bottom = aabb_center[1] - aabb_half_size[1];
 
-    float front = aabb_center[2] + aabb_half_sizes[2];
-    float back = aabb_center[2] - aabb_half_sizes[2];
+    float front = aabb_center[2] + aabb_half_size[2];
+    float back = aabb_center[2] - aabb_half_size[2];
 
     Vec3f left_top_front = { left, top, front };
     Vec3f left_top_back = { left, top, back };
@@ -453,7 +453,7 @@ bool intersect_ray_sphere(const Vec4f origin, const Vec4f direction, const Vec3f
 
 // - copypasta from rtcd p.181
 // - a slab is the area between two planes of an aabb
-bool intersect_ray_aabb(const Vec3f origin, const Vec3f direction, const Vec3f aabb_center, const Vec3f aabb_half_sizes, float* near, float* far) {
+bool intersect_ray_aabb(const Vec3f origin, const Vec3f direction, const Vec3f aabb_center, const Vec3f aabb_half_size, float* near, float* far) {
     *near = -FLT_MAX;
     *far = -FLT_MAX;
 
@@ -462,12 +462,12 @@ bool intersect_ray_aabb(const Vec3f origin, const Vec3f direction, const Vec3f a
 
     Vec3f aabb_min = {0};
     Vec3f aabb_max = {0};
-    aabb_min[0] = aabb_center[0] - aabb_half_sizes[0];
-    aabb_max[0] = aabb_center[0] + aabb_half_sizes[0];
-    aabb_min[1] = aabb_center[1] - aabb_half_sizes[1];
-    aabb_max[1] = aabb_center[1] + aabb_half_sizes[1];
-    aabb_min[2] = aabb_center[2] - aabb_half_sizes[2];
-    aabb_max[2] = aabb_center[2] + aabb_half_sizes[2];
+    aabb_min[0] = aabb_center[0] - aabb_half_size[0];
+    aabb_max[0] = aabb_center[0] + aabb_half_size[0];
+    aabb_min[1] = aabb_center[1] - aabb_half_size[1];
+    aabb_max[1] = aabb_center[1] + aabb_half_size[1];
+    aabb_min[2] = aabb_center[2] - aabb_half_size[2];
+    aabb_max[2] = aabb_center[2] + aabb_half_size[2];
 
     for( int32_t slab_i = 0; slab_i < 3; slab_i++ ) {
         if( fabs(direction[slab_i] < CUTE_EPSILON ) ) {

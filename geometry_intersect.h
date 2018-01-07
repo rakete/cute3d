@@ -34,7 +34,7 @@ enum IntersectPlaneSegmentResult {
     PLANE_SEGMENT_ONLY_LINE_INTERSECTION,
 };
 
-enum IntersectPlaneSegmentResult intersect_plane_segment(const Vec3f plane_normal, const Vec3f plane_point, const Vec3f a, const Vec3f b, float* interpolation_value, Vec3f result);
+enum IntersectPlaneSegmentResult intersect_plane_segment(const Vec3f plane_normal, const Vec3f plane_point, const Vec3f a, const Vec3f b, float* result_interpolation_value, Vec3f result_point);
 
 enum IntersectPlanePlaneResult {
     PLANE_PLANE_DISJOINT = 0,
@@ -44,7 +44,7 @@ enum IntersectPlanePlaneResult {
 
 enum IntersectPlanePlaneResult intersect_plane_plane(const Vec3f plane_normal_a, const Vec3f plane_point_a, const Vec3f plane_normal_b, const Vec3f plane_point_b, Vec3f result_a, Vec3f result_b);
 
-size_t intersect_plane_aabb(const Vec3f plane_normal, const Vec3f plane_point, const Vec3f aabb_center, const Vec3f aabb_half_sizes, size_t result_size, float* result);
+size_t intersect_plane_aabb(const Vec3f plane_normal, const Vec3f plane_point, const Vec3f aabb_center, const Vec3f aabb_half_size, size_t result_size, float* result);
 
 bool intersect_ray_sphere(const Vec4f origin, const Vec4f direction, const Vec3f sphere_center, float sphere_radius, float* near, float* far);
 bool intersect_ray_aabb(const Vec3f origin, const Vec3f direction, const Vec3f aabb_center, const Vec3f aabb_half_sizes, float* near, float* far);
