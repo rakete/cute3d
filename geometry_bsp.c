@@ -279,10 +279,11 @@ int32_t bsp_tree_test_polygon(const struct BspTree* tree, int32_t start_i,
                               size_t polygon_size, const float* polygon_vertices,
                               struct BspNode* result_node, enum PolygonCutType* result_cut_type, size_t result_size, struct PolygonCutPoint* result_points)
 {
-    size_t test_index = start_i;
+    log_assert(start_i >= 0);
+    int32_t test_i = start_i;
 
     while( true ) {
-        const struct BspNode* test_node = &tree->nodes.array[test_index];
+        const struct BspNode* test_node = &tree->nodes.array[test_i];
 
         const struct BspPolygon test_divider = tree->polygons.array[test_node->divider];
         Vertex test_divider_vertex = {0};
@@ -296,25 +297,25 @@ int32_t bsp_tree_test_polygon(const struct BspTree* tree, int32_t start_i,
             case POLYGON_COPLANNAR:
             case POLYGON_FRONT:
                 if( test_node->tree.front > -1 ) {
-                    test_index = test_node->tree.front;
+                    test_i = test_node->tree.front;
                 } else {
-                    result_node->tree.parent = test_index;
+                    result_node->tree.parent = test_i;
                     result_node->tree.side = BSP_FRONT;
                     return -1;
                 }
-                test_index = test_node->tree.front;
+                test_i = test_node->tree.front;
                 break;
             case POLYGON_BACK:
                 if( test_node->tree.back > -1 ) {
-                    test_index = test_node->tree.back;
+                    test_i = test_node->tree.back;
                 } else {
-                    result_node->tree.parent = test_index;
+                    result_node->tree.parent = test_i;
                     result_node->tree.side = BSP_BACK;
                     return -1;
                 }
                 break;
             case POLYGON_SPANNING:
-                return test_index;
+                return test_i;
                 break;
         }
     }
@@ -387,7 +388,7 @@ struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* 
             .texcoords = tree_polygon_texcoords,
             .colors = tree_polygon_colors
         };
-        size_t poly_i = bsp_tree_add_polygon(tree, tree_polygon_size, NULL, parameter_attributes, &tree_polygon);
+        int32_t poly_i = bsp_tree_add_polygon(tree, tree_polygon_size, NULL, parameter_attributes, &tree_polygon);
 
         // - the state.front partition gets filled with the indices of the polygons in the tree,
         // this is later used by bsp_build when sorting the polygons into front and back
@@ -566,6 +567,7 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
     for( size_t polygon_i = loop_start; polygon_i < loop_end; polygon_i += step_size ) {
         int32_t index_i = polygon_indices[polygon_i];
         int32_t start_i = tree->polygons.array[index_i].start;
+        log_assert(start_i >= 0);
         float current_score = 0.0f;
 
         float dot = FLT_MAX;
@@ -586,7 +588,7 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
 
         Vec3f average_vertex = {0.0f, 0.0f, 0.0f};
         for( size_t size_i = 0; size_i < tree->polygons.array[index_i].size; size_i++ ) {
-            size_t attribute_i = (start_i + size_i) * VERTEX_SIZE;
+            size_t attribute_i = ((size_t)start_i + size_i) * VERTEX_SIZE;
             vec_add(average_vertex, &tree->attributes.vertices[attribute_i], average_vertex);
         }
         vec_mul1f(average_vertex, 1.0f/(float)tree->polygons.array[index_i].size, average_vertex);
@@ -685,7 +687,8 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
         // or if the divider cuts through the polygon then it uses the polygon_cut function to create
         // new polygons from the cut and inserts them into the tree
         for( size_t loop_i = loop_start; loop_i < loop_end; loop_i++ ) {
-            size_t polygon_i = partition->polygons[loop_i];
+            log_assert(partition->polygons[loop_i] >= 0);
+            size_t polygon_i = (size_t)partition->polygons[loop_i];
             if( (int32_t)polygon_i == node_divider_i ) {
                 continue;
             }
@@ -742,7 +745,8 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
                         // - we allocate these arrays locally and make them both large enough to hold the whole
                         // original polygon + the number of new vertices, which should actually give us something
                         // that is one vertex too large, but what the hell
-                        size_t new_poly_size = current_polygon_size+result_points[0].num_cuts;
+                        log_assert(result_points[0].num_cuts >= 0);
+                        size_t new_poly_size = current_polygon_size+(size_t)result_points[0].num_cuts;
 
                         VERTEX_TYPE front_vertices[new_poly_size*VERTEX_SIZE];
                         NORMAL_TYPE front_normals[new_poly_size*NORMAL_SIZE];
