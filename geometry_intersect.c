@@ -470,7 +470,7 @@ bool intersect_ray_aabb(const Vec3f origin, const Vec3f direction, const Vec3f a
     aabb_max[2] = aabb_center[2] + aabb_half_size[2];
 
     for( int32_t slab_i = 0; slab_i < 3; slab_i++ ) {
-        if( fabs(direction[slab_i] < CUTE_EPSILON ) ) {
+        if( fabs(direction[slab_i]) < CUTE_EPSILON ) {
             // - ray is parallel to slab, no hit if origin not within slab
             if( origin[slab_i] < aabb_min[slab_i] || origin[slab_i] > aabb_max[slab_i] ) {
                 return false;
