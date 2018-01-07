@@ -190,7 +190,7 @@ void draw_quaternion(struct Canvas* canvas,
     // draw two circles from 0 to angle, and from angle to 2*PI, so we'll get a full circle consisting
     // of two parts in different colors
     Quat circle_rotation = {0};
-    quat_from_vec_pair((Vec4f){0.0, 0.0, 1.0, 1.0}, axis, circle_rotation);
+    quat_from_vec_pair(axis, (Vec4f){0.0, 0.0, 1.0, 1.0}, circle_rotation);
 
     Mat circle_transform = {0};
     quat_to_mat(circle_rotation, circle_transform);

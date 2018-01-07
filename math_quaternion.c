@@ -105,10 +105,10 @@ QuatP* qfrom_axis_angle(Quat axis, const float angle) {
 
 void quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q) {
     Vec4f axis;
-    vec_cross(b,a,axis);
+    vec_cross(a,b,axis);
 
     float angle;
-    vec_angle(b,a,&angle);
+    vec_angle(a,b,&angle);
 
     if( (fabs(axis[0]) < CUTE_EPSILON && fabs(axis[1]) < CUTE_EPSILON && fabs(axis[2]) < CUTE_EPSILON) ||
         fabs(angle) < CUTE_EPSILON )

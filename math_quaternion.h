@@ -38,6 +38,7 @@ QuatP* qfrom_euler_angles(float x, float y, float z, Quat q);
 void quat_from_axis_angle(const Vec3f axis, const float angle, Quat q);
 QuatP* qfrom_axis_angle(Quat axis, const float angle);
 
+// - create quaternion that rotates a -> b
 void quat_from_vec_pair(const Vec3f a, const Vec3f b, Quat q);
 QuatP* qfrom_vec_pair(const Vec3f a, Quat b);
 

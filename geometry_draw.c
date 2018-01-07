@@ -181,7 +181,7 @@ void draw_plane(struct Canvas* canvas,
     mat_translate(translation, transformed_point, translation);
 
     Quat rotation = IDENTITY_QUAT;
-    quat_from_vec_pair((Vec4f)Z_AXIS, plane_normal, rotation);
+    quat_from_vec_pair(plane_normal, (Vec4f)Z_AXIS, rotation);
     quat_invert(rotation, rotation);
     for( size_t i = 0; i < 8; i++ ) {
         vec_rotate3f(&vertices[i*3], rotation, &vertices[i*3]);
@@ -234,7 +234,7 @@ void draw_plane_wire(struct Canvas* canvas,
     mat_translate(translation, transformed_point, translation);
 
     Quat rotation = IDENTITY_QUAT;
-    quat_from_vec_pair((Vec4f)Z_AXIS, plane_normal, rotation);
+    quat_from_vec_pair(plane_normal, (Vec4f)Z_AXIS, rotation);
     quat_invert(rotation, rotation);
     for( size_t i = 0; i < 4; i++ ) {
         vec_rotate3f(&vertices[i*3], rotation, &vertices[i*3]);
