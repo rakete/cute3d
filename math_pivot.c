@@ -198,11 +198,6 @@ int32_t pivot_lookat(struct Pivot* pivot, const Vec3f target) {
     return result;
 }
 
-VecP* pivot_local_axis(const struct Pivot* pivot, Vec3f axis) {
-    vec_rotate3f(axis, pivot->orientation, axis);
-    return axis;
-}
-
 MatP* pivot_world_transform(const struct Pivot* pivot, Mat world_transform) {
     Mat translation = {0};
     mat_translate(NULL, pivot->position, translation);
