@@ -27,8 +27,7 @@ void bsp_polygon_create(struct BspPolygon* polygon) {
     polygon->normal[1] = 0.0f;
     polygon->normal[2] = 0.0f;
 
-    polygon->divider = -1;
-
+    polygon->cut.divider = -1;
     polygon->cut.parent = -1;
     polygon->cut.sibling = -1;
 }
@@ -173,7 +172,7 @@ WARN_UNUSED_RESULT size_t bsp_tree_alloc_nodes(struct BspTree* tree, size_t n) {
     return 0;
 }
 
-int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, enum BspSide side, struct BspNode** result) {
+int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, enum BspSide side, size_t num_polygons, struct BspBounds bounds, int32_t divider, struct BspNode** result) {
     if( tree->nodes.occupied + 1 >= tree->nodes.capacity ) {
         size_t alloc_nodes_result = 0;
         alloc_nodes_result = bsp_tree_alloc_nodes(tree, 1);
@@ -185,16 +184,20 @@ int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, enum BspSide sid
     bsp_node_create(node);
 
     node->tree.index = node_i;
-    if( parent > -1 ) {
-        node->tree.parent = parent;
-        node->tree.side = side;
-        node->tree.depth = tree->nodes.array[parent].tree.depth + 1;
-        if( side == BSP_FRONT ) {
-            tree->nodes.array[parent].tree.front = node_i;
-        } else if( side == BSP_BACK ) {
-            tree->nodes.array[parent].tree.back = node_i;
-        }
+    node->tree.parent = parent;
+
+    node->tree.side = side;
+    if( side == BSP_FRONT ) {
+        tree->nodes.array[parent].tree.front = node_i;
+    } else if( side == BSP_BACK ) {
+        tree->nodes.array[parent].tree.back = node_i;
     }
+
+    node->tree.depth = tree->nodes.array[parent].tree.depth + 1;
+
+    node->num_polygons = num_polygons;
+    node->bounds = bounds;
+    node->divider = divider;
 
     tree->nodes.occupied += 1;
 
@@ -646,27 +649,24 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
         Vec3f parent_max = {0};
         vec_copy3f(parent_frame.bounds_max, parent_max);
 
-        struct BspBounds bounds = {};
+        struct BspBounds bounds = {0};
         bsp_node_bounds_create(parent_min, parent_max, &bounds);
 
-        // - here a node is added the is going to represent the current branch
-        struct BspNode* node = NULL;
-        int32_t node_i = bsp_tree_add_node(tree, parent_i, parent_side, &node);
-        node->num_polygons = loop_end - loop_start;
-        node->bounds = bounds;
+        size_t num_polygons = loop_end - loop_start;
+        log_assert( num_polygons > 0 );
 
         struct BspBuildPartition* partition = &state->front;
         if( parent_side == BSP_BACK ) {
             partition = &state->back;
         }
 
-        size_t num_polygons = loop_end - loop_start;
-        log_assert( num_polygons > 0 );
-
         // - this calls bsp_build_select_balanced_divider to determine a good divider
         // to be used for this branch
         int32_t node_divider_i = bsp_build_select_balanced_divider(tree, bounds, loop_start, loop_end, partition->polygons, num_polygons/10);
-        node->divider = node_divider_i;
+
+        // - here a node is added the is going to represent the current branch
+        struct BspNode* node = NULL;
+        int32_t node_i = bsp_tree_add_node(tree, parent_i, parent_side, num_polygons, bounds, node_divider_i, &node);
 
         const struct BspPolygon node_divider = tree->polygons.array[node_divider_i];
         Vertex node_divider_vertex = {0};
@@ -734,7 +734,7 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
                     break;
                 case POLYGON_SPANNING:
                     if( result_points[0].num_cuts > 0 ) {
-                        tree->polygons.array[polygon_i].divider = node_divider_i;
+                        tree->polygons.array[polygon_i].cut.divider = node_divider_i;
 
                         // - if the polygon is cut through by the divider, then we need to create two new polygons,
                         // and these arrays here are what we use to collect the attributes for the two new polygons,

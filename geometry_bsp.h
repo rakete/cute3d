@@ -71,9 +71,8 @@ struct BspPolygon {
     size_t size;
     Vec3f normal;
 
-    int32_t divider;
-
     struct {
+        int32_t divider;
         int32_t parent;
         int32_t sibling;
     } cut;
@@ -175,12 +174,12 @@ WARN_UNUSED_RESULT size_t bsp_tree_alloc_nodes(struct BspTree* tree, size_t n);
 // - it is important to fill the node after adding it, the bsp_tree_add_node leaves it completely
 // empty apart from the parent, index and depth values, that why this function takes a pointer
 // to a pointer to a node, so the user gets a pointer to the added node after adding it
-int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, enum BspSide side, struct BspNode** node);
+int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, enum BspSide side, size_t num_polygons, struct BspBounds bounds, int32_t divider, struct BspNode** result);
 // - bsp_tree_add_polygon adds a new polygon and also fills it with the attributes supplied in the
 // polygon_attributes argument
 int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Vec3f polygon_normal, struct ParameterAttributes polygon_attributes, struct BspPolygon** polygon);
 
-// - test a polygon against bsp tree, start in tree at node_i and test polygon against divider, if
+// - test a polygon against bsp tree, start in tree at start_i and test polygon against divider, if
 // the polygon is in front or behind divider the function continues testing with the front or back
 // subtree, until the polygon lands in an empty back or front branch, then *node is filled with
 // indices as if *node would be inserted into that empty branch, but to actually add to the tree
