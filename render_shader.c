@@ -318,7 +318,7 @@ void shader_setup_locations(struct Shader* p) {
             p->sampler[sampler_i].location = location;
             num_cached_uniforms += 1;
 
-            GLuint texture_unit = sampler_i % 8;
+            GLint texture_unit = sampler_i % 8;
             glUniform1i(location, texture_unit);
             p->sampler[sampler_i].unset = false;
         }
@@ -406,7 +406,7 @@ void shader_warn_locations(struct Shader* p, const char* prefix, GLint* attribut
     }
 
 #ifdef DEBUG
-    for( int32_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
+    for( uint32_t i = 0; i < MAX_SHADER_SAMPLER; i++ ) {
         if( p->sampler[i].location > -1 && p->sampler[i].warn_once ) {
             GLuint texture_unit = i % 8;
             log_assert( texture_unit < MAX_SHADER_TEXTURE_UNITS );
