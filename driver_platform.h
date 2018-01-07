@@ -28,4 +28,7 @@
 #define WARN_UNUSED_RESULT
 #endif
 
+#undef near
+#undef far
+
 #endif
