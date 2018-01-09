@@ -17,8 +17,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with Cute3D.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef PHYSICS_COLLIDING_H
-#define PHYSICS_COLLIDING_H
+#ifndef PHYSICS_COLLISION_H
+#define PHYSICS_COLLISION_H
 
 #include "math_types.h"
 #include "math_matrix.h"
@@ -27,7 +27,7 @@
 #include "gui_draw.h"
 
 #include "geometry_draw.h"
-#include "geometry_shape.h"
+#include "geometry_halfedgemesh.h"
 
 #include "physics_sat.h"
 #include "physics_contacts.h"
@@ -40,11 +40,15 @@ struct CollisionParameter {
     float absolute_tolerance;
 };
 
-struct Collision {
-    const struct Shape* shape1;
-    const struct Shape* shape2;
-    Mat shape1_to_shape2_transform;
-    Mat shape2_to_shape1_transform;
+struct CollisionConvexConvex {
+    const struct HalfEdgeMesh* convex1;
+    const struct Pivot* pivot1;
+
+    const struct HalfEdgeMesh* convex2;
+    const struct Pivot* pivot2;
+
+    Mat pivot1_to_pivot2_transform;
+    Mat pivot2_to_pivot1_transform;
 
     struct CollisionParameter parameter;
 
@@ -57,8 +61,9 @@ struct Collision {
     struct Contacts contacts;
 };
 
-void colliding_prepare_shape(struct Shape* shape);
-void colliding_prepare_collision(const struct Shape* a, const struct Shape* b, struct CollisionParameter parameter, struct Collision* collision);
+void collision_create_convex_convex(const struct HalfEdgeMesh* convex1, const struct Pivot* pivot1,
+                                    const struct HalfEdgeMesh* convex2, const struct Pivot* pivot2,
+                                    struct CollisionParameter parameter, struct CollisionConvexConvex* collision);
 
 // collision detection itself is actually two seperate things: collision testing and contact generation, these should both
 // be implemented here eventually, but first I am going to concentrate only on contact generation. this should be
@@ -67,8 +72,8 @@ void colliding_prepare_collision(const struct Shape* a, const struct Shape* b, s
 // contact generation and is the only needed during broad phase
 // the contact generation by itself can double as collision detection because as soon as we'll get at least one contact, we
 // know the a collision has taken place.
-bool colliding_test_convex_convex(struct Collision* collision);
+bool collision_test_convex_convex(struct CollisionConvexConvex* collision);
 
-int32_t colliding_contact_convex_convex(struct Collision* collision);
+int32_t collision_contact_convex_convex(struct CollisionConvexConvex* collision);
 
 #endif

@@ -34,12 +34,11 @@
 #include "geometry_draw.h"
 #include "geometry_picking.h"
 
-#include "physics_colliding.h"
+#include "physics_collision.h"
 
 struct CollisionEntity {
     const char* name;
     struct Pivot pivot;
-    struct ShapeConvex shape;
     struct HalfEdgeMesh hemesh;
     struct SolidBox solid;
     struct SolidBox optimized_solid;
@@ -60,9 +59,6 @@ static void entity_create(const char* name, Color color, struct Vbo* vbo, struct
     halfedgemesh_create(&entity->hemesh);
     halfedgemesh_append(&entity->hemesh, (struct Solid*)&entity->solid);
     halfedgemesh_optimize(&entity->hemesh);
-
-    shape_convex_create(&entity->hemesh, &entity->shape);
-    pivot_attach(&entity->shape.base_shape.pivot, &entity->pivot);
 
     picking_sphere_create(1.0f, &entity->picking_sphere);
     pivot_attach(&entity->picking_sphere.pivot, &entity->pivot);
@@ -236,21 +232,19 @@ int32_t main(int32_t argc, char *argv[]) {
         Vec3f foo = {0};
         mat_mul_vec(between_transform, entity_a.hemesh.vertices.array[0].position, foo);
 
-        colliding_prepare_shape((struct Shape*)&entity_a.shape);
-        colliding_prepare_shape((struct Shape*)&entity_b.shape);
-        struct Collision collision = {0};
+        struct CollisionConvexConvex collision = {0};
         struct CollisionParameter collision_parameter = {
             .face_tolerance = 0.9,
             .edge_tolerance = 0.95,
             .absolute_tolerance = 0.025
         };
-        colliding_prepare_collision((struct Shape*)&entity_a.shape,
-                                    (struct Shape*)&entity_b.shape,
-                                    collision_parameter,
-                                    &collision);
+        collision_create_convex_convex(&entity_a.hemesh, &entity_a.pivot,
+                                       &entity_b.hemesh, &entity_b.pivot,
+                                       collision_parameter,
+                                       &collision);
 
-        if( colliding_test_convex_convex(&collision) ) {
-            colliding_contact_convex_convex(&collision);
+        if( collision_test_convex_convex(&collision) ) {
+            collision_contact_convex_convex(&collision);
             //printf("//collision: %d\n", collision_counter);
 
             const struct Contacts* contacts = &collision.contacts;
