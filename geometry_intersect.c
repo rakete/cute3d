@@ -503,16 +503,16 @@ bool intersect_ray_aabb(const Vec3f origin, const Vec3f direction, const Vec3f a
     return true;
 }
 
-bool intersect_ray_plane(const Vec3f origin, const Vec3f direction, const Vec3f plane_normal, const Vec3f plane_point, float* result) {
+float intersect_ray_plane(const Vec3f origin, const Vec3f direction, const Vec3f plane_normal, const Vec3f plane_point, float* result) {
     *result = -FLT_MAX;
 
     float d = vec_dot(plane_normal, direction);
-    if( d > CUTE_EPSILON ) {
+    if( fabs(d) >= CUTE_EPSILON ) {
         Vec3f u = {0};
         vec_sub(plane_point, origin, u);
         *result = vec_dot(u, plane_normal) / d;
-        return (*result >= 0.0f);
+        return d <= 0.0f ? -1.0f : 1.0f;
     }
 
-    return false;
+    return 0.0f;
 }
