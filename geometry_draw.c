@@ -273,17 +273,17 @@ void draw_box_wire(struct Canvas* canvas,
                    const Mat model_matrix,
                    const Color color,
                    float line_thickness,
-                   Vec3f half_size,
-                   Vec3f center)
+                   const Vec3f half_size,
+                   const Vec3f center)
 {
-    float vertices[8*3] = { -half_size[0], half_size[1], half_size[2],
-                            half_size[0], half_size[1], half_size[2],
-                            half_size[0], -half_size[1], half_size[2],
-                            -half_size[0], -half_size[1], half_size[2],
-                            -half_size[0], half_size[1], -half_size[2],
-                            half_size[0], half_size[1], -half_size[2],
-                            half_size[0], -half_size[1], -half_size[2],
-                            -half_size[0], -half_size[1], -half_size[2] };
+    float vertices[8*3] = { center[0]-half_size[0], center[1]+half_size[1], center[2]+half_size[2],
+                            center[0]+half_size[0], center[1]+half_size[1], center[2]+half_size[2],
+                            center[0]+half_size[0], center[1]-half_size[1], center[2]+half_size[2],
+                            center[0]-half_size[0], center[1]-half_size[1], center[2]+half_size[2],
+                            center[0]-half_size[0], center[1]+half_size[1], center[2]-half_size[2],
+                            center[0]+half_size[0], center[1]+half_size[1], center[2]-half_size[2],
+                            center[0]+half_size[0], center[1]-half_size[1], center[2]-half_size[2],
+                            center[0]-half_size[0], center[1]-half_size[1], center[2]-half_size[2] };
 
     size_t lines[12*2] = { 0, 1,
                            1, 2,
@@ -298,14 +298,12 @@ void draw_box_wire(struct Canvas* canvas,
                            2, 6,
                            3, 7 };
 
-    Mat box_transform = {0};
-    mat_translate(model_matrix, center, box_transform);
     for( size_t i = 0; i < 12; i++ ) {
         size_t index_a = lines[i*2+0];
         size_t index_b = lines[i*2+1];
         VecP* a = &vertices[index_a*3];
         VecP* b = &vertices[index_b*3];
-        draw_line(canvas, layer_i, box_transform, color, line_thickness, a, b);
+        draw_line(canvas, layer_i, model_matrix, color, line_thickness, a, b);
     }
 
 }

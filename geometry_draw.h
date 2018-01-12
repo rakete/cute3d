@@ -94,8 +94,8 @@ void draw_box_wire(struct Canvas* canvas,
                    const Mat model_matrix,
                    const Color color,
                    float line_thickness,
-                   Vec3f half_size,
-                   Vec3f center);
+                   const Vec3f half_size,
+                   const Vec3f center);
 
 void draw_halfedgemesh_wire(struct Canvas* canvas,
                             int32_t layer_i,
