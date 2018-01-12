@@ -276,11 +276,24 @@ int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Ve
 }
 
 int32_t bsp_tree_test_polygon(const struct BspTree* tree, int32_t start_i,
-                              size_t polygon_size, const float* polygon_vertices,
+                              const struct Pivot* pivot, size_t polygon_size, const float* polygon_vertices,
                               struct BspNode* result_node, enum PolygonCutType* result_cut_type, size_t result_size, struct PolygonCutPoint* result_points)
 {
     log_assert(start_i >= 0);
     int32_t test_i = start_i;
+
+    const float* polygon_vertices_pointer = polygon_vertices;
+
+    Mat inverse_transform = IDENTITY_MAT;
+    if( pivot != NULL ) {
+        pivot_local_transform(pivot, inverse_transform);
+
+        float transformed_polygon_vertices[polygon_size*VERTEX_SIZE];
+        for( size_t i = 0; i < polygon_size; i++ ) {
+            mat_mul_vec(inverse_transform, &polygon_vertices[i*VERTEX_SIZE], &transformed_polygon_vertices[i*VERTEX_SIZE]);
+        }
+        polygon_vertices_pointer = transformed_polygon_vertices;
+    }
 
     while( true ) {
         const struct BspNode* test_node = &tree->nodes.array[test_i];
@@ -289,7 +302,7 @@ int32_t bsp_tree_test_polygon(const struct BspTree* tree, int32_t start_i,
         Vertex test_divider_vertex = {0};
         vertex_copy(&tree->attributes.vertices[test_divider.start*VERTEX_SIZE], test_divider_vertex);
 
-        *result_cut_type = polygon_cut_test(polygon_size, VERTEX_SIZE, polygon_vertices,
+        *result_cut_type = polygon_cut_test(polygon_size, VERTEX_SIZE, polygon_vertices_pointer,
                                             test_divider.normal, test_divider_vertex,
                                             result_size, result_points);
 
@@ -321,6 +334,74 @@ int32_t bsp_tree_test_polygon(const struct BspTree* tree, int32_t start_i,
     }
 
     return -1;
+}
+
+int32_t bsp_tree_test_ray(const struct BspTree* tree, int32_t start_i,
+                          const struct Pivot* pivot, const Vec3f origin, const Vec3f direction,
+                          float* near, float* far,
+                          float* result_hit)
+{
+    log_assert(start_i >= 0);
+    log_assert(start_i <= tree->nodes.occupied);
+    log_assert(*near >= 0.0f);
+    log_assert(*far >= 0.0f);
+
+    Mat inverse_transform = IDENTITY_MAT;
+    pivot_local_transform(pivot, inverse_transform);
+
+    Vec3f transformed_origin = {0};
+    mat_mul_vec(inverse_transform, origin, transformed_origin);
+
+    Quat inverse_rotation = {0};
+    quat_invert(pivot->orientation, inverse_rotation);
+
+    Vec3f transformed_direction = {0};
+    vec_rotate(direction, inverse_rotation, transformed_direction);
+
+    float tmin = *near;
+    float tmax = *far;
+    if( tmin == tmax ) {
+        const struct BspNode* root = &tree->nodes.array[0];
+        intersect_ray_aabb(transformed_origin, transformed_direction, root->bounds.center, root->bounds.half_size, &tmin, &tmax);
+    }
+    printf("tmin: %f, tmax: %f\n", tmin, tmax);
+
+    const struct BspNode* node = &tree->nodes.array[start_i];
+    const struct BspPolygon* divider_polygon = &tree->polygons.array[node->divider];
+
+    Vec3f plane_point = {0};
+    vec_copy3f(&tree->attributes.vertices[divider_polygon->start*VERTEX_SIZE], plane_point);
+    Vec3f plane_normal = {0};
+    vec_copy3f(divider_polygon->normal, plane_normal);
+
+    float d = vec_dot(plane_normal, transformed_direction);
+
+    if( d != 0.0f ) {
+        Vec3f u = {0};
+        vec_sub(plane_point, transformed_origin, u);
+        float thit = vec_dot(u, plane_normal) / d;
+
+        if( thit >= 0.0f && thit <= tmin ) {
+            // 2. 0.0f < thit < tmin
+            printf("thit >= 0.0f && thit <= tmin: %f\n", thit);
+        } else if( thit > tmin && thit <= tmax ) {
+            // 3. tmin < thit < tmax
+            printf("thit > tmin && thit <= tmax: %f\n", thit);
+        } else if( thit > tmax ) {
+            // 4. thit > tmax
+            printf("thit > tmax: %f\n", thit);
+        }
+
+        *result_hit = thit;
+    }
+    //float hit_sign = intersect_ray_plane(transformed_origin, transformed_direction, plane_normal, plane_point, &thit);
+
+    // - cases:
+    // 0. intersect_ray_plane == 0.0f
+    // 1. intersect_ray_plane < 0.0f
+    //printf("hit_sign: %f\n", d);
+
+    return 1;
 }
 
 struct BspNode* bsp_tree_create_from_solid(struct Solid* solid, struct BspTree* tree) {

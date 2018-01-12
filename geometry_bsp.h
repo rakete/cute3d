@@ -29,6 +29,7 @@
 
 #include "geometry_solid.h"
 #include "geometry_polygon.h"
+#include "geometry_intersect.h"
 
 #ifndef BSP_ATTRIBUTES_ALLOC
 #define BSP_ATTRIBUTES_ALLOC 2048
@@ -191,10 +192,15 @@ int32_t bsp_tree_add_polygon(struct BspTree* tree, size_t polygon_size, const Ve
 // of the node that contains the divider thats responsible for the cut, so that the user can decide
 // to continue testing from that index with one of the two polygons resulting from the cut
 int32_t bsp_tree_test_polygon(const struct BspTree* tree, int32_t start_i,
-                              size_t polygon_size, const float* polygon_vertices,
+                              const struct Pivot* pivot, size_t polygon_size, const float* polygon_vertices,
                               struct BspNode* result_node, enum PolygonCutType* result_cut_type, size_t result_size, struct PolygonCutPoint* result_points);
 
-int32_t bsp_tree_test_ray(const struct BspTree* tree, const Vec3f origin, const Vec3f direction, float* near, float* far);
+// - similar to above: test ray against tree, start at start_i and test ray against divider, if
+// ray section from near to far falls in front or behind divider continue until ray
+int32_t bsp_tree_test_ray(const struct BspTree* tree, int32_t start_i,
+                          const struct Pivot* pivot, const Vec3f origin, const Vec3f direction,
+                          float* near, float* far,
+                          float* result_hit);
 
 // - bsp_tree_create_from_solid is the function a user is supposed to call when he wants to create
 // a bsp tree, from a solid obviously, I planned to have other functions for halfedgemesh etc.
@@ -301,7 +307,7 @@ int32_t bsp_build_select_balanced_divider(const struct BspTree* tree, struct Bsp
 // how to use this function
 // - I added root_frame argument to make the creation of the stack frame representing
 // the root branch explicit
-// - I added triangulation to the build process then realized it may have a non
+// - I added triangulation to the build process then realized it may have a
 // significant impact on the performance, so I added the bool triangulate argument
 // so that I can easily disable triangulation if needed
 struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_frame, bool triangulate, struct BspBuildState* state);
