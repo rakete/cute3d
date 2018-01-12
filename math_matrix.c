@@ -232,6 +232,7 @@ void vec_angle_points(const Vec3f a, const Vec3f b, const Vec3f c, float* r) {
 }
 
 void vec_rotate(const Vec3f v_in, const Quat q, Vec3f r) {
+    // - my original implementation which should be the standard mathy way
     /* Quat normed_q; */
     /* quat_normalize(q, normed_q); */
 
@@ -243,6 +244,15 @@ void vec_rotate(const Vec3f v_in, const Quat q, Vec3f r) {
 
     /* quat_mul(product, conj, r); */
 
+    // - got this optimized version from here:
+    // https://gamedev.stackexchange.com/questions/28395/rotating-vector3-by-a-quaternion
+    /* vprime = */
+    /*     2.0f * dot(u, v) * u */
+    /*     + (s*s - dot(u, u)) * v */
+    /*     + 2.0f * s * cross(u, v); */
+
+    // - v[3] _must_ be 0 (so I can use it as quaternion), so that why I am doing this
+    // thing here which may not look like it is actually neccessary
     Vec4f v = {0};
     v[0] = v_in[0];
     v[1] = v_in[1];
@@ -260,11 +270,6 @@ void vec_rotate(const Vec3f v_in, const Quat q, Vec3f r) {
     vec_cross(q, v, u);
     vec_mul1f(u, 2.0f * s, u);
     vec_add(r, u, r);
-
-    /* vprime = */
-    /*     2.0f * dot(u, v) * u */
-    /*     + (s*s - dot(u, u)) * v */
-    /*     + 2.0f * s * cross(u, v); */
 }
 
 bool vec_nullp(const Vec4f v) {
@@ -285,14 +290,15 @@ bool vec_unitp(const Vec4f v) {
 }
 
 bool vec_equal(const Vec4f a, const Vec4f b) {
-    bool ret = 0;
+    bool ret = false;
 
     // - having these somewhat larger (larger then FLT_EPSILON at least) works better
+    // - these are not CUTE_EPSILON because that is = FLT_EPSILON and that is too small!
     if( fabs(a[0] - b[0]) <= 0.00001f &&
         fabs(a[1] - b[1]) <= 0.00001f &&
         fabs(a[2] - b[2]) <= 0.00001f )
     {
-        ret = 1;
+        ret = true;
     }
 
     return ret;
