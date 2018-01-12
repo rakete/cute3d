@@ -30,7 +30,6 @@
 #include "gui_widgets.h"
 
 #include "geometry_solid.h"
-#include "geometry_shape.h"
 
 #include "render_shader.h"
 #include "render_vbo.h"
