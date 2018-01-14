@@ -127,9 +127,9 @@ int32_t main(int32_t argc, char *argv[]) {
 
     int32_t mouse_x = -1;
     int32_t mouse_y = -1;
-    Vec3f ray = {0};
-    Vec3f ray100 = {0};
-    Vec3f pos = {0};
+    Vec4f ray = {0};
+    Vec4f ray100 = {0};
+    Vec4f pos = {0};
     while (true) {
         int mousepressed = 0;
         SDL_Event event;

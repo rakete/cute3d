@@ -185,19 +185,21 @@ int32_t bsp_tree_add_node(struct BspTree* tree, int32_t parent, enum BspSide sid
 
     node->tree.index = node_i;
     node->tree.parent = parent;
-
     node->tree.side = side;
-    if( side == BSP_FRONT ) {
-        tree->nodes.array[parent].tree.front = node_i;
-    } else if( side == BSP_BACK ) {
-        tree->nodes.array[parent].tree.back = node_i;
-    }
-
-    node->tree.depth = tree->nodes.array[parent].tree.depth + 1;
 
     node->num_polygons = num_polygons;
     node->bounds = bounds;
     node->divider = divider;
+
+    if( parent > -1 ) {
+        if( side == BSP_FRONT ) {
+            tree->nodes.array[parent].tree.front = node_i;
+        } else if( side == BSP_BACK ) {
+            tree->nodes.array[parent].tree.back = node_i;
+        }
+
+        node->tree.depth = tree->nodes.array[parent].tree.depth + 1;
+    }
 
     tree->nodes.occupied += 1;
 
@@ -932,16 +934,24 @@ struct BspNode* bsp_build(struct BspTree* tree, struct BspBuildStackFrame root_f
                         }
 
                         // - set siblings here when I know bot back_ and front_index
+                        // - why do I reset the front/back_polygon[0,1] pointers from the front/back_index[0,1] again? why not just use them?
+                        // because I call bsp_tree_add_polygon,  which may call realloc on the polygon array, which invalidates all pointers
+                        // pointing into that array
+                        front_polygon[0] = &tree->polygons.array[front_index[0]];
                         front_polygon[0]->cut.sibling = back_index[0];
-                        if( front_polygon[1] != NULL ) {
+                        if( front_index[1] > -1 ) {
+                            front_polygon[1] = &tree->polygons.array[front_index[1]];
                             // - it is not immediatly obvious, but there should never be a situation where when the front_polygon
                             // is triangulated into two triangles, the back polygon is triangulated into two triangles as well, thats
                             // why I assert here that there is only one back polygon
                             log_assert(back_polygon[1] == NULL);
                             front_polygon[1]->cut.sibling = back_index[0];
                         }
+
+                        back_polygon[0] = &tree->polygons.array[back_index[0]];
                         back_polygon[0]->cut.sibling = front_index[0];
-                        if( back_polygon[1] != NULL ) {
+                        if( back_index[1] > -1 ) {
+                            back_polygon[1] = &tree->polygons.array[back_index[1]];
                             log_assert(front_polygon[1] == NULL);
                             back_polygon[1]->cut.sibling = front_index[0];
                         }

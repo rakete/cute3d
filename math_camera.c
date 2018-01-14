@@ -128,24 +128,16 @@ void camera_matrices(const struct Camera* camera, enum CameraProjection projecti
     }
 }
 
-void camera_unproject(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec4f result) {
+void camera_unproject(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec3f result) {
     Mat projection_matrix = {0};
     Mat view_matrix = {0};
     camera_matrices(camera, projection_type, projection_matrix, view_matrix);
 
     //  3d Normalised Device Coordinates
-    Vec4f device_coordinates = {
+    Vec3f device_coordinates = {
         2.0f * x / camera->screen.width - 1.0f,
         1.0f - (2.0f * y) / camera->screen.height,
         1.0f, //camera->frustum.near,
-        1.0f
-    };
-
-    Vec4f clip_coordinates = {
-        device_coordinates[0],
-        device_coordinates[1],
-        device_coordinates[2],
-        1.0f
     };
 
     double det = 0;
@@ -160,19 +152,18 @@ void camera_unproject(const struct Camera* camera, enum CameraProjection project
     Mat inverse_view = {0};
     mat_invert(view_matrix, &det, inverse_view);
 
-    Vec4f eye_coordinates = {0};
-    mat_mul_vec(inverse_projection, clip_coordinates, eye_coordinates);
+    Vec3f eye_coordinates = {0};
+    mat_mul_vec(inverse_projection, device_coordinates, eye_coordinates);
 
     eye_coordinates[2] = -1.0f; // -camera->frustum.near
-    eye_coordinates[3] = 1.0f;
 
     mat_mul_vec(inverse_view, eye_coordinates, eye_coordinates);
     /* vec_normalize(eye_coordinates, eye_coordinates); */
 
-    vec_copy4f(eye_coordinates, result);
+    vec_copy3f(eye_coordinates, result);
 }
 
-void camera_ray(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec4f ray) {
+void camera_ray(const struct Camera* camera, enum CameraProjection projection_type, int32_t x, int32_t y, Vec3f ray) {
     Mat projection_matrix = {0};
     Mat view_matrix = {0};
     camera_matrices(camera, projection_type, projection_matrix, view_matrix);
@@ -199,7 +190,6 @@ void camera_ray(const struct Camera* camera, enum CameraProjection projection_ty
     mat_mul_vec(inverse_projection, clip_coordinates, ray);
 
     ray[2] = -1.0f;
-    ray[3] = 1.0f;
 
     Quat inverse_orientation = {0};
     quat_invert(camera->pivot.orientation, inverse_orientation);
