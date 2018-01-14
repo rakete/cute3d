@@ -237,37 +237,37 @@ void canvas_render_layers(struct Canvas* canvas, int32_t layer_start, int32_t la
                             ogl_debug( glDisable(GL_DEPTH_TEST) );
                         }
 
-                        if( primitive_i == CANVAS_VOLUMETRIC_LINES ) {
+                        if( layer_i == MAX_CANVAS_LAYERS-1 && primitive_i == CANVAS_VOLUMETRIC_LINES ) {
                             // - https://stackoverflow.com/questions/14154704/how-to-avoid-transparency-overlap-using-opengl
-                            glColorMask(false, false, false, false);
+                            ogl_debug( glColorMask(false, false, false, false);
 
-                            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
+                                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
                                        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW);
 
                                        glDrawElements(primitive_type, indices_occupied, indices_type, 0);
-                                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
+                                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-                            glDepthFunc(GL_LEQUAL);
-                            glColorMask(true, true, true, true);
+                                       glColorMask(true, true, true, true); );
 
+                            ogl_debug( glDepthFunc(GL_LEQUAL);
 
-                            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
+                                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
                                        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW);
 
                                        glDrawElements(primitive_type, indices_occupied, indices_type, 0);
-                                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
+                                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-                            glDepthFunc(GL_LESS);
+                                       glDepthFunc(GL_LESS); );
                         } else if( layer_i == MAX_CANVAS_LAYERS-1 ) {
-                            glDepthMask(GL_FALSE);
+                            ogl_debug( glDepthMask(GL_FALSE);
 
-                            ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
+                                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
                                        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW);
 
                                        glDrawElements(primitive_type, indices_occupied, indices_type, 0);
-                                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); );
+                                       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-                            glDepthMask(GL_TRUE);
+                                       glDepthMask(GL_TRUE); );
                         } else {
                             ogl_debug( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas->layer[layer_i].indices[texture_i][shader_i][projection_i][primitive_i].id);
                                        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (ptrdiff_t)indices_bytes, indices_array, GL_DYNAMIC_DRAW);
