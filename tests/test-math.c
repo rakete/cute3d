@@ -43,8 +43,8 @@ int32_t main(int32_t argc, char *argv[]) {
     gametime_create(1.0f / 60.0f, &time);
 
 
-    Vec3f a = {0.0f, 0.0f, 1.0f};
-    Vec3f b = {1.0f, 0.0f, 1.0f};
+    Vec4f a = {0.0f, 0.0f, 1.0f};
+    Vec4f b = {1.0f, 0.0f, 1.0f};
     draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){25, 255, 25, 255}, 0.01f, a, (Vec3f){0.0f, 0.0f, 0.0f}, 1.0f, 1.0f);
     draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 25, 25, 255}, 0.01f, b, (Vec3f){0.0f, 0.0f, 0.0f}, 1.0f, 1.0f);
 
@@ -53,11 +53,11 @@ int32_t main(int32_t argc, char *argv[]) {
     draw_quaternion(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 255, 255, 255}, (Color){255, 0, 255, 255}, 0.01f, axis_angle_rot, 2.0f);
 
     vec_print("axis_angle_rot: ", axis_angle_rot);
-    Vec3f axis_angle_result = {0};
-    vec_rotate3f(a, axis_angle_rot, axis_angle_result);
+    Vec4f axis_angle_result = {0};
+    vec_rotate(a, axis_angle_rot, axis_angle_result);
     draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 255, 25, 255}, 0.01f, axis_angle_result, (Vec3f){0.0f, 0.0f, 0.0f}, 1.0f, 2.0f);
 
-    Vec3f axis = {0};
+    Vec4f axis = {0};
     float angle = 0.0f;
     quat_to_axis_angle(axis_angle_rot, axis, &angle);
     Quat axis_angle_rot2 = {0};
@@ -67,15 +67,15 @@ int32_t main(int32_t argc, char *argv[]) {
     Quat euler_angles_rot = {0};
     quat_from_euler_angles(0.0f, PI/4, 0.0f, euler_angles_rot);
     vec_print("euler_angles_rot: ", euler_angles_rot);
-    Vec3f euler_angles_result = {0};
-    vec_rotate3f(a, euler_angles_rot, euler_angles_result);
+    Vec4f euler_angles_result = {0};
+    vec_rotate(a, euler_angles_rot, euler_angles_result);
     draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){25, 255, 255, 255}, 0.01f, euler_angles_result, (Vec3f){0.0f, 0.0f, 0.0f}, 1.0f, 3.0f);
 
     Quat vec_pair_rot = {0};
     quat_from_vec_pair(a, b, vec_pair_rot);
     vec_print("vec_pair_rot: ", vec_pair_rot);
-    Vec3f vec_pair_result = {0};
-    vec_rotate3f(a, vec_pair_rot, vec_pair_result);
+    Vec4f vec_pair_result = {0};
+    vec_rotate(a, vec_pair_rot, vec_pair_result);
     draw_vec(&global_static_canvas, 0, (Mat)IDENTITY_MAT, (Color){255, 25, 255, 255}, 0.01f, vec_pair_result, (Vec3f){0.0f, 0.0f, 0.0f}, 1.0f, 4.0f);
 
     Mat xaxis_control = {0};

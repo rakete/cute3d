@@ -36,8 +36,11 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
+    int width = 1280;
+    int height = 720;
+
     SDL_Window* window;
-    sdl2_window("test-shading", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, &window);
+    sdl2_window("cute3d: " __FILE__, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(3, 2, window, &context);
@@ -46,11 +49,11 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_canvas(1280,720) ) {
+    if( init_canvas(width, height) ) {
         return 1;
     }
-    canvas_create("global_dynamic_canvas", 1280, 720, &global_dynamic_canvas);
-    canvas_create("global_static_canvas", 1280, 720, &global_static_canvas);
+    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
+    canvas_create("global_static_canvas", &global_static_canvas);
 
     struct Vbo vbo = {0};
     vbo_create(&vbo);
@@ -63,60 +66,51 @@ int32_t main(int32_t argc, char *argv[]) {
     ibo_create(GL_TRIANGLES, GL_UNSIGNED_INT, GL_STATIC_DRAW, &ibo);
 
     struct SolidTetrahedron hard_tetrahedron = {0};
-    struct SolidBox hard_box = {0};
     struct SolidBox hard_cube = {0};
     struct SolidSphere16 hard_sphere16 = {0};
     struct SolidSphere32 hard_sphere32 = {0};
     solid_tetrahedron_create(1.0, (Color){255, 0, 0, 255}, &hard_tetrahedron);
-    solid_box_create((Vec3f){1.5, 0.25, 1.75}, (Color){255, 0, 255, 255}, &hard_box);
-    solid_cube_create(1.0, (Color){0, 255, 0, 255}, &hard_cube);
+    solid_cube_create(0.5, (Color){0, 255, 0, 255}, &hard_cube);
     solid_sphere16_create(16, 8, 0.75, (Color){0, 255, 255, 255}, &hard_sphere16);
     solid_sphere32_create(32, 16, 0.75, (Color){255, 255, 0, 255}, &hard_sphere32);
 
     solid_optimize((struct Solid*)&hard_tetrahedron);
-    solid_optimize((struct Solid*)&hard_box);
     solid_optimize((struct Solid*)&hard_cube);
     solid_optimize((struct Solid*)&hard_sphere16);
     solid_optimize((struct Solid*)&hard_sphere32);
 
     struct VboMesh hard_tetrahedron_mesh, hard_box_mesh, hard_cube_mesh, hard_sphere16_mesh, hard_sphere32_mesh;
     vbo_mesh_create_from_solid((struct Solid*)&hard_tetrahedron, &vbo, &ibo, &hard_tetrahedron_mesh);
-    vbo_mesh_create_from_solid((struct Solid*)&hard_box, &vbo, &ibo, &hard_box_mesh);
     vbo_mesh_create_from_solid((struct Solid*)&hard_cube, &vbo, &ibo, &hard_cube_mesh);
     vbo_mesh_create_from_solid((struct Solid*)&hard_sphere16, &vbo, &ibo, &hard_sphere16_mesh);
     vbo_mesh_create_from_solid((struct Solid*)&hard_sphere32, &vbo, &ibo, &hard_sphere32_mesh);
 
     struct SolidTetrahedron smooth_tetrahedron = {0};
-    struct SolidBox smooth_box = {0};
     struct SolidBox smooth_cube = {0};
     struct SolidSphere16 smooth_sphere16 = {0};
     struct SolidSphere32 smooth_sphere32 = {0};
     solid_tetrahedron_create(1.0, (Color){255, 0, 0, 255}, &smooth_tetrahedron);
-    solid_box_create((Vec3f){1.5, 0.25, 1.75}, (Color){255, 0, 255, 255}, &smooth_box);
-    solid_cube_create(1.0, (Color){0, 255, 0, 255}, &smooth_cube);
+    solid_cube_create(0.5, (Color){0, 255, 0, 255}, &smooth_cube);
     solid_sphere16_create(16, 8, 0.75, (Color){0, 255, 255, 255}, &smooth_sphere16);
     solid_sphere32_create(32, 16, 0.75, (Color){255, 255, 0, 255}, &smooth_sphere32);
 
     solid_optimize((struct Solid*)&smooth_tetrahedron);
-    solid_optimize((struct Solid*)&smooth_box);
     solid_optimize((struct Solid*)&smooth_cube);
     solid_optimize((struct Solid*)&smooth_sphere16);
     solid_optimize((struct Solid*)&smooth_sphere32);
     solid_smooth_normals((struct Solid*)&smooth_tetrahedron, smooth_tetrahedron.normals, smooth_tetrahedron.normals);
-    solid_smooth_normals((struct Solid*)&smooth_box, smooth_box.normals, smooth_box.normals);
     solid_smooth_normals((struct Solid*)&smooth_cube, smooth_cube.normals, smooth_cube.normals);
     solid_smooth_normals((struct Solid*)&smooth_sphere16, smooth_sphere16.normals, smooth_sphere16.normals);
     solid_smooth_normals((struct Solid*)&smooth_sphere32, smooth_sphere32.normals, smooth_sphere32.normals);
 
     struct VboMesh smooth_tetrahedron_mesh, smooth_box_mesh, smooth_cube_mesh, smooth_sphere16_mesh, smooth_sphere32_mesh;
     vbo_mesh_create_from_solid((struct Solid*)&smooth_tetrahedron, &vbo, &ibo, &smooth_tetrahedron_mesh);
-    vbo_mesh_create_from_solid((struct Solid*)&smooth_box, &vbo, &ibo, &smooth_box_mesh);
     vbo_mesh_create_from_solid((struct Solid*)&smooth_cube, &vbo, &ibo, &smooth_cube_mesh);
     vbo_mesh_create_from_solid((struct Solid*)&smooth_sphere16, &vbo, &ibo, &smooth_sphere16_mesh);
     vbo_mesh_create_from_solid((struct Solid*)&smooth_sphere32, &vbo, &ibo, &smooth_sphere32_mesh);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){2.5,17.0,17.0,1.0}, (Vec4f){2.5,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
+    arcball_create(width, height, (Vec4f){2.5,17.0,17.0,1.0}, (Vec4f){2.5,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
 
     float circular_motion_angle = 0.0f;
     float circular_motion_speed = (2.0f*PI)/30;
@@ -160,14 +154,15 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_set_uniform_4f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_MATERIAL_COEFFICIENTS, 4, GL_FLOAT, material_coefficients);
     shader_set_uniform_3f(&gouraud_shader, gouraud_shader.program, SHADER_UNIFORM_EYE_POSITION, 3, GL_FLOAT, &arcball.camera.pivot.position);
 
-    Mat identity = {0};
-    mat_identity(identity);
+    Mat identity = IDENTITY_MAT;
     draw_grid(&global_static_canvas, 0, identity, (Color){127, 127, 127, 255}, 0.03f, 12.0f, 12.0f, 12);
 
-    Mat shading_label_transform = {0};
-    mat_rotate(identity, grid_rotation, shading_label_transform);
+    Mat shading_label_transform = IDENTITY_MAT;
+    Quat text_rotation = IDENTITY_QUAT;
+    quat_from_axis_angle((Vec3f)X_AXIS, -PI/2.0f, text_rotation);
+    mat_rotate(shading_label_transform, text_rotation, shading_label_transform);
     mat_translate(shading_label_transform, (float[4]){ 6.5, 0.0, -2.5, 1.0 }, shading_label_transform);
-    text_put_world(&global_static_canvas, 0, NULL, shading_label_transform, (Color){255, 255, 255, 255}, 1.0f, "default_font", L"FLAT");
+    text_put_world(&global_static_canvas, 0, NULL, shading_label_transform,(Color){255, 255, 255, 255}, 1.0f, "default_font", L"FLAT");
     mat_translate(shading_label_transform, (float[4]){ 0.0, 0.0, 4.0, 1.0 }, shading_label_transform);
     text_put_world(&global_static_canvas, 0, NULL, shading_label_transform, (Color){255, 255, 255, 255}, 1.0f, "default_font", L"GOURAUD");
 
@@ -177,19 +172,13 @@ int32_t main(int32_t argc, char *argv[]) {
     while (true) {
         SDL_Event event;
         while( SDL_PollEvent(&event) ) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    goto done;
-                case SDL_KEYDOWN: {
-                    SDL_KeyboardEvent* key_event = (SDL_KeyboardEvent*)&event;
-                    if(key_event->keysym.scancode == SDL_SCANCODE_ESCAPE) {
-                        goto done;
-                    }
-                    break;
-                }
+            if( sdl2_handle_quit(event) ) {
+                goto done;
             }
+            sdl2_handle_resize(event);
 
-            arcball_event(&arcball, event);
+            arcball_handle_resize(&arcball, event);
+            arcball_handle_mouse(&arcball, event);
         }
 
         sdl2_gl_set_swap_interval(1);

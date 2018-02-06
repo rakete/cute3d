@@ -48,7 +48,7 @@ int32_t main(int32_t argc, char** argv) {
     uint32_t height = 720;
 
     SDL_Window* window;
-    sdl2_window("test-cute", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
+    sdl2_window("cute3d: " __FILE__, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(3, 2, window, &context);
@@ -107,10 +107,10 @@ int32_t main(int32_t argc, char** argv) {
     /* shader_set_uniform(&default_shader, SHADER_UNIFORM_AMBIENT_LIGHT, "ambiance", NULL, NULL); */
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){0.0, 0.0, 8.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 0.001, 1000.0, &arcball);
+    arcball_create(width, height, (Vec4f){0.0, 0.0, 8.0, 1.0}, (Vec4f){0.0, 0.0, 0.0, 1.0}, 0.001, 1000.0, &arcball);
 
     struct SolidBox cube = {0};
-    solid_box_create((Vec3f){1.0f, 1.0f, 1.0f}, (Color){ 255, 0, 0, 255}, &cube);
+    solid_box_create((Vec3f){0.6f, 0.6f, 0.6f}, (Color){ 255, 0, 0, 255}, &cube);
 
     struct VboMesh cube_mesh = {0};
     vbo_mesh_create(&vbo, &ibo, &cube_mesh);
@@ -136,19 +136,13 @@ int32_t main(int32_t argc, char** argv) {
     while( true ) {
         SDL_Event event;
         while( sdl2_poll_event(&event) ) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    goto done;
-                case SDL_KEYDOWN: {
-                    SDL_KeyboardEvent* key_event = (SDL_KeyboardEvent*)&event;
-                    if(key_event->keysym.scancode == SDL_SCANCODE_ESCAPE) {
-                        goto done;
-                    }
-                    break;
-                }
+            if( sdl2_handle_quit(event) ) {
+                goto done;
             }
+            sdl2_handle_resize(event);
 
-            arcball_event(&arcball, event);
+            arcball_handle_resize(&arcball, event);
+            arcball_handle_mouse(&arcball, event);
         }
 
 
@@ -183,16 +177,14 @@ int32_t main(int32_t argc, char** argv) {
         quat_mul_axis_angle(cube_rotation, (Vec4f){ 1.0, 0.0, 0.0, 1.0 }, 45 * PI/180, cube_rotation);
 
         if( gametime_integrate(&time) ) {
-            quat_mul_axis_angle(cube_spinning, (float[]){ 0.0, 1.0, 0.0, 1.0 }, 1 * PI/180, cube_spinning);
+            quat_mul_axis_angle(cube_spinning, (float[]){ 0.0, 1.0, 0.0, 1.0 }, -1 * PI/180, cube_spinning);
         }
 
-        quat_mul(cube_rotation, cube_spinning, cube_rotation);
+        quat_mul(cube_spinning, cube_rotation, cube_rotation);
 
-        printf("%f %f %f %f\n", cube_spinning[0], cube_spinning[1], cube_spinning[2], cube_spinning[3]);
+        //printf("%f %f %f %f\n", cube_spinning[0], cube_spinning[1], cube_spinning[2], cube_spinning[3]);
 
         quat_to_mat(cube_rotation, cube_transform);
-        // - fuck it, not fixing this now, quat_to_mat row/column order aftermath
-        mat_transpose(cube_transform, cube_transform);
 
         mat_translate(cube_transform, (Vec4f){ -2.1, 0.0, 0.0, 1.0 }, cube_transform);
 

@@ -80,7 +80,7 @@ int32_t main(int32_t argc, char *argv[]) {
     struct SolidTorus24 torus24 = {0};
     struct SolidTorus24 supertoroid24 = {0};
     solid_box_create((Vec3f){0.5, 0.25, 0.75}, (Color){0, 255, 0, 255}, &box);
-    solid_cube_create(0.75, (Color){255, 0, 255, 255}, &cube);
+    solid_cube_create(0.5, (Color){255, 0, 255, 255}, &cube);
 
     solid_tetrahedron_create(1.0f, (Color){255, 0, 0, 255}, &tetrahedron);
     solid_octahedron_create(1.0f, (Color){255, 0, 0, 255}, &octahedron);

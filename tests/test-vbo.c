@@ -33,8 +33,11 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    SDL_Window* window;
-    sdl2_window("test-shading", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, &window);
+    uint32_t width = 1280;
+    uint32_t height = 720;
+
+    SDL_Window* window = NULL;
+    sdl2_window("cute3d: " __FILE__, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, &window);
 
     SDL_GLContext* context;
     sdl2_glcontext(3, 2, window, &context);
@@ -47,11 +50,11 @@ int32_t main(int32_t argc, char *argv[]) {
         return 1;
     }
 
-    if( init_canvas(1280,720) ) {
+    if( init_canvas(width, height) ) {
         return 1;
     }
-    canvas_create("global_dynamic_canvas", 1280, 720, &global_dynamic_canvas);
-    canvas_create("global_static_canvas", 1280, 720, &global_static_canvas);
+    canvas_create("global_dynamic_canvas", &global_dynamic_canvas);
+    canvas_create("global_static_canvas", &global_static_canvas);
 
     struct Vbo test_vbo = {0};
     vbo_create(&test_vbo);
@@ -91,11 +94,11 @@ int32_t main(int32_t argc, char *argv[]) {
     solid_optimize((struct Solid*)&tetrahedron2);
 
     struct SolidBox cube = {0};
-    solid_cube_create(1.0, (Color){0, 255, 0, 255}, &cube);
+    solid_cube_create(0.5, (Color){0, 255, 0, 255}, &cube);
     solid_optimize((struct Solid*)&cube);
 
     struct SolidBox cube2 = {0};
-    solid_cube_create(1.0, (Color){0, 255, 255, 255}, &cube2);
+    solid_cube_create(0.5, (Color){0, 255, 255, 255}, &cube2);
     solid_optimize((struct Solid*)&cube2);
 
     struct VboMesh tetrahedron_mesh;
@@ -130,7 +133,7 @@ int32_t main(int32_t argc, char *argv[]) {
     shader_set_uniform_4f(&flat_shader, flat_shader.program, SHADER_UNIFORM_AMBIENT_LIGHT, 4, GL_UNSIGNED_BYTE, ambiance);
 
     struct Arcball arcball = {0};
-    arcball_create(window, (Vec4f){0.0,8.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
+    arcball_create(width, height, (Vec4f){0.0,8.0,8.0,1.0}, (Vec4f){0.0,0.0,0.0,1.0}, 0.1, 100.0, &arcball);
 
     Mat identity;
     mat_identity(identity);
@@ -139,19 +142,14 @@ int32_t main(int32_t argc, char *argv[]) {
     while (true) {
         SDL_Event event;
         while( SDL_PollEvent(&event) ) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    goto done;
-                case SDL_KEYDOWN: {
-                    SDL_KeyboardEvent* key_event = (SDL_KeyboardEvent*)&event;
-                    if(key_event->keysym.scancode == SDL_SCANCODE_ESCAPE) {
-                        goto done;
-                    }
-                    break;
-                }
+            if( sdl2_handle_quit(event) ) {
+                goto done;
             }
+            sdl2_handle_resize(event);
 
-            arcball_event(&arcball, event);
+            arcball_handle_resize(&arcball, event);
+            arcball_handle_mouse(&arcball, event);
+
         }
 
         sdl2_gl_set_swap_interval(1);
