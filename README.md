@@ -1,8 +1,10 @@
 # Cute3D
 
-This is a framework for developing interactive realtime simulations in 3D. It should be useful for game devolepment, but may be also have purpose in robotics and artificial intelligence research.
+A framework for creating interactive realtime simulations in 3D. My goal is to create a library of functionality that makes it easy to quickly prototype and implement interactive 3D applications. That means I want to implement algorithms from various topics of game development, starting from simple rendering, ranging over acceleration structures for dealing with 3D geometry, collision detection and occlusion culling, all the way to physics simulation, animation and procedural generation.
 
-It is a private project currently in development and useable, but very far away from being complete. My goal is to create a library of functionality that makes it easy to quickly prototype and implement interactive 3D applications. That means ultimately I want this framework to offer implementations touching various topics of game development, starting from simple rendering, ranging over acceleration structures, collision detection and occlusion culling, all the way to physics simulation, animation and procedural generation.
+I attempt to create something that compiles quickly and is portable. That is why I choose to use C as programming language and use very few external dependencies. Whenever I use OpenGL, I use only functionality that is available in OpenGL ES 2.0, so that porting Cute3D code to WebGL should be easy.
+
+The code I write should ideally be easy to understand (easier said then done) and as a result easy to modify and adapt to specific use cases. To achieve this the framework is seperated into several modules, each of which is written so that it should be useable with the least amount of dependance on all the other modules of the framework. All necessary communication between modules is done with only basic data types and avoids relying on any complex data structure whenever possible. The algorithmic code has extensive commentary and uses only the low-level abstractions available in C, and together with the seperation into modules I hope this will make understanding the complex parts of the framework very straightforward.
 
 <p align="center">
 <img src="screenshots/test-cute_2016-12-16.png" width="250"/> <img src="screenshots/test-shading_2016-12-16.png" width="250"/> <img src="screenshots/test-collisions_2016-12-16.png" width="250"/>
@@ -11,7 +13,7 @@ It is a private project currently in development and useable, but very far away 
 
 ## Getting Started
 
-Currently Cute3D can be used as a simple OpenGL rendering library, that helps you getting something on the screen without running into the 'black screen' problem programmers often face when first beginning with OpenGL. Despite the fact that I call Cute3D a library, it does not yet build as a shared library. Instead, the best way to get started with Cute3D is to just clone the repository, build the included tests and start experimenting with the source code directly:
+The best way to get started with Cute3D in its current state is to just clone the repository, build the included tests and start experimenting with the source code directly:
 
     git clone https://github.com/rakete/cute3d.git
     cd cute3d
