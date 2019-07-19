@@ -40,6 +40,7 @@
         if( strlen(error) > 0 ) {                                       \
             printf("%s@%d:::::\n%s\n", __FILE__, __LINE__, sdl2_stringify(line)); \
             printf("SDL_GetError(): %s\n", SDL_GetError());             \
+            SDL_ClearError();                                           \
         }                                                               \
     } while(0)
 #else
