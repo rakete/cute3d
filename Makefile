@@ -1,7 +1,7 @@
 all: cute3d
 
 cute3d:
-	mkdir build; cd build; python ../ninja_build.py; ninja
+	mkdir -p build; cd build; python ../ninja_cute3d.py; ninja
 
 test-%: cute3d
 	cd build; ninja $@
