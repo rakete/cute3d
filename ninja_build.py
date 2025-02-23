@@ -78,7 +78,7 @@ def glsl_validate(w):
     glsl_validate_path = os.path.join(module_directory, "scripts", "glsl_validate.py")
 
     if os.path.exists(glsl_validate_path):
-        w.rule(name="validate_glsl", command="python " + glsl_validate_path + " --no-color $prefix $in $write")
+        w.rule(name="validate_glsl", command="python " + glsl_validate_path.replace('\\', '\\\\') + " --no-color $prefix $in $write")
         w.newline()
 
 def xxd(w, source_directory):
@@ -86,7 +86,7 @@ def xxd(w, source_directory):
     xxd_path = os.path.join(module_directory, "scripts", "xxd.py")
 
     if os.path.exists(xxd_path):
-        w.rule(name="xxd", command="python " + xxd_path + " $in $out $name_prefix")
+        w.rule(name="xxd", command="python " + xxd_path.replace('\\', '\\\\') + " $in $out $name_prefix")
         w.newline()
 
 def build_shaders(w, build_platform, source_directory, build_directory, script_directory, shader_subdir):
@@ -140,8 +140,13 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
         dest_frag_shader = os.path.join(shader_subdir, frag_shader)
 
         prefix_deps = []
+        prefix_deps_escaped = []
         if shader_filename != "prefix":
-            prefix_deps = [os.path.join(shader_subdir, "prefix.vert"), os.path.join(shader_subdir, "prefix.frag")]
+            prefix_vert = os.path.join(shader_subdir, "prefix.vert")
+            prefix_frag = os.path.join(shader_subdir, "prefix.frag")
+            prefix_deps = [prefix_vert, prefix_frag]
+            prefix_deps_escaped = [prefix_vert.replace('\\', '\\\\'), prefix_frag.replace('\\', '\\\\')]
+
 
         out_of_source = False
         if os.path.relpath(build_directory, script_directory) != ".":
@@ -155,7 +160,7 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
                 # - make the validate_glsl rule depend on the prefix_deps, so that those get copied first before running
                 # any validation
                 w.build(full_vert_shader, "validate_glsl", source_vert_shader, order_only=prefix_deps)
-                w.variable("prefix", prefix_deps, 1)
+                w.variable("prefix", prefix_deps_escaped, 1)
                 w.variable("write", "--write " + shader_subdir, 1)
                 # - if the current build is out of source, we need to copy the shader into build directory, if not then we
                 # just create a phony rule, in both cases we need to depend on the full_vert_shader so that the validation
@@ -173,7 +178,7 @@ def build_shaders(w, build_platform, source_directory, build_directory, script_d
         if os.path.isfile(source_frag_shader):
             if shader_filename != "prefix":
                 w.build(full_frag_shader, "validate_glsl", source_frag_shader, order_only=prefix_deps)
-                w.variable("prefix", prefix_deps, 1)
+                w.variable("prefix", prefix_deps_escaped, 1)
                 w.variable("write", "--write " + shader_subdir, 1)
                 if out_of_source:
                     w.build(dest_frag_shader, "copy", source_frag_shader, order_only=full_frag_shader)
@@ -305,8 +310,8 @@ def detect_settings(args):
         # https://wiki.libsdl.org/FAQWindows#I_get_.22Undefined_reference_to_.27WinMain.4016.27.22
         settings.sdl2_libs = "-Lc:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -mwindows"
         if command_exists("sdl2-config") and command_exists("sh"):
-            settings.sdl2_cflags = subprocess.check_output(["sh", "sdl2-config", "--cflags"]).rstrip()
-            settings.sdl2_libs = subprocess.check_output(["sh", "sdl2-config", "--libs"]).rstrip()
+            settings.sdl2_cflags = subprocess.check_output(["sh", "sdl2-config", "--cflags"]).rstrip().decode('utf-8')
+            settings.sdl2_libs = subprocess.check_output(["sh", "sdl2-config", "--libs"]).rstrip().decode('utf-8')
 
         settings.features = "-posix -std=c11 -g -DDEBUG "
         settings.optimization = "-O0" # "-flto=4 -march=native"

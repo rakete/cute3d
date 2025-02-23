@@ -11,7 +11,7 @@ import textwrap
 import re
 
 def escape_path(word):
-    return word.replace('$ ','$$ ').replace(' ','$ ').replace(':', '$:')
+    return word.replace('$ ','$$ ').replace(' ','$ ').replace(':', '$:').replace('\\', '\\\\')
 
 class Writer(object):
     def __init__(self, output, width=78):
@@ -148,11 +148,3 @@ class Writer(object):
         if isinstance(input, list):
             return input
         return [input]
-
-
-def escape(string):
-    """Escape a string such that it can be embedded into a Ninja file without
-    further interpretation."""
-    assert '\n' not in string, 'Ninja syntax does not allow newlines'
-    # We only have one special metacharacter: '$'.
-    return string.replace('$', '$$')

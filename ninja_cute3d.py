@@ -73,7 +73,7 @@ if build_settings.build_toolset == "mingw" or build_settings.build_toolset == "g
     w.newline()
     w.rule(name="link", command="gcc $in -o $out " + build_settings.ldflags)
     w.newline()
-elif build_toolset == "msvc":
+elif build_settings.build_toolset == "msvc":
     # - needs /FS to enable synchronous writes to pdb database
     w.rule(name="compile", command="cl.exe /nologo /showIncludes /FS /c $in /Fo$out " + build_settings.cflags, deps="msvc")
     w.newline()
